@@ -1045,6 +1045,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     if (
+      /^(?:was|wie|wann|wo|welch\w*|wer)\b/u.test(text) &&
+      /\b(?:mein(?:e|er|en|em|es)?|unser(?:e|er|en|em|es)?)\b/u.test(text)
+    ) {
+      return text.slice(0, 240);
+    }
+
+    if (
       /^(?:was|wie|wann|wo|welch\w*)\b/u.test(text) &&
       /\b(?:gestern|vorgestern|damals|fruher|letzt\w*)\b/u.test(text)
     ) {
