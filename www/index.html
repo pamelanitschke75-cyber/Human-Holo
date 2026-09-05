@@ -8320,12 +8320,20 @@ function speakPersonalRecallResult(
       ""
     ).trim().slice(0, 16000);
 
+  const directRecall =
+    recall?.mode ===
+      "recall" ||
+    recall?.handled ===
+      true;
+
 
   const resultText =
-    recall?.found &&
-    memoryText
-      ? `Frage: ${cleanQuestion}\n\nGefundene persönliche Aussagen:\n${memoryText}`
-      : `Frage: ${cleanQuestion}\n\nKeine passende persönliche Aussage wurde gefunden.`;
+    directRecall
+      ? recall?.found &&
+        memoryText
+        ? `Frage: ${cleanQuestion}\n\nGefundene persönliche Aussagen:\n${memoryText}`
+        : `Frage: ${cleanQuestion}\n\nKeine passende persönliche Aussage wurde gefunden.`
+      : `Aktuelle Nachricht: ${cleanQuestion}\n\nPassender ownergebundener Dauerkontext:\n${memoryText}`;
 
 
   cancelRealtimeResponse();
@@ -8340,7 +8348,7 @@ function speakPersonalRecallResult(
         content:[{
           type:"input_text",
           text:
-            `[LOKALES_ERINNERUNGSERGEBNIS]\n${resultText}`
+            `${directRecall ? "[LOKALES_ERINNERUNGSERGEBNIS]" : "[LOKALER_DAUERKONTEXT]"}\n${resultText}`
         }]
       }
     })
@@ -8358,7 +8366,8 @@ let realtimeWeatherPlacePending =
 async function sendLiveTranscriptToMemory(
   transcript,
   role = "user",
-  fulltimeEventId = ""
+  fulltimeEventId = "",
+  suppressAssistantResponse = false
 ){
 
   const identity =
@@ -8630,7 +8639,11 @@ async function sendLiveTranscriptToMemory(
 
     if(
       role === "user" &&
-      data?.recall?.handled
+      !suppressAssistantResponse &&
+      (
+        data?.recall?.handled ||
+        data?.recall?.contextAvailable
+      )
     ){
 
       const spoken =
@@ -8641,9 +8654,11 @@ async function sendLiveTranscriptToMemory(
 
 
       chatStatus.textContent =
-        data.recall?.found
-          ? "Persönliche Erinnerung verbindlich gefunden."
-          : "Keine passende persönliche Erinnerung gefunden.";
+        data.recall?.handled
+          ? data.recall?.found
+            ? "Persönliche Erinnerung verbindlich gefunden."
+            : "Keine passende persönliche Erinnerung gefunden."
+          : "Ownergebundener Dauerkontext geladen.";
 
 
       memoryStatus.textContent =
@@ -8763,17 +8778,19 @@ async function handleRealtimeUserTranscript(
   fulltimeEventId = ""
 ){
 
-  const [memoryHandled, localHandled] =
-    await Promise.all([
-      sendLiveTranscriptToMemory(
-        transcript,
-        "user",
-        fulltimeEventId
-      ),
-      handleRealtimeLocalNoteTranscript(
-        transcript
-      )
-    ]);
+  const localHandled =
+    await handleRealtimeLocalNoteTranscript(
+      transcript
+    );
+
+
+  const memoryHandled =
+    await sendLiveTranscriptToMemory(
+      transcript,
+      "user",
+      fulltimeEventId,
+      localHandled
+    );
 
 
   if(
@@ -10359,7 +10376,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=45"></script>
+<script src="./sol-holo-ui.js?v=46"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=4"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=1"></script>

@@ -41,7 +41,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /sol-holo-129-verbindlicher-erinnerungsabruf/u);
+  assert.match(serviceWorker, /sol-holo-130-immer-an-gedaechtnis/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -67,6 +67,14 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
   const clientDetector = new Function(
     `${ui.slice(uiStart, uiEnd)}\nreturn personalRecallQueryFromMessage;`
   )();
+  const termsStart = server.indexOf("const MEMORY_SEARCH_STOP_WORDS");
+  const termsEnd = server.indexOf(
+    "async function loadRelevantFulltimeMemory",
+    termsStart
+  );
+  const termExtractor = new Function(
+    `${server.slice(termsStart, termsEnd)}\nreturn extractMemorySearchTerms;`
+  )();
 
   assert.equal(serverDetector("Sol, was weißt du über Salt?"), "salt");
   assert.equal(clientDetector("Sol, was weißt du über Salt?"), "salt");
@@ -78,15 +86,48 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
     clientDetector("Ich habe dir gestern etwas über Salt erzählt, weißt du das noch?"),
     "salt"
   );
+  assert.equal(
+    serverDetector("Wann haben meine Eltern Geburtstag?"),
+    "wann haben meine eltern geburtstag"
+  );
+  assert.equal(
+    clientDetector("Wann haben meine Eltern Geburtstag?"),
+    "wann haben meine eltern geburtstag"
+  );
+  assert.deepEqual(
+    termExtractor("Wann haben meine Eltern Geburtstag?"),
+    [
+      "wann",
+      "eltern",
+      "geburtstag",
+      "mutter",
+      "mama",
+      "vater",
+      "papa",
+      "geburtsdatum",
+      "geboren"
+    ]
+  );
   assert.equal(clientDetector("Wie ist das Wetter in München?"), "");
   assert.match(server, /buildPersonalRecallResult\(\s*identity,\s*transcript/u);
+  assert.match(server, /alwaysOn:\s*\n\s*true/u);
   assert.match(server, /recall:\s*\n\s*recallResult/u);
   assert.match(server, /LOKALES_ERINNERUNGSERGEBNIS/u);
+  assert.match(server, /LOKALER_DAUERKONTEXT/u);
+  assert.match(server, /MEMORY_SEARCH_TERM_ALIASES/u);
+  assert.match(server, /"eltern"[\s\S]*?"mutter"[\s\S]*?"vater"/u);
+  assert.match(server, /explicitPersonalRecallQuery/u);
+  assert.match(server, /memorySearchText/u);
   assert.match(server, /create_response:\s*\n\s*!manualResponseRouting/u);
   assert.match(html, /manualResponseRouting:\s*\n\s*true/u);
-  assert.match(html, /data\?\.recall\?\.handled/u);
+  assert.match(html, /data\?\.recall\?\.contextAvailable/u);
   assert.match(html, /handleRealtimeUserTranscript/u);
   assert.match(html, /LOKALES_ERINNERUNGSERGEBNIS/u);
+  assert.match(html, /LOKALER_DAUERKONTEXT/u);
+  assert.match(
+    html,
+    /await handleRealtimeLocalNoteTranscript\([\s\S]*?await sendLiveTranscriptToMemory/u
+  );
 });
 
 test("ein ausdrücklicher Kalenderauftrag wird ohne zweite Inhaltsfreigabe ausgeführt", () => {

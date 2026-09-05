@@ -5336,6 +5336,57 @@ const MEMORY_SEARCH_STOP_WORDS =
     "was", "wer", "wie", "wir", "wo", "zu", "zum", "zur"
   ]);
 
+const MEMORY_SEARCH_TERM_ALIASES =
+  new Map([
+    [
+      "eltern",
+      [
+        "mutter",
+        "mama",
+        "vater",
+        "papa"
+      ]
+    ],
+    [
+      "mutter",
+      [
+        "mama"
+      ]
+    ],
+    [
+      "mama",
+      [
+        "mutter"
+      ]
+    ],
+    [
+      "vater",
+      [
+        "papa"
+      ]
+    ],
+    [
+      "papa",
+      [
+        "vater"
+      ]
+    ],
+    [
+      "geburtstag",
+      [
+        "geburtsdatum",
+        "geboren"
+      ]
+    ],
+    [
+      "geburtsdatum",
+      [
+        "geburtstag",
+        "geboren"
+      ]
+    ]
+  ]);
+
 function extractMemorySearchTerms(
   message
 ) {
@@ -5351,19 +5402,55 @@ function extractMemorySearchTerms(
 
   const unique = [];
 
+  const addTerm =
+    word => {
+      if (
+        !word ||
+        word.length < 2 ||
+        MEMORY_SEARCH_STOP_WORDS.has(
+          word
+        ) ||
+        unique.includes(
+          word
+        )
+      ) {
+        return;
+      }
+
+      unique.push(
+        word
+      );
+    };
+
   for (const word of words) {
-    if (
-      word.length < 2 ||
-      MEMORY_SEARCH_STOP_WORDS.has(word) ||
-      unique.includes(word)
-    ) {
-      continue;
-    }
+    addTerm(
+      word
+    );
 
-    unique.push(word);
-
-    if (unique.length >= 12) {
+    if (unique.length >= 16) {
       break;
+    }
+  }
+
+  for (
+    let index = 0;
+    index < unique.length &&
+    unique.length < 20;
+    index += 1
+  ) {
+    const aliases =
+      MEMORY_SEARCH_TERM_ALIASES.get(
+        unique[index]
+      ) || [];
+
+    for (const alias of aliases) {
+      addTerm(
+        alias
+      );
+
+      if (unique.length >= 20) {
+        break;
+      }
     }
   }
 
@@ -5829,6 +5916,20 @@ function personalRecallSearchQuery(
   }
 
   if (
+    /^(?:was|wie|wann|wo|welch\w*|wer)\b/u.test(
+      text
+    ) &&
+    /\b(?:mein(?:e|er|en|em|es)?|unser(?:e|er|en|em|es)?)\b/u.test(
+      text
+    )
+  ) {
+    return text.slice(
+      0,
+      240
+    );
+  }
+
+  if (
     /^(?:was|wie|wann|wo|welch\w*)\b/u.test(text) &&
     /\b(?:gestern|vorgestern|damals|fruher|letzt\w*)\b/u.test(text)
   ) {
@@ -5842,10 +5943,22 @@ async function buildPersonalRecallResult(
   identity,
   message
 ) {
-  const query =
+  const explicitQuery =
     personalRecallSearchQuery(
       message
     );
+
+  const query =
+    String(
+      explicitQuery ||
+      message ||
+      ""
+    )
+      .trim()
+      .slice(
+        0,
+        1200
+      );
 
   if (!query) {
     return null;
@@ -5885,8 +5998,22 @@ async function buildPersonalRecallResult(
       .slice(0, 16_000);
 
   return {
-    handled:
+    alwaysOn:
       true,
+    handled:
+      Boolean(
+        explicitQuery
+      ),
+    searched:
+      true,
+    mode:
+      explicitQuery
+        ? "recall"
+        : "context",
+    contextAvailable:
+      Boolean(
+        memoryText
+      ),
     found:
       Boolean(memoryText),
     query,
@@ -6531,21 +6658,13 @@ app.post(
       let calendarResult =
         null;
 
-      const recallResult =
-        await buildPersonalRecallResult(
-          identity,
-          transcript
-        );
-
       calendarResult =
-        recallResult?.handled
-          ? null
-          : await handleCalendarWriteRequest(
-              transcript,
-              identity,
-              hasTrustedGooglePersonalReadGate(req),
-              conversation.conversationId
-            );
+        await handleCalendarWriteRequest(
+          transcript,
+          identity,
+          hasTrustedGooglePersonalReadGate(req),
+          conversation.conversationId
+        );
 
       if (
         calendarResult?.handled &&
@@ -6560,13 +6679,21 @@ app.post(
       }
 
       const weatherResult =
-        recallResult?.handled ||
         calendarResult?.handled
           ? null
           : await handleLiveWeatherRequest(
               transcript,
               identity,
               conversation.conversationId
+            );
+
+      const recallResult =
+        calendarResult?.handled ||
+        weatherResult?.handled
+          ? null
+          : await buildPersonalRecallResult(
+              identity,
+              transcript
             );
 
       if (
@@ -6601,6 +6728,10 @@ app.post(
             ),
           recallFound:
             recallResult?.found ??
+              null,
+          recallContextAvailable:
+            recallResult
+              ?.contextAvailable ??
               null,
           weatherHandled:
             Boolean(
@@ -6962,6 +7093,14 @@ Rufe search_personal_memory dann nicht erneut auf. Bevorzuge Aussagen von
 ${identity.displayName} gegenüber älteren Sol-Antworten. Behaupte nicht,
 etwas sei vergessen worden, wenn passende Treffer geliefert wurden. Bitte
 ${identity.displayName} nicht, dieselbe Information noch einmal zu erzählen.
+
+Wenn eine Nutzernachricht mit [LOKALER_DAUERKONTEXT] beginnt, hat die App
+vor deiner Antwort das ownergebundene Immer-an-Gedächtnis verbindlich
+durchsucht. Beantworte die unmittelbar vorausgehende Nachricht natürlich
+und nutze die gelieferten Aussagen genau dann, wenn sie dafür relevant sind.
+Erwähne weder die Suche noch diesen technischen Kontextmarker. Aussagen von
+${identity.displayName} haben Vorrang vor älteren Antworten von Sol. Ergänze
+keine Details, die nicht in den gelieferten Aussagen stehen.
 
 Erfinde niemals eine Erinnerung.
 
@@ -8830,6 +8969,17 @@ app.post("/sol", async (req, res) => {
         identity.displayName
       );
 
+    const explicitPersonalRecallQuery =
+      hasVisualMedia
+        ? ""
+        : personalRecallSearchQuery(
+            promptMessage
+          );
+
+    const memorySearchText =
+      explicitPersonalRecallQuery ||
+      promptMessage;
+
     const [longTermMemories, fulltimeMemories] =
       await Promise.all([
         identityMemoryStore
@@ -8839,13 +8989,13 @@ app.post("/sol", async (req, res) => {
             speakerId:
               identity.speakerId,
             searchText:
-              promptMessage,
+              memorySearchText,
             limit:
               36
           }),
         loadRelevantOwnerFulltimeMemory(
           identity,
-          promptMessage,
+          memorySearchText,
           60
         )
       ]);
@@ -8872,6 +9022,24 @@ app.post("/sol", async (req, res) => {
         .filter(Boolean)
         .join("\n") ||
       "Keine passenden Einträge im Vollzeitgedächtnis gefunden.";
+
+    const explicitPersonalRecallInstruction =
+      explicitPersonalRecallQuery
+        ? fulltimeMemories.length > 0 ||
+          longTermMemories.length > 0
+          ? `
+DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
+Beantworte sie jetzt klar und unmittelbar aus den passenden historischen
+Aussagen. Behaupte nicht, es lägen keine Informationen vor, und bitte
+${identity.displayName} nicht, dieselben Daten erneut zu nennen. Wenn mehrere
+passende Angaben gefragt sind, nenne alle gefundenen Angaben.
+`
+          : `
+DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
+Im ownergebundenen Gedächtnis wurde dazu kein passender Eintrag gefunden.
+Erfinde keine Antwort und bitte nicht automatisch um eine erneute Speicherung.
+`
+        : "";
 
     const mediaPrompt =
       hasVideo
@@ -9076,6 +9244,8 @@ und übernimm sie nicht in Antworten oder Erinnerungen.
 Die Freigabe eines Dienstes ist kein automatischer
 Vollimport des Handys. Verwende nur die konkrete Funktion,
 die ${identity.displayName} gerade ausdrücklich angefordert hat.
+
+${explicitPersonalRecallInstruction}
 
 LANGZEITGEDÄCHTNIS:
 
