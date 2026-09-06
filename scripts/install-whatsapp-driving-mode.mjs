@@ -37,6 +37,7 @@ for (const fileName of [
   "HeyHoSolPlugin.java",
   "HeyHoSolService.java",
   "WakeCaptureEndpointer.java",
+  "WakeRecognitionLifecyclePolicy.java",
   "WakePhraseMatcher.java",
   "PhoneContactsPlugin.java",
   "SolAudioRoutePlugin.java",
@@ -70,8 +71,8 @@ if (!mainActivity.includes("registerPlugin(WhatsAppDrivingModePlugin.class)")) {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(WhatsAppDrivingModePlugin.class);
-        super.onCreate(savedInstanceState);
         applyWakeScreenBehavior(getIntent());
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -92,12 +93,16 @@ if (!mainActivity.includes("registerPlugin(WhatsAppDrivingModePlugin.class)")) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
+            getWindow().addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            );
             return;
         }
 
         getWindow().addFlags(
             WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         );
     }
 }`
@@ -154,13 +159,13 @@ if (!mainActivity.includes("registerPlugin(HealthConnectPlugin.class)")) {
 }
 
 if (!mainActivity.includes("handleSharedNoteIntent(this, getIntent())")) {
-  const createMarker = "        applyWakeScreenBehavior(getIntent());\n    }";
+  const createMarker = "        super.onCreate(savedInstanceState);\n    }";
   if (!mainActivity.includes(createMarker)) {
     throw new Error("onCreate-Markierung für Samsung Notes nicht gefunden.");
   }
   mainActivity = mainActivity.replace(
     createMarker,
-    "        applyWakeScreenBehavior(getIntent());\n" +
+    "        super.onCreate(savedInstanceState);\n" +
       "        PhoneContactsPlugin.handleSharedNoteIntent(this, getIntent());\n    }"
   );
 }
@@ -221,6 +226,7 @@ for (const permission of [
   '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />',
+  '<uses-permission android:name="android.permission.WAKE_LOCK" />',
   '<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />',
   '<uses-permission android:name="android.permission.health.READ_BASAL_BODY_TEMPERATURE" />',
   '<uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE" />',
