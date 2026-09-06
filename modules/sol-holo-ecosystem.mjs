@@ -179,6 +179,30 @@ const POLICE_IMMEDIACY_TERMS = Object.freeze([
   "in gefahr"
 ]);
 
+function hasActiveResidentialIntruder(normalizedText) {
+  const unknownPerson =
+    /\b(?:(?:fremd|unbekannt|unbefugt)(?:e|er|en|em|es)?\s+(?:person|mann|frau|mensch)|jemand\s+fremd(?:e|er|en|em|es)?)\b/u.test(
+      normalizedText
+    );
+  const insidePrivateSpace =
+    /\b(?:in|innerhalb(?:\s+von)?)\s+(?:meiner|meinem|unserer|unserem|der)\s+(?:wohnung|haus|zimmer|keller|garage)\b/u.test(
+      normalizedText
+    );
+  const currentPresence =
+    /\b(?:ist|befindet\s+sich|steht|sitzt|versteckt\s+sich)\b/u.test(
+      normalizedText
+    );
+  const explicitlyNegated =
+    /\b(?:kein|keine|keinen|niemand)\b[\s\S]{0,35}\b(?:fremd|unbekannt|unbefugt)/u.test(
+      normalizedText
+    ) ||
+    /\b(?:fremd|unbekannt|unbefugt)[\s\S]{0,45}\b(?:nicht|nicht mehr)\s+(?:in|innerhalb)\b/u.test(
+      normalizedText
+    );
+
+  return unknownPerson && insidePrivateSpace && currentPresence && !explicitlyNegated;
+}
+
 export function normalizeEcosystemText(value) {
   return String(value || "")
     .replace(/[Ää]/gu, "ae")
@@ -312,11 +336,17 @@ export function classifyEcosystemUrgency(message) {
     /\b(?:bei mir|wohnung|haus|zimmer|gebaeude|geschaeft|laden|buero|tuer|fenster)\b/u.test(
       normalized
     );
+  const activeResidentialIntruder =
+    hasActiveResidentialIntruder(normalized);
   const policeSignals = [
     ...matchedTerms(normalized, POLICE_EMERGENCY_TERMS),
-    ...(activeBreakIn ? ["aktiver einbruch"] : [])
+    ...(activeBreakIn ? ["aktiver einbruch"] : []),
+    ...(activeResidentialIntruder ? ["fremde person im wohnraum"] : [])
   ];
-  const policeImmediacy = matchedTerms(normalized, POLICE_IMMEDIACY_TERMS);
+  const policeImmediacy = [
+    ...matchedTerms(normalized, POLICE_IMMEDIACY_TERMS),
+    ...(activeResidentialIntruder ? ["aktuell im wohnraum"] : [])
+  ];
   const bothContext =
     /\b(?:mensch|menschen)\b[\s\S]{0,60}\b(?:tier|tiere)\b/u.test(
       normalized

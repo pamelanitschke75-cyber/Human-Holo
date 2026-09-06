@@ -71,6 +71,7 @@ test("weitere Sicherheitsfragen umgehen ebenfalls die Kontaktsuche", () => {
     "Nur ein Test: Ich habe starke Atemnot. Wen soll ich anrufen",
     "Nur ein Test: Eine Person zeigt Anzeichen eines Schlaganfalls. Was muss ich tun",
     "Nur ein Test: Gerade bricht jemand bei mir ein. Wen soll ich anrufen",
+    "Ein fremder Mann ist gerade in meiner Wohnung. Wen soll ich anrufen",
     "Nur ein Test: Ich habe am Wochenende starke Rückenschmerzen. Wen soll ich anrufen"
   ]) {
     assert.equal(parsers.isSafetyTriageQuestion(message), true, message);

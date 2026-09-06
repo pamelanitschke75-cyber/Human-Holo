@@ -268,6 +268,33 @@ test("akute Polizeigefahr wird getrennt von medizinischer Lebensgefahr an 110 ge
   assert.equal(medicalDangerHasPriority.priority_contact.number, "112");
 });
 
+test("ein fremder Mann in der eigenen Wohnung liefert im Echtmodus den 110-Button", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Ein fremder Mann ist gerade in meiner Wohnung. Wen soll ich anrufen?"
+  });
+
+  assert.equal(assessment.urgency.level, "emergency");
+  assert.equal(assessment.urgency.route, "police");
+  assert.equal(assessment.priority_contact.number, "110");
+  assert.equal(assessment.priority_contact.test_mode, false);
+  assert.equal(assessment.priority_contact.open_dialer_allowed, true);
+  assert.equal(assessment.priority_contact.automatic_call, false);
+  assert.deepEqual(
+    assessment.help_sources.map(source => source.id),
+    ["de_police_110"]
+  );
+});
+
+test("eine verneinte fremde Person loest keinen 110-Button aus", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Es ist keine fremde Person in meiner Wohnung. Alles ist sicher."
+  });
+
+  assert.equal(assessment.priority_contact, null);
+});
+
 test("reale feste Hilfen duerfen nur den Wähler vorbereiten", () => {
   const assessment = buildEcosystemAssessment({
     message:
@@ -285,6 +312,24 @@ test("reale feste Hilfen duerfen nur den Wähler vorbereiten", () => {
   assert.match(
     ensurePriorityContactPrefix("Bitte schildere dort deine Beschwerden.", assessment.priority_contact),
     /^116117/u
+  );
+});
+
+test("Ohrenschmerzen ohne Lebensgefahr liefern im Echtmodus den 116117-Button", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Ich habe am Sonntag starke Ohrenschmerzen, aber keine Lebensgefahr. Wen soll ich anrufen?"
+  });
+
+  assert.equal(assessment.urgency.level, "urgent");
+  assert.equal(assessment.urgency.route, "medical");
+  assert.equal(assessment.priority_contact.number, "116117");
+  assert.equal(assessment.priority_contact.test_mode, false);
+  assert.equal(assessment.priority_contact.open_dialer_allowed, true);
+  assert.equal(assessment.priority_contact.automatic_call, false);
+  assert.deepEqual(
+    assessment.help_sources.map(source => source.id),
+    ["de_medical_116117"]
   );
 });
 
