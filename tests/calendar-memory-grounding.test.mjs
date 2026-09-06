@@ -174,7 +174,7 @@ test("eine kurze Datumsantwort direkt nach Sols Vater-Frage zählt", () => {
   assert.equal(result.command.end, "2026-12-10");
 });
 
-test("ein Datum aus einer früheren Sol-Antwort wird niemals übernommen", () => {
+test("eine unverbundene frühere Sol-Antwort wird niemals übernommen", () => {
   const result = resolveGroundedBirthdayCalendarCommand({
     message:
       "Trag den Geburtstag meines Vaters in den Kalender ein",
@@ -192,6 +192,93 @@ test("ein Datum aus einer früheren Sol-Antwort wird niemals übernommen", () =>
   assert.equal(result.matched, true);
   assert.equal(result.resolved, false);
   assert.equal(result.reason, "missing_date");
+});
+
+test("Sols eindeutige direkte Antwort auf Pams Geburtstagsfrage darf den Auftrag tragen", () => {
+  const result = resolveGroundedBirthdayCalendarCommand({
+    message:
+      "Kannst du bitte den Geburtstag meines Vaters in den Kalender eintragen",
+    todayIso:
+      "2026-09-06",
+    rows: [
+      {
+        id: 31,
+        role: "user",
+        content: "Wann hat mein Vater Geburtstag?"
+      },
+      {
+        role: "user",
+        source: "confirmed-calendar",
+        content: "Salt ist die hellere Katze."
+      },
+      {
+        id: 32,
+        role: "assistant",
+        content: "Am 18. Januar."
+      },
+      {
+        id: 33,
+        role: "user",
+        content: "Kannst du bitte den Geburtstag meines Vaters in den Kalender eintragen"
+      }
+    ]
+  });
+
+  assert.equal(result.resolved, true);
+  assert.equal(result.reason, "grounded_recall_answer");
+  assert.equal(result.command.summary, "Vater Geburtstag");
+  assert.equal(result.command.start, "2027-01-18");
+  assert.equal(result.command.end, "2027-01-19");
+  assert.equal(result.command.recurrence, "yearly");
+});
+
+test("eine unsichere Sol-Antwort bleibt auch nach einer Geburtstagsfrage gesperrt", () => {
+  const result = resolveGroundedBirthdayCalendarCommand({
+    message:
+      "Trag den Geburtstag meines Vaters in den Kalender ein",
+    todayIso:
+      "2026-09-06",
+    rows: [
+      {
+        role: "user",
+        content: "Wann hat mein Vater Geburtstag?"
+      },
+      {
+        role: "assistant",
+        content: "Ich weiß es nicht, vielleicht am 18. Januar."
+      }
+    ]
+  });
+
+  assert.equal(result.resolved, false);
+  assert.equal(result.reason, "missing_date");
+});
+
+test("Pams eigene Datumsangabe hat weiterhin Vorrang vor Sols Antwort", () => {
+  const result = resolveGroundedBirthdayCalendarCommand({
+    message:
+      "Trag den Geburtstag meines Vaters in den Kalender ein",
+    todayIso:
+      "2026-09-06",
+    rows: [
+      {
+        role: "user",
+        content: "Wann hat mein Vater Geburtstag?"
+      },
+      {
+        role: "assistant",
+        content: "Am 17. Januar."
+      },
+      {
+        role: "user",
+        content: "Mein Vater hat am 18. Januar Geburtstag."
+      }
+    ]
+  });
+
+  assert.equal(result.resolved, true);
+  assert.equal(result.reason, "owner_history");
+  assert.equal(result.command.start, "2027-01-18");
 });
 
 test("eine spätere Korrektur von Pam hat Vorrang vor der älteren Angabe", () => {

@@ -81,6 +81,25 @@ function mentionsBirthday(value) {
   );
 }
 
+function isBirthdayRecallQuestion(value, subjectKey) {
+  const text = normalize(value);
+  return (
+    birthdaySubject(value)?.key === subjectKey &&
+    mentionsBirthday(value) &&
+    (
+      /^(?:wann|welch\w*)\b/u.test(text) ||
+      /\bwei(?:ss|ß)t\s+du\b[\s\S]*\bwann\b/u.test(text)
+    )
+  );
+}
+
+function isDefinitiveAssistantDateAnswer(value) {
+  const text = normalize(value);
+  return !/\b(?:vielleicht|vermutlich|wahrscheinlich|moglicherweise|unsicher|beispiel|geraten)\b|\b(?:wei(?:ss|ß)|weiss)\s+(?:es\s+)?nicht\b|\b(?:kein|keine|keinen)\s+(?:eindeutig\w*\s+)?(?:datum|info)/u.test(
+    text
+  );
+}
+
 function validDayMonth(day, month) {
   if (!Number.isInteger(day) || !Number.isInteger(month)) {
     return false;
@@ -256,10 +275,49 @@ export function resolveGroundedBirthdayCalendarCommand({
 
   const history = Array.isArray(rows) ? rows : [];
   let latestCandidate = null;
+  const groundedAssistantCandidates = new Map();
+  let assistantConflict = false;
+  let candidateReason = "owner_history";
 
   for (let index = 0; index < history.length; index += 1) {
     const row = history[index] || {};
-    if (String(row.role || "") !== "user") {
+    const role = String(row.role || "");
+
+    if (role === "assistant") {
+      const dates = dateReferences(row.content);
+      const previous =
+        history
+          .slice(0, index)
+          .reverse()
+          .find(candidate =>
+            String(candidate?.source || "") !== "confirmed-calendar"
+          ) || {};
+      if (
+        dates.length === 0 ||
+        String(previous.role || "") !== "user" ||
+        !isBirthdayRecallQuestion(previous.content, subject.key) ||
+        !isDefinitiveAssistantDateAnswer(row.content)
+      ) {
+        continue;
+      }
+
+      const distinctDates = new Map(
+        dates.map(date => [`${date.month}-${date.day}`, date])
+      );
+      if (distinctDates.size > 1) {
+        assistantConflict = true;
+        continue;
+      }
+
+      const [assistantCandidate] = distinctDates.values();
+      groundedAssistantCandidates.set(
+        `${assistantCandidate.month}-${assistantCandidate.day}`,
+        assistantCandidate
+      );
+      continue;
+    }
+
+    if (role !== "user") {
       continue;
     }
 
@@ -297,6 +355,23 @@ export function resolveGroundedBirthdayCalendarCommand({
   }
 
   if (!latestCandidate) {
+    if (
+      assistantConflict ||
+      groundedAssistantCandidates.size > 1
+    ) {
+      return {
+        matched: true,
+        resolved: false,
+        reason: "conflicting_dates",
+        command: null
+      };
+    }
+
+    [latestCandidate] = groundedAssistantCandidates.values();
+    candidateReason = "grounded_recall_answer";
+  }
+
+  if (!latestCandidate) {
     return {
       matched: true,
       resolved: false,
@@ -319,7 +394,7 @@ export function resolveGroundedBirthdayCalendarCommand({
   return {
     matched: true,
     resolved: true,
-    reason: "owner_history",
+    reason: candidateReason,
     command: {
       action: "create",
       summary: subject.label,
