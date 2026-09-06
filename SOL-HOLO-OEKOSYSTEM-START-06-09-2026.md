@@ -4,7 +4,7 @@
 **Initiatorin und Projektinhaberin:** Pamela Nitschke  
 **Projekt:** Sol Holo · SH♾️  
 **Leitsatz:** Miteinander füreinander. Together forever.  
-**Status:** Grundkern technisch umgesetzt und lokal geprüft; noch nicht von Pam als vollständig fertig bestätigt
+**Status:** Grundkern sowie Text- und Realtime-Sprachverbindung technisch umgesetzt und lokal geprüft; noch nicht von Pam als vollständig fertig bestätigt
 
 ## Was „Ökosystem“ hier bedeutet
 
@@ -149,6 +149,15 @@ Sol Holo führt niemals automatisch eine Geldanlage, Bestellung, Spende oder
 Zahlung aus. Rendite oder Wirkung werden nicht garantiert. Jede verbindliche
 Transaktion braucht eine ausdrückliche Freigabe.
 
+## Klare Grenze zu Claws Alltag und Verständigung
+
+Automatische Spracherkennung, automatische Erkennung der gesprochenen Sprache,
+Übersetzung, Vorlesen, Untertitel und barrierearme Bedienung sind wichtige
+Sol-Holo-Funktionen. Sie bilden aber **keinen zwölften Ökosystembereich**. Sie
+gehören als übergreifende Bedien- und Verständigungsebene zum OpenClaw-Worker
+Alltag. Dieser kann das Ökosystem später zugänglich machen, ohne Verständigung
+fälschlich als Umweltwirkung auszugeben.
+
 ## Gemeinsame Arbeitslogik
 
 1. **Erkennen:** Was ist tatsächlich beschrieben? Nichts hinzuerfinden.
@@ -173,10 +182,20 @@ Neu angelegt wurden:
 - `tests/sol-holo-ecosystem.test.mjs`: Regressionstests für alle zentralen
   Beispiele und Sicherheitsgrenzen.
 
-Der Grundkern ist bewusst von Android, Wake-up, Stimme, Signatur, persönlichem
-Gedächtnis, Kalender und bestehenden Diensten getrennt. Dadurch verändert
-dieser Start keine bereits bestätigte Funktion und benötigt noch keinen neuen
-APK-Build.
+Für den kontrollierten Übergang wurden anschließend ergänzt:
+
+- `server.mjs`: derselbe Kern wird im Textweg `/sol` und im ownergebundenen
+  Sprachtranskriptweg `/live/memory` ausgeführt;
+- `www/index.html`: Realtime erhält zuerst die serverseitige Auswertung und
+  fordert erst danach eine gesprochene Antwort an; Quellen aus Textantworten
+  werden sichtbar ausgegeben;
+- `tests/sol-holo-ecosystem-integration.test.mjs`: Schutztests für beide Wege,
+  Ortsfreigabe, Live-Quellen, Instanztrennung und bestehendes „Hey Pam“.
+
+Android-Wake-up, lokale Sprecherprüfung, #89-Signatur, persönliches Gedächtnis,
+Kalender und bestehende Dienste wurden dafür nicht ersetzt oder gelockert. Da
+die ausgelieferte Android-Weboberfläche jetzt den Realtime-Ökosystemweg kennt,
+wird die Verbindung im nächsten originalsignierten APK-Build enthalten sein.
 
 ## Automatisch geprüfte Fälle
 
@@ -194,6 +213,8 @@ APK-Build.
 - passende Münchner Tafel- und Wohnungslosenhilfe
 - Ärzte ohne Grenzen als globale medizinische Hilfe
 - keine erfundene Alarmierung, Diagnose, Zahlung oder Datenspeicherung
+- automatische Spracherkennung bleibt korrekt Claws Alltag und Verständigung
+  zugeordnet
 
 ## Offizielle Starteinstiege, geprüft am 06.09.2026
 
@@ -215,16 +236,17 @@ jeder konkreten Nutzung erneut prüfen.
 
 ## Status und nächster Übergang
 
-Dieser Schritt bedeutet **gestartet und technisch grundgelegt**, nicht
-„vollständig fertig“ und nicht „bereits produktiv mit allen Stellen verbunden“.
-Nur Pam bestätigt den fertigen Zustand.
+Der kontrollierte technische Übergang in Text und Realtime-Sprache ist jetzt
+umgesetzt. Sol Holo erhält bei passenden Nachrichten dieselbe strukturierte
+Einordnung der elf Bereiche. Ortsabhängige Hilfe wird nur mit ausdrücklich
+genanntem oder freigegebenem Ort gesucht. Veränderliche Kontaktdaten und
+Zuständigkeiten müssen vor ihrer Ausgabe live über offizielle oder primäre
+Quellen geprüft werden. Ungeprüfte Telefonnummern bleiben bis dahin verborgen.
 
-Der nächste Übergang ist die kontrollierte Verbindung dieses geprüften Kerns
-mit Text- und Sprachfragen in Sol Holo. Vor einer produktiven Verbindung müssen
-Owner-Bindung, Live-Quellenprüfung, Notfallreihenfolge und ehrliche
-Erfolgsmeldungen in der bestehenden Backend-Sicherheitslogik gemeinsam getestet
-werden.
+Dieser Stand bedeutet **technisch verbunden**, nicht „von Pam vollständig
+fertig bestätigt“. Vor der Zusammenführung muss der GitHub-Gesamtlauf grün
+sein; danach bleibt der ruhige Praxistest des originalsignierten Builds auf
+Pams Samsung S23. Nur Pam bestätigt den fertigen Zustand.
 
 **Bestehender Stand bleibt erhalten. Das Ökosystem wird nur erweitert, niemals
 anstelle von Sol Holo gesetzt.**
-

@@ -3,10 +3,33 @@
   "name": "Sol Holo Oekosystem",
   "language": "de",
   "started_on": "2026-09-06",
-  "status": "foundation-implemented-not-user-confirmed",
+  "status": "text-and-realtime-integrated-not-user-confirmed",
   "owner": "Pamela Nitschke",
   "motto": "Miteinander fuereinander. Together forever.",
   "scope": "Menschen, Tiere, Natur und Ressourcen",
+  "integration": {
+    "text_route": "/sol",
+    "voice_transcript_route": "/live/memory",
+    "realtime_context_marker": "[LOKALES_OEKOSYSTEMERGEBNIS]",
+    "same_rules_for_text_and_voice": true,
+    "owner_binding_preserved": true,
+    "passive_device_location": false,
+    "external_actions_require_explicit_approval": true
+  },
+  "architecture_boundaries": {
+    "alltag_und_verstaendigung": {
+      "owner": "OpenClaw worker-alltag",
+      "classification": "cross-cutting-interaction-layer-not-ecosystem-area",
+      "examples": [
+        "automatische Spracherkennung",
+        "automatische Erkennung der gesprochenen Sprache",
+        "Uebersetzung",
+        "Untertitel",
+        "Vorlesen",
+        "barrierearme Bedienung"
+      ]
+    }
+  },
   "principles": [
     "Hilfe gilt allen in Not; niemand wird wegen Herkunft, Alter, Geschlecht, Vermoegen, Wohnstatus oder Art ausgeschlossen.",
     "Eine akute Gefahr fuer Leben oder Gesundheit hat Vorrang vor Umwelt- und Ordnungshinweisen.",
@@ -42,7 +65,7 @@
       "purpose": "Essbares erhalten und Menschen versorgen, statt Lebensmittel unnoetig zu vernichten.",
       "keywords": [
         "essen", "lebensmittel", "lebensmittelverschwendung", "wegwerfen", "spenden",
-        "tafel", "hunger", "hungrig", "essensausgabe", "hilfsbus"
+        "tafel", "hunger", "hungrig", "essensausgabe", "hilfsbus", "hilfsbusse"
       ],
       "examples": [
         "Noch sichere Lebensmittel weitergeben oder an geeignete Stellen spenden.",
@@ -57,7 +80,7 @@
       "keywords": [
         "muell", "abfall", "entsorgen", "hundekot", "kotbeutel", "katzenstreu",
         "katzentoilette", "feuchttuch", "feuchttuecher", "fett", "oel", "akku",
-        "batterie", "recycling", "restmuell", "biomuell"
+        "batterie", "batterien", "akkus", "recycling", "restmuell", "biomuell"
       ],
       "examples": [
         "Hundekot sicher aufnehmen und nach den oertlichen Regeln entsorgen.",
@@ -85,8 +108,8 @@
       "title": "Energie und Mobilitaet",
       "purpose": "Mobilitaet und Energie ohne Problemverlagerung beurteilen.",
       "keywords": [
-        "sprit", "benzin", "diesel", "kraftstoff", "auto", "e-auto", "elektroauto",
-        "e-roller", "elektroroller", "akku", "batterie", "mobilitaet", "energie"
+        "sprit", "benzin", "diesel", "kraftstoff", "fossil", "fossile kraftstoffe", "auto", "e-auto", "e-autos", "elektroauto", "elektroautos",
+        "e-roller", "elektroroller", "akku", "akkus", "batterie", "batterien", "mobilitaet", "energie"
       ],
       "project_target": "Langfristig keine fossilen Kraftstoffe und keine Abhaengigkeit von batterieintensiven privaten E-Autos oder E-Rollern als Scheinloesung.",
       "required_assessment": [
@@ -104,8 +127,9 @@
       "title": "Menschen in Not",
       "purpose": "Menschen in jeder Notlage schnell zu sicherer, passender und wuerdevoller Hilfe fuehren.",
       "keywords": [
-        "mensch in not", "hilfe", "obdachlos", "wohnungslos", "notunterkunft", "schutz",
-        "gewalt", "kalt", "friert", "hunger", "existenznot", "krise", "katastrophe"
+        "mensch in not", "menschen in not", "obdachlos", "wohnungslos", "wohnungslosigkeit", "notunterkunft", "schutz",
+        "gewalt", "kalt", "friert", "hunger", "existenznot", "krise", "katastrophe",
+        "aerzte ohne grenzen", "hilfsbusse"
       ],
       "examples": [
         "Akute Lebensgefahr zuerst an den oertlichen Notruf weiterleiten.",
@@ -119,8 +143,9 @@
       "title": "Tiere in Not",
       "purpose": "Verletzte, verirrte, ausgesetzte oder akut gefaehrdete Tiere zu geeigneter Hilfe fuehren.",
       "keywords": [
-        "tier in not", "verletztes tier", "verletzte katze", "verletzter hund", "wildtier",
-        "tierarzt", "tierklinik", "tierrettung", "tierheim", "fundtier", "ausgesetzt", "vergiftet"
+        "tier in not", "tiere in not", "verletztes tier", "verletzte katze", "verletzter hund", "wildtier",
+        "tierarzt", "tierklinik", "tierrettung", "tierrettungswagen", "tierheim", "fundtier", "ausgesetzt", "vergiftet",
+        "blaulicht", "sonderrechte", "wegerechte", "medizinische versorgung fuer tiere", "menschen und tiere"
       ],
       "examples": [
         "Eigene Gefahr vermeiden und das Tier nicht ungesichert anfassen.",
@@ -134,8 +159,8 @@
       "title": "Medizinische Versorgung fuer Menschen und Tiere",
       "purpose": "Zugang zu fachlicher Versorgung vermitteln, ohne Diagnose oder eigenmaechtige Behandlung.",
       "keywords": [
-        "medizin", "medizinisch", "arzt", "aerztin", "tierarzt", "tierklinik", "behandlung",
-        "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung"
+        "medizin", "medizinisch", "medizinische", "medizinischer", "medizinischen", "arzt", "aerztin", "aerzte ohne grenzen", "medizinische hilfe", "medizinische versorgung", "aerztliche hilfe", "aerztliche versorgung", "versorgung fuer alle",
+        "tierarzt", "tierklinik", "behandlung", "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung"
       ],
       "project_target": "Geeignete medizinische Versorgung soll fuer alle Menschen und auch fuer Tiere erreichbar sein.",
       "limits": [
@@ -164,7 +189,7 @@
       "title": "Lokale Anlaufstellen",
       "purpose": "Aus einer konkreten Notlage eine aktuell gepruefte, erreichbare Hilfe vor Ort machen.",
       "keywords": [
-        "anlaufstelle", "in der naehe", "wohin", "adresse", "telefon", "notruf", "hilfsbus",
+        "anlaufstelle", "in der naehe", "wohin", "adresse", "telefon", "notruf", "hilfsbus", "hilfsbusse",
         "tafel", "notunterkunft", "tierheim", "tierrettung", "tierklinik"
       ],
       "required_fields": [

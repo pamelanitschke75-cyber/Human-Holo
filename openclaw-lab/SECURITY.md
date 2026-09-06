@@ -71,6 +71,26 @@ Die erste Vorschau erweitert keine Werkzeugrechte. Sie lässt genau eine festgel
 
 Das Gate verweigert einen anderen Worker, eine andere Datenklasse, einen anderen Pfad, eine geänderte Frage, eine externe Aktion und die zweite Verwendung desselben Gate-Prozesses. Das Ergebnis wird gegen Task-ID, Worker, Quelle und die vier negativen Kontrollbehauptungen geprüft. Sol-Holo-Adapter, Backend, Android, persönliche Daten und automatische Weiterleitung bleiben ausgeschaltet.
 
+## Verständigungssystem im Alltag-Worker
+
+Automatische Spracherkennung, Erkennung der gesprochenen Sprache, Übersetzung,
+einfache Sprache, Untertitel und Vorlesen sind als spätere Erweiterung dem
+Alltag-Worker zugeordnet. Diese fachliche Zuordnung ist keine Laufzeitfreigabe.
+
+- OpenClaw besitzt aktuell keinen Mikrofon- oder Roh-Audio-Zugriff.
+- Freie Transkripte und persönliche Daten werden nicht an den Worker geleitet.
+- Der Worker speichert weder Audio noch Transkripte.
+- Unsicherheit über Sprache oder Inhalt muss erkennbar bleiben; eine manuelle
+  Sprachwahl muss möglich sein.
+- Übersetzung darf keine Identität vortäuschen und keine Nachricht ohne
+  ausdrückliche Freigabe senden oder veröffentlichen.
+- Medizinische oder sicherheitsrelevante Inhalte werden nicht vom Alltag-
+  Worker entschieden und nicht automatisch an einen anderen Worker geleitet.
+
+Vor einer Aktivierung sind eine getrennte Laufzeitimplementierung, technische
+Tests, Datenschutz- und Barrierefreiheitsprüfung sowie Pams praktische
+Bestätigung erforderlich.
+
 ## Sondergrenze Sicherheit
 
 - Der Worker liest nur ausdrücklich beschriebene fiktive Beobachtungen. Er besitzt keinen Zugriff auf Kamera, Mikrofon, Standort, Sensoren, Alarme, Schlösser oder andere Geräte.

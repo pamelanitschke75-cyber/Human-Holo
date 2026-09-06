@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "phase": "2d-design",
+  "name": "Sol Holo OpenClaw – Alltag und Verstaendigung",
+  "status": "assigned-disabled-not-connected",
+  "productive": false,
+  "owner_worker": "worker-alltag",
+  "domain": "alltag-und-verstaendigung",
+  "ecosystem_area": false,
+  "automatic_routing": false,
+  "planned_capabilities": [
+    {
+      "id": "automatic_speech_recognition",
+      "purpose": "Gesprochenes nach bewusstem Start einer Sprachsitzung als Text erfassen."
+    },
+    {
+      "id": "spoken_language_detection",
+      "purpose": "Die verwendete Sprache erkennen und bei Unsicherheit eine Auswahl anbieten."
+    },
+    {
+      "id": "meaning_preserving_translation",
+      "purpose": "Aussagen sinngenau uebersetzen und mehrdeutige Stellen kennzeichnen."
+    },
+    {
+      "id": "plain_language",
+      "purpose": "Komplizierte Inhalte auf Wunsch klarer und einfacher formulieren."
+    },
+    {
+      "id": "captions_and_read_aloud",
+      "purpose": "Gesprochenes als Untertitel zeigen und Text auf Wunsch vorlesen."
+    }
+  ],
+  "recognition_contract": {
+    "activation": "existing-user-controlled-sol-holo-voice-session-only",
+    "background_recording": false,
+    "raw_audio_forwarded_to_worker": false,
+    "raw_audio_persisted_by_worker": false,
+    "transcript_forwarding_enabled": false,
+    "transcript_persisted_by_worker": false,
+    "confidence_or_uncertainty_visible": true,
+    "manual_language_override_available": true,
+    "identity_inferred_from_language_or_voice": false
+  },
+  "translation_contract": {
+    "preserve_meaning": true,
+    "mark_ambiguity": true,
+    "professional_medical_or_legal_accuracy_guaranteed": false,
+    "impersonation_allowed": false,
+    "send_or_publish_without_explicit_approval": false
+  },
+  "sensitive_content_boundary": {
+    "worker_to_worker_routing": false,
+    "medical_or_safety_decision_by_alltag_worker": false,
+    "return_to_sol_holo_for_separate_domain_handling": true,
+    "emergency_wording_must_not_be_silently_softened": true
+  },
+  "current_runtime": {
+    "microphone_connected_to_openclaw": false,
+    "personal_data_connected": false,
+    "free_text_connected": false,
+    "external_action_performed": false,
+    "data_written": false
+  },
+  "activation_gate": {
+    "requires_separate_runtime_implementation": true,
+    "requires_technical_tests": true,
+    "requires_privacy_and_accessibility_review": true,
+    "requires_pam_practical_confirmation": true
+  }
+}

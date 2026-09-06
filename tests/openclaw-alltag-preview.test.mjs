@@ -42,6 +42,22 @@ const openAIConnectionManifest = JSON.parse(
     "utf8"
   )
 );
+const communicationManifest = JSON.parse(
+  fs.readFileSync(
+    new URL(
+      "../openclaw-lab/phase2/alltag-verstaendigung.manifest.json",
+      import.meta.url
+    ),
+    "utf8"
+  )
+);
+const alltagWorkerRules = fs.readFileSync(
+  new URL(
+    "../openclaw-lab/workspaces/alltag/AGENTS.md",
+    import.meta.url
+  ),
+  "utf8"
+);
 const bridgeSource = fs.readFileSync(
   new URL(
     "../openclaw-lab/phase2/alltag-preview-bridge.mjs",
@@ -115,6 +131,54 @@ test("the OpenAI path adds no provider and stays independently disabled", () => 
   assert.equal(openAIConnectionManifest.input.free_text, false);
   assert.equal(openAIConnectionManifest.output.human_review_required, true);
   assert.equal(openAIConnectionManifest.docker_proof.live_runtime_claimed, false);
+});
+
+test("speech recognition and communication are assigned to Claws Alltag without activation", () => {
+  assert.equal(communicationManifest.status, "assigned-disabled-not-connected");
+  assert.equal(communicationManifest.productive, false);
+  assert.equal(communicationManifest.owner_worker, "worker-alltag");
+  assert.equal(communicationManifest.ecosystem_area, false);
+  assert.equal(communicationManifest.automatic_routing, false);
+  assert.deepEqual(
+    communicationManifest.planned_capabilities.map(({ id }) => id),
+    [
+      "automatic_speech_recognition",
+      "spoken_language_detection",
+      "meaning_preserving_translation",
+      "plain_language",
+      "captions_and_read_aloud"
+    ]
+  );
+  assert.equal(
+    communicationManifest.recognition_contract.background_recording,
+    false
+  );
+  assert.equal(
+    communicationManifest.recognition_contract.raw_audio_forwarded_to_worker,
+    false
+  );
+  assert.equal(
+    communicationManifest.recognition_contract.transcript_forwarding_enabled,
+    false
+  );
+  assert.equal(
+    communicationManifest.recognition_contract.manual_language_override_available,
+    true
+  );
+  assert.equal(
+    communicationManifest.translation_contract.send_or_publish_without_explicit_approval,
+    false
+  );
+  assert.equal(
+    communicationManifest.current_runtime.personal_data_connected,
+    false
+  );
+  assert.equal(
+    communicationManifest.activation_gate.requires_pam_practical_confirmation,
+    true
+  );
+  assert.match(alltagWorkerRules, /gehören fachlich zu diesem\nAlltag-Worker/u);
+  assert.match(alltagWorkerRules, /keine Verbindung zu Mikrofon, Roh-Audio/u);
 });
 
 test("the bridge does not forward its token or ambient server secrets", () => {

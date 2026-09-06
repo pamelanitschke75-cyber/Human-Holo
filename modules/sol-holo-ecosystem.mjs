@@ -21,17 +21,12 @@ export const ecosystemManifest = deepFreeze(
   JSON.parse(readFileSync(manifestUrl, "utf8"))
 );
 
-const HELP_AREA_IDS = new Set([
-  "lebensmittel_versorgung",
-  "menschen_in_not",
-  "tiere_in_not",
-  "medizinische_versorgung",
-  "lokale_anlaufstellen"
-]);
-
 const LOCAL_LOOKUP_TERMS = Object.freeze([
   "in der naehe",
   "wohin",
+  "wo finde ich",
+  "suche hilfe",
+  "brauche hilfe",
   "adresse",
   "telefon",
   "notruf",
@@ -45,9 +40,13 @@ const LOCAL_LOOKUP_TERMS = Object.freeze([
 
 const ANIMAL_CONTEXT_TERMS = Object.freeze([
   "tier",
+  "tiere",
   "hund",
+  "hunde",
   "katze",
+  "katzen",
   "vogel",
+  "voegel",
   "wildtier",
   "pferd",
   "tierarzt",
@@ -69,11 +68,38 @@ const HUMAN_CONTEXT_TERMS = Object.freeze([
   "mein"
 ]);
 
+const HUMAN_ONLY_HELP_SOURCE_IDS = new Set([
+  "de_emergency_112",
+  "de_medical_116117",
+  "munich_homeless_support",
+  "munich_tafel",
+  "de_tafel_search",
+  "msf_global"
+]);
+
+const ANIMAL_ONLY_HELP_SOURCE_IDS = new Set([
+  "munich_animal_rescue"
+]);
+
+const HOMELESS_HELP_TERMS = Object.freeze([
+  "obdachlos",
+  "wohnungslos",
+  "wohnungslosigkeit",
+  "notunterkunft",
+  "streetwork",
+  "waermebus",
+  "hilfsbus",
+  "hilfsbusse"
+]);
+
 const CITY_ALIASES = deepFreeze({
   munchen: "Muenchen",
   muenchen: "Muenchen",
   munich: "Muenchen"
 });
+
+const LOCATION_REPLY_REJECT =
+  /^(?:ja|nein|okay|ok|abbrechen|abbruch|danke|dankeschoen)[.!?]*$/u;
 
 export function normalizeEcosystemText(value) {
   return String(value || "")
@@ -146,8 +172,22 @@ export function classifyEcosystemUrgency(message) {
   );
   const animalContext = hasAnimalContext(normalized);
   const humanContext = hasHumanContext(normalized);
+  const bothContext =
+    /\b(?:mensch|menschen)\b[\s\S]{0,60}\b(?:tier|tiere)\b/u.test(
+      normalized
+    ) ||
+    /\b(?:tier|tiere)\b[\s\S]{0,60}\b(?:mensch|menschen)\b/u.test(
+      normalized
+    );
 
-  if (animalSignals.length > 0 || (animalContext && humanSignals.length > 0 && !humanContext)) {
+  if (
+    animalSignals.length > 0 ||
+    (
+      animalContext &&
+      humanSignals.length > 0 &&
+      !bothContext
+    )
+  ) {
     return {
       level: "emergency",
       subject: "animal",
@@ -158,7 +198,7 @@ export function classifyEcosystemUrgency(message) {
   if (humanSignals.length > 0) {
     return {
       level: "emergency",
-      subject: "human",
+      subject: bothContext ? "both" : "human",
       matched_signals: humanSignals
     };
   }
@@ -166,11 +206,16 @@ export function classifyEcosystemUrgency(message) {
   const supportSignals = matchedTerms(normalized, [
     "obdachlos",
     "wohnungslos",
+    "wohnungslosigkeit",
     "notunterkunft",
     "hunger",
     "hungrig",
     "friert",
     "existenznot",
+    "mensch in not",
+    "menschen in not",
+    "braucht hilfe",
+    "brauchen hilfe",
     "tier in not",
     "verletztes tier",
     "verletzte katze",
@@ -181,7 +226,13 @@ export function classifyEcosystemUrgency(message) {
 
   return {
     level: supportSignals.length > 0 ? "support-needed" : "information",
-    subject: animalContext ? "animal" : humanContext ? "human" : "general",
+    subject: bothContext
+      ? "both"
+      : animalContext
+        ? "animal"
+        : humanContext
+          ? "human"
+          : "general",
     matched_signals: supportSignals
   };
 }
@@ -197,10 +248,101 @@ function canonicalCity(value) {
   return CITY_ALIASES[normalized] || String(value || "").trim();
 }
 
-function needsLocalLookup(normalizedMessage, areas, urgency) {
+export function extractExplicitEcosystemLocation(
+  message,
+  { allowStandalone = false } = {}
+) {
+  const original = String(message || "").trim();
+  const normalized = normalizeEcosystemText(original);
+
+  if (!original || LOCATION_REPLY_REJECT.test(normalized)) {
+    return {
+      country: "",
+      city: "",
+      explicit: false,
+      source: null
+    };
+  }
+
+  let country =
+    /(?:^|[^\p{L}\p{N}])(?:de|deutschland|germany)(?:$|[^\p{L}\p{N}])/u.test(
+      normalized
+    )
+      ? "DE"
+      : "";
+  let city = "";
+
+  for (const [alias, canonical] of Object.entries(CITY_ALIASES)) {
+    if (containsTerm(normalized, alias)) {
+      city = canonical;
+      break;
+    }
+  }
+
+  if (!city && !allowStandalone) {
+    const explicitCity = original.match(
+      /\b(?:in|bei|nahe|nähe\s+von)\s+([A-ZÄÖÜ][\p{L}'’-]*(?:\s+[A-ZÄÖÜ][\p{L}'’-]*){0,2})/u
+    )?.[1];
+    city = String(explicitCity || "").trim();
+  }
+
+  if (!city && allowStandalone) {
+    const withoutCountry = original
+      .replace(/(?:^|[,\s])(?:DE|Deutschland|Germany)(?=$|[,\s])/giu, " ")
+      .replace(/^[\s,]+|[\s,.!?]+$/gu, "")
+      .replace(/\s+/gu, " ")
+      .trim();
+
+    if (
+      withoutCountry.length >= 2 &&
+      withoutCountry.length <= 80 &&
+      withoutCountry.split(/\s+/u).length <= 5 &&
+      /^[\p{L}][\p{L} .,'’\-]*$/u.test(withoutCountry)
+    ) {
+      city = canonicalCity(withoutCountry);
+    }
+  }
+
+  if (!country && city === "Muenchen") {
+    country = "DE";
+  }
+
+  return {
+    country,
+    city,
+    explicit: Boolean(country && city),
+    source: country && city ? "explicit_message" : null
+  };
+}
+
+export function looksLikeEcosystemLocationReply(message) {
+  const original = String(message || "").trim();
+  const normalized = normalizeEcosystemText(original);
+
+  if (
+    !original ||
+    original.length > 100 ||
+    LOCATION_REPLY_REJECT.test(normalized) ||
+    /[?]/u.test(original) ||
+    original.split(/\s+/u).length > 4 ||
+    /\b(?:ich|du|er|sie|es|wir|ihr|brauche|suche|finde|liegt|stehen|gehoert|gehört|ist|sind|war|waren)\b/iu.test(
+      original
+    )
+  ) {
+    return false;
+  }
+
+  const location = extractExplicitEcosystemLocation(
+    original,
+    { allowStandalone: true }
+  );
+  return Boolean(location.city);
+}
+
+function needsLocalLookup(normalizedMessage, urgency) {
   if (urgency.level !== "information") return true;
   if (matchedTerms(normalizedMessage, LOCAL_LOOKUP_TERMS).length > 0) return true;
-  return areas.some(area => HELP_AREA_IDS.has(area.id));
+  return false;
 }
 
 function sourceMatchesLocation(source, country, city) {
@@ -218,30 +360,113 @@ export function selectEcosystemHelpSources({
   areaIds = [],
   country = "",
   city = "",
-  urgency = null
+  urgency = null,
+  matchedRequestTerms = []
 } = {}) {
   const selectedAreas = new Set(areaIds);
   const resolvedCountry = canonicalCountry(country);
   const resolvedCity = canonicalCity(city);
   const subject = urgency?.subject || "general";
+  const requestTerms = new Set(
+    matchedRequestTerms.map(term => normalizeEcosystemText(term))
+  );
   const specificAreas = new Set(
     [...selectedAreas].filter(area => area !== "lokale_anlaufstellen")
   );
 
   return ecosystemManifest.help_sources
     .filter(source => {
-      const areaMatch = source.areas.some(area => specificAreas.has(area));
-      const emergencyMatch =
-        urgency?.level === "emergency" &&
-        ((subject === "human" && source.id === "de_emergency_112") ||
-          (subject === "animal" && source.id === "munich_animal_rescue"));
-      return areaMatch || emergencyMatch;
+      if (
+        subject === "animal" &&
+        HUMAN_ONLY_HELP_SOURCE_IDS.has(source.id)
+      ) {
+        return false;
+      }
+      if (
+        subject === "human" &&
+        ANIMAL_ONLY_HELP_SOURCE_IDS.has(source.id)
+      ) {
+        return false;
+      }
+
+      if (source.id === "de_emergency_112") {
+        return (
+          urgency?.level === "emergency" &&
+          ["human", "both"].includes(subject)
+        );
+      }
+      if (source.id === "de_medical_116117") {
+        return (
+          urgency?.level !== "emergency" &&
+          ["human", "both", "general"].includes(subject) &&
+          selectedAreas.has("medizinische_versorgung")
+        );
+      }
+      if (source.id === "munich_homeless_support") {
+        return (
+          selectedAreas.has("menschen_in_not") &&
+          HOMELESS_HELP_TERMS.some(term => requestTerms.has(term))
+        );
+      }
+      if (["munich_tafel", "de_tafel_search"].includes(source.id)) {
+        return selectedAreas.has("lebensmittel_versorgung");
+      }
+      if (source.id === "munich_animal_rescue") {
+        return selectedAreas.has("tiere_in_not");
+      }
+      if (source.id === "msf_global") {
+        return requestTerms.has("aerzte ohne grenzen");
+      }
+
+      return source.areas.some(area => specificAreas.has(area));
     })
     .filter(source => sourceMatchesLocation(source, resolvedCountry, resolvedCity))
-    .map(source => ({
-      ...source,
-      verification_required_before_use: source.must_live_verify === true
+    .map(source => {
+      const verificationRequired =
+        source.must_live_verify === true;
+      const selectedSource = {
+        ...source,
+        verification_required_before_use:
+          verificationRequired
+      };
+
+      if (verificationRequired && selectedSource.phone) {
+        delete selectedSource.phone;
+        selectedSource.contact_data_withheld_until_verified = true;
+      }
+
+      return selectedSource;
+    });
+}
+
+function areasWithUrgencyContext(areas, urgency) {
+  if (urgency.level === "information") return areas;
+
+  const subjectAreaIds =
+    urgency.subject === "animal"
+      ? ["tiere_in_not"]
+      : urgency.subject === "human"
+        ? ["menschen_in_not"]
+        : urgency.subject === "both"
+          ? ["menschen_in_not", "tiere_in_not"]
+          : [];
+  const requiredIds =
+    urgency.level === "emergency"
+      ? [...subjectAreaIds, "medizinische_versorgung"]
+      : subjectAreaIds;
+  const existingIds = new Set(areas.map(area => area.id));
+  const additions = ecosystemManifest.areas
+    .filter(area => requiredIds.includes(area.id) && !existingIds.has(area.id))
+    .map(area => ({
+      id: area.id,
+      title: area.title,
+      score: 1,
+      matched_terms: urgency.matched_signals
     }));
+
+  return [...areas, ...additions].sort((left, right) =>
+    right.score - left.score || left.id.localeCompare(right.id, "de")
+  );
 }
 
 function projectPositionsFor(areas) {
@@ -249,6 +474,38 @@ function projectPositionsFor(areas) {
   return ecosystemManifest.areas
     .filter(area => selected.has(area.id) && area.project_target)
     .map(area => ({ area: area.id, statement: area.project_target }));
+}
+
+function assessmentCriteriaFor(areas) {
+  const selected = new Set(areas.map(area => area.id));
+  return ecosystemManifest.areas
+    .filter(area => selected.has(area.id))
+    .flatMap(area =>
+      (area.required_assessment || []).map(criterion => ({
+        area: area.id,
+        criterion
+      }))
+    );
+}
+
+function limitsFor(areas) {
+  const selected = new Set(areas.map(area => area.id));
+  return ecosystemManifest.areas
+    .filter(area => selected.has(area.id))
+    .flatMap(area =>
+      (area.limits || []).map(limit => ({
+        area: area.id,
+        limit
+      }))
+    );
+}
+
+function systemGapsFor(areas) {
+  const selected = new Set(areas.map(area => area.id));
+  if (!selected.has("tiere_in_not")) {
+    return [];
+  }
+  return ecosystemManifest.system_gaps;
 }
 
 function examplesFor(areas) {
@@ -263,25 +520,38 @@ function examplesFor(areas) {
 function immediateGuidance(urgency, country, city) {
   if (urgency.level === "information") return [];
 
-  if (urgency.subject === "human" && urgency.level === "emergency") {
+  const guidance = [];
+
+  if (
+    (urgency.subject === "human" || urgency.subject === "both") &&
+    urgency.level === "emergency"
+  ) {
     if (country === "DE") {
-      return [
+      guidance.push(
         "Bei akuter oder lebensbedrohlicher Gefahr jetzt den Notruf 112 waehlen.",
         "Wenn es ohne Eigengefahr moeglich ist: bei der Person bleiben und den Anweisungen der Leitstelle folgen."
-      ];
+      );
+    } else {
+      guidance.push(
+        "Bei akuter oder lebensbedrohlicher Gefahr jetzt den oertlichen Notruf waehlen.",
+        "Die richtige lokale Nummer muss fuer den aktuellen Ort aus einer offiziellen Quelle geprueft werden."
+      );
     }
-    return [
-      "Bei akuter oder lebensbedrohlicher Gefahr jetzt den oertlichen Notruf waehlen.",
-      "Die richtige lokale Nummer muss fuer den aktuellen Ort aus einer offiziellen Quelle geprueft werden."
-    ];
+
+    if (urgency.subject === "human") return guidance;
   }
 
-  if (urgency.subject !== "animal") return [];
+  if (
+    urgency.subject !== "animal" &&
+    urgency.subject !== "both"
+  ) {
+    return guidance;
+  }
 
-  const guidance = [
+  guidance.push(
     "Eigene Sicherheit zuerst; ein verletztes oder panisches Tier nicht ungesichert anfassen.",
     "Tierart, beobachteten Zustand und genauen Fundort fuer Tierrettung oder Tierklinik bereithalten."
-  ];
+  );
   if (country === "DE" && city === "Muenchen") {
     guidance.push(
       "Die aktuellen Angaben der Tierrettung Muenchen vor dem Anruf auf der offiziellen Notfallseite pruefen."
@@ -306,10 +576,16 @@ export function buildOfficialLookupRequests({
   const ids = new Set(areas.map(area => area.id));
   const requests = [];
 
-  if (urgency?.subject === "human" && urgency.level === "emergency") {
+  if (
+    ["human", "both"].includes(urgency?.subject) &&
+    urgency.level === "emergency"
+  ) {
     requests.push(`${location} offizieller Notruf akute Lebensgefahr`);
   }
-  if (urgency?.subject === "animal" && urgency.level === "emergency") {
+  if (
+    ["animal", "both"].includes(urgency?.subject) &&
+    urgency.level === "emergency"
+  ) {
     requests.push(`${location} offizielle Tierrettung Tierklinik Notfall`);
   }
   if (ids.has("menschen_in_not")) {
@@ -335,17 +611,21 @@ export function buildEcosystemAssessment({
   locationConsent = false
 } = {}) {
   const normalizedMessage = normalizeEcosystemText(message);
-  const areas = detectEcosystemAreas(message);
   const urgency = classifyEcosystemUrgency(message);
+  const areas = areasWithUrgencyContext(
+    detectEcosystemAreas(message),
+    urgency
+  );
   const resolvedCountry = canonicalCountry(country);
   const resolvedCity = canonicalCity(city);
-  const localLookup = needsLocalLookup(normalizedMessage, areas, urgency);
+  const localLookup = needsLocalLookup(normalizedMessage, urgency);
   const locationAvailable = Boolean(resolvedCountry && resolvedCity && locationConsent);
   const helpSources = selectEcosystemHelpSources({
     areaIds: areas.map(area => area.id),
     country: locationAvailable ? resolvedCountry : "",
     city: locationAvailable ? resolvedCity : "",
-    urgency
+    urgency,
+    matchedRequestTerms: areas.flatMap(area => area.matched_terms)
   });
 
   return {
@@ -354,7 +634,11 @@ export function buildEcosystemAssessment({
     areas,
     urgency,
     scope: ecosystemManifest.scope,
+    principles: ecosystemManifest.principles,
     project_positions: projectPositionsFor(areas),
+    assessment_criteria: assessmentCriteriaFor(areas),
+    limits: limitsFor(areas),
+    system_gaps: systemGapsFor(areas),
     practical_steps: examplesFor(areas),
     immediate_guidance: immediateGuidance(
       urgency,
@@ -380,6 +664,9 @@ export function buildEcosystemAssessment({
       official_source_verification_required: helpSources.some(
         source => source.verification_required_before_use
       ) || localLookup,
+      current_evidence_required:
+        areas.some(area => area.id === "investieren_beschaffen") ||
+        helpSources.some(source => source.verification_required_before_use),
       human_review_required: urgency.level !== "information",
       medical_diagnosis_performed: false,
       legal_claim_performed: false,
@@ -387,6 +674,28 @@ export function buildEcosystemAssessment({
       payment_or_investment_performed: false,
       data_written: false
     }
+  };
+}
+
+export function ecosystemModelContext(assessment) {
+  if (!assessment?.matched) return null;
+
+  return {
+    schema_version: assessment.schema_version,
+    areas: assessment.areas,
+    urgency: assessment.urgency,
+    scope: assessment.scope,
+    principles: assessment.principles,
+    project_positions: assessment.project_positions,
+    assessment_criteria: assessment.assessment_criteria,
+    limits: assessment.limits,
+    system_gaps: assessment.system_gaps,
+    practical_steps: assessment.practical_steps,
+    immediate_guidance: assessment.immediate_guidance,
+    location: assessment.location,
+    help_sources: assessment.help_sources,
+    official_lookup_requests: assessment.official_lookup_requests,
+    controls: assessment.controls
   };
 }
 
