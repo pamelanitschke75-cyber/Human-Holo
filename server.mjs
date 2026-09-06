@@ -52,6 +52,10 @@ import {
   isCalendarConfirmation
 } from "./modules/pending-calendar-action.mjs";
 import {
+  calendarMemorySearchQuery,
+  resolveGroundedBirthdayCalendarCommand
+} from "./modules/calendar-memory-grounding.mjs";
+import {
   OpenClawAlltagPreviewError,
   createOpenClawAlltagPreviewService,
   openClawAlltagPreviewHttpStatus
@@ -2666,6 +2670,28 @@ function getBerlinCurrentDateTimeText() {
   );
 }
 
+function getBerlinCurrentDateIso() {
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone:
+        GOOGLE_CALENDAR_TIMEZONE,
+      year:
+        "numeric",
+      month:
+        "2-digit",
+      day:
+        "2-digit"
+    }
+  ).formatToParts(
+    new Date()
+  );
+  const value = Object.fromEntries(
+    parts.map(part => [part.type, part.value])
+  );
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
 function normalizeNaturalIntentText(value) {
   return String(value || "")
     .normalize("NFKD")
@@ -3286,9 +3312,162 @@ function parseJsonText(text) {
   ==========================================================
 */
 
+async function loadCalendarGroundingRows(
+  identity,
+  searchText,
+  limit = 60
+) {
+  const terms =
+    extractMemorySearchTerms(
+      searchText
+    );
+
+  if (terms.length === 0) {
+    return [];
+  }
+
+  const patterns =
+    terms.map(term => `%${term}%`);
+  const safeLimit =
+    Math.min(
+      80,
+      Math.max(12, Number(limit) || 60)
+    );
+  const anchorLimit =
+    Math.min(20, Math.max(6, Math.ceil(safeLimit / 4)));
+
+  const result = await db.query(
+    `
+      WITH owner_rows AS (
+        SELECT
+          id,
+          role,
+          content,
+          created_at,
+          ROW_NUMBER() OVER (ORDER BY id ASC) AS owner_position
+        FROM sol_fulltime_memory
+        WHERE clone_id = $1
+      ),
+      anchors AS (
+        SELECT
+          id,
+          owner_position
+        FROM owner_rows
+        WHERE LOWER(content) LIKE ANY($2::text[])
+        ORDER BY id DESC
+        LIMIT $3
+      ),
+      nearby AS (
+        SELECT
+          owner_row.id,
+          owner_row.role,
+          owner_row.content,
+          owner_row.created_at
+        FROM owner_rows AS owner_row
+        WHERE EXISTS (
+          SELECT 1
+          FROM anchors AS anchor
+          WHERE owner_row.owner_position
+            BETWEEN anchor.owner_position - 2
+                AND anchor.owner_position + 2
+        )
+      )
+      SELECT
+        id,
+        role,
+        content,
+        created_at,
+        'fulltime-calendar' AS source
+      FROM (
+        SELECT *
+        FROM nearby
+        ORDER BY id DESC
+        LIMIT $4
+      ) AS recent_nearby
+      ORDER BY id ASC
+    `,
+    [
+      cloneIdForOwner(identity.ownerId),
+      patterns,
+      anchorLimit,
+      safeLimit
+    ]
+  );
+
+  return result.rows;
+}
+
+async function loadCalendarGroundingMemory(
+  identity,
+  message
+) {
+  const searchQuery =
+    calendarMemorySearchQuery(
+      message
+    );
+
+  if (!searchQuery) {
+    return {
+      searchQuery: "",
+      rows: [],
+      memoryText: ""
+    };
+  }
+
+  const [confirmedMemories, fulltimeRows] =
+    await Promise.all([
+      identityMemoryStore.searchConfirmed({
+        ownerId:
+          identity.ownerId,
+        speakerId:
+          identity.speakerId,
+        searchText:
+          searchQuery,
+        limit:
+          12
+      }),
+      loadCalendarGroundingRows(
+        identity,
+        searchQuery,
+        60
+      )
+    ]);
+
+  const rows = [
+    ...confirmedMemories.map(memory => ({
+      ...memory,
+      role: "user",
+      source: "confirmed-calendar"
+    })),
+    ...fulltimeRows
+  ].sort((left, right) =>
+    new Date(left.created_at || left.confirmed_at || 0).getTime() -
+    new Date(right.created_at || right.confirmed_at || 0).getTime()
+  );
+
+  const memoryText = rows
+    .map(row => {
+      const speaker =
+        row.role === "user"
+          ? identity.displayName
+          : "Sol";
+      return `${speaker}: ${String(row.content || "").trim()}`;
+    })
+    .filter(line => line.split(": ")[1])
+    .join("\n")
+    .slice(0, 16_000);
+
+  return {
+    searchQuery,
+    rows,
+    memoryText
+  };
+}
+
 async function parseCalendarCommand(
   message,
-  identity
+  identity,
+  calendarMemoryText = ""
 ) {
   const currentBerlin =
     getBerlinCurrentDateTimeText();
@@ -3307,6 +3486,10 @@ Zeitzone Europe/Berlin:
 ${currentBerlin}
 
 Die aktuell ausgewählte Person ist ${identity.displayName}.
+
+Passender ownergebundener Gesprächskontext für diesen Kalenderauftrag:
+
+${calendarMemoryText || "Keine passende frühere persönliche Aussage gefunden."}
 
 Prüfe, ob die Nachricht wirklich verlangt,
 einen Google-Kalendertermin zu ERSTELLEN.
@@ -3332,10 +3515,12 @@ Wenn ein Kalendertermin erstellt werden soll:
 {
   "action": "create",
   "summary": "Kurzer Titel",
-  "start": "RFC3339 Datum mit deutscher Zeitzone",
-  "end": "RFC3339 Datum mit deutscher Zeitzone",
+  "start": "RFC3339 Datum mit deutscher Zeitzone oder YYYY-MM-DD bei Ganztag",
+  "end": "RFC3339 Datum mit deutscher Zeitzone oder exklusives YYYY-MM-DD-Enddatum bei Ganztag",
   "description": "Optionale Beschreibung oder leer",
-  "reminderMinutes": null
+  "reminderMinutes": null,
+  "allDay": false,
+  "recurrence": null
 }
 
 REGELN:
@@ -3364,10 +3549,22 @@ REGELN:
    Ein sinnvoller kurzer Titel aus dem vorhandenen Text
    ist erlaubt.
 
-8. Nutze für Deutschland im August normalerweise
+8. Ein fehlendes Datum darfst du ausschließlich aus einer passenden früheren
+   Aussage von ${identity.displayName} übernehmen. Eine Datumsangabe, die nur
+   in einer früheren Sol-Antwort steht, ist kein Beleg. Eine kurze Antwort von
+   ${identity.displayName} wie „Am 9. Dezember“ zählt, wenn Sol direkt davor
+   nach genau dem genannten Geburtstag gefragt hatte. Bei Widersprüchen ist
+   action none.
+
+9. Geburtstage mit eindeutigem Tag und Monat sind ganztägig und jährlich:
+   allDay = true, recurrence = "yearly", start = nächstes Vorkommen als
+   YYYY-MM-DD und end = der darauffolgende Kalendertag. Erfinde keine
+   zusätzliche Erinnerung; ohne ausdrückliche Angabe bleibt reminderMinutes null.
+
+10. Nutze für Deutschland im August normalerweise
    den korrekten Europe/Berlin Offset.
 
-9. Niemals behaupten, dass Google etwas gespeichert hat.
+11. Niemals behaupten, dass Google etwas gespeichert hat.
    Du analysierst nur den Befehl.
 `,
 
@@ -3582,6 +3779,25 @@ async function createGoogleCalendarEvent(
             true
         };
 
+  const startValue =
+    String(
+      parsedCommand.start ||
+      ""
+    ).trim();
+  const endValue =
+    String(
+      parsedCommand.end ||
+      ""
+    ).trim();
+  const allDay =
+    parsedCommand.allDay === true &&
+    /^\d{4}-\d{2}-\d{2}$/u.test(startValue) &&
+    /^\d{4}-\d{2}-\d{2}$/u.test(endValue);
+  const recurrence =
+    parsedCommand.recurrence === "yearly"
+      ? ["RRULE:FREQ=YEARLY"]
+      : undefined;
+
   const requestBody = {
     summary:
       String(
@@ -3595,23 +3811,41 @@ async function createGoogleCalendarEvent(
         ""
       ).trim(),
 
-    start: {
-      dateTime:
-        parsedCommand.start,
+    start:
+      allDay
+        ? {
+            date:
+              startValue
+          }
+        : {
+            dateTime:
+              startValue,
 
-      timeZone:
-        GOOGLE_CALENDAR_TIMEZONE
-    },
+            timeZone:
+              GOOGLE_CALENDAR_TIMEZONE
+          },
 
-    end: {
-      dateTime:
-        parsedCommand.end,
+    end:
+      allDay
+        ? {
+            date:
+              endValue
+          }
+        : {
+            dateTime:
+              endValue,
 
-      timeZone:
-        GOOGLE_CALENDAR_TIMEZONE
-    },
+            timeZone:
+              GOOGLE_CALENDAR_TIMEZONE
+          },
 
-    reminders
+    reminders,
+
+    ...(recurrence
+      ? {
+          recurrence
+        }
+      : {})
   };
 
   const response =
@@ -3729,7 +3963,9 @@ async function commitCalendarAction(
       originalMessage,
       googleEvent.id,
       googleEvent.summary || parsed.summary,
-      googleEvent.start?.dateTime || parsed.start,
+      googleEvent.start?.dateTime ||
+        googleEvent.start?.date ||
+        parsed.start,
       identity.ownerId
     );
     pendingCalendarActions.clear(scope);
@@ -3803,9 +4039,69 @@ async function handleCalendarWriteRequest(
       );
     }
 
-    const parsed = await parseCalendarCommand(message, identity);
+    let calendarGrounding = {
+      searchQuery: "",
+      rows: [],
+      memoryText: ""
+    };
+
+    try {
+      calendarGrounding =
+        await loadCalendarGroundingMemory(
+          identity,
+          message
+        );
+    } catch (error) {
+      console.error(
+        "Kalender-Gedächtnisabruf:",
+        error?.code ||
+        error?.name ||
+        "Fehler"
+      );
+    }
+
+    const groundedBirthday =
+      resolveGroundedBirthdayCalendarCommand({
+        message,
+        rows:
+          calendarGrounding.rows,
+        todayIso:
+          getBerlinCurrentDateIso()
+      });
+
+    if (
+      groundedBirthday.matched &&
+      groundedBirthday.reason === "conflicting_dates"
+    ) {
+      return {
+        handled: true,
+        success: false,
+        answer:
+          `${identity.displayName}, im ownergebundenen Verlauf stehen mehrere unterschiedliche Datumsangaben zu diesem Geburtstag. ` +
+          "Ich habe deshalb nichts geraten und nichts eingetragen."
+      };
+    }
+
+    const parsed =
+      groundedBirthday.resolved
+        ? groundedBirthday.command
+        : await parseCalendarCommand(
+            message,
+            identity,
+            calendarGrounding.memoryText
+          );
+
     if (parsed?.action !== "create") {
-      return { handled: false };
+      return {
+        handled: true,
+        success: false,
+        answer:
+          groundedBirthday.matched
+            ? `${identity.displayName}, ich finde im ownergebundenen Vollzeitgedächtnis gerade kein eindeutiges Datum zu diesem Geburtstag. ` +
+              "Ich habe deshalb nichts geraten und nichts eingetragen."
+            : `${identity.displayName}, Datum oder Uhrzeit stehen weder im Kalenderauftrag noch im passenden Vollzeitgedächtnis eindeutig fest. ` +
+              "Ich habe deshalb nichts geraten und nichts eingetragen."
+      };
     }
     if (!parsed.summary || !parsed.start || !parsed.end) {
       return {
