@@ -80,6 +80,8 @@ public class HeyHoSolService extends Service {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService speakerExecutor =
         Executors.newSingleThreadExecutor();
+    private boolean destroyed;
+    private long recognitionGeneration;
     private long scheduledRestartGeneration;
     private long observedAudioSampleCount;
     private long observedNonZeroSampleCount;
@@ -101,12 +103,10 @@ public class HeyHoSolService extends Service {
     };
 
     private String currentMode = HeyHoSolPlugin.MODE_OFF;
-    private boolean destroyed;
     private boolean wakeHandled;
     private boolean recognitionStarted;
     private boolean speakerVerificationPending;
     private boolean foregroundNotificationActive;
-    private long recognitionGeneration;
     private SecureAudioSession secureAudioSession;
     private WindowManager wakeOverlayManager;
     private View wakeOverlayView;
