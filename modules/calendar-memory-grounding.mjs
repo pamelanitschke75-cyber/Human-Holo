@@ -48,6 +48,9 @@ const CALENDAR_QUERY_NOISE = new Set([
   "seinem", "seiner", "termin", "trag", "trage", "schreib", "schreibe"
 ]);
 
+const CALENDAR_FOLLOW_UP_PATTERN =
+  /\b(?:trag(?:e)?|schreib(?:e)?|setz(?:e)?|ubernehm(?:e)?)\b[\s\S]*\b(?:es|das|dies(?:en|e|es)?|ihn|sie)\b|\b(?:es|das|dies(?:en|e|es)?|ihn|sie)\b[\s\S]*\b(?:kalender|eintrag(?:en)?)\b/u;
+
 function normalize(value) {
   return String(value || "")
     .normalize("NFKD")
@@ -167,6 +170,73 @@ export function calendarMemorySearchQuery(message) {
   return [...new Set(words.filter(word => word.length >= 2 && !CALENDAR_QUERY_NOISE.has(word)))]
     .slice(0, 12)
     .join(" ");
+}
+
+export function resolveCalendarFollowUpReference({
+  message,
+  rows
+}) {
+  const originalMessage = String(message || "").trim();
+  const normalizedMessage = normalize(originalMessage);
+
+  if (
+    !originalMessage ||
+    birthdaySubject(originalMessage) ||
+    !CALENDAR_FOLLOW_UP_PATTERN.test(normalizedMessage)
+  ) {
+    return {
+      matched: false,
+      resolved: false,
+      message: originalMessage,
+      subject: null
+    };
+  }
+
+  const history = Array.isArray(rows)
+    ? rows.slice(-6)
+    : [];
+
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const row = history[index] || {};
+    if (String(row.role || "") !== "user") {
+      continue;
+    }
+
+    const content = String(row.content || "").trim();
+    if (!content || normalize(content) === normalizedMessage) {
+      continue;
+    }
+
+    const subject = birthdaySubject(content);
+    if (!subject || !mentionsBirthday(content)) {
+      return {
+        matched: true,
+        resolved: false,
+        message: originalMessage,
+        subject: null
+      };
+    }
+
+    const relationship =
+      subject.key === "father"
+        ? "meines Vaters"
+        : "meiner Mutter";
+
+    return {
+      matched: true,
+      resolved: true,
+      message:
+        `Trag den Geburtstag ${relationship} in den Kalender ein.`,
+      subject: subject.key
+    };
+  }
+
+  return {
+    matched: true,
+    resolved: false,
+    message: originalMessage,
+    subject: null
+  };
 }
 
 export function resolveGroundedBirthdayCalendarCommand({

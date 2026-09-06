@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   calendarMemorySearchQuery,
+  resolveCalendarFollowUpReference,
   resolveGroundedBirthdayCalendarCommand
 } from "../modules/calendar-memory-grounding.mjs";
 
@@ -14,6 +15,109 @@ test("Vater-Geburtstag sucht gezielt im ownergebundenen Verlauf", () => {
     ),
     "vater papa vati geburtstag geburtsdatum geboren"
   );
+});
+
+test("Trag es ein übernimmt das Geburtstagsthema aus Pams vorheriger Frage", () => {
+  const followUp = resolveCalendarFollowUpReference({
+    message: "Trag es bitte in den Kalender ein 🥳",
+    rows: [
+      {
+        role: "user",
+        content: "Wann hat mein Vater Geburtstag?"
+      },
+      {
+        role: "assistant",
+        content: "Am 18. Januar."
+      }
+    ]
+  });
+
+  assert.deepEqual(followUp, {
+    matched: true,
+    resolved: true,
+    message:
+      "Trag den Geburtstag meines Vaters in den Kalender ein.",
+    subject: "father"
+  });
+
+  const grounded = resolveGroundedBirthdayCalendarCommand({
+    message: followUp.message,
+    todayIso: "2026-09-06",
+    rows: [
+      {
+        role: "user",
+        content: "Mein Vater hat am 18. Januar Geburtstag."
+      },
+      {
+        role: "assistant",
+        content: "Am 18. Januar."
+      }
+    ]
+  });
+
+  assert.equal(grounded.resolved, true);
+  assert.equal(grounded.command.summary, "Vater Geburtstag");
+  assert.equal(grounded.command.start, "2027-01-18");
+  assert.equal(grounded.command.recurrence, "yearly");
+});
+
+test("ein Anschlussbefehl nutzt Sols Datum nicht ohne Pams Gedächtnisbeleg", () => {
+  const followUp = resolveCalendarFollowUpReference({
+    message: "Trag es bitte in den Kalender ein",
+    rows: [
+      {
+        role: "user",
+        content: "Wann hat meine Mutter Geburtstag?"
+      },
+      {
+        role: "assistant",
+        content: "Am 9. Dezember."
+      }
+    ]
+  });
+
+  const grounded = resolveGroundedBirthdayCalendarCommand({
+    message: followUp.message,
+    todayIso: "2026-09-06",
+    rows: [
+      {
+        role: "assistant",
+        content: "Am 9. Dezember."
+      }
+    ]
+  });
+
+  assert.equal(followUp.subject, "mother");
+  assert.equal(grounded.resolved, false);
+  assert.equal(grounded.reason, "missing_date");
+});
+
+test("ein älteres Geburtstagsthema überschreibt keinen neueren Gesprächsbezug", () => {
+  const followUp = resolveCalendarFollowUpReference({
+    message: "Trag es bitte in den Kalender ein",
+    rows: [
+      {
+        role: "user",
+        content: "Wann hat mein Vater Geburtstag?"
+      },
+      {
+        role: "assistant",
+        content: "Am 18. Januar."
+      },
+      {
+        role: "user",
+        content: "Wie wird morgen das Wetter?"
+      },
+      {
+        role: "assistant",
+        content: "Morgen wird es sonnig."
+      }
+    ]
+  });
+
+  assert.equal(followUp.matched, true);
+  assert.equal(followUp.resolved, false);
+  assert.equal(followUp.subject, null);
 });
 
 test("ein früher von Pam genanntes Datum wird zum jährlichen Ganztagstermin", () => {
@@ -157,6 +261,12 @@ test("der Kalender lädt das Gedächtnis vor dem Parser und schreibt echte Wiede
     handler,
     /resolveGroundedBirthdayCalendarCommand\([\s\S]*?calendarGrounding\.rows/u
   );
+  assert.ok(
+    handler.indexOf("getConversationMessages") <
+      handler.indexOf("resolveCalendarFollowUpReference"),
+    "Der flüchtige Dialog muss vor dem Anschlussbezug geladen werden."
+  );
+  assert.match(handler, /loadRecentCalendarConversationRows/u);
   assert.match(
     handler,
     /parseCalendarCommand\([\s\S]*?calendarGrounding\.memoryText/u
