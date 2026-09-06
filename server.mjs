@@ -8345,6 +8345,46 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "function",
 
             name:
+              "prepare_whatsapp",
+
+            description:
+              `Sucht einen ausdrücklich genannten Empfänger im vollständigen lokalen Android-Kontaktverzeichnis. Bei mehreren Treffern muss nachgefragt werden. Nach ${identity.displayName}s sichtbarer Bestätigung wird der vollständige Text als Entwurf im offiziellen WhatsApp-Chat geöffnet. Behaupte niemals, die Nachricht sei gesendet: ${identity.displayName} tippt in WhatsApp selbst auf Senden.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                contact_name: {
+                  type:
+                    "string",
+
+                  description:
+                    "Name oder zuvor auf diesem Gerät bestätigter Kontaktalias des WhatsApp-Empfängers."
+                },
+                message: {
+                  type:
+                    "string",
+
+                  description:
+                    `Der vollständige, unveränderte WhatsApp-Text von ${identity.displayName}.`
+                }
+              },
+
+              required: [
+                "contact_name",
+                "message"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
               "read_health_snapshot",
 
             description:

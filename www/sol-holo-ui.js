@@ -258,12 +258,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
 
   document.querySelector("#servicesView .permissionNote").textContent =
-    "Pam’s Holo liest keine WhatsApp-Nachricht, keinen Kontakt, kein Bild, keine " +
-    "Notiz und keinen Health-Wert ohne deine sichtbare Auswahl oder Freigabe. " +
+    "Nach deiner Android-Freigabe kann Pam’s Holo alle Gerätekontakte lokal " +
+    "durchsuchen. Das Telefonbuch wird nicht hochgeladen; verwendet wird nur " +
+    "der von dir genannte, eindeutig geprüfte Empfänger. WhatsApp-Nachrichten " +
+    "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
+    "Bild, Notiz und Health-Wert bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
     "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
     "normale Alltagsinhalte als Freigabe; " +
     "Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. " +
     "Geräte werden erst nach einer einmaligen Gerätefreigabe steuerbar.";
+
+  document.querySelector("#phoneContactsRow .rowMeta").textContent =
+    "Alle Gerätekontakte lokal finden · WhatsApp, SMS und Anruf sichtbar bestätigen";
 
   const drawerVoiceSettings = document.querySelector("#drawer .drawerVoiceSettings");
   if (drawerVoiceSettings) {
@@ -2440,6 +2446,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     } else if (phoneStatus.connected) {
       statusElement.textContent = "Verbunden";
       statusElement.classList.add("connected");
+    } else if (phoneStatus.contactsPermissionGranted) {
+      statusElement.textContent = "Kontakte verbunden";
+      statusElement.classList.add("connected");
     } else {
       statusElement.textContent = "Freigabe nötig";
       statusElement.classList.add("setup");
@@ -2522,9 +2531,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       renderPhoneStatus(status);
       await registerPhoneListeners();
 
-      if (status?.connected) {
+      if (status?.contactsPermissionGranted) {
         showToast(
-          "Telefon und Kontakte verbunden. Anruf oder SMS erst nach Bestätigung."
+          "Alle Gerätekontakte sind lokal verfügbar. Anruf, SMS oder WhatsApp erst nach sichtbarer Bestätigung." +
+          (status?.phoneStatePermissionGranted
+            ? ""
+            : " Die optionale Anruferkennung ist noch nicht freigegeben.")
         );
       } else {
         showToast(
@@ -2671,6 +2683,53 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.extractSolHoloPhoneContactCallName = phoneContactCallNameFromMessage;
   window.openSolHoloServiceDialer = openServiceDialer;
 
+  function normalizeContactLookupName(value) {
+    return String(value || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("de-DE")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function cleanContactAliasPhrase(value) {
+    return String(value || "")
+      .replace(/[\s\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]+$/gu, "")
+      .replace(/^[\s:;,–—-]+|[\s:;,–—-]+$/g, "")
+      .trim();
+  }
+
+  function contactLookupHint(value) {
+    const clean = cleanContactAliasPhrase(value);
+    const hintMatch = clean.match(/^(.+?)\s+(?:nr\.?\s*)?(\d{2,4})$/i);
+    return hintMatch
+      ? {
+          query: hintMatch[1].trim(),
+          numberSuffix: hintMatch[2]
+        }
+      : { query: clean, numberSuffix: "" };
+  }
+
+  function maskedContactChoice(contact) {
+    const digits = String(contact?.number || "").replace(/\D/g, "");
+    const suffix = digits.slice(-4);
+    const label = String(contact?.label || "Nummer").trim() || "Nummer";
+    return `${contact?.name || "Unbenannt"} (${label}${suffix ? ` · …${suffix}` : ""})`;
+  }
+
+  function ambiguousContactAnswer(contactName, contacts) {
+    const choices = contacts
+      .slice(0, 5)
+      .map(maskedContactChoice)
+      .join("; ");
+    return (
+      `Ich habe mehrere passende Kontakte für „${contactName}“ gefunden: ` +
+      `${choices}. Bitte nenne den vollständigen Namen oder zusätzlich die ` +
+      "letzten vier Ziffern."
+    );
+  }
+
   async function findPhoneContact(query) {
     if (!activePersonalOwner()) {
       throw new Error("Die feste Holo-ID ist nicht verfügbar.");
@@ -2680,7 +2739,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       throw new Error("Telefon und Kontakte sind nur in der Android-App verfügbar.");
     }
 
-    const cleanQuery = String(query || "").trim();
+    const cleanQuery = cleanContactAliasPhrase(query);
     if (!cleanQuery) {
       throw new Error("Bitte nenne einen Kontakt.");
     }
@@ -2690,21 +2749,95 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       await requestPhoneAccess();
     }
 
+    if (typeof plugin.resolveContactAlias === "function") {
+      const aliasResult = await plugin.resolveContactAlias({
+        alias: cleanQuery,
+        ownerId: activePersonalOwner()
+      });
+      if (aliasResult?.found && aliasResult?.contact) {
+        return {
+          contact: aliasResult.contact,
+          contacts: [aliasResult.contact],
+          aliasMatched: true,
+          ambiguous: false
+        };
+      }
+    }
+
+    const hint = contactLookupHint(cleanQuery);
     const result = await plugin.searchContacts({
-      query: cleanQuery,
-      limit: 8
+      query: hint.query,
+      limit: 20
     });
     const contacts = Array.isArray(result?.results) ? result.results : [];
 
-    const exact = contacts.find(
+    const suffixMatches = hint.numberSuffix
+      ? contacts.filter((contact) =>
+          String(contact?.number || "")
+            .replace(/\D/g, "")
+            .endsWith(hint.numberSuffix)
+        )
+      : contacts;
+    const normalizedQuery = normalizeContactLookupName(hint.query);
+    const exactMatches = suffixMatches.filter(
       (contact) =>
-        String(contact?.name || "")
-          .localeCompare(cleanQuery, "de-DE", { sensitivity: "base" }) === 0
+        normalizeContactLookupName(contact?.name) === normalizedQuery
     );
+    const candidates = exactMatches.length > 0
+      ? exactMatches
+      : suffixMatches;
 
     return {
-      contact: exact || contacts[0] || null,
-      contacts
+      contact: candidates.length === 1 ? candidates[0] : null,
+      contacts: candidates,
+      aliasMatched: false,
+      ambiguous: candidates.length > 1
+    };
+  }
+
+  async function bindPhoneContactAlias(alias, contactName) {
+    const cleanAlias = cleanContactAliasPhrase(alias);
+    const cleanContactName = cleanContactAliasPhrase(contactName);
+    if (!cleanAlias || !cleanContactName) {
+      return {
+        success: false,
+        answer: "Bitte nenne den Alias und den Kontakt, der damit verbunden werden soll."
+      };
+    }
+
+    const resolution = await findPhoneContact(cleanContactName);
+    if (resolution.ambiguous) {
+      return {
+        success: false,
+        answer: ambiguousContactAnswer(cleanContactName, resolution.contacts)
+      };
+    }
+    if (!resolution.contact) {
+      return {
+        success: false,
+        answer: `Ich habe keinen Telefonkontakt namens „${cleanContactName}“ gefunden.`
+      };
+    }
+
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.bindContactAlias !== "function") {
+      return {
+        success: false,
+        answer: "Kontakt-Aliasse sind erst nach dem App-Update verfügbar."
+      };
+    }
+
+    await plugin.bindContactAlias({
+      alias: cleanAlias,
+      contactId: String(resolution.contact.id),
+      number: resolution.contact.number,
+      ownerId: activePersonalOwner()
+    });
+    return {
+      success: true,
+      answer:
+        `„${cleanAlias}“ ist jetzt nur auf diesem Gerät mit ` +
+        `${resolution.contact.name} verbunden.`
     };
   }
 
@@ -2733,6 +2866,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       const contact = result.contact;
       if (!contact) {
+        if (result.ambiguous) {
+          return {
+            success: false,
+            ambiguous: true,
+            answer: ambiguousContactAnswer(contactName, result.contacts)
+          };
+        }
         return {
           success: false,
           answer: `Ich habe keinen Telefonkontakt namens „${contactName}“ gefunden.`
@@ -2767,6 +2907,37 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         };
       }
 
+      if (actionName === "prepare_whatsapp") {
+        const message = String(args?.message || "").trim();
+        if (!message) {
+          return {
+            success: false,
+            answer: "Für WhatsApp fehlt noch der Nachrichtentext."
+          };
+        }
+
+        const plugin = getPhoneContactsPlugin();
+        if (typeof plugin?.prepareWhatsApp !== "function") {
+          return {
+            success: false,
+            answer: "Die sichere WhatsApp-Übergabe ist erst nach dem App-Update verfügbar."
+          };
+        }
+
+        await plugin.prepareWhatsApp({
+          number: contact.number,
+          normalizedNumber: contact.normalizedNumber || "",
+          recipientName: contact.name,
+          message
+        });
+        return {
+          success: true,
+          answer:
+            `WhatsApp ist für ${contact.name} mit dem vollständigen Text vorbereitet. ` +
+            "Gesendet wird erst, wenn du in WhatsApp selbst auf Senden tippst."
+        };
+      }
+
       return { success: false, answer: "Unbekannte Telefonfunktion." };
     } catch (error) {
       console.error("Telefonfunktion:", error);
@@ -2785,6 +2956,182 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   window.executeSolHoloPhoneTool = executePhoneTool;
+
+  function contactAliasBindingFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .trim();
+    let match = cleanMessage.match(
+      /^kontaktalias\s+(.+?)\s+(?:ist|=)\s+(.+?)[.!]?$/i
+    );
+    if (!match) {
+      match = cleanMessage.match(
+        /^verbinde\s+(.+?)\s+mit\s+(?:dem\s+)?kontakt\s+(.+?)[.!]?$/i
+      );
+    }
+    if (!match) {
+      return null;
+    }
+    const alias = cleanContactAliasPhrase(match[1]);
+    const contactName = cleanContactAliasPhrase(match[2]);
+    return alias && contactName ? { alias, contactName } : null;
+  }
+
+  function whatsAppDraftSyntaxFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .trim();
+    let remainder = "";
+    let explicitWhatsApp = /\bwhatsapp(?:-nachricht)?\b/i.test(cleanMessage);
+    const verbMatch = cleanMessage.match(
+      /^(?:schreib(?:e)?|sende|schicke)\s+(?:bitte\s+)?(.+)$/i
+    );
+    const directWhatsAppMatch = cleanMessage.match(
+      /^whatsapp(?:-nachricht)?\s+(?:an\s+)?(.+)$/i
+    );
+    if (verbMatch) {
+      remainder = verbMatch[1].trim();
+    } else if (directWhatsAppMatch) {
+      explicitWhatsApp = true;
+      remainder = directWhatsAppMatch[1].trim();
+    } else {
+      return null;
+    }
+
+    if (!explicitWhatsApp && /\bsms\b/i.test(remainder)) {
+      return null;
+    }
+
+    const routedMatch = remainder.match(
+      /^(.+?)\s+(?:über|per)\s+whatsapp(?:-nachricht)?\s*(?::|;|,|\s+mit(?:\s+dem)?\s+text\s+)(.+)$/i
+    );
+    if (routedMatch) {
+      return {
+        explicitWhatsApp: true,
+        contactName: cleanContactAliasPhrase(routedMatch[1]),
+        message: String(routedMatch[2] || "").trim(),
+        body: remainder
+      };
+    }
+
+    remainder = remainder.replace(
+      /^(?:eine\s+)?whatsapp(?:-nachricht)?\s+(?:an\s+)?/i,
+      ""
+    );
+    remainder = remainder.replace(/^eine\s+nachricht\s+an\s+/i, "");
+    remainder = remainder.replace(/^an\s+/i, "").trim();
+
+    const delimitedMatch = remainder.match(
+      /^(.+?)(?::|;|,|\s+mit(?:\s+dem)?\s+text\s+)(.+)$/i
+    );
+    if (delimitedMatch) {
+      return {
+        explicitWhatsApp,
+        contactName: cleanContactAliasPhrase(delimitedMatch[1]),
+        message: String(delimitedMatch[2] || "").trim(),
+        body: remainder
+      };
+    }
+
+    return {
+      explicitWhatsApp,
+      contactName: "",
+      message: "",
+      body: remainder
+    };
+  }
+
+  async function resolveWhatsAppDraftFromMessage(message) {
+    const syntax = whatsAppDraftSyntaxFromMessage(message);
+    if (!syntax) {
+      return null;
+    }
+
+    let ambiguousResolution = null;
+    if (syntax.contactName) {
+      const resolution = await findPhoneContact(syntax.contactName);
+      if (resolution.contact && syntax.message) {
+        return {
+          contactName: syntax.contactName,
+          message: syntax.message
+        };
+      }
+      if (resolution.ambiguous) {
+        ambiguousResolution = {
+          contactName: syntax.contactName,
+          contacts: resolution.contacts
+        };
+      }
+      if (syntax.explicitWhatsApp) {
+        return resolution.ambiguous
+          ? {
+              error: ambiguousContactAnswer(
+                syntax.contactName,
+                resolution.contacts
+              )
+            }
+          : {
+              error:
+                `Ich habe keinen eindeutigen Telefonkontakt namens ` +
+                `„${syntax.contactName}“ gefunden.`
+            };
+      }
+    }
+
+    const words = String(syntax.body || "")
+      .split(/\s+/)
+      .filter(Boolean);
+    if (words.length < 2) {
+      return syntax.explicitWhatsApp
+        ? { error: "Bitte nenne den Kontakt und den Nachrichtentext." }
+        : null;
+    }
+
+    const maxContactWords = Math.min(5, words.length - 1);
+    for (let wordCount = maxContactWords; wordCount >= 1; wordCount -= 1) {
+      const contactName = cleanContactAliasPhrase(
+        words.slice(0, wordCount).join(" ")
+      );
+      if (!contactName) {
+        continue;
+      }
+      const resolution = await findPhoneContact(contactName);
+      if (resolution.contact) {
+        const messageText = words.slice(wordCount).join(" ").trim();
+        if (messageText) {
+          return { contactName, message: messageText };
+        }
+      } else if (resolution.ambiguous) {
+        ambiguousResolution = { contactName, contacts: resolution.contacts };
+      }
+    }
+
+    if (ambiguousResolution) {
+      return {
+        error: ambiguousContactAnswer(
+          ambiguousResolution.contactName,
+          ambiguousResolution.contacts
+        )
+      };
+    }
+
+    const firstName = cleanContactAliasPhrase(words[0]);
+    if (
+      /^(?:schatz|liebling|mama|mutti|papa|vati|oma|opa)$/i.test(firstName)
+    ) {
+      return {
+        error:
+          `„${firstName}“ ist noch keinem Kontakt zugeordnet. ` +
+          `Sag einmal: „Kontaktalias ${firstName} ist [Kontaktname].“`
+      };
+    }
+    return syntax.explicitWhatsApp
+      ? { error: "Ich habe keinen eindeutigen Empfänger gefunden." }
+      : null;
+  }
+
+  window.extractSolHoloContactAliasBinding = contactAliasBindingFromMessage;
+  window.extractSolHoloWhatsAppDraftSyntax = whatsAppDraftSyntaxFromMessage;
 
   async function registerSharedNoteListener() {
     const plugin = getPhoneContactsPlugin();
@@ -3466,6 +3813,27 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return { handled: true, answer: result.answer };
     }
 
+    const aliasBinding = contactAliasBindingFromMessage(cleanMessage);
+    if (aliasBinding) {
+      try {
+        const result = await bindPhoneContactAlias(
+          aliasBinding.alias,
+          aliasBinding.contactName
+        );
+        return { handled: true, answer: result.answer };
+      } catch (error) {
+        return {
+          handled: true,
+          answer: error?.code === "USER_CANCELLED"
+            ? "Die Kontaktzuordnung wurde abgebrochen."
+            : String(
+                error?.message ||
+                "Der Kontaktalias konnte gerade nicht verbunden werden."
+              )
+        };
+      }
+    }
+
     const phoneContactName = phoneContactCallNameFromMessage(cleanMessage);
     if (phoneContactName) {
       const result = await executePhoneTool("start_phone_call", {
@@ -3498,6 +3866,36 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         });
         return { handled: true, answer: result.answer };
       }
+    }
+
+    let whatsAppDraft = null;
+    try {
+      whatsAppDraft = await resolveWhatsAppDraftFromMessage(cleanMessage);
+    } catch (error) {
+      if (whatsAppDraftSyntaxFromMessage(cleanMessage)) {
+        return {
+          handled: true,
+          answer: /freigabe|permission/i.test(
+            String(error?.message || error || "")
+          )
+            ? "Für diesen WhatsApp-Auftrag fehlt noch die Android-Kontaktfreigabe."
+            : String(
+                error?.message ||
+                "Der WhatsApp-Empfänger konnte gerade nicht sicher geprüft werden."
+              )
+        };
+      }
+      throw error;
+    }
+    if (whatsAppDraft?.error) {
+      return { handled: true, answer: whatsAppDraft.error };
+    }
+    if (whatsAppDraft) {
+      const result = await executePhoneTool("prepare_whatsapp", {
+        contact_name: whatsAppDraft.contactName,
+        message: whatsAppDraft.message
+      });
+      return { handled: true, answer: result.answer };
     }
 
     previousPlainUserMessage = noteMessage;
@@ -4183,9 +4581,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   document.getElementById("phoneContactsRow").addEventListener("click", async () => {
-    if (phoneStatus.connected) {
+    if (phoneStatus.contactsPermissionGranted) {
       const managePermissions = window.confirm(
-        "Kontakte und Anruferkennung sind aktiv. Anruf oder SMS wird immer sichtbar bestätigt.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
+        "Alle Gerätekontakte und die Anruferkennung sind aktiv. WhatsApp, SMS oder Anruf wird immer sichtbar bestätigt.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
       );
       if (managePermissions) {
         try {

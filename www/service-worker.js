@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sol-holo-132-sicheres-notruf-routing";
+const CACHE_VERSION = "sol-holo-133-whatsapp-kontakte";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
