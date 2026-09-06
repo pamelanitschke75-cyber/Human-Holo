@@ -269,7 +269,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "Geräte werden erst nach einer einmaligen Gerätefreigabe steuerbar.";
 
   document.querySelector("#phoneContactsRow .rowMeta").textContent =
-    "Alle Gerätekontakte lokal finden · WhatsApp, SMS und Anruf sichtbar bestätigen";
+    "Alle Gerätekontakte lokal finden · WhatsApp auf ausdrücklichen Auftrag automatisch senden";
 
   const drawerVoiceSettings = document.querySelector("#drawer .drawerVoiceSettings");
   if (drawerVoiceSettings) {
@@ -462,6 +462,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     contactsPermissionGranted: false,
     phoneStatePermissionGranted: false,
     connected: false,
+    whatsAppDirectSendEnabled: false,
     callState: "idle",
     incomingCall: false
   };
@@ -2431,6 +2432,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         nextStatus?.phoneStatePermissionGranted
       ),
       connected: Boolean(nextStatus?.connected),
+      whatsAppDirectSendEnabled: Boolean(
+        nextStatus?.whatsAppDirectSendEnabled
+      ),
       callState: String(nextStatus?.callState || "idle"),
       incomingCall: Boolean(nextStatus?.incomingCall)
     };
@@ -2442,6 +2446,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       statusElement.classList.add("setup");
     } else if (phoneStatus.incomingCall) {
       statusElement.textContent = "Anruf erkannt";
+      statusElement.classList.add("connected");
+    } else if (
+      phoneStatus.contactsPermissionGranted &&
+      phoneStatus.whatsAppDirectSendEnabled
+    ) {
+      statusElement.textContent = "Auto-Senden aktiv";
       statusElement.classList.add("connected");
     } else if (phoneStatus.connected) {
       statusElement.textContent = "Verbunden";
@@ -2484,6 +2494,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           showToast(`Telefonat beendet. ${activeInstanceName()} ist wieder da.`);
           void resumeWakeListeningAfterConversation();
         }
+      });
+
+      await plugin.addListener("whatsAppAutoSendResult", (result) => {
+        const recipient = String(result?.recipientName || "dem Kontakt");
+        if (result?.sendControlActivated) {
+          showToast(`WhatsApp an ${recipient} automatisch gesendet ✅️`);
+          return;
+        }
+        showToast(
+          `WhatsApp an ${recipient} wurde zur Sicherheit nicht automatisch gesendet.`
+        );
       });
     } catch (error) {
       phoneListenersRegistered = false;
@@ -2533,7 +2554,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       if (status?.contactsPermissionGranted) {
         showToast(
-          "Alle Gerätekontakte sind lokal verfügbar. Anruf, SMS oder WhatsApp erst nach sichtbarer Bestätigung." +
+          "Alle Gerätekontakte sind lokal verfügbar. Automatisches WhatsApp-Senden braucht einen ausdrücklichen Auftrag und seine einmalige Bedienungshilfe." +
           (status?.phoneStatePermissionGranted
             ? ""
             : " Die optionale Anruferkennung ist noch nicht freigegeben.")
@@ -2924,18 +2945,54 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           };
         }
 
-        await plugin.prepareWhatsApp({
-          number: contact.number,
-          normalizedNumber: contact.normalizedNumber || "",
-          recipientName: contact.name,
-          message
-        });
-        return {
-          success: true,
-          answer:
-            `WhatsApp ist für ${contact.name} mit dem vollständigen Text vorbereitet. ` +
-            "Gesendet wird erst, wenn du in WhatsApp selbst auf Senden tippst."
-        };
+        const automaticSend = Boolean(args?.explicit_whatsapp_command);
+        let handoff;
+        try {
+          handoff = await plugin.prepareWhatsApp({
+            number: contact.number,
+            normalizedNumber: contact.normalizedNumber || "",
+            recipientName: contact.name,
+            message,
+            autoSend: automaticSend,
+            explicitOwnerCommand: automaticSend
+          });
+        } catch (error) {
+          if (error?.code !== "WHATSAPP_AUTO_SEND_ACCESS_REQUIRED") {
+            throw error;
+          }
+          if (typeof plugin?.requestWhatsAppAutoSendAccess !== "function") {
+            return {
+              success: false,
+              answer:
+                "Der automatische WhatsApp-Besitzer-Modus ist erst nach dem App-Update verfügbar."
+            };
+          }
+          await plugin.requestWhatsAppAutoSendAccess();
+          return {
+            success: false,
+            setupRequired: true,
+            settingsOpened: true,
+            answer:
+              "Aktiviere einmal „Sol Holo – WhatsApp automatisch senden“ in den Android-Bedienungshilfen. " +
+              "Danach sagst du denselben WhatsApp-Befehl noch einmal."
+          };
+        }
+        return automaticSend
+          ? {
+              success: true,
+              automaticSendRequested: true,
+              pendingToken: String(handoff?.pendingToken || ""),
+              answer:
+                `Der einmalige automatische WhatsApp-Sendeauftrag an ${contact.name} läuft. ` +
+                "Sol sendet nur, wenn Empfänger und vollständiger Text in WhatsApp exakt stimmen."
+            }
+          : {
+              success: true,
+              automaticSendRequested: false,
+              answer:
+                `WhatsApp an ${contact.name} ist vorbereitet. ` +
+                "Für automatisches Senden muss dein Auftrag WhatsApp ausdrücklich nennen."
+            };
       }
 
       return { success: false, answer: "Unbekannte Telefonfunktion." };
@@ -2959,7 +3016,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function contactAliasBindingFromMessage(message) {
     const cleanMessage = String(message || "")
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam))\s*[,;:!.-]?\s*/i,
+        ""
+      )
       .trim();
     let match = cleanMessage.match(
       /^kontaktalias\s+(.+?)\s+(?:ist|=)\s+(.+?)[.!]?$/i
@@ -2979,15 +3039,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function whatsAppDraftSyntaxFromMessage(message) {
     const cleanMessage = String(message || "")
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam))\s*[,;:!.-]?\s*/i,
+        ""
+      )
       .trim();
     let remainder = "";
-    let explicitWhatsApp = /\bwhatsapp(?:-nachricht)?\b/i.test(cleanMessage);
+    let explicitWhatsApp = /\bwhats[\s-]*app(?:-nachricht)?\b/i.test(cleanMessage);
     const verbMatch = cleanMessage.match(
-      /^(?:schreib(?:e)?|sende|schicke)\s+(?:bitte\s+)?(.+)$/i
+      /^(?:schreib(?:e)?|sende|schick(?:e)?)\s+(?:bitte\s+)?(.+)$/i
     );
     const directWhatsAppMatch = cleanMessage.match(
-      /^whatsapp(?:-nachricht)?\s+(?:an\s+)?(.+)$/i
+      /^whats[\s-]*app(?:-nachricht)?\s+(?:an\s+)?(.+)$/i
     );
     if (verbMatch) {
       remainder = verbMatch[1].trim();
@@ -2998,12 +3061,24 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return null;
     }
 
+    const recipientWhatsAppMatch = remainder.match(
+      /^(.+?)\s+(?:eine\s+)?whats[\s-]*app(?:-nachricht)?\s+(?:mit(?:\s+dem)?\s+text\s*[:;,–—-]?\s+|mit\s+)(.+)$/i
+    );
+    if (recipientWhatsAppMatch) {
+      return {
+        explicitWhatsApp: true,
+        contactName: cleanContactAliasPhrase(recipientWhatsAppMatch[1]),
+        message: String(recipientWhatsAppMatch[2] || "").trim(),
+        body: remainder
+      };
+    }
+
     if (!explicitWhatsApp && /\bsms\b/i.test(remainder)) {
       return null;
     }
 
     const routedMatch = remainder.match(
-      /^(.+?)\s+(?:über|per)\s+whatsapp(?:-nachricht)?\s*(?::|;|,|\s+mit(?:\s+dem)?\s+text\s+)(.+)$/i
+      /^(.+?)\s+(?:über|per)\s+whats[\s-]*app(?:-nachricht)?\s*(?::|;|,|\s+mit(?:\s+dem)?\s+text\s+)(.+)$/i
     );
     if (routedMatch) {
       return {
@@ -3015,7 +3090,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     remainder = remainder.replace(
-      /^(?:eine\s+)?whatsapp(?:-nachricht)?\s+(?:an\s+)?/i,
+      /^(?:eine\s+)?whats[\s-]*app(?:-nachricht)?\s+(?:an\s+)?/i,
       ""
     );
     remainder = remainder.replace(/^eine\s+nachricht\s+an\s+/i, "");
@@ -3053,7 +3128,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       if (resolution.contact && syntax.message) {
         return {
           contactName: syntax.contactName,
-          message: syntax.message
+          message: syntax.message,
+          explicitWhatsApp: syntax.explicitWhatsApp
         };
       }
       if (resolution.ambiguous) {
@@ -3099,7 +3175,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       if (resolution.contact) {
         const messageText = words.slice(wordCount).join(" ").trim();
         if (messageText) {
-          return { contactName, message: messageText };
+          return {
+            contactName,
+            message: messageText,
+            explicitWhatsApp: syntax.explicitWhatsApp
+          };
         }
       } else if (resolution.ambiguous) {
         ambiguousResolution = { contactName, contacts: resolution.contacts };
@@ -3893,7 +3973,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (whatsAppDraft) {
       const result = await executePhoneTool("prepare_whatsapp", {
         contact_name: whatsAppDraft.contactName,
-        message: whatsAppDraft.message
+        message: whatsAppDraft.message,
+        explicit_whatsapp_command: Boolean(
+          whatsAppDraft.explicitWhatsApp
+        )
       });
       return { handled: true, answer: result.answer };
     }
@@ -4583,7 +4666,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("phoneContactsRow").addEventListener("click", async () => {
     if (phoneStatus.contactsPermissionGranted) {
       const managePermissions = window.confirm(
-        "Alle Gerätekontakte und die Anruferkennung sind aktiv. WhatsApp, SMS oder Anruf wird immer sichtbar bestätigt.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
+        "Alle Gerätekontakte und die Anruferkennung sind aktiv. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden; SMS und Anrufe bleiben sichtbar bestätigt.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
       );
       if (managePermissions) {
         try {

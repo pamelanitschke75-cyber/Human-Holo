@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.0
-Stand: 13.08.2026
+Version: 1.1
+Stand: 06.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -385,6 +385,30 @@ Freigegebene Informationen aus:
 können Sol helfen, Pams Kontext besser zu verstehen.
 
 Ob eine Information dauerhaft in Memory übernommen wird, wird von der jeweiligen Funktion und den festgelegten Regeln bestimmt.
+
+---
+
+16A. WHATSAPP AUTOMATISCH SENDEN
+
+Die optionale Android-Bedienungshilfe für WhatsApp wird erst nach einem
+verständlichen Hinweis und Pams bewusster Freigabe aktiv. Android beschreibt
+diese Berechtigung als weitreichenden Bildschirm- und Steuerungszugriff.
+
+Sol Holo begrenzt die Nutzung technisch auf:
+
+- WhatsApp und WhatsApp Business,
+- einen ausdrücklichen WhatsApp-Sendeauftrag,
+- genau einen zuvor eindeutig gefundenen Kontakt,
+- den vollständigen, unveränderten Nachrichtentext,
+- genau eine Betätigung der erkannten Senden-Schaltfläche,
+- höchstens 30 Sekunden ab Auftragserteilung.
+
+Passt eine dieser Angaben nicht, wird nichts automatisch gesendet. Der Auftrag
+wird nur im Arbeitsspeicher gehalten, nicht dauerhaft gespeichert und nicht
+hochgeladen. Die Bedienungshilfe kann jederzeit in den Android-Einstellungen
+ausgeschaltet werden. Änderungen an WhatsApp oder Android können die Funktion
+unterbrechen; deshalb ist vor einer allgemeinen Veröffentlichung erneut zu
+prüfen, ob Technik, Plattformregeln und Hinweise noch aktuell sind.
 
 ---
 

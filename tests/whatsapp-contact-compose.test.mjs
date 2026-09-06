@@ -18,6 +18,24 @@ const android = fs.readFileSync(
   new URL("../android-native/PhoneContactsPlugin.java", import.meta.url),
   "utf8"
 );
+const autoSendCommand = fs.readFileSync(
+  new URL("../android-native/WhatsAppAutoSendCommand.java", import.meta.url),
+  "utf8"
+);
+const autoSendService = fs.readFileSync(
+  new URL(
+    "../android-native/WhatsAppAutoSendAccessibilityService.java",
+    import.meta.url
+  ),
+  "utf8"
+);
+const autoSendServiceConfig = fs.readFileSync(
+  new URL(
+    "../android-native/sol_holo_whatsapp_auto_send_service.xml",
+    import.meta.url
+  ),
+  "utf8"
+);
 const installer = fs.readFileSync(
   new URL("../scripts/install-whatsapp-driving-mode.mjs", import.meta.url),
   "utf8"
@@ -100,6 +118,17 @@ test("natürliche WhatsApp-Aufträge behalten Empfänger und Text vollständig",
     }
   );
   assert.deepEqual(
+    syntaxParser(
+      "Sol Holo, schicke Steffi eine Whats App mit dem Text: Ich liebe dich ❤️"
+    ),
+    {
+      explicitWhatsApp: true,
+      contactName: "Steffi",
+      message: "Ich liebe dich ❤️",
+      body: "Steffi eine Whats App mit dem Text: Ich liebe dich ❤️"
+    }
+  );
+  assert.deepEqual(
     syntaxParser("schreib Schatz❤️ ich liebe dich ❤️"),
     {
       explicitWhatsApp: false,
@@ -129,7 +158,8 @@ test("Kontaktalias wird nur durch einen ausdrücklichen Bindungsauftrag erkannt"
 test("Schatz-Kommandos und mehrteilige Namen werden ohne Trennwort aufgelöst", async () => {
   const contacts = new Map([
     ["schatz", { id: "1", name: "Steffi", number: "+491234567" }],
-    ["anna maria", { id: "2", name: "Anna Maria", number: "+499876543" }]
+    ["anna maria", { id: "2", name: "Anna Maria", number: "+499876543" }],
+    ["steffi", { id: "3", name: "Steffi", number: "+491234567" }]
   ]);
   const resolver = resolverFactory(
     async (query) => {
@@ -145,11 +175,29 @@ test("Schatz-Kommandos und mehrteilige Namen werden ohne Trennwort aufgelöst", 
 
   assert.deepEqual(
     await resolver("Schreib Schatz❤️ ich liebe dich ❤️"),
-    { contactName: "Schatz", message: "ich liebe dich ❤️" }
+    {
+      contactName: "Schatz",
+      message: "ich liebe dich ❤️",
+      explicitWhatsApp: false
+    }
   );
   assert.deepEqual(
     await resolver("Schreib Anna Maria bin gleich da"),
-    { contactName: "Anna Maria", message: "bin gleich da" }
+    {
+      contactName: "Anna Maria",
+      message: "bin gleich da",
+      explicitWhatsApp: false
+    }
+  );
+  assert.deepEqual(
+    await resolver(
+      "Sol Holo, schicke Steffi eine WhatsApp mit dem Text: Ich liebe dich ❤️"
+    ),
+    {
+      contactName: "Steffi",
+      message: "Ich liebe dich ❤️",
+      explicitWhatsApp: true
+    }
   );
 });
 
@@ -177,13 +225,20 @@ test("Kontaktalias bleibt im privaten App-Bereich und wird gegen Kontakte geprü
   assert.match(android, /storedOnlyOnDevice", true/u);
 });
 
-test("WhatsApp öffnet nur einen bestätigten Entwurf und sendet nicht selbst", () => {
+test("WhatsApp-Auto-Senden ist einmalig, explizit und fail-closed", () => {
   const method = sourceBetween(
     android,
     "public void prepareWhatsApp",
     "private void confirmExternalAction"
   );
   assert.match(method, /authority\("wa\.me"\)/u);
+  assert.match(method, /call\.getBoolean\("autoSend", false\)/u);
+  assert.match(method, /call\.getBoolean\("explicitOwnerCommand", false\)/u);
+  assert.match(method, /whatsAppAutoSendAccessEnabled/u);
+  assert.match(method, /WhatsAppAutoSendCommand\.arm/u);
+  assert.match(method, /WhatsAppAutoSendAccessibilityService\.wakeForPendingCommand/u);
+  assert.match(method, /finalWhatsAppSendRequired", false/u);
+  assert.match(method, /singleUseCommand", true/u);
   assert.match(method, /confirmExternalAction/u);
   assert.match(method, /Intent\.ACTION_VIEW/u);
   assert.match(method, /result\.put\("sent", false\)/u);
@@ -194,13 +249,48 @@ test("WhatsApp öffnet nur einen bestätigten Entwurf und sendet nicht selbst", 
   assert.match(installer, /<package android:name="\$\{whatsAppPackage\}"/u);
   assert.match(installer, /"com\.whatsapp"/u);
   assert.match(installer, /"com\.whatsapp\.w4b"/u);
+  assert.match(
+    installer,
+    /WhatsAppAutoSendAccessibilityService\.java/u
+  );
+  assert.match(
+    installer,
+    /android\.permission\.BIND_ACCESSIBILITY_SERVICE/u
+  );
+
+  assert.match(autoSendCommand, /static final long DEFAULT_TTL_MS = 30_000L/u);
+  assert.match(autoSendCommand, /private static Pending pending/u);
+  assert.match(autoSendCommand, /WHATSAPP_COMMAND_ALREADY_ACTIVE/u);
+  assert.doesNotMatch(autoSendCommand, /SharedPreferences/u);
+  assert.match(autoSendCommand, /public static synchronized Pending claim/u);
+  assert.match(autoSendService, /pending\.packageName\.contentEquals/u);
+  assert.match(autoSendService, /findExactDraft/u);
+  assert.match(autoSendService, /findRecipientEvidence/u);
+  assert.match(autoSendService, /findSendControl/u);
+  assert.match(autoSendService, /WhatsAppAutoSendCommand\.claim/u);
+  assert.equal(
+    (autoSendService.match(/ACTION_CLICK/g) || []).length,
+    1,
+    "Der Dienst darf genau eine Klickstelle besitzen"
+  );
+  assert.match(
+    autoSendServiceConfig,
+    /android:packageNames="com\.whatsapp,com\.whatsapp\.w4b"/u
+  );
+  assert.match(autoSendServiceConfig, /android:canRetrieveWindowContent="true"/u);
+  assert.match(autoSendServiceConfig, /android:isAccessibilityTool="false"/u);
 });
 
 test("Text- und Sprachchat kennen dasselbe lokale WhatsApp-Werkzeug", () => {
   assert.match(server, /name:\s*\n\s*"prepare_whatsapp"/u);
-  assert.match(server, /Behaupte niemals, die Nachricht sei gesendet/u);
+  assert.match(server, /ausdrücklichem WhatsApp-Sendeauftrag/u);
+  assert.match(server, /Ohne diese technische Rückmeldung niemals behaupten/u);
   assert.match(html, /"prepare_whatsapp"/u);
   assert.match(ui, /executePhoneTool\("prepare_whatsapp"/u);
   assert.match(ui, /plugin\.prepareWhatsApp/u);
-  assert.match(ui, /Gesendet wird erst, wenn du in WhatsApp selbst auf Senden tippst/u);
+  assert.match(ui, /autoSend: automaticSend/u);
+  assert.match(ui, /explicitOwnerCommand: automaticSend/u);
+  assert.match(ui, /explicit_whatsapp_command/u);
+  assert.match(ui, /whatsAppAutoSendResult/u);
+  assert.match(ui, /automatisch gesendet/u);
 });

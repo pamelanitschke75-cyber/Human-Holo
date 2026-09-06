@@ -113,6 +113,10 @@ jobs:
             android-native/WakeRecognitionLifecyclePolicy.java \
             tests/java/com/solholo/app/WakeRecognitionLifecyclePolicyTest.java
           java -cp "$test_dir" com.solholo.app.WakeRecognitionLifecyclePolicyTest
+          javac -d "$test_dir" \
+            android-native/WhatsAppAutoSendCommand.java \
+            tests/java/com/solholo/app/WhatsAppAutoSendCommandTest.java
+          java -cp "$test_dir" com.solholo.app.WhatsAppAutoSendCommandTest
 
       - name: Mehrfaktor-Sicherheitslogik testen
         run: |
@@ -274,6 +278,23 @@ jobs:
 
       - name: Sicheren Fahr- und Weckmodus einbinden
         run: node scripts/install-whatsapp-driving-mode.mjs
+
+      - name: WhatsApp-Einmalversand in Android prüfen
+        run: |
+          set -Eeuo pipefail
+          command_java="android/app/src/main/java/com/solholo/app/WhatsAppAutoSendCommand.java"
+          service_java="android/app/src/main/java/com/solholo/app/WhatsAppAutoSendAccessibilityService.java"
+          service_xml="android/app/src/main/res/xml/sol_holo_whatsapp_auto_send_service.xml"
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          test -s "$command_java"
+          test -s "$service_java"
+          test -s "$service_xml"
+          grep -q 'WhatsAppAutoSendAccessibilityService' "$app_manifest"
+          grep -q 'android.permission.BIND_ACCESSIBILITY_SERVICE' "$app_manifest"
+          grep -q 'android:packageNames="com.whatsapp,com.whatsapp.w4b"' "$service_xml"
+          grep -q 'android:isAccessibilityTool="false"' "$service_xml"
+          grep -q 'WhatsAppAutoSendCommand.claim' "$service_java"
+          test "$(grep -c 'ACTION_CLICK' "$service_java")" -eq 1
 
       - name: Mehrfaktor-Zugriffssicherheit einbinden
         run: node scripts/install-access-security.mjs
