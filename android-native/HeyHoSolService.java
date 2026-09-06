@@ -159,6 +159,7 @@ public class HeyHoSolService extends Service {
         private AudioManager.AudioRecordingCallback recordingCallback;
         private Thread pumpThread;
         private volatile long keywordAudioStart;
+        private volatile int keywordTokenOffsetSamples = -1;
 
         SecureAudioSession(Context context) throws IOException {
             keywordSpotter = new SolWakeKeywordSpotter(context);
@@ -246,13 +247,26 @@ public class HeyHoSolService extends Service {
                     if (detection == null) {
                         detection = keywordSpotter.accept(buffer, count);
                         if (detection != null) {
+                            long sampleAtDetection = captured.totalWritten();
                             keywordAudioStart = PcmRingBuffer.boundedKeywordStart(
                                 detection.firstTokenSample,
-                                captured.totalWritten(),
+                                sampleAtDetection,
                                 KEYWORD_PREROLL_SAMPLES,
                                 KEYWORD_MAX_LOOKBACK_SAMPLES
                             );
-                            keywordPostrollEndSample = captured.totalWritten()
+                            if (
+                                detection.firstTokenSample > 0L
+                                    && detection.firstTokenSample <= sampleAtDetection
+                            ) {
+                                keywordTokenOffsetSamples = (int)Math.min(
+                                    Integer.MAX_VALUE,
+                                    Math.max(
+                                        0L,
+                                        detection.firstTokenSample - keywordAudioStart
+                                    )
+                                );
+                            }
+                            keywordPostrollEndSample = sampleAtDetection
                                 + KEYWORD_POSTROLL_SAMPLES;
                         }
                     } else if (
@@ -290,6 +304,10 @@ public class HeyHoSolService extends Service {
             stopAndReleaseRecorder();
             joinPump();
             return captured.snapshotFrom(keywordAudioStart);
+        }
+
+        int keywordTokenOffsetSamples() {
+            return keywordTokenOffsetSamples;
         }
 
         long totalCapturedSamples() {
@@ -750,7 +768,8 @@ public class HeyHoSolService extends Service {
                     SolSpeakerIdentityPlugin.verifyWakeAudio(
                         getApplicationContext(),
                         samples,
-                        samples.length
+                        samples.length,
+                        session.keywordTokenOffsetSamples()
                     );
                 accepted = verification.accepted;
                 campplusScore = verification.campplusScore;

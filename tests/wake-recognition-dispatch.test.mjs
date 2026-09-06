@@ -62,7 +62,7 @@ test("nach erkanntem Hey Pam bleibt das Mikrofon für das Wortende offen", () =>
   );
   assert.match(
     pump,
-    /keywordPostrollEndSample = captured\.totalWritten\(\)\s*\+ KEYWORD_POSTROLL_SAMPLES/u
+    /keywordPostrollEndSample = sampleAtDetection\s*\+ KEYWORD_POSTROLL_SAMPLES/u
   );
   assert.match(
     pump,
@@ -70,7 +70,7 @@ test("nach erkanntem Hey Pam bleibt das Mikrofon für das Wortende offen", () =>
   );
   assert.ok(
     pump.indexOf("keywordAudioStart = PcmRingBuffer.boundedKeywordStart(")
-      < pump.indexOf("keywordPostrollEndSample = captured.totalWritten()"),
+      < pump.indexOf("keywordPostrollEndSample = sampleAtDetection"),
     "Nach dem Keyword-Treffer muss zuerst der sichere Ausschnitt feststehen"
   );
 });
@@ -86,7 +86,7 @@ test("die Besitzerprüfung erhält nur den kurzen Tonabschnitt um Hey Pam", () =
   );
   assert.match(
     pump,
-    /PcmRingBuffer\.boundedKeywordStart\([\s\S]*?detection\.firstTokenSample[\s\S]*?captured\.totalWritten\(\)[\s\S]*?KEYWORD_PREROLL_SAMPLES[\s\S]*?KEYWORD_MAX_LOOKBACK_SAMPLES[\s\S]*?\)/u
+    /PcmRingBuffer\.boundedKeywordStart\([\s\S]*?detection\.firstTokenSample[\s\S]*?sampleAtDetection[\s\S]*?KEYWORD_PREROLL_SAMPLES[\s\S]*?KEYWORD_MAX_LOOKBACK_SAMPLES[\s\S]*?\)/u
   );
   assert.doesNotMatch(
     pump,
@@ -95,7 +95,7 @@ test("die Besitzerprüfung erhält nur den kurzen Tonabschnitt um Hey Pam", () =
   );
 });
 
-test("echter Weckruf und Sicherheitstest verwenden denselben Hey-Pam-Ausschnitt", () => {
+test("der echte Weckruf prüft einen verankerten und einen sicheren Hey-Pam-Ausschnitt", () => {
   const verificationStart = speakerPluginSource.indexOf(
     "static WakeVerification verifyWakeAudio("
   );
@@ -111,10 +111,32 @@ test("echter Weckruf und Sicherheitstest verwenden denselben Hey-Pam-Ausschnitt"
   );
   assert.match(
     verification,
-    /WakeVoiceTemplateSelector\.extract\(\s*captured,\s*capturedCount\s*\)/u
+    /WakeVoiceTemplateSelector\.extractCandidates\(\s*captured,\s*capturedCount,\s*keywordAnchorSample\s*\)/u
   );
+  assert.match(verification, /for \(float\[\] voicedSamples : voiceCandidates\)/u);
+  assert.match(verification, /if \(!candidate\.accepted\)/u);
   assert.doesNotMatch(verification, /MIN_WAKE_ACTIVE_FRAMES/u);
   assert.doesNotMatch(verification, /MAX_WAKE_SPEECH_GAP_FRAMES/u);
+});
+
+test("der Keyword-Zeitstempel erreicht den Stimmabgleich ohne die Grenzen zu senken", () => {
+  assert.match(serviceSource, /keywordTokenOffsetSamples = -1/u);
+  assert.match(
+    serviceSource,
+    /detection\.firstTokenSample - keywordAudioStart/u
+  );
+  assert.match(
+    serviceSource,
+    /session\.keywordTokenOffsetSamples\(\)/u
+  );
+  assert.match(
+    speakerPluginSource,
+    /WAKE_TEMPLATE_CAMPPLUS_THRESHOLD/u
+  );
+  assert.match(
+    speakerPluginSource,
+    /WAKE_TEMPLATE_ERES2NET_THRESHOLD/u
+  );
 });
 
 test("Samsung muss keine aufgenommene Datei an SpeechRecognizer übernehmen", () => {
@@ -159,11 +181,11 @@ test("nur Pams owner-gebundenes Hey Pam erreicht beide Besitzerprüfungen", () =
 test("bestehende 3-von-3-Profile migrieren nur die kurze Hey-Pam-Vorlage", () => {
   assert.match(
     speakerPluginSource,
-    /boolean accepted = templateAccepted \|\| profileAccepted/u
+    /templateAccepted \|\| profileAccepted/u
   );
   assert.match(
     speakerPluginSource,
-    /if \(profileAccepted && !templateAccepted\)/u
+    /if \(candidate\.profileAccepted && !candidate\.templateAccepted\)/u
   );
   assert.match(
     speakerPluginSource,
@@ -189,7 +211,10 @@ test("bestehende 3-von-3-Profile migrieren nur die kurze Hey-Pam-Vorlage", () =>
 });
 
 test("eine vorhandene Hey-Pam-Vorlage verlangt nach Ablehnung keinen neuen Sicherheitstest", () => {
-  assert.match(speakerPluginSource, /boolean templateUsed = templateScored/u);
+  assert.match(
+    speakerPluginSource,
+    /candidate\.templateScored|best\.templateScored/u
+  );
   assert.doesNotMatch(
     speakerPluginSource,
     /templateUsed\s*=\s*templateAccepted/u

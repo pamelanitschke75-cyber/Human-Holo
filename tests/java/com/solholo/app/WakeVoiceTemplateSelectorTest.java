@@ -7,6 +7,7 @@ public final class WakeVoiceTemplateSelectorTest {
         selectsHeyPamBeforeTheLongSentenceContinues();
         selectsTheSameHeyPamFromTestAndLiveCapture();
         ignoresAShortLeadingNoise();
+        keywordAnchorIgnoresHandlingNoiseBeforeHeyPam();
         capsContinuousSpeechToTheWakePhraseWindow();
         rejectsSilence();
         System.out.println("WakeVoiceTemplateSelectorTest: OK");
@@ -73,6 +74,33 @@ public final class WakeVoiceTemplateSelectorTest {
         );
     }
 
+    private static void keywordAnchorIgnoresHandlingNoiseBeforeHeyPam() {
+        short[] audio = new short[120 * FRAME_SAMPLES];
+        fillFrames(audio, 5, 24, (short)8000);
+        fillFrames(audio, 42, 72, (short)5000);
+
+        float[][] candidates = WakeVoiceTemplateSelector.extractCandidates(
+            audio,
+            audio.length,
+            42 * FRAME_SAMPLES
+        );
+        if (candidates.length != 2) {
+            throw new AssertionError(
+                "Anker- und Sicherheits-Fallback müssen beide geprüft werden"
+            );
+        }
+        assertContainsAmplitude(
+            candidates[0],
+            5000f / 32768f,
+            "Der bevorzugte Anker-Ausschnitt muss Hey Pam enthalten"
+        );
+        assertDoesNotContainAmplitude(
+            candidates[0],
+            8000f / 32768f,
+            "Handhabungsgeräusche vor dem Keyword-Anker dürfen nicht als Stimme geprüft werden"
+        );
+    }
+
     private static void capsContinuousSpeechToTheWakePhraseWindow() {
         short[] audio = new short[260 * FRAME_SAMPLES];
         fillFrames(audio, 15, 190, (short)5000);
@@ -110,6 +138,31 @@ public final class WakeVoiceTemplateSelectorTest {
             index++
         ) {
             audio[index] = amplitude;
+        }
+    }
+
+    private static void assertContainsAmplitude(
+        float[] values,
+        float expected,
+        String message
+    ) {
+        for (float value : values) {
+            if (Math.abs(value - expected) < 0.00001f) {
+                return;
+            }
+        }
+        throw new AssertionError(message);
+    }
+
+    private static void assertDoesNotContainAmplitude(
+        float[] values,
+        float forbidden,
+        String message
+    ) {
+        for (float value : values) {
+            if (Math.abs(value - forbidden) < 0.00001f) {
+                throw new AssertionError(message);
+            }
         }
     }
 
