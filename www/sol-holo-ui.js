@@ -2565,7 +2565,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         normalized
       );
     const hasSafetyContext =
-      /\b(?:notfall|lebensgefahr|lebensbedrohlich|bewusstlos|atmung|atemnot|brustschmerzen|herzbeschwerden|schlaganfall|krampfanfall|vergiftung|verbrennung|stromunfall|stromschlag|ertrinkungsunfall|schmerzen|ohrenschmerzen|halsschmerzen|rueckenschmerzen|bauchschmerzen|fieber|verletzt|blutet|bedroht|messer|waffe|einbruch|einbrecher|polizei|116117|112|110)\b/i.test(
+      /\b(?:notfall|lebensgefahr|lebensbedrohlich|bewusstlos|atmung|atemnot|brustschmerzen|herzbeschwerden|schlaganfall|krampfanfall|vergiftung|verbrennung|stromunfall|stromschlag|ertrinkungsunfall|schmerzen|ohrenschmerzen|halsschmerzen|rueckenschmerzen|bauchschmerzen|fieber|verletzt|blutet|bedroht|messer|waffe|einbruch|einbrecher|fremd(?:e|er|en|em|es)?|unbekannt(?:e|er|en|em|es)?|unbefugt(?:e|er|en|em|es)?|polizei|116117|112|110)\b/i.test(
         normalized
       );
     const asksForGuidance =
