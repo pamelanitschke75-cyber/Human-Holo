@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "name": "Sol Holo Oekosystem",
+  "language": "de",
+  "started_on": "2026-09-06",
+  "status": "foundation-implemented-not-user-confirmed",
+  "owner": "Pamela Nitschke",
+  "motto": "Miteinander fuereinander. Together forever.",
+  "scope": "Menschen, Tiere, Natur und Ressourcen",
+  "principles": [
+    "Hilfe gilt allen in Not; niemand wird wegen Herkunft, Alter, Geschlecht, Vermoegen, Wohnstatus oder Art ausgeschlossen.",
+    "Eine akute Gefahr fuer Leben oder Gesundheit hat Vorrang vor Umwelt- und Ordnungshinweisen.",
+    "Sol Holo trennt beobachtete Fakten, Unsicherheit, Pams Projektziele und allgemeine Vorschlaege sichtbar voneinander.",
+    "Sol Holo bewertet den gesamten Lebensweg: Herstellung, Rohstoffe, Transport, Nutzung, Reparatur, Wiederverwendung und Entsorgung.",
+    "Probleme werden nicht nur verlagert; Greenwashing und reine Austauschloesungen gelten nicht als vollstaendige Loesung.",
+    "Vermeiden, verringern, reparieren, teilen und wiederverwenden kommen vor Wegwerfen und erst danach Recycling.",
+    "Lokale Anlaufstellen und Kontaktdaten werden vor jeder Ausgabe aktuell aus offiziellen Quellen geprueft.",
+    "Standort wird nur aus einer ausdruecklichen Ortsangabe oder nach Zustimmung verwendet; keine heimliche Dauerortung.",
+    "Anrufen, senden, buchen, spenden, kaufen, investieren und andere externe Handlungen erfolgen nur nach klarer Freigabe.",
+    "Sol Holo behauptet niemals, Hilfe alarmiert, etwas entsorgt oder eine Handlung ausgefuehrt zu haben, wenn dies nicht bestaetigt ist.",
+    "Hinweise sind praktisch, verstaendlich, barrierearm und ohne Beschuldigung der hilfesuchenden Person.",
+    "Menschen bleiben Menschen; Sol Holo unterstuetzt und ersetzt keine Notrufstelle, medizinische Fachperson, Tierarztpraxis oder Behoerde."
+  ],
+  "areas": [
+    {
+      "id": "wasser_abwasser",
+      "title": "Wasser und Abwasser",
+      "purpose": "Trinkwasser, Gewaesser, Rohre, Pumpen und Klaeranlagen schuetzen.",
+      "keywords": [
+        "wasser", "abwasser", "abfluss", "toilette", "klo", "kanalisation",
+        "feuchttuch", "feuchttuecher", "fett", "oel", "spuelmittel", "reinigungsmittel"
+      ],
+      "examples": [
+        "Feuchttuecher nicht ueber Toilette oder Ausguss entsorgen.",
+        "Speiseoel und Fett nicht in Abfluss oder Toilette geben.",
+        "Spuel- und Reinigungsmittel sparsam dosieren und umweltschonende Mittel bevorzugen."
+      ]
+    },
+    {
+      "id": "lebensmittel_versorgung",
+      "title": "Lebensmittel und Versorgung",
+      "purpose": "Essbares erhalten und Menschen versorgen, statt Lebensmittel unnoetig zu vernichten.",
+      "keywords": [
+        "essen", "lebensmittel", "lebensmittelverschwendung", "wegwerfen", "spenden",
+        "tafel", "hunger", "hungrig", "essensausgabe", "hilfsbus"
+      ],
+      "examples": [
+        "Noch sichere Lebensmittel weitergeben oder an geeignete Stellen spenden.",
+        "Bei eigener Not passende Essensausgaben und Tafeln vor Ort finden.",
+        "Lebensmittelsicherheit hat Vorrang; verdorbene oder riskante Ware nicht weitergeben."
+      ]
+    },
+    {
+      "id": "abfall_haushalt",
+      "title": "Abfall und Haushalt",
+      "purpose": "Alltagsabfaelle sicher und oertlich richtig entsorgen.",
+      "keywords": [
+        "muell", "abfall", "entsorgen", "hundekot", "kotbeutel", "katzenstreu",
+        "katzentoilette", "feuchttuch", "feuchttuecher", "fett", "oel", "akku",
+        "batterie", "recycling", "restmuell", "biomuell"
+      ],
+      "examples": [
+        "Hundekot sicher aufnehmen und nach den oertlichen Regeln entsorgen.",
+        "Katzenstreu nie in Toilette oder Abfluss geben; Material und Kommune bestimmen den richtigen Abfallweg.",
+        "Oertliche Regeln pruefen, statt eine Entsorgungsart fuer jeden Ort zu behaupten."
+      ]
+    },
+    {
+      "id": "plastik_materialien",
+      "title": "Plastik und Materialien",
+      "purpose": "Unnoetiges Plastik und problematische Einwegmaterialien langfristig vermeiden.",
+      "keywords": [
+        "plastik", "kunststoff", "mikroplastik", "einweg", "verpackung", "mehrweg",
+        "material", "reparieren", "wiederverwenden"
+      ],
+      "project_target": "So wenig Plastik wie moeglich; vermeidbares Einwegplastik soll langfristig entfallen.",
+      "examples": [
+        "Unverpackt oder Mehrweg bevorzugen, wenn dies sicher und praktikabel ist.",
+        "Vor Recycling zuerst Vermeidung, Reparatur und Wiederverwendung pruefen.",
+        "Materialwechsel nur empfehlen, wenn die Gesamtwirkung tatsaechlich besser ist."
+      ]
+    },
+    {
+      "id": "energie_mobilitaet",
+      "title": "Energie und Mobilitaet",
+      "purpose": "Mobilitaet und Energie ohne Problemverlagerung beurteilen.",
+      "keywords": [
+        "sprit", "benzin", "diesel", "kraftstoff", "auto", "e-auto", "elektroauto",
+        "e-roller", "elektroroller", "akku", "batterie", "mobilitaet", "energie"
+      ],
+      "project_target": "Langfristig keine fossilen Kraftstoffe und keine Abhaengigkeit von batterieintensiven privaten E-Autos oder E-Rollern als Scheinloesung.",
+      "required_assessment": [
+        "Bedarf vermeiden oder Wege verkuerzen",
+        "zu Fuss, Fahrrad und barrierearme Wege",
+        "oeffentliche und gemeinsam genutzte Angebote",
+        "Energiequelle und Effizienz",
+        "Rohstoffgewinnung und Herstellung",
+        "Akkulebensdauer, Reparatur, Zweitnutzung und Recycling",
+        "Ende des gesamten Produktlebens"
+      ]
+    },
+    {
+      "id": "menschen_in_not",
+      "title": "Menschen in Not",
+      "purpose": "Menschen in jeder Notlage schnell zu sicherer, passender und wuerdevoller Hilfe fuehren.",
+      "keywords": [
+        "mensch in not", "hilfe", "obdachlos", "wohnungslos", "notunterkunft", "schutz",
+        "gewalt", "kalt", "friert", "hunger", "existenznot", "krise", "katastrophe"
+      ],
+      "examples": [
+        "Akute Lebensgefahr zuerst an den oertlichen Notruf weiterleiten.",
+        "Notunterkunft, Streetwork, Waerme- oder Hilfsbus und Beratungsstelle lokal suchen.",
+        "Tafel und weitere Lebensmittelhilfe anzeigen.",
+        "Internationale medizinische und humanitaere Hilfe wie Aerzte ohne Grenzen als passende Organisation auffindbar machen."
+      ]
+    },
+    {
+      "id": "tiere_in_not",
+      "title": "Tiere in Not",
+      "purpose": "Verletzte, verirrte, ausgesetzte oder akut gefaehrdete Tiere zu geeigneter Hilfe fuehren.",
+      "keywords": [
+        "tier in not", "verletztes tier", "verletzte katze", "verletzter hund", "wildtier",
+        "tierarzt", "tierklinik", "tierrettung", "tierheim", "fundtier", "ausgesetzt", "vergiftet"
+      ],
+      "examples": [
+        "Eigene Gefahr vermeiden und das Tier nicht ungesichert anfassen.",
+        "Tierart, beobachteter Zustand und genauen Fundort fuer professionelle Hilfe bereithalten.",
+        "Lokale Tierarztpraxis, Tierklinik, Tierrettung, Tierheim oder zustaendige Behoerde aktuell pruefen.",
+        "Medizinische Versorgung gilt ausdruecklich auch fuer Tiere."
+      ]
+    },
+    {
+      "id": "medizinische_versorgung",
+      "title": "Medizinische Versorgung fuer Menschen und Tiere",
+      "purpose": "Zugang zu fachlicher Versorgung vermitteln, ohne Diagnose oder eigenmaechtige Behandlung.",
+      "keywords": [
+        "medizin", "medizinisch", "arzt", "aerztin", "tierarzt", "tierklinik", "behandlung",
+        "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung"
+      ],
+      "project_target": "Geeignete medizinische Versorgung soll fuer alle Menschen und auch fuer Tiere erreichbar sein.",
+      "limits": [
+        "keine Diagnose",
+        "keine Dosierung oder Therapie festlegen",
+        "keine Entwarnung bei unklarer Dringlichkeit",
+        "bei akuter Gefahr professionelle Hilfe priorisieren"
+      ]
+    },
+    {
+      "id": "natur_ressourcen",
+      "title": "Natur und Ressourcen",
+      "purpose": "Auswirkungen auf Luft, Wasser, Boden, Klima, Lebensraeume und endliche Rohstoffe gemeinsam betrachten.",
+      "keywords": [
+        "natur", "umwelt", "oekosystem", "ressource", "rohstoff", "klima", "luft", "boden",
+        "gewaesser", "lebensraum", "arten", "nachhaltig"
+      ],
+      "examples": [
+        "Keine einzelne Kennzahl als alleinige Wahrheit verwenden.",
+        "Folgen fuer Menschen, Tiere, Natur und spaetere Generationen gemeinsam ausweisen.",
+        "Reparierbarkeit, Haltbarkeit und Kreislauffaehigkeit mitbewerten."
+      ]
+    },
+    {
+      "id": "lokale_anlaufstellen",
+      "title": "Lokale Anlaufstellen",
+      "purpose": "Aus einer konkreten Notlage eine aktuell gepruefte, erreichbare Hilfe vor Ort machen.",
+      "keywords": [
+        "anlaufstelle", "in der naehe", "wohin", "adresse", "telefon", "notruf", "hilfsbus",
+        "tafel", "notunterkunft", "tierheim", "tierrettung", "tierklinik"
+      ],
+      "required_fields": [
+        "Name",
+        "Aufgabe und Zielgruppe",
+        "offizielle Quelle",
+        "Ort oder Einsatzgebiet",
+        "aktuelle Erreichbarkeit",
+        "Kostenhinweis, falls vorhanden",
+        "Zeitpunkt der letzten Pruefung"
+      ]
+    },
+    {
+      "id": "investieren_beschaffen",
+      "title": "Investieren und Beschaffen",
+      "purpose": "Geld- und Kaufentscheidungen an echter sozialer, oekologischer und tierfreundlicher Wirkung messen.",
+      "keywords": [
+        "investieren", "investition", "anlage", "kaufen", "beschaffen", "unternehmen",
+        "fonds", "aktie", "wirkung", "greenwashing"
+      ],
+      "required_assessment": [
+        "nachvollziehbarer Nutzen fuer Menschen, Tiere, Natur oder Ressourcen",
+        "gesamter Lebensweg und Folgekosten",
+        "Menschenrechte und Arbeitsbedingungen",
+        "Tierwohl",
+        "Abfall, Wasser, Energie und Rohstoffe",
+        "Transparenz und unabhaengige Nachweise",
+        "Risiken, Zielkonflikte und moegliches Greenwashing"
+      ],
+      "limits": [
+        "keine automatische Geldanlage oder Zahlung",
+        "keine Garantie von Rendite oder Wirkung",
+        "jede verbindliche Transaktion nur nach ausdruecklicher Freigabe"
+      ]
+    }
+  ],
+  "emergency_signals": {
+    "human": [
+      "bewusstlos", "atmet nicht", "keine atmung", "lebensgefahr", "blutet stark",
+      "schwere verletzung", "akuter notfall", "will sich umbringen", "suizid"
+    ],
+    "animal": [
+      "tier atmet nicht", "tier bewusstlos", "tier blutet stark", "angefahrenes tier",
+      "schwer verletztes tier", "tier vergiftet", "vergiftetes tier"
+    ]
+  },
+  "system_gaps": [
+    {
+      "id": "tiernotrettung_sonderrechte",
+      "statement": "Bei Tierrettung zaehlt Zeit. Sol Holo soll regionale Regeln und Versorgungsluecken sichtbar machen, einschliesslich der Frage geeigneter Sonder- oder Wegerechte fuer professionelle Tierrettungsfahrzeuge.",
+      "classification": "policy-goal-not-current-legal-claim"
+    }
+  ],
+  "help_sources": [
+    {
+      "id": "de_emergency_112",
+      "areas": ["menschen_in_not", "medizinische_versorgung"],
+      "country": "DE",
+      "name": "Europaeischer Notruf 112",
+      "phone": "112",
+      "official_url": "https://www.bbk.bund.de/DE/Warnung-Vorsorge/Warnung-in-Deutschland/So-werden-Sie-gewarnt/Notruf/notruf_node.html",
+      "use_for": "akute oder lebensbedrohliche Notfaelle bei Menschen",
+      "must_live_verify": false
+    },
+    {
+      "id": "de_medical_116117",
+      "areas": ["menschen_in_not", "medizinische_versorgung"],
+      "country": "DE",
+      "name": "Patientenservice 116117",
+      "phone": "116117",
+      "official_url": "https://www.116117.de/",
+      "use_for": "dringende, nicht lebensbedrohliche aerztliche Hilfe und Arztsuche",
+      "must_live_verify": true
+    },
+    {
+      "id": "munich_homeless_support",
+      "areas": ["menschen_in_not", "lokale_anlaufstellen"],
+      "country": "DE",
+      "city": "Muenchen",
+      "name": "Landeshauptstadt Muenchen – Notdienste und Hilfen fuer Wohnungslose",
+      "official_url": "https://stadt.muenchen.de/service/info/unterabteilung-operative/10257471/",
+      "use_for": "Beratung und Unterbringung bei akuter Wohnungslosigkeit",
+      "must_live_verify": true
+    },
+    {
+      "id": "munich_tafel",
+      "areas": ["lebensmittel_versorgung", "menschen_in_not", "lokale_anlaufstellen"],
+      "country": "DE",
+      "city": "Muenchen",
+      "name": "Muenchner Tafel e.V.",
+      "official_url": "https://muenchner-tafel.de/hilfe-finden/",
+      "use_for": "Lebensmittelhilfe in Muenchen",
+      "must_live_verify": true
+    },
+    {
+      "id": "de_tafel_search",
+      "areas": ["lebensmittel_versorgung", "menschen_in_not", "lokale_anlaufstellen"],
+      "country": "DE",
+      "name": "Tafel Deutschland – Tafel-Suche",
+      "official_url": "https://www.tafel.de/ueber-uns/die-tafeln/tafel-suche",
+      "use_for": "Tafel in der Naehe finden",
+      "must_live_verify": true
+    },
+    {
+      "id": "munich_animal_rescue",
+      "areas": ["tiere_in_not", "medizinische_versorgung", "lokale_anlaufstellen"],
+      "country": "DE",
+      "city": "Muenchen",
+      "name": "aktion tier – Tierrettung Muenchen e.V.",
+      "phone": "01805 84 3773",
+      "official_url": "https://www.tierrettungmuenchen.de/kontakt/notfall",
+      "use_for": "tiermedizinischer Notdienst im Einsatzgebiet Muenchen",
+      "last_verified": "2026-09-06",
+      "must_live_verify": true
+    },
+    {
+      "id": "msf_global",
+      "areas": ["menschen_in_not", "medizinische_versorgung"],
+      "scope": "global",
+      "name": "Aerzte ohne Grenzen",
+      "official_url": "https://www.aerzte-ohne-grenzen.de/",
+      "use_for": "internationale medizinische und humanitaere Nothilfe",
+      "must_live_verify": true
+    },
+    {
+      "id": "uba_toilet",
+      "areas": ["wasser_abwasser", "abfall_haushalt", "natur_ressourcen"],
+      "country": "DE",
+      "name": "Umweltbundesamt – Was darf nicht in die Toilette?",
+      "official_url": "https://www.umweltbundesamt.de/themen/was-darf-nicht-in-die-toilette",
+      "use_for": "offizielle Grundinformationen zu Abfall im Abwasser",
+      "must_live_verify": true
+    },
+    {
+      "id": "uba_cleaning",
+      "areas": ["wasser_abwasser", "natur_ressourcen"],
+      "country": "DE",
+      "name": "Umweltbundesamt – Umweltfreundlich reinigen",
+      "official_url": "https://www.umweltbundesamt.de/umwelttipps-fuer-den-alltag/haushalt-wohnen/reinigung-im-haushalt",
+      "use_for": "Reinigungsmittel und Dosierung",
+      "must_live_verify": true
+    },
+    {
+      "id": "uba_batteries",
+      "areas": ["energie_mobilitaet", "natur_ressourcen", "abfall_haushalt"],
+      "country": "DE",
+      "name": "Umweltbundesamt – Batterien und Altbatterien",
+      "official_url": "https://www.umweltbundesamt.de/themen/abfall-ressourcen/produktverantwortung-in-der-abfallwirtschaft/batterien-altbatterien",
+      "use_for": "Lebensende, Ruecknahme und Recycling von Batterien",
+      "must_live_verify": true
+    },
+    {
+      "id": "bmuv_ev_resources",
+      "areas": ["energie_mobilitaet", "natur_ressourcen"],
+      "country": "DE",
+      "name": "Bundesumweltministerium – Ressourcenbilanz der Elektromobilitaet",
+      "official_url": "https://www.bundesumweltministerium.de/themen/verkehr/elektromobilitaet/ressourcenbilanz",
+      "use_for": "Rohstoffbedarf von Elektrofahrzeugen",
+      "must_live_verify": true
+    },
+    {
+      "id": "uba_packaging",
+      "areas": ["plastik_materialien", "abfall_haushalt", "natur_ressourcen"],
+      "country": "DE",
+      "name": "Umweltbundesamt – Verpackungen",
+      "official_url": "https://www.umweltbundesamt.de/themen/abfall-ressourcen/produktverantwortung-in-der-abfallwirtschaft/verpackungen",
+      "use_for": "Vermeidung, Mehrweg und Verpackungsabfall",
+      "must_live_verify": true
+    }
+  ]
+}
