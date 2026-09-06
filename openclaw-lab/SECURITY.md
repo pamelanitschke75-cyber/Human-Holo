@@ -53,15 +53,15 @@ Eine allgemeine Zustimmung zu Sol Holo wird nicht als pauschale OpenClaw-Freigab
 
 ## Zentrale Verträge
 
-`foundation.manifest.json` ist die einzige Bereichsliste des Phase-1-Grundgerüsts. Konfiguration, Aufgabenvertrag und Ergebnisvertrag müssen dieselben sechs Worker enthalten. `tests/check-foundation.mjs` bricht ab, sobald Register, Workspace, Rechte oder sensible Bereichsregeln auseinanderlaufen.
+`foundation.manifest.json` ist die einzige Bereichsliste des Phase-1-Grundgerüsts. Konfiguration, Aufgabenvertrag und Ergebnisvertrag müssen dieselben acht Worker enthalten. `tests/check-foundation.mjs` bricht ab, sobald Register, Workspace, Rechte oder sensible Bereichsregeln auseinanderlaufen.
 
 Die Verträge sind noch keine aktive Schnittstelle. Es existiert kein Router und kein Sol-Holo-Adapter. Relative Quellpfade dürfen weder absolut sein noch `..` enthalten. Damit kann ein Auftrag schon an der Vertragsgrenze keinen Nachbar-Workspace benennen.
 
-Für Sicherheit und Medizin ist menschliche Prüfung Bestandteil des vorgesehenen Ergebnisses. Diese Kennzeichnung erteilt keine Freigabe und darf weder als Gefahrenentwarnung noch als medizinische Entscheidung verwendet werden.
+Für Familie & Kinder, Senioren & Pflege, Sicherheit und Medizin ist menschliche Prüfung Bestandteil des vorgesehenen Ergebnisses. Diese Kennzeichnung erteilt keine Freigabe und darf weder als Übernahme von Betreuung oder Pflege, als Gefahrenentwarnung noch als medizinische Entscheidung verwendet werden.
 
 ## Phase-1-Regel
 
-Die sechs Worker Alltag, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin verarbeiten ausschließlich Dateien, die deutlich als `FIKTIVE TESTDATEN` markiert sind. Reale Namen, Konten, Termine, Gesundheitswerte, Tierdaten, Kontakte und Zugangsdaten bleiben ausgeschlossen.
+Die acht Worker Alltag, Familie & Kinder, Senioren & Pflege, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin verarbeiten ausschließlich Dateien, die deutlich als `FIKTIVE TESTDATEN` markiert sind. Reale Namen, Konten, Termine, Kinder-, Familien-, Pflege-, Gesundheits-, Tier-, Kontakt-, Standort-, Vollmachts-, Einwilligungs- und Zugangsdaten bleiben ausgeschlossen.
 
 Ein Worker darf ausschließlich lesen und textlich antworten. Selbst eine harmlose Dateiänderung muss technisch blockiert bleiben. Kommunikation zwischen den Workern ist deaktiviert.
 
@@ -91,6 +91,38 @@ Vor einer Aktivierung sind eine getrennte Laufzeitimplementierung, technische
 Tests, Datenschutz- und Barrierefreiheitsprüfung sowie Pams praktische
 Bestätigung erforderlich.
 
+## Sondergrenze Familie & Kinder
+
+- Sicherheit, Schutz und Wohlergehen des Kindes stehen immer an erster Stelle;
+  ein Kind soll Kind sein dürfen.
+- Kinder sowie Senioren und hilfe- oder pflegebedürftige Menschen besitzen
+  dieselbe höchste Schutzpriorität.
+- Der Worker liest nur fiktive Angaben. Er ersetzt keine erwachsene Betreuung,
+  entscheidet weder Erziehung noch Sorge- oder Rechtsfragen und unterstellt
+  keine Familienbeziehung, Sorgeberechtigung oder Zustimmung.
+- Er überwacht kein Kind, erstellt kein persönliches Profil, gibt keine
+  vertraulichen Inhalte weiter und kontaktiert weder Sorgeberechtigte noch
+  andere Personen.
+- Eine Schutz-, Betreuungs-, Sicherheits- oder Medizinfrage darf nur als Bedarf
+  an menschlicher Prüfung gekennzeichnet werden. Es gibt keine automatische
+  Weitergabe an einen anderen Worker.
+
+## Sondergrenze Senioren & hilfe-/pflegebedürftige Menschen
+
+- Sicherheit, Schutz, Wohl und Würde stehen immer an erster Stelle. Alter oder
+  Pflegebedarf bedeuten nicht automatisch Hilflosigkeit oder fehlende
+  Entscheidungsfähigkeit.
+- Der Worker muss Selbstbestimmung, Einwilligung, Privatsphäre und persönliche
+  Wünsche respektieren und darf niemanden bevormunden oder infantilisieren.
+- Er ersetzt keine Pflege-, Betreuungs- oder medizinische Fachperson und trifft
+  keine Pflegegrad-, Diagnose-, Therapie-, Medikamenten-, Vollmachts- oder
+  Rechtsentscheidung.
+- Er überwacht keine Person, führt keine Pflege- oder Nutzerakte und kontaktiert
+  weder Angehörige, Vertrauenspersonen noch andere Stellen.
+- Eine Pflege-, Sicherheits- oder Medizinfrage darf nur als Bedarf an
+  menschlicher beziehungsweise fachlicher Prüfung gekennzeichnet werden. Es
+  gibt keine automatische Weitergabe an einen anderen Worker.
+
 ## Sondergrenze Sicherheit
 
 - Der Worker liest nur ausdrücklich beschriebene fiktive Beobachtungen. Er besitzt keinen Zugriff auf Kamera, Mikrofon, Standort, Sensoren, Alarme, Schlösser oder andere Geräte.
@@ -109,8 +141,8 @@ Bestätigung erforderlich.
 
 Die Konfiguration verlangt für jeden Worker eine Docker-Sandbox und bricht ohne Docker vor dem Modelllauf ab. Die lokale Arbeitsumgebung besitzt keine Docker-CLI; deshalb lief der unveränderte Test zusätzlich auf einem Docker-Runner im Draft-PR.
 
-Der [GitHub-Actions-Lauf #2](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/33957645527) baute das minimale Sandbox-Image neu und startete für alle sechs Worker einen echten Container. Für jeden Container wurden `network: "none"`, schreibgeschütztes Root-Dateisystem, `capDrop: ["ALL"]`, `no-new-privileges`, nicht privilegierter Betrieb und ein schreibgeschützter `/agent`-Mount bestätigt. Es existierte kein schreibbarer Bind-Mount. Direkte Schreibversuche gegen `/agent` und das Root-Dateisystem scheiterten; nur das flüchtige `tmpfs` unter `/tmp` war wie vorgesehen beschreibbar.
+Der [GitHub-Actions-Lauf #25](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/34058646736) baute das minimale Sandbox-Image neu und startete für alle acht Worker einen echten Container. Für jeden Container wurden `network: "none"`, schreibgeschütztes Root-Dateisystem, `capDrop: ["ALL"]`, `no-new-privileges`, nicht privilegierter Betrieb und ein schreibgeschützter `/agent`-Mount bestätigt. Es existierte kein schreibbarer Bind-Mount. Direkte Schreibversuche gegen `/agent` und das Root-Dateisystem scheiterten; nur das flüchtige `tmpfs` unter `/tmp` war wie vorgesehen beschreibbar.
 
-Mit denselben Containern bestanden alle sechs Worker den eigenen Lesezugriff. Alle sechs Fremdleseversuche und alle sechs Schreibversuche wurden blockiert. Nach dem Lauf wurden die Container wieder entfernt. Der technische Container-Nachweis ist damit erbracht; dies erteilt weiterhin weder Produktivfreigabe noch Sol-Holo-Verbindung.
+Mit denselben Containern bestanden alle acht Worker den eigenen Lesezugriff. Alle acht Fremdleseversuche und alle acht Schreibversuche wurden blockiert. Nach dem Lauf wurden die Container wieder entfernt. Der technische Container-Nachweis ist damit erbracht; dies erteilt weiterhin weder Produktivfreigabe noch Sol-Holo-Verbindung.
 
 Die eingecheckte Sandbox-Konfiguration darf für diesen Nachweis nicht auf `sandbox.mode: "off"` geändert werden. Die während der frühen lokalen Toolprüfung verwendete nicht eingecheckte Kopie ohne Containerstart ist kein Betriebsmodus und enthält ausschließlich fiktive Daten.

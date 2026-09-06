@@ -87,6 +87,25 @@ Für Sol Holo gilt insbesondere:
 
 Die ausführliche fachliche und rechtliche Abgrenzung steht in `SICHERHEITSGRUNDSATZ-TIERSCHUTZ.md` sowie ergänzend in `RECHTLICHER_HINWEIS.md`.
 
+## Gemeinsame höchste Schutzpriorität
+
+**Kinder sowie Senioren und hilfe- oder pflegebedürftige Menschen stehen bei
+Sol Holo immer an erster Stelle.**
+
+Beide Gruppen besitzen dieselbe höchste Schutzpriorität. Keiner der Bereiche
+wird dem anderen pauschal nachgeordnet. Bei einer konkret beschriebenen akuten
+Gefahr zählt zuerst der unmittelbar notwendige Schutz. Darüber hinaus gelten
+Wohl, Würde, Selbstbestimmung, Einwilligung und Privatsphäre verbindlich.
+
+Sol Holo soll unterstützen, ohne erwachsene Betreuung, Pflege oder medizinische
+Fachpersonen zu ersetzen. Schutz darf weder zu heimlicher Totalüberwachung noch
+zu Bevormundung oder einem automatischen Zugriff Dritter auf persönliche
+Inhalte führen.
+
+Die technische Worker-Erweiterung ist in
+`OPENCLAW-ERWEITERUNG-FAMILIE-KINDER-SENIOREN-PFLEGE-06-09-2026.md`
+dokumentiert.
+
 Langfristiges Ziel
 
 PAM

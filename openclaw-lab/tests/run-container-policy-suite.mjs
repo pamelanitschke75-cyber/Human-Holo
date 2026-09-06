@@ -26,7 +26,16 @@ fs.copyFileSync(path.join(labRoot, "openclaw.lab.example.json5"), privateConfigP
 fs.chmodSync(privateConfigPath, 0o600);
 
 const runId = `phase1-${process.pid}-${Date.now()}`;
-const workers = ["alltag", "geschaeftliches", "tiere", "kochen", "sicherheit", "medizin"];
+const workers = [
+  "alltag",
+  "familie-kinder",
+  "senioren-pflege",
+  "geschaeftliches",
+  "tiere",
+  "kochen",
+  "sicherheit",
+  "medizin",
+];
 const sessions = new Map(
   workers.map((domain) => [domain, `agent:worker-${domain}:${runId}`]),
 );
@@ -348,7 +357,11 @@ try {
     `SANDBOX_LIST ${JSON.stringify(list.containers.map(({ containerName, sessionKey }) => ({ containerName, sessionKey })))}\n`,
   );
   assert.deepEqual(list.browsers, [], "Browser-Sandboxes sind in Phase 1 verboten");
-  assert.equal(list.containers.length, 6, "Genau sechs Worker-Container erwartet");
+  assert.equal(
+    list.containers.length,
+    workers.length,
+    `Genau ${workers.length} Worker-Container erwartet`,
+  );
 
   for (const domain of workers) {
     const sessionKey = sessions.get(domain);
@@ -370,7 +383,7 @@ try {
   }
 
   process.stdout.write(
-    `CONTAINER_POLICY_SUITE_OK workers=6 reads=6 cross_reads_blocked=6 writes_blocked=6 previews=1 containers=6\n`,
+    `CONTAINER_POLICY_SUITE_OK workers=${workers.length} reads=${workers.length} cross_reads_blocked=${workers.length} writes_blocked=${workers.length} previews=1 containers=${workers.length}\n`,
   );
 } catch (error) {
   primaryError = error;

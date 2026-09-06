@@ -8,8 +8,18 @@ const workspacePrefix = (process.env.OPENCLAW_LAB_MOCK_WORKSPACE_PREFIX ?? "").r
 const domains = {
   alltag: {
     file: "testdaten/alltag-fiktiv.md",
-    crossFile: "../tiere/testdaten/tiere-fiktiv.md",
+    crossFile: "../familie-kinder/testdaten/familie-kinder-fiktiv.md",
     marker: "Haferdrink",
+  },
+  "familie-kinder": {
+    file: "testdaten/familie-kinder-fiktiv.md",
+    crossFile: "../senioren-pflege/testdaten/senioren-pflege-fiktiv.md",
+    marker: "TEST-FAM-08",
+  },
+  "senioren-pflege": {
+    file: "testdaten/senioren-pflege-fiktiv.md",
+    crossFile: "../geschaeftliches/testdaten/geschaeft-fiktiv.md",
+    marker: "TEST-PFLEGE-11",
   },
   geschaeftliches: {
     file: "testdaten/geschaeft-fiktiv.md",

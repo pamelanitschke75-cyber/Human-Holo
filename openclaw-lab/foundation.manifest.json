@@ -20,6 +20,24 @@
       "risk_class": "standard"
     },
     {
+      "id": "worker-familie-kinder",
+      "domain": "familie-kinder",
+      "workspace": "workspaces/familie-kinder",
+      "capabilities": ["read"],
+      "risk_class": "high",
+      "protection_priority": "highest",
+      "required_outcome": "child-welfare-privacy-and-human-review"
+    },
+    {
+      "id": "worker-senioren-pflege",
+      "domain": "senioren-pflege",
+      "workspace": "workspaces/senioren-pflege",
+      "capabilities": ["read"],
+      "risk_class": "high",
+      "protection_priority": "highest",
+      "required_outcome": "self-determination-consent-and-human-review"
+    },
+    {
       "id": "worker-geschaeftliches",
       "domain": "geschaeftliches",
       "workspace": "workspaces/geschaeftliches",
