@@ -1,0 +1,79 @@
+name: Publish Pam's Holo Build 205
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-build-205.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified Build 205 artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34065977471 \
+            --repo "${{ github.repository }}" \
+            --name "Pams-Holo-Android-update" \
+            --dir artifact
+
+      - name: Verify and prepare APK
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_apk="$(find artifact -type f -name 'Pams-Holo-Update.apk' -print -quit)"
+          asset="Pams-Holo-Update-Build-205-WhatsApp-Auto-Senden.apk"
+          expected_certificate="e122201077b93cb47edb6951446fb8dff77427a2f5a2bd4719474a638fe803e9"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk"
+          build_tools="$(find "$android_sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+
+          test -n "$source_apk"
+          test -s "$source_apk"
+          test -x "$build_tools/apksigner"
+          test -x "$build_tools/aapt"
+          cp -- "$source_apk" "$asset"
+
+          verification="$($build_tools/apksigner verify --verbose --print-certs "$asset")"
+          printf '%s\n' "$verification"
+          grep -Fq 'Verified using v1 scheme (JAR signing): true' <<< "$verification"
+          grep -Fq 'Verified using v2 scheme (APK Signature Scheme v2): true' <<< "$verification"
+          grep -Fq 'Verified using v3 scheme (APK Signature Scheme v3): true' <<< "$verification"
+          grep -Fq "certificate SHA-256 digest: $expected_certificate" <<< "$verification"
+
+          badging="$($build_tools/aapt dump badging "$asset")"
+          grep -Fq "versionCode='205'" <<< "$badging"
+          manifest_dump="$($build_tools/aapt dump xmltree "$asset" AndroidManifest.xml)"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' <<< "$manifest_dump"
+          unzip -p "$asset" assets/public/sol-holo-ui.js \
+            > "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'whatsAppAutoSendResult' "$RUNNER_TEMP/sol-holo-ui.js"
+          sha256sum "$asset"
+
+      - name: Publish direct APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          tag="build-205-whatsapp-auto-senden"
+          asset="Pams-Holo-Update-Build-205-WhatsApp-Auto-Senden.apk"
+          notes="Originalsigniertes Android-Update aus dem erfolgreichen main-Build #205. Nach einmaliger bewusster Aktivierung der Android-Bedienungshilfe kann Sol Holo einen ausdrücklich genannten WhatsApp-Sendeauftrag ohne weiteren Tipp auf Senden ausführen. Vor jedem Einmalversand müssen ein eindeutiger lokaler Kontakt, der vollständige unveränderte Text, das richtige WhatsApp-Paket und die sichtbare Senden-Schaltfläche zusammenpassen; der Auftrag verfällt nach 30 Sekunden und wird nicht gespeichert. Diese Bedienungshilfen-Automation ist keine offizielle WhatsApp-Sende-API und kann nach Änderungen an WhatsApp oder Android ausfallen. Installation nur als Update über die vorhandene App; nicht deinstallieren. Anschließend einmal mit einer zuvor abgesprochenen harmlosen Nachricht auf dem eigenen Gerät prüfen."
+
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$tag" "$asset" \
+              --repo "${{ github.repository }}" \
+              --target "5b1724b75c785221f154c1f3cd29759c377b5e76" \
+              --title "Pam's Holo – WhatsApp Auto-Senden Build 205" \
+              --notes "$notes"
+          fi
