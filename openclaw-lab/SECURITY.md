@@ -53,15 +53,15 @@ Eine allgemeine Zustimmung zu Sol Holo wird nicht als pauschale OpenClaw-Freigab
 
 ## Zentrale Verträge
 
-`foundation.manifest.json` ist die einzige Bereichsliste des Phase-1-Grundgerüsts. Konfiguration, Aufgabenvertrag und Ergebnisvertrag müssen dieselben sechs Worker enthalten. `tests/check-foundation.mjs` bricht ab, sobald Register, Workspace, Rechte oder sensible Bereichsregeln auseinanderlaufen.
+`foundation.manifest.json` ist die einzige Bereichsliste des Phase-1-Grundgerüsts. Konfiguration, Aufgabenvertrag und Ergebnisvertrag müssen dieselben acht Worker enthalten. `tests/check-foundation.mjs` bricht ab, sobald Register, Workspace, Rechte oder sensible Bereichsregeln auseinanderlaufen.
 
 Die Verträge sind noch keine aktive Schnittstelle. Es existiert kein Router und kein Sol-Holo-Adapter. Relative Quellpfade dürfen weder absolut sein noch `..` enthalten. Damit kann ein Auftrag schon an der Vertragsgrenze keinen Nachbar-Workspace benennen.
 
-Für Sicherheit und Medizin ist menschliche Prüfung Bestandteil des vorgesehenen Ergebnisses. Diese Kennzeichnung erteilt keine Freigabe und darf weder als Gefahrenentwarnung noch als medizinische Entscheidung verwendet werden.
+Für Familie & Kinder, Senioren & Pflege, Sicherheit und Medizin ist menschliche Prüfung Bestandteil des vorgesehenen Ergebnisses. Diese Kennzeichnung erteilt keine Freigabe und darf weder als Übernahme von Betreuung oder Pflege, als Gefahrenentwarnung noch als medizinische Entscheidung verwendet werden.
 
 ## Phase-1-Regel
 
-Die sechs Worker Alltag, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin verarbeiten ausschließlich Dateien, die deutlich als `FIKTIVE TESTDATEN` markiert sind. Reale Namen, Konten, Termine, Gesundheitswerte, Tierdaten, Kontakte und Zugangsdaten bleiben ausgeschlossen.
+Die acht Worker Alltag, Familie & Kinder, Senioren & Pflege, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin verarbeiten ausschließlich Dateien, die deutlich als `FIKTIVE TESTDATEN` markiert sind. Reale Namen, Konten, Termine, Kinder-, Familien-, Pflege-, Gesundheits-, Tier-, Kontakt-, Standort-, Vollmachts-, Einwilligungs- und Zugangsdaten bleiben ausgeschlossen.
 
 Ein Worker darf ausschließlich lesen und textlich antworten. Selbst eine harmlose Dateiänderung muss technisch blockiert bleiben. Kommunikation zwischen den Workern ist deaktiviert.
 
@@ -90,6 +90,38 @@ Alltag-Worker zugeordnet. Diese fachliche Zuordnung ist keine Laufzeitfreigabe.
 Vor einer Aktivierung sind eine getrennte Laufzeitimplementierung, technische
 Tests, Datenschutz- und Barrierefreiheitsprüfung sowie Pams praktische
 Bestätigung erforderlich.
+
+## Sondergrenze Familie & Kinder
+
+- Sicherheit, Schutz und Wohlergehen des Kindes stehen immer an erster Stelle;
+  ein Kind soll Kind sein dürfen.
+- Kinder sowie Senioren und hilfe- oder pflegebedürftige Menschen besitzen
+  dieselbe höchste Schutzpriorität.
+- Der Worker liest nur fiktive Angaben. Er ersetzt keine erwachsene Betreuung,
+  entscheidet weder Erziehung noch Sorge- oder Rechtsfragen und unterstellt
+  keine Familienbeziehung, Sorgeberechtigung oder Zustimmung.
+- Er überwacht kein Kind, erstellt kein persönliches Profil, gibt keine
+  vertraulichen Inhalte weiter und kontaktiert weder Sorgeberechtigte noch
+  andere Personen.
+- Eine Schutz-, Betreuungs-, Sicherheits- oder Medizinfrage darf nur als Bedarf
+  an menschlicher Prüfung gekennzeichnet werden. Es gibt keine automatische
+  Weitergabe an einen anderen Worker.
+
+## Sondergrenze Senioren & hilfe-/pflegebedürftige Menschen
+
+- Sicherheit, Schutz, Wohl und Würde stehen immer an erster Stelle. Alter oder
+  Pflegebedarf bedeuten nicht automatisch Hilflosigkeit oder fehlende
+  Entscheidungsfähigkeit.
+- Der Worker muss Selbstbestimmung, Einwilligung, Privatsphäre und persönliche
+  Wünsche respektieren und darf niemanden bevormunden oder infantilisieren.
+- Er ersetzt keine Pflege-, Betreuungs- oder medizinische Fachperson und trifft
+  keine Pflegegrad-, Diagnose-, Therapie-, Medikamenten-, Vollmachts- oder
+  Rechtsentscheidung.
+- Er überwacht keine Person, führt keine Pflege- oder Nutzerakte und kontaktiert
+  weder Angehörige, Vertrauenspersonen noch andere Stellen.
+- Eine Pflege-, Sicherheits- oder Medizinfrage darf nur als Bedarf an
+  menschlicher beziehungsweise fachlicher Prüfung gekennzeichnet werden. Es
+  gibt keine automatische Weitergabe an einen anderen Worker.
 
 ## Sondergrenze Sicherheit
 

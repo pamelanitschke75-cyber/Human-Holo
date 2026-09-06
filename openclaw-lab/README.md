@@ -1,15 +1,15 @@
 # Sol Holo × OpenClaw Lab
 
 Stand: 06.09.2026
-Status: **Phase 1 verifiziert; Phase 2c ergänzt für die einzelne Alltag-Laborvorschau einen OpenAI-Testweg; Phase 2d ordnet Verständigung dem Alltag-Worker zu; alles standardmäßig ausgeschaltet und nicht produktiv**
+Status: **Phase 1 wird um Familie & Kinder sowie Senioren und hilfe-/pflegebedürftige Menschen erweitert; Docker-Verifikation der acht Worker ausstehend; Phase 2c und 2d bleiben standardmäßig ausgeschaltet und nicht produktiv**
 
-OpenClaw `2026.9.1` läuft als getrenntes Labor. Sechs Fach-Worker sind angelegt: Alltag, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin. Jeder Worker sieht ausschließlich das Werkzeug `read`, sein eigenes Workspace und klar markierte erfundene Testdaten.
+OpenClaw `2026.9.1` läuft als getrenntes Labor. Acht Fach-Worker sind angelegt: Alltag, Familie & Kinder, Senioren und hilfe-/pflegebedürftige Menschen, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin. Jeder Worker sieht ausschließlich das Werkzeug `read`, sein eigenes Workspace und klar markierte erfundene Testdaten.
 
 Sol Holo beziehungsweise Pam's Holo bleibt Kopf, Persönlichkeit, Stimme und persönliches Gedächtnis. Die Worker sind begrenzte Ausführungsbereiche, keine eigenen Clone.
 
 ## Gemeinsames Grundgerüst
 
-`foundation.manifest.json` ist die zentrale, maschinenlesbare Bereichsliste. Sie hält die sechs Worker, ihre getrennten Workspaces und die unveränderlichen Phase-1-Grenzen fest. Unbekannte Bereiche werden nicht automatisch zugeordnet, und der Koordinator besitzt weder Werkzeuge noch automatische Routing-Freigabe.
+`foundation.manifest.json` ist die zentrale, maschinenlesbare Bereichsliste. Sie hält die acht Worker, ihre getrennten Workspaces und die unveränderlichen Phase-1-Grenzen fest. Unbekannte Bereiche werden nicht automatisch zugeordnet, und der Koordinator besitzt weder Werkzeuge noch automatische Routing-Freigabe.
 
 Zwei JSON-Schemas legen die kontrollierte Übergabe fest:
 
@@ -25,6 +25,22 @@ Nach Pams ausdrücklicher Freigabe wird genau eine fiktive Alltag-Aufgabe als Vo
 Das Gate akzeptiert keine freie Texteingabe, keine echten Daten, keinen anderen Pfad, keinen anderen Worker und keine zweite Freigabe im selben Gate-Prozess.
 
 Der [GitHub-Actions-Lauf #5](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/33966844004) bestätigte die Vorschau in der echten Docker-Sandbox: ein eigener Lesezugriff, ein strukturiertes Vorschauergebnis, keine externe Aktion, kein Schreiben, kein Bereichswechsel und weiterhin menschliche Prüfung. Alle bisherigen 18 Rechteprüfungen der sechs Worker blieben ebenfalls grün.
+
+## Ergänzung – Familie, Kinder, Senioren und Pflege
+
+Pam hatte Familie, Kinderbetreuung, Senioren und pflegebedürftige Menschen von
+Anfang an als Bestandteil von Sol Holo festgelegt. Am 06.09.2026 wurde die
+bislang unvollständige Worker-Aufteilung deshalb um zwei eigenständige,
+besonders geschützte Bereiche ergänzt: `worker-familie-kinder` und
+`worker-senioren-pflege`.
+
+Kinder sowie Senioren und hilfe- oder pflegebedürftige Menschen besitzen im
+Grundmanifest dieselbe höchste Schutzpriorität. Die neuen Worker respektieren
+Kindeswohl, Würde, Selbstbestimmung, Einwilligung und Privatsphäre. Sie ersetzen
+weder Betreuung noch Pflege oder Medizin, dürfen niemanden überwachen,
+kontaktieren oder bevormunden und können keinen anderen Worker automatisch
+aufrufen. Auch für sie gelten ausschließlich synthetische Daten, `read`,
+schreibgeschützte Docker-Sandboxes, `network: none` und menschliche Prüfung.
 
 ## Phase 2b – sichtbare Testverbindung in Pam’s Holo
 
@@ -76,13 +92,13 @@ flowchart TD
 
 Beide Pfade sind ausschließlich für die standardmäßig ausgeschaltete fiktive Vorschau vorgesehen. Der OpenAI-Pfad besitzt keine Werkzeuge; der Docker-Pfad bleibt der getrennte OpenClaw-Sicherheitsnachweis. Keiner darf `main`, die laufende Render-Instanz, die Android-App oder persönliche Sol-Holo-Daten verändern.
 
-Zu Kamera, Mikrofon, Sensoren, Geräten, Konten und persönlichen Speichern besteht weiterhin **keine technische Verbindung**. Für Sicherheit und Medizin bleibt zusätzlich jede produktive Entscheidung oder Aktion gesperrt und menschliche Prüfung zwingend.
+Zu Kamera, Mikrofon, Sensoren, Geräten, Konten und persönlichen Speichern besteht weiterhin **keine technische Verbindung**. Für Familie & Kinder, Senioren & Pflege, Sicherheit und Medizin bleibt zusätzlich jede produktive Entscheidung oder Aktion gesperrt und menschliche Prüfung zwingend.
 
 ## Derzeitige Grenzen
 
 - Gateway nur auf Loopback-Port `19005`, Bedienoberfläche deaktiviert;
 - neutraler Labor-Koordinator ohne Werkzeuge;
-- sechs getrennte Worker mit eigenen Workspaces, Agent-Verzeichnissen und Sitzungsdatenbanken;
+- acht getrennte Worker mit eigenen Workspaces, Agent-Verzeichnissen und Sitzungsdatenbanken;
 - Worker-Toolmenge exakt `read`; keine Schreib-, Shell-, Browser-, Nachrichten-, Memory-, Agenten-, Netzwerk- oder Automationswerkzeuge;
 - jedes Worker-Workspace wird in der vorgesehenen Docker-Sandbox schreibgeschützt eingebunden;
 - keine Kanäle, Bindings, Plugins, MCP-Server oder Agent-Skills;
@@ -100,6 +116,8 @@ Zu Kamera, Mikrofon, Sensoren, Geräten, Konten und persönlichen Speichern best
 | Worker | Darf lesen | Darf nicht |
 | --- | --- | --- |
 | Alltag | eigenes Alltag-Test-Workspace | andere Bereiche, Schreiben, Erinnerungen, Geräteaktionen |
+| Familie & Kinder | eigenes fiktives Familie-und-Kinder-Workspace | Betreuung ersetzen, Überwachung, Profile, Kontakte oder andere Bereiche |
+| Senioren & hilfe-/pflegebedürftige Menschen | eigenes fiktives Senioren-und-Pflege-Workspace | Bevormundung, Pflege-/Rechtsentscheidungen, Überwachung, Kontakte oder andere Bereiche |
 | Geschäftliches | eigenes Geschäfts-Test-Workspace | Senden, Bezahlen, Speichern, andere Bereiche |
 | Tiere | eigenes Tier-Test-Workspace | Diagnosen, Nachrichten, Erinnerungen, andere Bereiche |
 | Kochen | eigenes Koch-Test-Workspace | Bestellen, Timer, Dateiänderungen, andere Bereiche |
@@ -114,23 +132,23 @@ Zu Kamera, Mikrofon, Sensoren, Geräten, Konten und persönlichen Speichern best
 | OpenClaw Security Audit | `0` kritisch, `0` Warnungen |
 | Telemetrie | deaktiviert, keine Anfrage |
 | Gateway | Healthcheck `200`, `0` Plugins, Heartbeat aus, sauber beendet |
-| Effektive Worker-Tools | bei allen sechs exakt `read` |
-| Agent-Skills | bei allen sechs leer |
-| Eigene Testdatei lesen | im echten Container `6/6` erfolgreich |
-| Nachbar-Workspace lesen | im echten Container `6/6` technisch blockiert |
-| Datei schreiben | im echten Container `6/6` technisch blockiert; keine Datei entstand |
-| Docker-Mounts | bei allen sechs `/agent` schreibgeschützt; keine schreibbaren Bind-Mounts |
-| Container-Härtung | bei allen sechs `network: none`, read-only Root, `capDrop: ALL`, `no-new-privileges`, nicht privilegiert |
-| Direkte Schreibprobe | `/agent` und Root bei allen sechs gesperrt; nur flüchtiges `/tmp` beschreibbar |
-| Echter Containerlauf | bestanden mit Docker `28.0.4` im GitHub-Actions-Lauf `#2` |
-| Grundgerüst-Konsistenztest | lokal bestanden: 6 Worker, 2 Verträge, 2 Beispiele und alle zentralen Sperren konsistent |
+| Effektive Worker-Tools | für alle acht exakt `read` vorgesehen; erneute Verifikation ausstehend |
+| Agent-Skills | für alle acht leer vorgesehen; erneute Verifikation ausstehend |
+| Eigene Testdatei lesen | neuer Docker-Pflichtlauf für `8/8` ausstehend |
+| Nachbar-Workspace lesen | neuer Docker-Pflichtlauf für `8/8` ausstehend |
+| Datei schreiben | neuer Docker-Pflichtlauf für `8/8` ausstehend |
+| Docker-Mounts | für alle acht `/agent` schreibgeschützt vorgesehen; erneute Verifikation ausstehend |
+| Container-Härtung | für alle acht `network: none`, read-only Root, `capDrop: ALL`, `no-new-privileges`, nicht privilegiert vorgesehen |
+| Direkte Schreibprobe | neuer Docker-Pflichtlauf für acht Container ausstehend |
+| Bisheriger Containerlauf | sechs Worker bestanden mit Docker `28.0.4` im GitHub-Actions-Lauf `#2` |
+| Grundgerüst-Konsistenztest | neuer lokaler Nachweis für 8 Worker ausstehend |
 
 Die ursprünglichen lokalen Tooltests liefen mit demselben Rechteprofil und einer temporären, nicht eingecheckten Konfigurationskopie ohne Containerstart. Anschließend wiederholte der [GitHub-Actions-Lauf #2](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/33957645527) alle 18 positiven und negativen Rechteprüfungen mit der unveränderten eingecheckten Sandbox-Konfiguration in sechs echten Docker-Containern. Die Konfiguration blieb durchgehend auf `sandbox.mode: "all"`; es gab keinen Rückfall auf Host-Ausführung.
 
 ## Sicherheitsstufen
 
 1. **Phase 0 – Nullzugriff:** Konfiguration, Boot und Außenruhe prüfen. *(abgeschlossen)*
-2. **Phase 1 – Hand, Fuß, Sicherheit und Medizin:** sechs getrennte Lese-Worker mit künstlichen Testdaten. *(von Pam nach grünen Policy- und Containerprüfungen abgeschlossen)*
+2. **Phase 1 – getrennte Fach-Worker:** acht getrennte Lese-Worker mit künstlichen Testdaten. *(sechs bisher verifiziert; Erweiterung um zwei besonders geschützte Worker in Prüfung)*
 3. **Phase 2 – Vorschau:** der Alltag-Worker erzeugt für genau einen manuell freigegebenen fiktiven Test einen Vorschlag, führt aber nichts extern aus. *(technischer Pflichtlauf bestanden und gemergt)*
 4. **Phase 2b – sichtbare Sol-Holo-Testverbindung:** fester Android-Testknopf, Trusted-App-Gate, authentifizierte Loopback-Bridge und erneut validiertes Ergebnis. *(implementiert, standardmäßig aus; neuer Docker-Pflichtlauf erforderlich)*
 5. **Phase 2c – OpenAI-Testweg über vorhandene Dienste:** feste Fantasiedaten, keine Tools, striktes Schema und zweite Vertragsprüfung. *(Entwurf, standardmäßig aus; kein Live-OpenClaw-Dockerlauf behauptet)*
@@ -170,17 +188,18 @@ Die Konfiguration erwartet drei Laufzeitwerte außerhalb des Repositorys:
 - `phase2/alltag-verstaendigung.manifest.json` – abgeschaltete Zuordnung von automatischer Spracherkennung und barrierearmer Verständigung zu `worker-alltag`
 - `examples/*` – rein synthetische Vertrags- und Vorschau-Beispiele mit menschlicher Prüfung
 - `workspace/*` – neutrale Regeln für den werkzeuglosen Labor-Koordinator
-- `workspaces/*` – sechs getrennte Worker mit festen neutralen Identitäten und fiktiven Testdaten
+- `workspaces/*` – acht getrennte Worker mit festen neutralen Identitäten und fiktiven Testdaten
 - `tests/mock-openai-server.mjs` – lokaler deterministischer Policy-Prüfer
 - `tests/check-foundation.mjs` – prüft Register, Verträge, Worker-Dateien und zentrale Sperren gemeinsam
 - `tests/check-alltag-preview.mjs` – prüft Einmal-Freigabe und zehn technische Ablehnungsfälle
-- `tests/run-container-policy-suite.mjs` – prüft sechs echte Docker-Sandboxes einschließlich der sichtbaren Loopback-Verbindung, Mounts und Schreibsperren
+- `tests/run-container-policy-suite.mjs` – prüft acht echte Docker-Sandboxes einschließlich der sichtbaren Loopback-Verbindung, Mounts und Schreibsperren
 - `../modules/openclaw-alltag-preview.mjs` – fester Sol-Holo-Auftrag, getrennte Aktivierungssperren, Loopback- und OpenAI-Testweg sowie Ergebnisvalidierung
 - `../tests/openclaw-alltag-preview*.test.mjs` – Backend- und UI-Grenztests ohne persönliche Daten
 - `docker/Dockerfile.sandbox` – minimales, reproduzierbares Labor-Image
 - `SECURITY.md` – Bedrohungsmodell und Freigaberegeln
 - `PHASE-1-HAND-UND-FUSS-05-09-2026.md` – nachvollziehbarer Phase-1-Eintrag
 - `PHASE-1-ERWEITERUNG-SICHERHEIT-MEDIZIN-05-09-2026.md` – Sondergrenzen der beiden sensiblen Worker
+- `../OPENCLAW-ERWEITERUNG-FAMILIE-KINDER-SENIOREN-PFLEGE-06-09-2026.md` – Ergänzung, höchste Schutzpriorität und Grenzen der beiden neuen Worker
 - `PHASE-1-GRUNDGERUEST-05-09-2026.md` – gemeinsames Register, Verträge und Container-Prüfweg
 - `PHASE-2B-SICHTBARE-ALLTAG-VERBINDUNG-05-09-2026.md` – Freigabeumfang und Stopplinien der sichtbaren Testverbindung
 - `PHASE-2C-OPENAI-ALLTAG-VORSCHAU-05-09-2026.md` – Freigabeumfang und Stopplinien des vorhandenen OpenAI-Testwegs

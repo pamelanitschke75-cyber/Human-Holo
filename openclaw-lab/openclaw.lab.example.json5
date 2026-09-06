@@ -106,6 +106,28 @@
           allow: ["read"],
         },
       },
+      "worker-familie-kinder": {
+        name: "Worker Familie & Kinder",
+        workspace: "${OPENCLAW_LAB_ROOT}/workspaces/familie-kinder",
+        agentDir: "${OPENCLAW_LAB_STATE_DIR}/agents/worker-familie-kinder",
+        sandbox: {
+          workspaceAccess: "ro",
+        },
+        tools: {
+          allow: ["read"],
+        },
+      },
+      "worker-senioren-pflege": {
+        name: "Worker Senioren & hilfe-/pflegebedürftige Menschen",
+        workspace: "${OPENCLAW_LAB_ROOT}/workspaces/senioren-pflege",
+        agentDir: "${OPENCLAW_LAB_STATE_DIR}/agents/worker-senioren-pflege",
+        sandbox: {
+          workspaceAccess: "ro",
+        },
+        tools: {
+          allow: ["read"],
+        },
+      },
       "worker-geschaeftliches": {
         name: "Worker Geschäftliches",
         workspace: "${OPENCLAW_LAB_ROOT}/workspaces/geschaeftliches",

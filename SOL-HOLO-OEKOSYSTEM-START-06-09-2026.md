@@ -158,6 +158,29 @@ gehören als übergreifende Bedien- und Verständigungsebene zum OpenClaw-Worker
 Alltag. Dieser kann das Ökosystem später zugänglich machen, ohne Verständigung
 fälschlich als Umweltwirkung auszugeben.
 
+## Besonders geschützte Worker über allen Bereichen
+
+Familie, Kinderbetreuung, Senioren sowie hilfe- und pflegebedürftige Menschen
+werden nicht pauschal im Alltag-Worker versteckt. Sie erhalten in der
+OpenClaw-Fachstruktur zwei eigene, voneinander getrennte Worker:
+
+- `worker-familie-kinder`;
+- `worker-senioren-pflege`.
+
+Beide Worker können mehrere der elf Ökosystembereiche berühren und sind deshalb
+eine übergreifende Schutz- und Unterstützungsebene statt zusätzlicher
+Umweltkategorien.
+
+**Kinder sowie Senioren und hilfe- oder pflegebedürftige Menschen stehen bei
+Sol Holo immer an erster Stelle.** Beide Bereiche besitzen dieselbe höchste
+Schutzpriorität. Bei einer konkret beschriebenen akuten Gefahr hat der
+unmittelbar notwendige Schutz Vorrang; ansonsten bleiben Kindeswohl, Würde,
+Selbstbestimmung, Einwilligung und Privatsphäre verbindlich.
+
+Die Worker ersetzen weder erwachsene Betreuung noch Pflege oder medizinische
+Fachpersonen. Sie dürfen niemanden heimlich überwachen, bevormunden,
+kontaktieren oder automatisch an einen anderen Worker weiterreichen.
+
 ## Gemeinsame Arbeitslogik
 
 1. **Erkennen:** Was ist tatsächlich beschrieben? Nichts hinzuerfinden.

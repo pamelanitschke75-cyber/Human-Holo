@@ -57,7 +57,7 @@ const config = read("openclaw.lab.example.json5");
 const mockServer = read("tests/mock-openai-server.mjs");
 
 assert.equal(manifest.phase, 1);
-assert.equal(manifest.status, "verified");
+assert.equal(manifest.status, "verification-pending");
 assert.equal(manifest.productive, false);
 assert.equal(manifest.data_class, "synthetic-only");
 assert.equal(manifest.execution_mode, "proposal-only");
@@ -65,12 +65,16 @@ assert.equal(manifest.coordinator.automatic_routing, false);
 assert.deepEqual(manifest.coordinator.tools, []);
 
 const workers = manifest.workers;
-assert.equal(workers.length, 6, "Es müssen genau sechs Worker registriert sein");
+assert.equal(workers.length, 8, "Es müssen genau acht Worker registriert sein");
 const workerIds = workers.map(({ id }) => id);
 const domains = workers.map(({ domain }) => domain);
-assert.equal(new Set(workerIds).size, 6, "Worker-IDs müssen eindeutig sein");
-assert.equal(new Set(domains).size, 6, "Bereiche müssen eindeutig sein");
-assert.equal(new Set(workers.map(({ workspace }) => workspace)).size, 6, "Workspaces müssen eindeutig sein");
+assert.equal(new Set(workerIds).size, workers.length, "Worker-IDs müssen eindeutig sein");
+assert.equal(new Set(domains).size, workers.length, "Bereiche müssen eindeutig sein");
+assert.equal(
+  new Set(workers.map(({ workspace }) => workspace)).size,
+  workers.length,
+  "Workspaces müssen eindeutig sein",
+);
 assert.deepEqual(taskSchema.properties.target_worker.enum, workerIds);
 assert.deepEqual(resultSchema.properties.worker.enum, workerIds);
 
@@ -92,7 +96,11 @@ for (const worker of workers) {
   const fixtures = fs.readdirSync(fixtureDir).filter((name) => name.endsWith(".md"));
   assert.equal(fixtures.length, 1, `${worker.id}: genau eine Testdatei erwartet`);
   assertIncludes(fs.readFileSync(path.join(fixtureDir, fixtures[0]), "utf8"), "FIKTIVE TESTDATEN", worker.id);
-  assert.match(mockServer, new RegExp(`\\n  ${worker.domain}: \\{`, "u"), `${worker.domain}: Mock-Domäne fehlt`);
+  assert.match(
+    mockServer,
+    new RegExp(`\\n  (?:"${worker.domain}"|${worker.domain}): \\{`, "u"),
+    `${worker.domain}: Mock-Domäne fehlt`,
+  );
 }
 
 const configuredWorkerIds = [...config.matchAll(/"(worker-[a-z-]+)":\s*\{/gu)].map((match) => match[1]);
@@ -151,6 +159,52 @@ for (const term of ["kein Arzt", "Diagnose", "Dosierung", "112", "116117", "Fach
   assertIncludes(medicineRules, term, "Medizingrenze");
 }
 
+const familyRules = read("workspaces/familie-kinder/AGENTS.md");
+for (const term of [
+  "stehen immer an erster Stelle",
+  "dieselbe höchste Schutzpriorität",
+  "Sicherheit, Schutz und Wohlergehen",
+  "Ein Kind soll Kind sein dürfen",
+  "Privatsphäre",
+  "keine heimliche Totalüberwachung",
+  "keinen anderen Worker selbst aufrufen",
+  "keine Betreuungsperson",
+]) {
+  assertIncludes(familyRules, term, "Familie-und-Kinder-Grenze");
+}
+
+const careRules = read("workspaces/senioren-pflege/AGENTS.md");
+for (const term of [
+  "stehen immer an erster Stelle",
+  "dieselbe höchste Schutzpriorität",
+  "Würde",
+  "Selbstbestimmung",
+  "Einwilligung",
+  "nicht automatisch Hilflosigkeit",
+  "bevormundend oder infantilisierend",
+  "keinen anderen Worker selbst aufrufen",
+  "keine Pflegekraft",
+]) {
+  assertIncludes(careRules, term, "Senioren-und-Pflege-Grenze");
+}
+
+assert.deepEqual(
+  workers.find(({ id }) => id === "worker-familie-kinder")?.required_outcome,
+  "child-welfare-privacy-and-human-review",
+);
+assert.deepEqual(
+  workers.find(({ id }) => id === "worker-familie-kinder")?.protection_priority,
+  "highest",
+);
+assert.deepEqual(
+  workers.find(({ id }) => id === "worker-senioren-pflege")?.required_outcome,
+  "self-determination-consent-and-human-review",
+);
+assert.deepEqual(
+  workers.find(({ id }) => id === "worker-senioren-pflege")?.protection_priority,
+  "highest",
+);
+
 assert.equal(taskSchema.properties.data_class.const, "synthetic");
 assert.equal(taskSchema.properties.execution_mode.const, "proposal-only");
 assert.equal(taskSchema.properties.requested_capability.const, "read");
@@ -179,5 +233,5 @@ assert.equal(resultExample.controls.boundary_crossed, false);
 assert.equal(resultExample.controls.human_review_required, true);
 
 process.stdout.write(
-  `GRUNDGERUEST_OK workers=${workers.length} contracts=2 phase1_examples=2 status=verified data=synthetic sandbox=docker network=none writes=false external=false\n`,
+  `GRUNDGERUEST_OK workers=${workers.length} contracts=2 phase1_examples=2 status=${manifest.status} data=synthetic sandbox=docker network=none writes=false external=false\n`,
 );

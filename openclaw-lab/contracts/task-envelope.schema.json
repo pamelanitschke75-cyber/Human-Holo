@@ -24,6 +24,8 @@
     "target_worker": {
       "enum": [
         "worker-alltag",
+        "worker-familie-kinder",
+        "worker-senioren-pflege",
         "worker-geschaeftliches",
         "worker-tiere",
         "worker-kochen",
