@@ -41,7 +41,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /sol-holo-130-immer-an-gedaechtnis/u);
+  assert.match(serviceWorker, /sol-holo-131-textkalender-wakefenster/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -149,6 +149,32 @@ test("ein ausdrücklicher Kalenderauftrag wird ohne zweite Inhaltsfreigabe ausge
     ),
     /await sendMessage\(\s*message,\s*fulltimeEventId/u,
     "Die sichere Sitzungsbindung darf den gesamten Nutzerauftrag nicht rekursiv erneut senden"
+  );
+});
+
+test("ausgeschriebene Monatsdaten nehmen in Text und Sprache denselben Kalenderweg", () => {
+  const serverDetector = new Function(
+    `${sourceFunction("looksLikeCalendarWriteRequest", "parseJsonText")}\n` +
+    "return looksLikeCalendarWriteRequest;"
+  )();
+  const uiStart = ui.indexOf("function normalizeNoteSearchText");
+  const uiEnd = ui.indexOf("function liveWeatherRequestFromMessage", uiStart);
+  const clientDetector = new Function(
+    `${ui.slice(uiStart, uiEnd)}\nreturn calendarWriteDestinationFromMessage;`
+  )();
+  const calendarText =
+    "Schreib bitte für den 9. Dezember Geburtstag Mutti auf.";
+
+  assert.equal(serverDetector(calendarText), true);
+  assert.equal(clientDetector(calendarText), true);
+  assert.equal(
+    serverDetector("Meine Mutti hat am 9. Dezember Geburtstag."),
+    false,
+    "Eine reine Familieninformation darf nicht ungefragt zum Kalendertermin werden."
+  );
+  assert.equal(
+    clientDetector("Meine Mutti hat am 9. Dezember Geburtstag."),
+    false
   );
 });
 

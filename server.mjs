@@ -3241,7 +3241,8 @@ function looksLikeCalendarWriteRequest(
   const hasConcreteTime =
     /\b(?:heute|morgen|ubermorgen|nachste[nrsm]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/u.test(text) ||
     /\b\d{1,2}(?::\d{2})?\s*uhr\b/u.test(text) ||
-    /\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/u.test(text);
+    /\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/u.test(text) ||
+    /\b\d{1,2}\.?\s+(?:januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|dezember)(?:\s+\d{2,4})?\b/u.test(text);
   const asksToSchedule =
     /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze|halt|halte)\b[\s\S]*\b(?:auf|ein|fest|vor)\b/u.test(text) ||
     /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze)\b/u.test(text);
