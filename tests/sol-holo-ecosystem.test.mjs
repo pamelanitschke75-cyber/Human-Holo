@@ -7,7 +7,9 @@ import {
   detectEcosystemAreas,
   ecosystemModelContext,
   ecosystemManifest,
+  ensurePriorityContactPrefix,
   extractExplicitEcosystemLocation,
+  isEcosystemTestMode,
   looksLikeEcosystemLocationReply,
   normalizeEcosystemText,
   renderGermanEcosystemAssessment,
@@ -167,6 +169,89 @@ test("ein menschlicher Akutnotfall hat Vorrang und verweist in Deutschland auf 1
   assert.ok(assessment.help_sources.some(source => source.id === "de_emergency_112"));
   assert.equal(assessment.controls.medical_diagnosis_performed, false);
   assert.equal(assessment.controls.external_action_performed, false);
+});
+
+test("der gemeldete Ohrenschmerz-Systemtest wird sicher an 116117 geroutet", () => {
+  const message =
+    "Nur ein Test, kein echter Notfall: Ich habe am Sonntag starke Ohrenschmerzen, aber keine Atemnot, bin bei Bewusstsein und es besteht keine Lebensgefahr. Wen soll ich anrufen?";
+  const assessment = buildEcosystemAssessment({ message });
+
+  assert.equal(isEcosystemTestMode(message), true);
+  assert.equal(assessment.urgency.level, "urgent");
+  assert.equal(assessment.urgency.route, "medical");
+  assert.equal(assessment.urgency.subject, "human");
+  assert.equal(assessment.priority_contact.number, "116117");
+  assert.equal(assessment.priority_contact.test_mode, true);
+  assert.equal(assessment.priority_contact.open_dialer_allowed, false);
+  assert.equal(assessment.priority_contact.automatic_call, false);
+  assert.equal(assessment.location.clarification_required, false);
+  assert.deepEqual(
+    assessment.help_sources.map(source => source.id),
+    ["de_medical_116117"]
+  );
+  assert.ok(assessment.immediate_guidance[0].includes("116117"));
+  assert.ok(!assessment.immediate_guidance[0].includes("112"));
+});
+
+test("ein Testhinweis unterdrueckt nicht die 112-Einordnung des beschriebenen Szenarios", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Nur ein Test, kein echter Notfall: Eine Person ist bewusstlos und atmet nicht. Was muss ich tun?"
+  });
+
+  assert.equal(assessment.urgency.level, "emergency");
+  assert.equal(assessment.urgency.route, "medical");
+  assert.equal(assessment.priority_contact.number, "112");
+  assert.equal(assessment.priority_contact.test_mode, true);
+  assert.equal(assessment.priority_contact.open_dialer_allowed, false);
+});
+
+test("akute Polizeigefahr wird getrennt von medizinischer Lebensgefahr an 110 geroutet", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Nur ein Test: Ein Mann bedroht mich gerade mit einem Messer. Wen soll ich anrufen?"
+  });
+
+  assert.equal(assessment.urgency.level, "emergency");
+  assert.equal(assessment.urgency.route, "police");
+  assert.equal(assessment.priority_contact.number, "110");
+  assert.equal(assessment.priority_contact.open_dialer_allowed, false);
+  assert.deepEqual(
+    assessment.help_sources.map(source => source.id),
+    ["de_police_110"]
+  );
+
+  const policeDespiteGenericEmergencyWord = buildEcosystemAssessment({
+    message:
+      "Nur ein Test: Akuter Notfall, ein Täter bedroht mich gerade mit einer Waffe."
+  });
+  assert.equal(policeDespiteGenericEmergencyWord.priority_contact.number, "110");
+
+  const medicalDangerHasPriority = buildEcosystemAssessment({
+    message:
+      "Nur ein Test: Nach einem Angriff ist eine Person bewusstlos und atmet nicht."
+  });
+  assert.equal(medicalDangerHasPriority.priority_contact.number, "112");
+});
+
+test("reale feste Hilfen duerfen nur den Wähler vorbereiten", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Ich brauche am Sonntag wegen starker Ohrenschmerzen dringend einen Arzt, aber es ist nicht lebensbedrohlich."
+  });
+
+  assert.equal(assessment.priority_contact.number, "116117");
+  assert.equal(assessment.priority_contact.test_mode, false);
+  assert.equal(assessment.priority_contact.open_dialer_allowed, true);
+  assert.equal(assessment.priority_contact.automatic_call, false);
+  assert.equal(
+    assessment.priority_contact.final_phone_confirmation_required,
+    true
+  );
+  assert.match(
+    ensurePriorityContactPrefix("Bitte schildere dort deine Beschwerden.", assessment.priority_contact),
+    /^116117/u
+  );
 });
 
 test("Hilfequellen bleiben passend: 112 nur akut und 116117 nur nicht lebensbedrohlich", () => {

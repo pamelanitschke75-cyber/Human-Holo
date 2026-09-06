@@ -70,6 +70,7 @@ const HUMAN_CONTEXT_TERMS = Object.freeze([
 
 const HUMAN_ONLY_HELP_SOURCE_IDS = new Set([
   "de_emergency_112",
+  "de_police_110",
   "de_medical_116117",
   "munich_homeless_support",
   "munich_tafel",
@@ -100,6 +101,73 @@ const CITY_ALIASES = deepFreeze({
 
 const LOCATION_REPLY_REJECT =
   /^(?:ja|nein|okay|ok|abbrechen|abbruch|danke|dankeschoen)[.!?]*$/u;
+
+const TEST_MODE_TERMS = Object.freeze([
+  "nur ein test",
+  "systemtest",
+  "testfrage",
+  "testszenario",
+  "kein echter notfall",
+  "kein realer notfall",
+  "fiktiver notfall",
+  "fiktives beispiel"
+]);
+
+const URGENT_MEDICAL_TERMS = Object.freeze([
+  "ohrenschmerzen",
+  "schmerzen",
+  "starke schmerzen",
+  "fieber",
+  "krank",
+  "beschwerden",
+  "medizinische hilfe",
+  "aerztliche hilfe",
+  "arzt",
+  "aerztin",
+  "bereitschaftsdienst",
+  "116117"
+]);
+
+const URGENT_MEDICAL_CONTEXT_TERMS = Object.freeze([
+  "ich habe",
+  "ich brauche",
+  "brauche hilfe",
+  "dringend",
+  "stark",
+  "heute",
+  "sonntag",
+  "wochenende",
+  "nachts",
+  "praxis geschlossen",
+  "nicht lebensbedrohlich",
+  "keine lebensgefahr",
+  "wen soll ich anrufen",
+  "was soll ich tun",
+  "116117"
+]);
+
+const POLICE_EMERGENCY_TERMS = Object.freeze([
+  "bedroht",
+  "bedrohung",
+  "messer",
+  "waffe",
+  "ueberfall",
+  "einbruch",
+  "angriff",
+  "taeter",
+  "verfolgt",
+  "in gefahr"
+]);
+
+const POLICE_IMMEDIACY_TERMS = Object.freeze([
+  "akut",
+  "gerade",
+  "jetzt",
+  "sofort",
+  "hilfe",
+  "notfall",
+  "in gefahr"
+]);
 
 export function normalizeEcosystemText(value) {
   return String(value || "")
@@ -133,6 +201,59 @@ function matchedTerms(normalizedText, terms) {
   return terms.filter(term => containsTerm(normalizedText, term));
 }
 
+export function isEcosystemTestMode(message) {
+  const normalized = normalizeEcosystemText(message);
+  return matchedTerms(normalized, TEST_MODE_TERMS).length > 0;
+}
+
+function scenarioTextForUrgency(message) {
+  let normalized = normalizeEcosystemText(message);
+  for (const term of TEST_MODE_TERMS) {
+    normalized = normalized.replace(
+      new RegExp(
+        `(?:^|[^\\p{L}\\p{N}])${escapeRegExp(term)}(?:$|[^\\p{L}\\p{N}])`,
+        "gu"
+      ),
+      " "
+    );
+  }
+  return normalized.replace(/\s+/gu, " ").trim();
+}
+
+function isHumanEmergencySignalNegated(normalizedText, rawSignal) {
+  const signal = normalizeEcosystemText(rawSignal);
+  const directNegation = new RegExp(
+    `(?:kein(?:e|en|er|es)?|ohne|nicht)\\s+(?:akute[nrms]?\\s+)?${escapeRegExp(signal)}`,
+    "u"
+  );
+  if (directNegation.test(normalizedText)) return true;
+
+  const signalSpecificNegations = {
+    bewusstlos: ["bei bewusstsein", "ist ansprechbar", "ist wach"],
+    "atmet nicht": ["atmet normal", "normale atmung"],
+    "keine atmung": ["atmet normal", "normale atmung"],
+    lebensgefahr: [
+      "keine lebensgefahr",
+      "ohne lebensgefahr",
+      "nicht lebensbedrohlich",
+      "keine lebensbedrohliche gefahr"
+    ],
+    "blutet stark": ["blutet nicht stark", "keine starke blutung"],
+    "schwere verletzung": ["keine schwere verletzung", "nicht schwer verletzt"],
+    "akuter notfall": ["kein akuter notfall", "nicht akut"]
+  };
+
+  return (signalSpecificNegations[signal] || [])
+    .some(negation => containsTerm(normalizedText, negation));
+}
+
+function activeHumanEmergencySignals(normalizedText) {
+  return matchedTerms(
+    normalizedText,
+    ecosystemManifest.emergency_signals.human
+  ).filter(signal => !isHumanEmergencySignalNegated(normalizedText, signal));
+}
+
 export function detectEcosystemAreas(message) {
   const normalized = normalizeEcosystemText(message);
 
@@ -161,17 +282,17 @@ function hasHumanContext(normalizedText) {
 }
 
 export function classifyEcosystemUrgency(message) {
-  const normalized = normalizeEcosystemText(message);
+  const testMode = isEcosystemTestMode(message);
+  const normalized = scenarioTextForUrgency(message);
   const animalSignals = matchedTerms(
     normalized,
     ecosystemManifest.emergency_signals.animal
   );
-  const humanSignals = matchedTerms(
-    normalized,
-    ecosystemManifest.emergency_signals.human
-  );
+  const humanSignals = activeHumanEmergencySignals(normalized);
   const animalContext = hasAnimalContext(normalized);
   const humanContext = hasHumanContext(normalized);
+  const policeSignals = matchedTerms(normalized, POLICE_EMERGENCY_TERMS);
+  const policeImmediacy = matchedTerms(normalized, POLICE_IMMEDIACY_TERMS);
   const bothContext =
     /\b(?:mensch|menschen)\b[\s\S]{0,60}\b(?:tier|tiere)\b/u.test(
       normalized
@@ -191,7 +312,27 @@ export function classifyEcosystemUrgency(message) {
     return {
       level: "emergency",
       subject: "animal",
+      route: "animal",
+      test_mode: testMode,
       matched_signals: [...new Set([...animalSignals, ...humanSignals])]
+    };
+  }
+
+  const specificMedicalEmergencySignals = humanSignals.filter(
+    signal => normalizeEcosystemText(signal) !== "akuter notfall"
+  );
+  if (
+    policeSignals.length > 0 &&
+    policeImmediacy.length > 0 &&
+    specificMedicalEmergencySignals.length === 0 &&
+    !animalContext
+  ) {
+    return {
+      level: "emergency",
+      subject: "human",
+      route: "police",
+      test_mode: testMode,
+      matched_signals: [...new Set([...policeSignals, ...policeImmediacy])]
     };
   }
 
@@ -199,7 +340,31 @@ export function classifyEcosystemUrgency(message) {
     return {
       level: "emergency",
       subject: bothContext ? "both" : "human",
+      route: "medical",
+      test_mode: testMode,
       matched_signals: humanSignals
+    };
+  }
+
+  const urgentMedicalSignals = matchedTerms(normalized, URGENT_MEDICAL_TERMS);
+  const urgentMedicalContext = matchedTerms(
+    normalized,
+    URGENT_MEDICAL_CONTEXT_TERMS
+  );
+  if (
+    urgentMedicalSignals.length > 0 &&
+    urgentMedicalContext.length > 0 &&
+    !animalContext
+  ) {
+    return {
+      level: "urgent",
+      subject: "human",
+      route: "medical",
+      test_mode: testMode,
+      matched_signals: [...new Set([
+        ...urgentMedicalSignals,
+        ...urgentMedicalContext
+      ])]
     };
   }
 
@@ -233,6 +398,8 @@ export function classifyEcosystemUrgency(message) {
         : humanContext
           ? "human"
           : "general",
+    route: supportSignals.length > 0 ? "support" : "information",
+    test_mode: testMode,
     matched_signals: supportSignals
   };
 }
@@ -340,6 +507,13 @@ export function looksLikeEcosystemLocationReply(message) {
 }
 
 function needsLocalLookup(normalizedMessage, urgency) {
+  if (
+    ["human", "both"].includes(urgency?.subject) &&
+    ["medical", "police"].includes(urgency?.route) &&
+    ["emergency", "urgent"].includes(urgency?.level)
+  ) {
+    return false;
+  }
   if (urgency.level !== "information") return true;
   if (matchedTerms(normalizedMessage, LOCAL_LOOKUP_TERMS).length > 0) return true;
   return false;
@@ -347,6 +521,9 @@ function needsLocalLookup(normalizedMessage, urgency) {
 
 function sourceMatchesLocation(source, country, city) {
   if (source.scope === "global") return true;
+  if (source.national_service === true) {
+    return !country || source.country === country;
+  }
   if (source.country && country && source.country !== country) return false;
   if (source.country && !country) return false;
   if (source.city && !city) return false;
@@ -392,12 +569,21 @@ export function selectEcosystemHelpSources({
       if (source.id === "de_emergency_112") {
         return (
           urgency?.level === "emergency" &&
+          urgency?.route === "medical" &&
           ["human", "both"].includes(subject)
+        );
+      }
+      if (source.id === "de_police_110") {
+        return (
+          urgency?.level === "emergency" &&
+          urgency?.route === "police" &&
+          subject === "human"
         );
       }
       if (source.id === "de_medical_116117") {
         return (
-          urgency?.level !== "emergency" &&
+          urgency?.level === "urgent" &&
+          urgency?.route === "medical" &&
           ["human", "both", "general"].includes(subject) &&
           selectedAreas.has("medizinische_versorgung")
         );
@@ -451,9 +637,13 @@ function areasWithUrgencyContext(areas, urgency) {
           ? ["menschen_in_not", "tiere_in_not"]
           : [];
   const requiredIds =
-    urgency.level === "emergency"
+    urgency.level === "emergency" && urgency.route === "medical"
       ? [...subjectAreaIds, "medizinische_versorgung"]
-      : subjectAreaIds;
+      : urgency.level === "emergency"
+        ? [...subjectAreaIds, "lokale_anlaufstellen"]
+      : urgency.level === "urgent"
+        ? [...subjectAreaIds, "medizinische_versorgung"]
+        : subjectAreaIds;
   const existingIds = new Set(areas.map(area => area.id));
   const additions = ecosystemManifest.areas
     .filter(area => requiredIds.includes(area.id) && !existingIds.has(area.id))
@@ -517,29 +707,98 @@ function examplesFor(areas) {
     .slice(0, 8);
 }
 
-function immediateGuidance(urgency, country, city) {
+function priorityContactFor(urgency, country = "") {
+  if (country && country !== "DE") return null;
+
+  let sourceId = "";
+  let label = "";
+  if (
+    ["human", "both"].includes(urgency?.subject) &&
+    urgency?.route === "medical" &&
+    urgency?.level === "emergency"
+  ) {
+    sourceId = "de_emergency_112";
+    label = "Notruf für Feuerwehr und Rettungsdienst";
+  } else if (
+    urgency?.subject === "human" &&
+    urgency?.route === "police" &&
+    urgency?.level === "emergency"
+  ) {
+    sourceId = "de_police_110";
+    label = "Polizeinotruf";
+  } else if (
+    urgency?.subject === "human" &&
+    urgency?.route === "medical" &&
+    urgency?.level === "urgent"
+  ) {
+    sourceId = "de_medical_116117";
+    label = "Ärztlicher Bereitschaftsdienst";
+  } else {
+    return null;
+  }
+
+  const source = ecosystemManifest.help_sources.find(
+    candidate => candidate.id === sourceId
+  );
+  if (!source?.phone) return null;
+
+  return {
+    type: "phone",
+    number: source.phone,
+    label,
+    country: source.country,
+    purpose: source.use_for,
+    official_url: source.official_url,
+    test_mode: urgency.test_mode === true,
+    open_dialer_allowed: urgency.test_mode !== true,
+    automatic_call: false,
+    final_phone_confirmation_required: true
+  };
+}
+
+export function ensurePriorityContactPrefix(answer, priorityContact) {
+  const cleanAnswer = String(answer || "").trim();
+  if (!cleanAnswer || !priorityContact?.number) return cleanAnswer;
+
+  const firstLine = cleanAnswer.split(/\r?\n/u)[0] || "";
+  if (firstLine.includes(priorityContact.number)) return cleanAnswer;
+
+  const prefix = priorityContact.test_mode
+    ? `Nur als Test: In Deutschland wäre hier die ${priorityContact.number} (${priorityContact.label}) richtig.`
+    : `${priorityContact.number} – ${priorityContact.label} in Deutschland.`;
+  return `${prefix}\n\n${cleanAnswer}`;
+}
+
+function immediateGuidance(urgency, country, city, priorityContact) {
   if (urgency.level === "information") return [];
 
   const guidance = [];
 
-  if (
-    (urgency.subject === "human" || urgency.subject === "both") &&
-    urgency.level === "emergency"
-  ) {
-    if (country === "DE") {
+  if (priorityContact) {
+    if (priorityContact.test_mode) {
       guidance.push(
-        "Bei akuter oder lebensbedrohlicher Gefahr jetzt den Notruf 112 waehlen.",
-        "Wenn es ohne Eigengefahr moeglich ist: bei der Person bleiben und den Anweisungen der Leitstelle folgen."
+        `Nur als Test: In Deutschland waere hier die ${priorityContact.number} (${priorityContact.label}) richtig. Es wird kein Waehler geoeffnet.`
       );
     } else {
       guidance.push(
-        "Bei akuter oder lebensbedrohlicher Gefahr jetzt den oertlichen Notruf waehlen.",
-        "Die richtige lokale Nummer muss fuer den aktuellen Ort aus einer offiziellen Quelle geprueft werden."
+        `${priorityContact.number} – ${priorityContact.label} in Deutschland. Der Anruf wird nie automatisch gestartet.`
       );
     }
+  }
+
+  if (
+    (urgency.subject === "human" || urgency.subject === "both") &&
+    urgency.level === "emergency" &&
+    urgency.route === "medical"
+  ) {
+    guidance.push(
+      "Wenn es ohne Eigengefahr moeglich ist: bei der Person bleiben und den Anweisungen der Leitstelle folgen."
+    );
 
     if (urgency.subject === "human") return guidance;
   }
+
+  if (urgency.subject === "human") return guidance;
 
   if (
     urgency.subject !== "animal" &&
@@ -578,9 +837,24 @@ export function buildOfficialLookupRequests({
 
   if (
     ["human", "both"].includes(urgency?.subject) &&
-    urgency.level === "emergency"
+    urgency.level === "emergency" &&
+    urgency.route === "medical"
   ) {
     requests.push(`${location} offizieller Notruf akute Lebensgefahr`);
+  }
+  if (
+    urgency?.subject === "human" &&
+    urgency.level === "emergency" &&
+    urgency.route === "police"
+  ) {
+    requests.push(`${location} offizieller Polizeinotruf akute Gefahr`);
+  }
+  if (
+    urgency?.subject === "human" &&
+    urgency.level === "urgent" &&
+    urgency.route === "medical"
+  ) {
+    requests.push(`${location} offizieller aerztlicher Bereitschaftsdienst 116117`);
   }
   if (
     ["animal", "both"].includes(urgency?.subject) &&
@@ -620,6 +894,10 @@ export function buildEcosystemAssessment({
   const resolvedCity = canonicalCity(city);
   const localLookup = needsLocalLookup(normalizedMessage, urgency);
   const locationAvailable = Boolean(resolvedCountry && resolvedCity && locationConsent);
+  const priorityContact = priorityContactFor(
+    urgency,
+    locationAvailable ? resolvedCountry : ""
+  );
   const helpSources = selectEcosystemHelpSources({
     areaIds: areas.map(area => area.id),
     country: locationAvailable ? resolvedCountry : "",
@@ -643,8 +921,10 @@ export function buildEcosystemAssessment({
     immediate_guidance: immediateGuidance(
       urgency,
       locationAvailable ? resolvedCountry : "",
-      locationAvailable ? resolvedCity : ""
+      locationAvailable ? resolvedCity : "",
+      priorityContact
     ),
+    priority_contact: priorityContact,
     location: {
       requested_for_lookup: localLookup,
       consent_given: locationConsent === true,
@@ -692,6 +972,7 @@ export function ecosystemModelContext(assessment) {
     system_gaps: assessment.system_gaps,
     practical_steps: assessment.practical_steps,
     immediate_guidance: assessment.immediate_guidance,
+    priority_contact: assessment.priority_contact,
     location: assessment.location,
     help_sources: assessment.help_sources,
     official_lookup_requests: assessment.official_lookup_requests,

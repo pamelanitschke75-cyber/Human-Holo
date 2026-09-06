@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sol-holo-131-textkalender-wakefenster";
+const CACHE_VERSION = "sol-holo-132-sicheres-notruf-routing";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

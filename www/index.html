@@ -1558,7 +1558,7 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=38">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=39">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=1">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=1">
@@ -6716,7 +6716,8 @@ function addMessage(
   imageDataUrl = null,
   mediaKind = "image",
   deferScroll = false,
-  sources = []
+  sources = [],
+  assistance = null
 ){
 
   const element =
@@ -6761,7 +6762,12 @@ function addMessage(
 
 
     content.textContent =
-      cleanText;
+      className === "sol-message"
+        ? cleanText.replace(
+            /\[([^\]]{1,180})\]\((https:\/\/[^\s)]+)\)/giu,
+            "$1"
+          )
+        : cleanText;
 
 
     element.appendChild(
@@ -6775,10 +6781,26 @@ function addMessage(
       ? sources
           .map((source) => ({
             url:String(source?.url || "").trim(),
-            title:String(source?.title || "Wetterquelle").trim()
+            title:String(source?.title || "Quelle").trim()
           }))
           .filter((source) => /^https:\/\//i.test(source.url))
-          .slice(0, 3)
+          .map((source) => {
+            if (
+              source.title &&
+              !/^(?:live-)?quelle$/iu.test(source.title)
+            ) {
+              return source;
+            }
+            try {
+              return {
+                ...source,
+                title:new URL(source.url).hostname.replace(/^www\./iu, "")
+              };
+            } catch {
+              return source;
+            }
+          })
+          .slice(0, 8)
       : [];
 
 
@@ -6820,7 +6842,7 @@ function addMessage(
 
         link.textContent =
           source.title ||
-          `Wetterquelle ${index + 1}`;
+          `Quelle ${index + 1}`;
 
 
         sourceList.appendChild(
@@ -6832,6 +6854,104 @@ function addMessage(
 
     element.appendChild(
       sourceList
+    );
+  }
+
+
+  const assistanceNumber =
+    String(assistance?.number || "")
+      .replace(/\s+/gu, "");
+
+
+  if(
+    className === "sol-message" &&
+    assistance?.type === "phone" &&
+    assistance?.open_dialer_allowed === true &&
+    assistance?.test_mode !== true &&
+    ["112", "110", "116117"].includes(assistanceNumber)
+  ){
+
+    const callButton =
+      document.createElement(
+        "button"
+      );
+
+
+    callButton.type =
+      "button";
+
+
+    callButton.className =
+      "messageCallAction";
+
+
+    const callTitle =
+      document.createElement(
+        "span"
+      );
+
+
+    callTitle.className =
+      "messageCallActionTitle";
+
+
+    callTitle.textContent =
+      `☎ ${assistanceNumber} anrufen`;
+
+
+    const callHint =
+      document.createElement(
+        "span"
+      );
+
+
+    callHint.className =
+      "messageCallActionHint";
+
+
+    callHint.textContent =
+      "Öffnet den Telefon-Wähler – du startest den Anruf selbst";
+
+
+    callButton.append(
+      callTitle,
+      callHint
+    );
+
+
+    callButton.addEventListener(
+      "click",
+      async () => {
+
+        callButton.disabled =
+          true;
+
+
+        const result =
+          await window.openSolHoloServiceDialer?.(
+            assistanceNumber,
+            String(assistance?.label || "").trim()
+          );
+
+
+        chatStatus.textContent =
+          result?.answer ||
+          "Der Telefon-Wähler konnte nicht geöffnet werden.";
+
+
+        if(
+          !result?.opened
+        ){
+
+          callButton.disabled =
+            false;
+        }
+      }
+    );
+
+
+    element.appendChild(
+      callButton
     );
   }
 
@@ -8009,7 +8129,9 @@ async function sendMessage(
       data?.weather?.sources ||
         data?.web?.sources ||
         data?.ecosystem?.sources ||
-        []
+        [],
+      data?.ecosystem?.assistance ||
+        null
     );
 
 
@@ -10497,7 +10619,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=47"></script>
+<script src="./sol-holo-ui.js?v=48"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=4"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=1"></script>

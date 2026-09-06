@@ -64,6 +64,7 @@ import {
 import {
   buildEcosystemAssessment,
   ecosystemModelContext,
+  ensurePriorityContactPrefix,
   extractExplicitEcosystemLocation,
   looksLikeEcosystemLocationReply
 } from "./modules/sol-holo-ecosystem.mjs";
@@ -224,6 +225,12 @@ Auswertung.
 Bei akuter Gefahr nenne zuerst die enthaltenen Soforthinweise. Trenne einen
 Menschennotfall immer von einem Tiernotfall. Stelle keine Diagnose, lege keine
 Therapie oder Dosierung fest und gib bei unklarer Dringlichkeit keine Entwarnung.
+Wenn priority_contact gesetzt ist, muss dessen Nummer in der allerersten Zeile
+stehen: 112 bei medizinischer Lebensgefahr, 110 bei akuter Polizeigefahr und
+116117 bei dringender, aber nicht lebensbedrohlicher ärztlicher Hilfe in
+Deutschland. Ersetze diese feste Einordnung nicht durch eine allgemeine
+Ortsrückfrage. Bei test_mode=true beschreibst du nur das richtige Vorgehen;
+behaupte niemals, einen Wähler geöffnet oder einen Anruf begonnen zu haben.
 
 Nutze einen Ort nur, wenn er ausdrücklich in der Nachricht genannt oder für
 diese Suche freigegeben wurde. Wenn location.clarification_required wahr ist,
@@ -237,6 +244,15 @@ der official_lookup_requests. Ist die Liste bei einer Investitions- oder
 Beschaffungsfrage leer, verwende die konkrete Nutzerfrage als Suchfrage. Eine
 contact_data_withheld_until_verified darfst du nicht aus Modellwissen ergänzen.
 Wenn die Prüfung scheitert, sage das klar und erfinde keine Kontaktdaten.
+Wenn die Nutzerin bereits ausdrücklich um eine heutige, aktuelle oder Live-Suche
+gebeten hat, führe die rein lesende Suche ohne eine redundante Bestätigungsfrage
+aus. Notwendige Orts- oder Sachangaben darfst du knapp erfragen.
+
+Ordne jede einzelne aktuelle Tatsachenbehauptung genau der Quelle zu, die sie
+tatsächlich belegt. Bevorzuge Primärquellen. Bei veränderlichen ESG-Werten,
+Prüfverfahren, Preisen oder Statusangaben nenne den Datenstand und übernimm
+keinen älteren Suchausschnitt gegen eine aktuellere Quellenseite. Vermische
+nicht mehrere Untersuchungen unter einem einzigen Beleg.
 
 Beurteile Mobilität, Materialien, Produkte, Beschaffung und Investitionen über
 den gesamten Lebensweg: Bedarf, Rohstoffe, Herstellung, Transport, Nutzung,
@@ -3024,7 +3040,7 @@ function ecosystemNeedsLiveSearch(
   );
 }
 
-function collectResponseWebSources(response) {
+function collectResponseWebSources(response, additionalSources = []) {
   const sources = new Map();
   const addSource = value => {
     const url = String(
@@ -3043,6 +3059,10 @@ function collectResponseWebSources(response) {
     });
   };
 
+  for (const source of additionalSources) {
+    addSource(source);
+  }
+
   for (const item of response?.output || []) {
     for (const source of item?.action?.sources || []) {
       addSource(source);
@@ -3054,7 +3074,7 @@ function collectResponseWebSources(response) {
     }
   }
 
-  return [...sources.values()].slice(0, 3);
+  return [...sources.values()].slice(0, 8);
 }
 
 async function performLiveWebSearch({
@@ -10039,22 +10059,34 @@ ${memoryText || "Noch keine früheren Gesprächserinnerungen vorhanden."}
         responseRequest
       );
 
-    const answer =
+    const rawAnswer =
       response.output_text?.trim();
 
     const ecosystemSources =
       ecosystemTurn?.matched
         ? collectResponseWebSources(
-            response
+            response,
+            ecosystemTurn.assessment
+              .help_sources.map(source => ({
+                url: source.official_url,
+                title: source.name
+              }))
           )
         : [];
 
-    if (!answer) {
+    if (!rawAnswer) {
       return res.status(502).json({
         error:
           "Sol hat keine Textantwort geliefert."
       });
     }
+
+    const answer =
+      ensurePriorityContactPrefix(
+        rawAnswer,
+        ecosystemTurn?.assessment
+          ?.priority_contact
+      );
 
     await saveFulltimeAssistant(
       answer
@@ -10092,6 +10124,9 @@ ${memoryText || "Noch keine früheren Gesprächserinnerungen vorhanden."}
                 ecosystemLiveSearchRequired,
               sources:
                 ecosystemSources,
+              assistance:
+                ecosystemTurn.assessment
+                  .priority_contact,
               persisted:
                 false
             }

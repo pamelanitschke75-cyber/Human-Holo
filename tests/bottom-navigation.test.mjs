@@ -36,6 +36,6 @@ test("Symbole können einen Tap auf die Navigationsschaltfläche nicht abfangen"
 });
 
 test("das Update lädt die reparierte Navigation ohne alten WebView-Cache", () => {
-  assert.match(indexSource, /sol-holo-ui\.css\?v=38/u);
-  assert.match(indexSource, /sol-holo-ui\.js\?v=47/u);
+  assert.match(indexSource, /sol-holo-ui\.css\?v=39/u);
+  assert.match(indexSource, /sol-holo-ui\.js\?v=48/u);
 });
