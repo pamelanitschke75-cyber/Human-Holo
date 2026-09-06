@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.provider.Settings;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
@@ -32,6 +33,8 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 import java.util.HashSet;
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.Set;
 
 @CapacitorPlugin(
@@ -66,7 +69,14 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_SHARED_NOTE_TITLE_LENGTH = 160;
     private static final int MAX_MAPS_DESTINATION_LENGTH = 500;
     private static final int MAX_SMS_LENGTH = 5000;
+    private static final int MAX_WHATSAPP_MESSAGE_LENGTH = 5000;
     private static final int MAX_RECIPIENT_NAME_LENGTH = 160;
+    private static final int MAX_CONTACT_ALIAS_LENGTH = 60;
+    private static final String WHATSAPP_PACKAGE = "com.whatsapp";
+    private static final String WHATSAPP_BUSINESS_PACKAGE =
+        "com.whatsapp.w4b";
+    private static final String CONTACT_ALIAS_PREFERENCES =
+        "sol_holo_contact_aliases";
     private static final Set<String> SAFE_SERVICE_DIALER_NUMBERS =
         new HashSet<>();
     static {
@@ -90,6 +100,30 @@ public class PhoneContactsPlugin extends Plugin {
         SamsungNoteLaunch(Intent intent, String mode) {
             this.intent = intent;
             this.mode = mode;
+        }
+    }
+
+    private static final class ContactRecord {
+        final long id;
+        final String name;
+        final String number;
+        final String normalizedNumber;
+        final String label;
+
+        ContactRecord(
+            long id,
+            String name,
+            String number,
+            String normalizedNumber,
+            String label
+        ) {
+            this.id = id;
+            this.name = name == null ? "" : name;
+            this.number = number == null ? "" : number;
+            this.normalizedNumber = normalizedNumber == null
+                ? ""
+                : normalizedNumber;
+            this.label = label == null ? "" : label;
         }
     }
 
@@ -202,14 +236,18 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("permissionsCanBeRevoked", true);
         result.put(
             "contactsPermissionPurpose",
-            "Kontakte werden nur zum Finden eines ausdrücklich genannten Empfängers gelesen."
+            "Das vollständige Android-Kontaktverzeichnis bleibt auf diesem Gerät und wird nur nach einem ausdrücklich genannten Empfänger durchsucht."
         );
+        result.put("contactDirectoryScope", "all_device_contacts");
+        result.put("contactsUploaded", false);
+        result.put("contactAliasesOwnerScoped", true);
         result.put(
             "phoneStatePermissionPurpose",
             "Der Telefonstatus wird nur erkannt, damit Pam’s Holo während eines Anrufs pausiert."
         );
         result.put("outgoingCallsDirectlyStarted", false);
         result.put("smsDirectlySent", false);
+        result.put("whatsAppDirectlySent", false);
         result.put("visibleActionConfirmationRequired", true);
         result.put("callState", callStateName(currentCallState));
         result.put(
@@ -636,6 +674,7 @@ public class PhoneContactsPlugin extends Plugin {
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER,
             ContactsContract.CommonDataKinds.Phone.TYPE,
             ContactsContract.CommonDataKinds.Phone.LABEL
         };
@@ -668,6 +707,9 @@ public class PhoneContactsPlugin extends Plugin {
                 int numberIndex = cursor.getColumnIndexOrThrow(
                     ContactsContract.CommonDataKinds.Phone.NUMBER
                 );
+                int normalizedNumberIndex = cursor.getColumnIndex(
+                    ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER
+                );
                 int typeIndex = cursor.getColumnIndexOrThrow(
                     ContactsContract.CommonDataKinds.Phone.TYPE
                 );
@@ -696,6 +738,12 @@ public class PhoneContactsPlugin extends Plugin {
                     contact.put("id", cursor.getLong(idIndex));
                     contact.put("name", cursor.getString(nameIndex));
                     contact.put("number", number);
+                    contact.put(
+                        "normalizedNumber",
+                        normalizedNumberIndex < 0
+                            ? ""
+                            : cursor.getString(normalizedNumberIndex)
+                    );
                     contact.put("label", String.valueOf(label));
                     results.put(contact);
                 }
@@ -721,6 +769,172 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("count", results.length());
         result.put("results", results);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void resolveContactAlias(PluginCall call) {
+        if (!contactsGranted()) {
+            call.reject(
+                "Ohne Kontaktfreigabe kann Pam’s Holo keinen Kontaktalias auflösen.",
+                "CONTACTS_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+
+        String alias = cleanContactAlias(call.getString("alias", ""));
+        String aliasKey = normalizedAliasKey(alias);
+        String ownerId = cleanOwnerId(call.getString("ownerId", ""));
+        if (ownerId.isEmpty()) {
+            call.reject(
+                "Die feste Holo-ID fehlt für diesen Kontaktalias.",
+                "CONTACT_ALIAS_OWNER_REQUIRED"
+            );
+            return;
+        }
+        if (aliasKey.isEmpty()) {
+            call.reject("Bitte nenne den Kontaktalias.", "CONTACT_ALIAS_REQUIRED");
+            return;
+        }
+
+        String prefix = contactAliasPreferencePrefix(ownerId, aliasKey);
+        long contactId = getContext()
+            .getSharedPreferences(CONTACT_ALIAS_PREFERENCES, Context.MODE_PRIVATE)
+            .getLong(prefix + "contact_id", -1L);
+        String expectedNumber = getContext()
+            .getSharedPreferences(CONTACT_ALIAS_PREFERENCES, Context.MODE_PRIVATE)
+            .getString(prefix + "number", "");
+
+        JSObject result = new JSObject();
+        result.put("alias", alias);
+        result.put("storedOnlyOnDevice", true);
+
+        if (contactId < 0L || expectedNumber == null || expectedNumber.isEmpty()) {
+            result.put("found", false);
+            call.resolve(result);
+            return;
+        }
+
+        ContactRecord contact = findContactRecord(contactId, expectedNumber);
+        if (contact == null) {
+            getContext()
+                .getSharedPreferences(CONTACT_ALIAS_PREFERENCES, Context.MODE_PRIVATE)
+                .edit()
+                .remove(prefix + "alias")
+                .remove(prefix + "contact_id")
+                .remove(prefix + "number")
+                .apply();
+            result.put("found", false);
+            result.put("staleBindingRemoved", true);
+            call.resolve(result);
+            return;
+        }
+
+        result.put("found", true);
+        result.put("contact", contactRecordToJs(contact));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void bindContactAlias(PluginCall call) {
+        if (!contactsGranted()) {
+            call.reject(
+                "Ohne Kontaktfreigabe kann Pam’s Holo keinen Kontaktalias speichern.",
+                "CONTACTS_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+
+        String alias = cleanContactAlias(call.getString("alias", ""));
+        String aliasKey = normalizedAliasKey(alias);
+        String ownerId = cleanOwnerId(call.getString("ownerId", ""));
+        String contactIdText = call.getString("contactId", "").trim();
+        long contactId = -1L;
+        try {
+            contactId = Long.parseLong(contactIdText);
+        } catch (NumberFormatException ignored) {
+            // Die Prüfung unten lehnt eine fehlende oder ungültige ID geschlossen ab.
+        }
+        String expectedNumber = cleanDestination(call.getString("number", ""));
+
+        if (aliasKey.isEmpty()) {
+            call.reject(
+                "Der Kontaktalias ist leer oder zu lang.",
+                "CONTACT_ALIAS_REQUIRED"
+            );
+            return;
+        }
+        if (ownerId.isEmpty()) {
+            call.reject(
+                "Die feste Holo-ID fehlt für diesen Kontaktalias.",
+                "CONTACT_ALIAS_OWNER_REQUIRED"
+            );
+            return;
+        }
+        if (contactId < 0L || expectedNumber.isEmpty()) {
+            call.reject(
+                "Der ausgewählte Kontakt ist nicht eindeutig.",
+                "CONTACT_ALIAS_CONTACT_REQUIRED"
+            );
+            return;
+        }
+
+        ContactRecord contact = findContactRecord(contactId, expectedNumber);
+        if (contact == null) {
+            call.reject(
+                "Der ausgewählte Kontakt wurde im Android-Telefonbuch nicht mehr gefunden.",
+                "CONTACT_ALIAS_CONTACT_STALE"
+            );
+            return;
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Der Kontaktalias konnte gerade nicht bestätigt werden.",
+                "CONTACT_ALIAS_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        String confirmationText =
+            "Alias: " + alias + "\n\n" +
+            "Kontakt: " + contact.name + " (" + contact.number + ")\n\n" +
+            "Diese Zuordnung wird nur im geschützten App-Bereich auf diesem Gerät gespeichert.";
+
+        confirmExternalAction(
+            call,
+            activity,
+            "Kontaktalias bestätigen",
+            confirmationText,
+            "Auf diesem Gerät verbinden",
+            () -> {
+                String prefix = contactAliasPreferencePrefix(ownerId, aliasKey);
+                getContext()
+                    .getSharedPreferences(
+                        CONTACT_ALIAS_PREFERENCES,
+                        Context.MODE_PRIVATE
+                    )
+                    .edit()
+                    .putString(prefix + "alias", alias)
+                    .putLong(prefix + "contact_id", contact.id)
+                    .putString(
+                        prefix + "number",
+                        contact.normalizedNumber.isEmpty()
+                            ? contact.number
+                            : contact.normalizedNumber
+                    )
+                    .apply();
+
+                JSObject result = new JSObject();
+                result.put("saved", true);
+                result.put("alias", alias);
+                result.put("contact", contactRecordToJs(contact));
+                result.put("storedOnlyOnDevice", true);
+                result.put("confirmationShown", true);
+                result.put("userConfirmed", true);
+                call.resolve(result);
+            }
+        );
     }
 
     @PluginMethod
@@ -905,6 +1119,120 @@ public class PhoneContactsPlugin extends Plugin {
         );
     }
 
+    @PluginMethod
+    public void prepareWhatsApp(PluginCall call) {
+        String number = cleanDestination(call.getString("number", ""));
+        String normalizedNumber = cleanDestination(
+            call.getString("normalizedNumber", "")
+        );
+        String message = call.getString("message", "").trim();
+        String recipientName = cleanRecipientName(
+            call.getString("recipientName", "")
+        );
+
+        if (number.isEmpty()) {
+            call.reject(
+                "Keine Telefonnummer für WhatsApp erhalten.",
+                "WHATSAPP_NUMBER_REQUIRED"
+            );
+            return;
+        }
+        if (message.isEmpty()) {
+            call.reject(
+                "Kein WhatsApp-Text erhalten.",
+                "WHATSAPP_TEXT_REQUIRED"
+            );
+            return;
+        }
+        if (message.length() > MAX_WHATSAPP_MESSAGE_LENGTH) {
+            call.reject(
+                "Der WhatsApp-Text ist für eine vollständige sichtbare Bestätigung zu lang.",
+                "WHATSAPP_TEXT_TOO_LONG"
+            );
+            return;
+        }
+
+        String whatsAppDigits = internationalWhatsAppDigits(
+            normalizedNumber,
+            number
+        );
+        if (whatsAppDigits.isEmpty()) {
+            call.reject(
+                "Für die sichere WhatsApp-Zuordnung konnte keine vollständige internationale Nummer ermittelt werden. Bitte speichere sie im Kontakt mit Ländervorwahl, zum Beispiel +49.",
+                "WHATSAPP_INTERNATIONAL_NUMBER_REQUIRED"
+            );
+            return;
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "WhatsApp konnte gerade nicht geöffnet werden.",
+                "WHATSAPP_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        Uri whatsAppUri = new Uri.Builder()
+            .scheme("https")
+            .authority("wa.me")
+            .appendPath(whatsAppDigits)
+            .appendQueryParameter("text", message)
+            .build();
+        String packageName = resolveWhatsAppPackage(whatsAppUri);
+        if (packageName.isEmpty()) {
+            call.reject(
+                "WhatsApp oder WhatsApp Business wurde auf diesem Gerät nicht gefunden.",
+                "WHATSAPP_NOT_INSTALLED"
+            );
+            return;
+        }
+
+        String recipient = recipientName.isEmpty()
+            ? number
+            : recipientName + " (" + number + ")";
+        String confirmationText =
+            "Empfänger: " + recipient + "\n\n" +
+            "WhatsApp-Ziel: +" + whatsAppDigits + "\n\n" +
+            "WhatsApp-Inhalt:\n" + message + "\n\n" +
+            "Die Nachricht wird nicht automatisch gesendet. " +
+            "Du prüfst sie und tippst anschließend selbst in WhatsApp auf Senden.";
+
+        confirmExternalAction(
+            call,
+            activity,
+            "WhatsApp bestätigen",
+            confirmationText,
+            "In WhatsApp öffnen",
+            () -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, whatsAppUri);
+                intent.setPackage(packageName);
+
+                try {
+                    activity.startActivity(intent);
+                    JSObject result = new JSObject();
+                    result.put("opened", true);
+                    result.put("packageName", packageName);
+                    result.put("number", number);
+                    result.put("recipientName", recipientName);
+                    result.put("confirmationShown", true);
+                    result.put("userConfirmed", true);
+                    result.put("messagePrepared", true);
+                    result.put("messageLength", message.length());
+                    result.put("sent", false);
+                    result.put("finalWhatsAppSendRequired", true);
+                    call.resolve(result);
+                } catch (ActivityNotFoundException | SecurityException error) {
+                    call.reject(
+                        "WhatsApp konnte den Nachrichtenentwurf gerade nicht öffnen.",
+                        "WHATSAPP_OPEN_FAILED",
+                        error
+                    );
+                }
+            }
+        );
+    }
+
     private void confirmExternalAction(
         PluginCall call,
         Activity activity,
@@ -1019,6 +1347,225 @@ public class PhoneContactsPlugin extends Plugin {
             clean = clean.substring(0, MAX_RECIPIENT_NAME_LENGTH).trim();
         }
         return clean;
+    }
+
+    private String cleanContactAlias(String value) {
+        String clean = (value == null ? "" : value)
+            .replace('\n', ' ')
+            .replace('\r', ' ')
+            .replaceAll("\\s+", " ")
+            .trim();
+        if (clean.length() > MAX_CONTACT_ALIAS_LENGTH) {
+            return "";
+        }
+        return clean;
+    }
+
+    private String normalizedAliasKey(String alias) {
+        String normalized = Normalizer.normalize(
+            cleanContactAlias(alias),
+            Normalizer.Form.NFKD
+        );
+        return normalized
+            .replaceAll("\\p{M}+", "")
+            .toLowerCase(Locale.GERMAN)
+            .replaceAll("[^\\p{L}\\p{N}]+", " ")
+            .trim();
+    }
+
+    private String cleanOwnerId(String value) {
+        String clean = value == null ? "" : value.trim();
+        return clean.matches("[a-z0-9][a-z0-9-]{1,79}") ? clean : "";
+    }
+
+    private String contactAliasPreferencePrefix(
+        String ownerId,
+        String aliasKey
+    ) {
+        return "owner." + ownerId + ".alias." + aliasKey + ".";
+    }
+
+    private String comparablePhoneNumber(String value) {
+        String clean = value == null ? "" : value.trim();
+        boolean international = clean.startsWith("+") || clean.startsWith("00");
+        String digits = clean.replaceAll("[^0-9]", "");
+        if (international && digits.startsWith("00")) {
+            digits = digits.substring(2);
+        }
+        return (international ? "+" : "") + digits;
+    }
+
+    private ContactRecord findContactRecord(long contactId, String expectedNumber) {
+        String[] projection = {
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER,
+            ContactsContract.CommonDataKinds.Phone.TYPE,
+            ContactsContract.CommonDataKinds.Phone.LABEL
+        };
+        String selection =
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?";
+        String[] selectionArgs = { String.valueOf(contactId) };
+        String expected = comparablePhoneNumber(expectedNumber);
+
+        try (
+            Cursor cursor = getContext().getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )
+        ) {
+            if (cursor == null) {
+                return null;
+            }
+
+            int idIndex = cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+            );
+            int nameIndex = cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+            );
+            int numberIndex = cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+            );
+            int normalizedNumberIndex = cursor.getColumnIndex(
+                ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER
+            );
+            int typeIndex = cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.TYPE
+            );
+            int labelIndex = cursor.getColumnIndexOrThrow(
+                ContactsContract.CommonDataKinds.Phone.LABEL
+            );
+
+            while (cursor.moveToNext()) {
+                String currentNumber = cursor.getString(numberIndex);
+                String currentNormalizedNumber = normalizedNumberIndex < 0
+                    ? ""
+                    : cursor.getString(normalizedNumberIndex);
+                if (
+                    !expected.equals(comparablePhoneNumber(currentNumber))
+                        && !expected.equals(
+                            comparablePhoneNumber(currentNormalizedNumber)
+                        )
+                ) {
+                    continue;
+                }
+                int type = cursor.getInt(typeIndex);
+                String customLabel = cursor.getString(labelIndex);
+                CharSequence label = ContactsContract.CommonDataKinds.Phone.getTypeLabel(
+                    getContext().getResources(),
+                    type,
+                    customLabel
+                );
+                return new ContactRecord(
+                    cursor.getLong(idIndex),
+                    cursor.getString(nameIndex),
+                    currentNumber,
+                    currentNormalizedNumber,
+                    String.valueOf(label)
+                );
+            }
+        } catch (SecurityException ignored) {
+            return null;
+        }
+        return null;
+    }
+
+    private JSObject contactRecordToJs(ContactRecord contact) {
+        JSObject result = new JSObject();
+        result.put("id", contact.id);
+        result.put("name", contact.name);
+        result.put("number", contact.number);
+        result.put("normalizedNumber", contact.normalizedNumber);
+        result.put("label", contact.label);
+        return result;
+    }
+
+    private String internationalWhatsAppDigits(
+        String normalizedNumber,
+        String displayNumber
+    ) {
+        for (String candidate : new String[] {
+            normalizedNumber,
+            displayNumber
+        }) {
+            String direct = directInternationalDigits(candidate);
+            if (!direct.isEmpty()) {
+                return direct;
+            }
+        }
+
+        String countryIso = deviceCountryIso();
+        String e164 = countryIso.isEmpty()
+            ? null
+            : PhoneNumberUtils.formatNumberToE164(displayNumber, countryIso);
+        return directInternationalDigits(e164);
+    }
+
+    private String directInternationalDigits(String value) {
+        String candidate = value == null ? "" : value.trim();
+        if (candidate.startsWith("00")) {
+            candidate = "+" + candidate.substring(2);
+        }
+        if (!candidate.startsWith("+")) {
+            return "";
+        }
+        String digits = candidate.replaceAll("[^0-9]", "");
+        if (
+            digits.length() < 7
+                || digits.length() > 15
+                || digits.startsWith("0")
+        ) {
+            return "";
+        }
+        return digits;
+    }
+
+    private String deviceCountryIso() {
+        TelephonyManager manager = (TelephonyManager) getContext()
+            .getSystemService(Context.TELEPHONY_SERVICE);
+        String countryIso = "";
+        if (manager != null) {
+            try {
+                countryIso = manager.getNetworkCountryIso();
+                if (countryIso == null || countryIso.trim().isEmpty()) {
+                    countryIso = manager.getSimCountryIso();
+                }
+            } catch (SecurityException ignored) {
+                countryIso = "";
+            }
+        }
+        if (countryIso == null || countryIso.trim().isEmpty()) {
+            countryIso = Locale.getDefault().getCountry();
+        }
+        return countryIso == null
+            ? ""
+            : countryIso.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String resolveWhatsAppPackage(Uri uri) {
+        for (String packageName : new String[] {
+            WHATSAPP_PACKAGE,
+            WHATSAPP_BUSINESS_PACKAGE
+        }) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setPackage(packageName);
+            ResolveInfo resolved = getContext()
+                .getPackageManager()
+                .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            if (
+                resolved != null
+                    && resolved.activityInfo != null
+                    && packageName.equals(resolved.activityInfo.packageName)
+            ) {
+                return packageName;
+            }
+        }
+        return "";
     }
 
     private String callStateName(int state) {

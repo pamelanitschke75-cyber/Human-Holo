@@ -339,6 +339,24 @@ if (!manifest.includes('android:name="com.samsung.android.app.notes"')) {
   );
 }
 
+for (const whatsAppPackage of [
+  "com.whatsapp",
+  "com.whatsapp.w4b"
+]) {
+  const packageQuery =
+    `        <package android:name="${whatsAppPackage}" />`;
+  if (!manifest.includes(packageQuery)) {
+    const queriesEnd = "    </queries>";
+    if (!manifest.includes(queriesEnd)) {
+      throw new Error("Queries-Tag für WhatsApp nicht gefunden.");
+    }
+    manifest = manifest.replace(
+      queriesEnd,
+      packageQuery + "\n" + queriesEnd
+    );
+  }
+}
+
 if (!manifest.includes('android:name="android.intent.action.SEND"')) {
   const launcherEnd = [
     '                <category android:name="android.intent.category.LAUNCHER" />',
