@@ -2541,6 +2541,136 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  const SAFE_SERVICE_DIALERS = Object.freeze({
+    "112": "Notruf für Feuerwehr und Rettungsdienst",
+    "110": "Polizeinotruf",
+    "116117": "Ärztlicher Bereitschaftsdienst"
+  });
+
+  function normalizeLocalPhoneIntent(value) {
+    return String(value || "")
+      .replace(/[Ää]/g, "ae")
+      .replace(/[Öö]/g, "oe")
+      .replace(/[Üü]/g, "ue")
+      .replace(/ß/g, "ss")
+      .toLocaleLowerCase("de-DE")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function isSafetyTriageQuestion(message) {
+    const normalized = normalizeLocalPhoneIntent(message);
+    const hasTestMarker =
+      /\b(?:nur ein test|systemtest|testfrage|testszenario|kein echter notfall|kein realer notfall|fiktiv)/i.test(
+        normalized
+      );
+    const hasSafetyContext =
+      /\b(?:notfall|lebensgefahr|lebensbedrohlich|bewusstlos|atmung|atemnot|schmerzen|ohrenschmerzen|fieber|verletzt|blutet|bedroht|messer|waffe|polizei|116117|112|110)\b/i.test(
+        normalized
+      );
+    const asksForGuidance =
+      /\b(?:wen soll ich|was muss ich|was soll ich|welche nummer|wo soll ich|soll ich .* anrufen|an wen .* wenden)\b/i.test(
+        normalized
+      );
+
+    return hasTestMarker || (hasSafetyContext && asksForGuidance);
+  }
+
+  function serviceDialRequestFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .trim();
+    if (isSafetyTriageQuestion(cleanMessage)) return null;
+
+    const match = cleanMessage.match(
+      /^ruf(?:e)?(?:\s+bitte|\s+mal)?\s+(112|110|116\s*117)(?:\s+an)?[.!]?$/i
+    );
+    const number = String(match?.[1] || "").replace(/\s+/g, "");
+    return SAFE_SERVICE_DIALERS[number]
+      ? { number, label: SAFE_SERVICE_DIALERS[number] }
+      : null;
+  }
+
+  function phoneContactCallNameFromMessage(message) {
+    const cleanMessage = String(message || "").trim();
+    if (isSafetyTriageQuestion(cleanMessage) || /[?:;]/.test(cleanMessage)) {
+      return "";
+    }
+
+    let match = cleanMessage.match(
+      /^ruf(?:e)?(?:\s+mal)?\s+(.+?)(?:\s+an)?[.!]?$/i
+    );
+    if (!match) {
+      match = cleanMessage.match(/^(.+?)\s+anrufen[.!]?$/i);
+    }
+
+    const name = String(match?.[1] || "")
+      .replace(/[.!]+$/g, "")
+      .trim();
+    if (
+      !name ||
+      name.split(/\s+/).length > 5 ||
+      !/^[\p{L}\p{M}][\p{L}\p{M} .,'’\-]*$/u.test(name) ||
+      /\b(?:ich|du|er|sie|wir|ihr|wer|wen|was|wann|warum|wie|notfall|arzt|aerztin|polizei)\b/i.test(
+        normalizeLocalPhoneIntent(name)
+      )
+    ) {
+      return "";
+    }
+    return name;
+  }
+
+  async function openServiceDialer(number, label = "") {
+    const cleanNumber = String(number || "").replace(/\s+/g, "");
+    const expectedLabel = SAFE_SERVICE_DIALERS[cleanNumber];
+    if (!expectedLabel) {
+      return {
+        success: false,
+        answer: "Diese Servicenummer darf nicht automatisch an den Wähler übergeben werden."
+      };
+    }
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        answer: "Die feste Holo-ID ist nicht verfügbar."
+      };
+    }
+
+    const plugin = getPhoneContactsPlugin();
+    if (!plugin?.openServiceDialer) {
+      return {
+        success: false,
+        answer: "Der sichere Servicenummer-Wähler ist erst nach dem App-Update verfügbar."
+      };
+    }
+
+    try {
+      await plugin.openServiceDialer({
+        number: cleanNumber,
+        label: String(label || expectedLabel).trim()
+      });
+      return {
+        success: true,
+        opened: true,
+        answer: `${cleanNumber} ist im Telefon-Wähler vorbereitet. Erst dein Tippen auf die grüne Hörertaste startet den Anruf.`
+      };
+    } catch (error) {
+      console.error("Servicenummer-Wähler:", error);
+      return {
+        success: false,
+        answer: String(
+          error?.message ||
+          "Der Telefon-Wähler konnte gerade nicht geöffnet werden."
+        )
+      };
+    }
+  }
+
+  window.isSolHoloSafetyTriageQuestion = isSafetyTriageQuestion;
+  window.extractSolHoloServiceDialRequest = serviceDialRequestFromMessage;
+  window.extractSolHoloPhoneContactCallName = phoneContactCallNameFromMessage;
+  window.openSolHoloServiceDialer = openServiceDialer;
+
   async function findPhoneContact(query) {
     if (!activePersonalOwner()) {
       throw new Error("Die feste Holo-ID ist nicht verfügbar.");
@@ -3321,18 +3451,30 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return { handled: true, answer: result.answer };
     }
 
-    let match = cleanMessage.match(/^ruf(?:e)?(?:\s+mal)?\s+(.+?)(?:\s+an)?[.!?]?$/i);
-    if (!match) {
-      match = cleanMessage.match(/^(.+?)\s+anrufen[.!?]?$/i);
+    if (isSafetyTriageQuestion(cleanMessage)) {
+      previousPlainUserMessage = noteMessage;
+      previousPlainUserMessageAt = Date.now();
+      return { handled: false };
     }
-    if (match) {
+
+    const serviceDialRequest = serviceDialRequestFromMessage(cleanMessage);
+    if (serviceDialRequest) {
+      const result = await openServiceDialer(
+        serviceDialRequest.number,
+        serviceDialRequest.label
+      );
+      return { handled: true, answer: result.answer };
+    }
+
+    const phoneContactName = phoneContactCallNameFromMessage(cleanMessage);
+    if (phoneContactName) {
       const result = await executePhoneTool("start_phone_call", {
-        contact_name: match[1]
+        contact_name: phoneContactName
       });
       return { handled: true, answer: result.answer };
     }
 
-    match = cleanMessage.match(
+    let match = cleanMessage.match(
       /^(?:suche|finde)\s+(?:den\s+)?kontakt(?:\s+von)?\s+(.+?)[.!?]?$/i
     );
     if (!match) {

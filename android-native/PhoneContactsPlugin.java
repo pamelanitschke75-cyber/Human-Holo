@@ -67,6 +67,13 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_MAPS_DESTINATION_LENGTH = 500;
     private static final int MAX_SMS_LENGTH = 5000;
     private static final int MAX_RECIPIENT_NAME_LENGTH = 160;
+    private static final Set<String> SAFE_SERVICE_DIALER_NUMBERS =
+        new HashSet<>();
+    static {
+        SAFE_SERVICE_DIALER_NUMBERS.add("112");
+        SAFE_SERVICE_DIALER_NUMBERS.add("110");
+        SAFE_SERVICE_DIALER_NUMBERS.add("116117");
+    }
     private static volatile PhoneContactsPlugin activePlugin;
 
     private TelephonyManager telephonyManager;
@@ -774,6 +781,50 @@ public class PhoneContactsPlugin extends Plugin {
                 }
             }
         );
+    }
+
+    @PluginMethod
+    public void openServiceDialer(PluginCall call) {
+        String number = cleanDestination(call.getString("number", ""))
+            .replace(" ", "");
+        String label = cleanRecipientName(call.getString("label", ""));
+
+        if (!SAFE_SERVICE_DIALER_NUMBERS.contains(number)) {
+            call.reject(
+                "Diese Servicenummer ist nicht für den sicheren Wähler freigegeben.",
+                "SERVICE_NUMBER_NOT_ALLOWED"
+            );
+            return;
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject("Die Telefon-App konnte nicht geöffnet werden.");
+            return;
+        }
+
+        Intent intent = new Intent(
+            Intent.ACTION_DIAL,
+            Uri.fromParts("tel", number, null)
+        );
+
+        try {
+            activity.startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("number", number);
+            result.put("label", label);
+            result.put("allowlistedServiceNumber", true);
+            result.put("callStarted", false);
+            result.put("finalDialerConfirmationRequired", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Auf diesem Gerät wurde keine Telefon-App gefunden.",
+                "PHONE_APP_UNAVAILABLE",
+                error
+            );
+        }
     }
 
     @PluginMethod

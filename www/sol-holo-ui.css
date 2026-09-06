@@ -2148,6 +2148,41 @@ textarea{
   white-space:nowrap;
 }
 
+#chatView .messageCallAction{
+  display:flex;
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  border:1px solid rgba(95,255,188,.48);
+  border-radius:15px;
+  background:linear-gradient(135deg, rgba(25,147,105,.34), rgba(30,97,139,.28));
+  box-shadow:0 0 20px rgba(47,221,158,.12);
+  color:#dffff2;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+
+#chatView .messageCallAction:disabled{
+  cursor:wait;
+  opacity:.62;
+}
+
+#chatView .messageCallActionTitle{
+  font-size:17px;
+  font-weight:800;
+  line-height:1.3;
+}
+
+#chatView .messageCallActionHint{
+  color:rgba(223,255,242,.76);
+  font-size:11px;
+  line-height:1.35;
+}
+
 #chatView .user-message{
   margin-left:20px;
 }

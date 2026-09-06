@@ -160,7 +160,8 @@
       "purpose": "Zugang zu fachlicher Versorgung vermitteln, ohne Diagnose oder eigenmaechtige Behandlung.",
       "keywords": [
         "medizin", "medizinisch", "medizinische", "medizinischer", "medizinischen", "arzt", "aerztin", "aerzte ohne grenzen", "medizinische hilfe", "medizinische versorgung", "aerztliche hilfe", "aerztliche versorgung", "versorgung fuer alle",
-        "tierarzt", "tierklinik", "behandlung", "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung"
+        "tierarzt", "tierklinik", "behandlung", "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung",
+        "schmerzen", "ohrenschmerzen", "fieber", "beschwerden", "bereitschaftsdienst", "116117"
       ],
       "project_target": "Geeignete medizinische Versorgung soll fuer alle Menschen und auch fuer Tiere erreichbar sein.",
       "limits": [
@@ -252,6 +253,18 @@
       "phone": "112",
       "official_url": "https://www.bbk.bund.de/DE/Warnung-Vorsorge/Warnung-in-Deutschland/So-werden-Sie-gewarnt/Notruf/notruf_node.html",
       "use_for": "akute oder lebensbedrohliche Notfaelle bei Menschen",
+      "national_service": true,
+      "must_live_verify": false
+    },
+    {
+      "id": "de_police_110",
+      "areas": ["menschen_in_not", "lokale_anlaufstellen"],
+      "country": "DE",
+      "name": "Polizeinotruf 110",
+      "phone": "110",
+      "official_url": "https://www.bundesnetzagentur.de/DE/Fachthemen/Telekommunikation/Nummerierung/Notruf/artikel.html",
+      "use_for": "akute Gefahr, Bedrohung oder Straftaten, die sofortige Polizeihilfe erfordern",
+      "national_service": true,
       "must_live_verify": false
     },
     {
@@ -260,9 +273,10 @@
       "country": "DE",
       "name": "Patientenservice 116117",
       "phone": "116117",
-      "official_url": "https://www.116117.de/",
+      "official_url": "https://www.116117.de/de/aerztlicher-bereitschaftsdienst.php",
       "use_for": "dringende, nicht lebensbedrohliche aerztliche Hilfe und Arztsuche",
-      "must_live_verify": true
+      "national_service": true,
+      "must_live_verify": false
     },
     {
       "id": "munich_homeless_support",
