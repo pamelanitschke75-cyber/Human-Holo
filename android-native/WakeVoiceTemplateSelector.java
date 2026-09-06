@@ -13,6 +13,8 @@ final class WakeVoiceTemplateSelector {
     private static final int MAX_SPEECH_GAP_FRAMES = 10;
     private static final int PADDING_FRAMES = 6;
     private static final int MAX_REGION_FRAMES = 55;
+    private static final int ANCHORED_PREROLL_FRAMES = 8;
+    private static final int ANCHORED_WINDOW_FRAMES = 75;
     private static final float MIN_SPEECH_RMS = 0.006f;
 
     private WakeVoiceTemplateSelector() {}
@@ -93,6 +95,63 @@ final class WakeVoiceTemplateSelector {
         }
 
         throw new IllegalArgumentException("Hey Pam war zu kurz oder zu leise");
+    }
+
+    /**
+     * Produces conservative alternatives for the same already-recognized wake
+     * phrase.  The keyword timestamp keeps handling noise before "Hey Pam"
+     * out of the preferred candidate.  The bounded legacy selector remains a
+     * fallback for devices whose keyword engine omits timestamps.
+     */
+    static float[][] extractCandidates(
+        short[] captured,
+        int count,
+        int keywordAnchorSample
+    ) {
+        float[] standard = extract(captured, count);
+        if (keywordAnchorSample < 0) {
+            return new float[][] { standard };
+        }
+
+        float[] anchored;
+        try {
+            anchored = extractAnchored(captured, count, keywordAnchorSample);
+        } catch (RuntimeException ignored) {
+            return new float[][] { standard };
+        }
+        if (Arrays.equals(anchored, standard)) {
+            return new float[][] { anchored };
+        }
+        return new float[][] { anchored, standard };
+    }
+
+    private static float[] extractAnchored(
+        short[] captured,
+        int count,
+        int keywordAnchorSample
+    ) {
+        if (captured == null || count <= 0) {
+            throw new IllegalArgumentException("Keine Aufnahme für den Kurz-Weckruf vorhanden");
+        }
+        int safeCount = Math.min(count, captured.length);
+        int safeAnchor = Math.max(
+            0,
+            Math.min(keywordAnchorSample, safeCount - 1)
+        );
+        int startSample = Math.max(
+            0,
+            safeAnchor - ANCHORED_PREROLL_FRAMES * FRAME_SAMPLES
+        );
+        int endSample = Math.min(
+            safeCount,
+            safeAnchor + ANCHORED_WINDOW_FRAMES * FRAME_SAMPLES
+        );
+        short[] anchoredWindow = Arrays.copyOfRange(
+            captured,
+            startSample,
+            endSample
+        );
+        return extract(anchoredWindow, anchoredWindow.length);
     }
 
     private static float[] copyAsFloat(
