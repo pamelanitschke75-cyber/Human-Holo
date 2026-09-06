@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sol-holo-133-whatsapp-kontakte";
+const CACHE_VERSION = "sol-holo-134-whatsapp-auto-senden";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

@@ -28,8 +28,28 @@ const manifestPath = join(
   "AndroidManifest.xml"
 );
 const mainActivityPath = join(javaTarget, "MainActivity.java");
+const resXmlTarget = join(
+  projectRoot,
+  "android",
+  "app",
+  "src",
+  "main",
+  "res",
+  "xml"
+);
+const stringsPath = join(
+  projectRoot,
+  "android",
+  "app",
+  "src",
+  "main",
+  "res",
+  "values",
+  "strings.xml"
+);
 
 mkdirSync(javaTarget, { recursive: true });
+mkdirSync(resXmlTarget, { recursive: true });
 
 for (const fileName of [
   "HealthConnectPlugin.java",
@@ -40,12 +60,35 @@ for (const fileName of [
   "WakeRecognitionLifecyclePolicy.java",
   "WakePhraseMatcher.java",
   "PhoneContactsPlugin.java",
+  "WhatsAppAutoSendCommand.java",
+  "WhatsAppAutoSendAccessibilityService.java",
   "SolAudioRoutePlugin.java",
   "WhatsAppDrivingModePlugin.java",
   "WhatsAppNotificationListener.java"
 ]) {
   copyFileSync(join(nativeSource, fileName), join(javaTarget, fileName));
 }
+
+copyFileSync(
+  join(nativeSource, "sol_holo_whatsapp_auto_send_service.xml"),
+  join(resXmlTarget, "sol_holo_whatsapp_auto_send_service.xml")
+);
+
+let strings = readFileSync(stringsPath, "utf8");
+if (!strings.includes('name="whatsapp_auto_send_accessibility_description"')) {
+  const resourcesEnd = "</resources>";
+  if (!strings.includes(resourcesEnd)) {
+    throw new Error("Android-String-Ressourcen konnten nicht erweitert werden.");
+  }
+  strings = strings.replace(
+    resourcesEnd,
+    "    <string name=\"whatsapp_auto_send_accessibility_description\">" +
+      "Sendet nach einem ausdrücklichen Sol-Holo-Auftrag genau eine " +
+      "WhatsApp-Nachricht und prüft dafür Empfänger, Text und Senden-Schaltfläche." +
+      "</string>\n" + resourcesEnd
+  );
+}
+writeFileSync(stringsPath, strings, "utf8");
 
 let mainActivity = readFileSync(mainActivityPath, "utf8");
 if (!mainActivity.includes("registerPlugin(WhatsAppDrivingModePlugin.class)")) {
@@ -402,6 +445,31 @@ ${applicationEnd}`
   );
 }
 
+if (!manifest.includes(".WhatsAppAutoSendAccessibilityService")) {
+  const applicationEnd = "    </application>";
+  if (!manifest.includes(applicationEnd)) {
+    throw new Error("Application-Ende für WhatsApp-Auto-Senden nicht gefunden.");
+  }
+
+  manifest = manifest.replace(
+    applicationEnd,
+    `        <service
+            android:name=".WhatsAppAutoSendAccessibilityService"
+            android:label="Sol Holo – WhatsApp automatisch senden"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/sol_holo_whatsapp_auto_send_service" />
+        </service>
+
+${applicationEnd}`
+  );
+}
+
 if (!manifest.includes(".HeyHoSolService")) {
   const applicationEnd = "    </application>";
   if (!manifest.includes(applicationEnd)) {
@@ -459,5 +527,5 @@ if (!manifest.includes(".HealthPrivacyActivity")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus, Sol-Weckruf, Telefon, Kontakte, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
 );

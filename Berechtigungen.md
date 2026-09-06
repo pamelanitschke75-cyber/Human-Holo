@@ -1,7 +1,7 @@
 SOL HOLO – BERECHTIGUNGEN
 
-Version: 1.1
-Stand: 30.08.2026
+Version: 1.2
+Stand: 06.09.2026
 Status: Technische Planung
 
 Grundregel
@@ -42,6 +42,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 👥 Kontakte| Kontakte| Personen auswählen/zuordnen| Bei Kontaktfunktion| Kein Kontaktzugriff
 📞 Telefon| Telefonfunktion| Anrufe vorbereiten/starten| Bei entsprechender Aktion| Kein Anruf durch Sol
 💬 Nachrichten| Nachrichten-/Share-Funktion| Text an andere Apps übergeben| Bei ausdrücklicher Aktion| Keine Übergabe
+♿ Bedienungshilfe (optional)| ausschließlich WhatsApp und WhatsApp Business| Empfänger, vollständigen Text und Senden-Schaltfläche prüfen und nach einem ausdrücklichen WhatsApp-Auftrag einmalig Senden auslösen| Einmalige bewusste Aktivierung in Android; danach bei jedem ausdrücklich genannten WhatsApp-Sendeauftrag| WhatsApp wird nur vorbereitet und nicht automatisch gesendet
 📍 Standort| Standortdaten| Ortsbezogene Funktionen| Nur wenn benötigt| Keine Standortfunktionen
 🧭 Navigation| Karten-/Navigations-App| Ziel übergeben| Bei Navigationsauftrag| Keine Navigation
 📡 Bluetooth| Geräte in der Nähe| Watch und andere Geräte| Beim Verbinden| Keine Bluetooth-Verbindung

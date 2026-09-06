@@ -8348,7 +8348,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "prepare_whatsapp",
 
             description:
-              `Sucht einen ausdrücklich genannten Empfänger im vollständigen lokalen Android-Kontaktverzeichnis. Bei mehreren Treffern muss nachgefragt werden. Nach ${identity.displayName}s sichtbarer Bestätigung wird der vollständige Text als Entwurf im offiziellen WhatsApp-Chat geöffnet. Behaupte niemals, die Nachricht sei gesendet: ${identity.displayName} tippt in WhatsApp selbst auf Senden.`,
+              `Sucht nach ${identity.displayName}s ausdrücklichem WhatsApp-Sendeauftrag einen Empfänger im vollständigen lokalen Android-Kontaktverzeichnis. Bei mehreren Treffern muss nachgefragt werden. Der ownergebundene Android-Besitzer-Modus darf den vollständigen Text automatisch senden, aber nur wenn die einmalig freigegebene WhatsApp-Bedienungshilfe aktiv ist und Empfänger sowie Text in WhatsApp exakt geprüft wurden. Ohne diese technische Rückmeldung niemals behaupten, die Nachricht sei gesendet.`,
 
             parameters: {
               type:

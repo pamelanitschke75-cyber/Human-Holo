@@ -19,6 +19,7 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 import androidx.core.content.ContextCompat;
 
@@ -144,6 +145,11 @@ public class PhoneContactsPlugin extends Plugin {
     protected void handleOnDestroy() {
         unregisterCallStateListener();
         cancelPendingExternalAction();
+        WhatsAppAutoSendCommand.Pending pending =
+            WhatsAppAutoSendCommand.peek();
+        if (pending != null) {
+            WhatsAppAutoSendCommand.cancel(pending.token);
+        }
         if (activePlugin == this) {
             activePlugin = null;
         }
@@ -204,6 +210,30 @@ public class PhoneContactsPlugin extends Plugin {
         return true;
     }
 
+    public static void publishWhatsAppAutoSendResult(
+        String token,
+        String recipientName,
+        boolean sendControlActivated,
+        String reason
+    ) {
+        PhoneContactsPlugin plugin = activePlugin;
+        if (plugin == null) {
+            return;
+        }
+        JSObject event = new JSObject();
+        event.put("token", token == null ? "" : token);
+        event.put(
+            "recipientName",
+            recipientName == null ? "" : recipientName
+        );
+        event.put("automaticSendRequested", true);
+        event.put("sendControlActivated", sendControlActivated);
+        event.put("sent", sendControlActivated);
+        event.put("deliveryConfirmed", false);
+        event.put("reason", reason == null ? "" : reason);
+        plugin.notifyListeners("whatsAppAutoSendResult", event, true);
+    }
+
     private boolean contactsGranted() {
         return ContextCompat.checkSelfPermission(
             getContext(),
@@ -216,6 +246,54 @@ public class PhoneContactsPlugin extends Plugin {
             getContext(),
             Manifest.permission.READ_PHONE_STATE
         ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private ComponentName whatsAppAutoSendComponent() {
+        return new ComponentName(
+            getContext(),
+            WhatsAppAutoSendAccessibilityService.class
+        );
+    }
+
+    private boolean whatsAppAutoSendAccessEnabled() {
+        String enabledServices = Settings.Secure.getString(
+            getContext().getContentResolver(),
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        );
+        if (TextUtils.isEmpty(enabledServices)) {
+            return false;
+        }
+
+        ComponentName expected = whatsAppAutoSendComponent();
+        TextUtils.SimpleStringSplitter splitter =
+            new TextUtils.SimpleStringSplitter(':');
+        splitter.setString(enabledServices);
+        while (splitter.hasNext()) {
+            ComponentName enabled = ComponentName.unflattenFromString(
+                splitter.next()
+            );
+            if (expected.equals(enabled)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private JSObject whatsAppAutoSendStatus() {
+        JSObject result = new JSObject();
+        result.put("supported", true);
+        result.put("accessEnabled", whatsAppAutoSendAccessEnabled());
+        result.put("explicitOwnerCommandRequired", true);
+        result.put("contactMustBeUnique", true);
+        result.put("messageMustMatchExactly", true);
+        result.put("singleUseCommand", true);
+        result.put("commandExpiresAfterMillis", 30_000);
+        result.put("packageScope", "com.whatsapp,com.whatsapp.w4b");
+        result.put("screenDataStored", false);
+        result.put("screenDataUploaded", false);
+        result.put("messagePersisted", false);
+        result.put("canBeDisabledInAndroidSettings", true);
+        return result;
     }
 
     private boolean telephonySupported() {
@@ -247,7 +325,12 @@ public class PhoneContactsPlugin extends Plugin {
         );
         result.put("outgoingCallsDirectlyStarted", false);
         result.put("smsDirectlySent", false);
-        result.put("whatsAppDirectlySent", false);
+        result.put(
+            "whatsAppDirectSendEnabled",
+            whatsAppAutoSendAccessEnabled()
+        );
+        result.put("whatsAppAutoSendRequiresExplicitCommand", true);
+        result.put("whatsAppAutoSendScreenDataStored", false);
         result.put("visibleActionConfirmationRequired", true);
         result.put("callState", callStateName(currentCallState));
         result.put(
@@ -260,6 +343,69 @@ public class PhoneContactsPlugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
         call.resolve(status());
+    }
+
+    @PluginMethod
+    public void getWhatsAppAutoSendStatus(PluginCall call) {
+        call.resolve(whatsAppAutoSendStatus());
+    }
+
+    @PluginMethod
+    public void requestWhatsAppAutoSendAccess(PluginCall call) {
+        if (whatsAppAutoSendAccessEnabled()) {
+            call.resolve(whatsAppAutoSendStatus());
+            return;
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Die Android-Bedienungshilfe konnte gerade nicht geöffnet werden.",
+                "WHATSAPP_AUTO_SEND_SETTINGS_UNAVAILABLE"
+            );
+            return;
+        }
+
+        String disclosure =
+            "Damit Sol Holo nach deinem ausdrücklichen Auftrag in WhatsApp " +
+            "automatisch auf Senden tippen kann, benötigt sie die Android-" +
+            "Bedienungshilfe.\n\n" +
+            "Android bezeichnet diese Freigabe als weitreichenden Bildschirm- " +
+            "und Steuerungszugriff. Sol Holos technische Begrenzung lässt die " +
+            "Funktion trotzdem ausschließlich in WhatsApp arbeiten.\n\n" +
+            "Die Funktion reagiert ausschließlich auf einen kurzlebigen " +
+            "Einmal-Auftrag, ausschließlich in WhatsApp und nur wenn " +
+            "Empfänger sowie vollständiger Nachrichtentext übereinstimmen.\n\n" +
+            "Sol Holo speichert oder überträgt dabei keine sichtbaren " +
+            "WhatsApp-Inhalte. Du kannst den Zugriff jederzeit in den " +
+            "Android-Einstellungen ausschalten.";
+
+        confirmExternalAction(
+            call,
+            activity,
+            "WhatsApp automatisch senden",
+            disclosure,
+            "Bedienungshilfe öffnen",
+            () -> {
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                try {
+                    activity.startActivity(intent);
+                    JSObject result = whatsAppAutoSendStatus();
+                    result.put("settingsOpened", true);
+                    result.put(
+                        "instructions",
+                        "Wähle Sol Holo – WhatsApp automatisch senden und aktiviere den Zugriff. Danach den WhatsApp-Befehl einmal wiederholen."
+                    );
+                    call.resolve(result);
+                } catch (ActivityNotFoundException | SecurityException error) {
+                    call.reject(
+                        "Die Android-Bedienungshilfe konnte gerade nicht geöffnet werden.",
+                        "WHATSAPP_AUTO_SEND_SETTINGS_UNAVAILABLE",
+                        error
+                    );
+                }
+            }
+        );
     }
 
     @PluginMethod
@@ -1129,6 +1275,12 @@ public class PhoneContactsPlugin extends Plugin {
         String recipientName = cleanRecipientName(
             call.getString("recipientName", "")
         );
+        boolean autoSend = Boolean.TRUE.equals(
+            call.getBoolean("autoSend", false)
+        );
+        boolean explicitOwnerCommand = Boolean.TRUE.equals(
+            call.getBoolean("explicitOwnerCommand", false)
+        );
 
         if (number.isEmpty()) {
             call.reject(
@@ -1146,8 +1298,22 @@ public class PhoneContactsPlugin extends Plugin {
         }
         if (message.length() > MAX_WHATSAPP_MESSAGE_LENGTH) {
             call.reject(
-                "Der WhatsApp-Text ist für eine vollständige sichtbare Bestätigung zu lang.",
+                "Der WhatsApp-Text ist für eine sichere vollständige Prüfung zu lang.",
                 "WHATSAPP_TEXT_TOO_LONG"
+            );
+            return;
+        }
+        if (autoSend && recipientName.isEmpty()) {
+            call.reject(
+                "Automatisches Senden braucht einen eindeutig geprüften Kontaktnamen.",
+                "WHATSAPP_AUTO_SEND_RECIPIENT_REQUIRED"
+            );
+            return;
+        }
+        if (autoSend && !explicitOwnerCommand) {
+            call.reject(
+                "Automatisches Senden braucht einen ausdrücklichen WhatsApp-Auftrag der Besitzerin.",
+                "WHATSAPP_AUTO_SEND_EXPLICIT_COMMAND_REQUIRED"
             );
             return;
         }
@@ -1188,6 +1354,67 @@ public class PhoneContactsPlugin extends Plugin {
             return;
         }
 
+        if (autoSend) {
+            if (!whatsAppAutoSendAccessEnabled()) {
+                call.reject(
+                    "Für automatisches WhatsApp-Senden muss der einmalige Besitzer-Modus in den Android-Bedienungshilfen aktiviert werden.",
+                    "WHATSAPP_AUTO_SEND_ACCESS_REQUIRED"
+                );
+                return;
+            }
+
+            WhatsAppAutoSendCommand.Pending pending;
+            try {
+                pending = WhatsAppAutoSendCommand.arm(
+                    packageName,
+                    recipientName,
+                    whatsAppDigits,
+                    message
+                );
+            } catch (IllegalArgumentException error) {
+                call.reject(
+                    "Der automatische WhatsApp-Sendeauftrag war nicht vollständig oder nicht eindeutig.",
+                    "WHATSAPP_AUTO_SEND_COMMAND_REJECTED",
+                    error
+                );
+                return;
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, whatsAppUri);
+            intent.setPackage(packageName);
+            try {
+                activity.startActivity(intent);
+                WhatsAppAutoSendAccessibilityService.wakeForPendingCommand();
+
+                JSObject result = new JSObject();
+                result.put("opened", true);
+                result.put("packageName", packageName);
+                result.put("number", number);
+                result.put("recipientName", recipientName);
+                result.put("confirmationShown", false);
+                result.put("explicitOwnerCommandAccepted", true);
+                result.put("messagePrepared", true);
+                result.put("messageLength", message.length());
+                result.put("automaticSendRequested", true);
+                result.put("sendControlActivated", false);
+                result.put("sent", false);
+                result.put("deliveryConfirmed", false);
+                result.put("finalWhatsAppSendRequired", false);
+                result.put("singleUseCommand", true);
+                result.put("commandExpiresAfterMillis", 30_000);
+                result.put("pendingToken", pending.token);
+                call.resolve(result);
+            } catch (ActivityNotFoundException | SecurityException error) {
+                WhatsAppAutoSendCommand.cancel(pending.token);
+                call.reject(
+                    "WhatsApp konnte den automatischen Sendeauftrag gerade nicht öffnen.",
+                    "WHATSAPP_OPEN_FAILED",
+                    error
+                );
+            }
+            return;
+        }
+
         String recipient = recipientName.isEmpty()
             ? number
             : recipientName + " (" + number + ")";
@@ -1219,6 +1446,7 @@ public class PhoneContactsPlugin extends Plugin {
                     result.put("userConfirmed", true);
                     result.put("messagePrepared", true);
                     result.put("messageLength", message.length());
+                    result.put("automaticSendRequested", false);
                     result.put("sent", false);
                     result.put("finalWhatsAppSendRequired", true);
                     call.resolve(result);
