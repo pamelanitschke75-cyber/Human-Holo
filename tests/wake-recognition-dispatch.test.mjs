@@ -64,10 +64,30 @@ test("nach erkanntem Hey Pam bleibt das Mikrofon für das Wortende offen", () =>
     pump,
     /captured\.totalWritten\(\) >= keywordPostrollEndSample/u
   );
+  assert.ok(
+    pump.indexOf("keywordAudioStart = PcmRingBuffer.boundedKeywordStart(")
+      < pump.indexOf("keywordPostrollEndSample = captured.totalWritten()"),
+    "Nach dem Keyword-Treffer muss zuerst der sichere Ausschnitt feststehen"
+  );
+});
+
+test("die Besitzerprüfung erhält nur den kurzen Tonabschnitt um Hey Pam", () => {
+  const pump = methodSource(
+    "private void pump(SecureAudioListener listener)",
+    "short[] finishAndSnapshot()"
+  );
+  assert.match(
+    serviceSource,
+    /KEYWORD_MAX_LOOKBACK_SAMPLES\s*=\s*SECURE_SAMPLE_RATE \* 2/u
+  );
   assert.match(
     pump,
-    /keywordAudioStart = Math\.max\([\s\S]*?\);\s*keywordPostrollEndSample = captured\.totalWritten\(\)/u,
-    "Nach dem Keyword-Treffer muss zuerst der Nachlauf geplant werden"
+    /PcmRingBuffer\.boundedKeywordStart\([\s\S]*?detection\.firstTokenSample[\s\S]*?captured\.totalWritten\(\)[\s\S]*?KEYWORD_PREROLL_SAMPLES[\s\S]*?KEYWORD_MAX_LOOKBACK_SAMPLES[\s\S]*?\)/u
+  );
+  assert.doesNotMatch(
+    pump,
+    /keywordAudioStart = Math\.max\(\s*0L,\s*detection\.firstTokenSample/u,
+    "Ein fehlender Zeitstempel darf nicht mehr den ganzen Ringspeicher freigeben"
   );
 });
 

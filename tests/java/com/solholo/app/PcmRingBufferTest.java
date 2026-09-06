@@ -8,6 +8,8 @@ public final class PcmRingBufferTest {
         retainsOnlyNewestSamplesAfterWrap();
         extractsFromAbsoluteKeywordStart();
         clampsExpiredAndFuturePositions();
+        keepsRecentKeywordTimestampWithPreroll();
+        boundsMissingAndStaleKeywordTimestamps();
         rejectsInvalidInput();
         System.out.println("PcmRingBufferTest: OK");
     }
@@ -39,6 +41,28 @@ public final class PcmRingBufferTest {
         buffer.append(new short[] { 1, 2, 3, 4, 5 }, 5);
         assertArray(new short[] { 3, 4, 5 }, buffer.snapshotFrom(-10));
         assertArray(new short[0], buffer.snapshotFrom(99));
+    }
+
+    private static void keepsRecentKeywordTimestampWithPreroll() {
+        assertEquals(
+            7_500L,
+            PcmRingBuffer.boundedKeywordStart(8_000L, 10_000L, 500, 4_000)
+        );
+    }
+
+    private static void boundsMissingAndStaleKeywordTimestamps() {
+        assertEquals(
+            6_000L,
+            PcmRingBuffer.boundedKeywordStart(0L, 10_000L, 500, 4_000)
+        );
+        assertEquals(
+            6_000L,
+            PcmRingBuffer.boundedKeywordStart(1_000L, 10_000L, 500, 4_000)
+        );
+        assertEquals(
+            6_000L,
+            PcmRingBuffer.boundedKeywordStart(12_000L, 10_000L, 500, 4_000)
+        );
     }
 
     private static void rejectsInvalidInput() {

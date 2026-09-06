@@ -36,6 +36,45 @@ final class PcmRingBuffer {
         return totalWritten;
     }
 
+    /**
+     * Resolves the start of the audio window used for owner verification.
+     * Keyword timestamps are preferred, but some sherpa-onnx results can
+     * omit them or report an old stream position. In that case the verifier
+     * must never receive the complete ring-buffer history: unrelated speech
+     * before "Hey Pam" could otherwise be selected as the voice template.
+     */
+    static long boundedKeywordStart(
+        long firstTokenSample,
+        long sampleAtDetection,
+        int prerollSamples,
+        int maxLookbackSamples
+    ) {
+        if (
+            sampleAtDetection < 0L ||
+            prerollSamples < 0 ||
+            maxLookbackSamples <= 0
+        ) {
+            throw new IllegalArgumentException("invalid keyword capture window");
+        }
+
+        long recentWindowStart = Math.max(
+            0L,
+            sampleAtDetection - maxLookbackSamples
+        );
+        if (
+            firstTokenSample <= 0L ||
+            firstTokenSample > sampleAtDetection
+        ) {
+            return recentWindowStart;
+        }
+
+        long timestampStart = Math.max(
+            0L,
+            firstTokenSample - prerollSamples
+        );
+        return Math.max(recentWindowStart, timestampStart);
+    }
+
     synchronized short[] snapshotFrom(long absoluteStartSample) {
         long earliest = totalWritten - size;
         long start = Math.max(earliest, Math.min(absoluteStartSample, totalWritten));

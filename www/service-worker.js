@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sol-holo-130-immer-an-gedaechtnis";
+const CACHE_VERSION = "sol-holo-131-textkalender-wakefenster";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

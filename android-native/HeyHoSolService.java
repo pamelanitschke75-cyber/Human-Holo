@@ -53,6 +53,8 @@ public class HeyHoSolService extends Service {
     private static final int SECURE_RING_SECONDS = 5;
     private static final int KEYWORD_PREROLL_SAMPLES =
         SECURE_SAMPLE_RATE * 350 / 1000;
+    private static final int KEYWORD_MAX_LOOKBACK_SAMPLES =
+        SECURE_SAMPLE_RATE * 2;
     private static final int KEYWORD_POSTROLL_SAMPLES =
         SECURE_SAMPLE_RATE * 350 / 1000;
     private static final int MIN_SECURE_CAPTURE_SAMPLES =
@@ -167,9 +169,11 @@ public class HeyHoSolService extends Service {
                     if (detection == null) {
                         detection = keywordSpotter.accept(buffer, count);
                         if (detection != null) {
-                            keywordAudioStart = Math.max(
-                                0L,
-                                detection.firstTokenSample - KEYWORD_PREROLL_SAMPLES
+                            keywordAudioStart = PcmRingBuffer.boundedKeywordStart(
+                                detection.firstTokenSample,
+                                captured.totalWritten(),
+                                KEYWORD_PREROLL_SAMPLES,
+                                KEYWORD_MAX_LOOKBACK_SAMPLES
                             );
                             keywordPostrollEndSample = captured.totalWritten()
                                 + KEYWORD_POSTROLL_SAMPLES;
