@@ -115,9 +115,15 @@ const TEST_MODE_TERMS = Object.freeze([
 
 const URGENT_MEDICAL_TERMS = Object.freeze([
   "ohrenschmerzen",
+  "halsschmerzen",
+  "rueckenschmerzen",
+  "bauchschmerzen",
   "schmerzen",
   "starke schmerzen",
   "fieber",
+  "erkaeltung",
+  "brechdurchfall",
+  "harnwegsinfekt",
   "krank",
   "beschwerden",
   "medizinische hilfe",
@@ -153,6 +159,10 @@ const POLICE_EMERGENCY_TERMS = Object.freeze([
   "waffe",
   "ueberfall",
   "einbruch",
+  "bricht ein",
+  "eingebrochen",
+  "einbrecher",
+  "raub",
   "angriff",
   "taeter",
   "verfolgt",
@@ -232,6 +242,12 @@ function isHumanEmergencySignalNegated(normalizedText, rawSignal) {
     bewusstlos: ["bei bewusstsein", "ist ansprechbar", "ist wach"],
     "atmet nicht": ["atmet normal", "normale atmung"],
     "keine atmung": ["atmet normal", "normale atmung"],
+    atemnot: ["keine atemnot", "ohne atemnot", "atmet normal", "normale atmung"],
+    brustschmerzen: ["keine brustschmerzen", "ohne brustschmerzen"],
+    schlaganfalls: [
+      "keine anzeichen eines schlaganfalls",
+      "kein verdacht auf einen schlaganfall"
+    ],
     lebensgefahr: [
       "keine lebensgefahr",
       "ohne lebensgefahr",
@@ -291,7 +307,15 @@ export function classifyEcosystemUrgency(message) {
   const humanSignals = activeHumanEmergencySignals(normalized);
   const animalContext = hasAnimalContext(normalized);
   const humanContext = hasHumanContext(normalized);
-  const policeSignals = matchedTerms(normalized, POLICE_EMERGENCY_TERMS);
+  const activeBreakIn =
+    /\b(?:bricht|dringt|steigt)\b[\s\S]{0,60}\bein\b/u.test(normalized) &&
+    /\b(?:bei mir|wohnung|haus|zimmer|gebaeude|geschaeft|laden|buero|tuer|fenster)\b/u.test(
+      normalized
+    );
+  const policeSignals = [
+    ...matchedTerms(normalized, POLICE_EMERGENCY_TERMS),
+    ...(activeBreakIn ? ["aktiver einbruch"] : [])
+  ];
   const policeImmediacy = matchedTerms(normalized, POLICE_IMMEDIACY_TERMS);
   const bothContext =
     /\b(?:mensch|menschen)\b[\s\S]{0,60}\b(?:tier|tiere)\b/u.test(

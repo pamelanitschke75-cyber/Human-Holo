@@ -161,7 +161,8 @@
       "keywords": [
         "medizin", "medizinisch", "medizinische", "medizinischer", "medizinischen", "arzt", "aerztin", "aerzte ohne grenzen", "medizinische hilfe", "medizinische versorgung", "aerztliche hilfe", "aerztliche versorgung", "versorgung fuer alle",
         "tierarzt", "tierklinik", "behandlung", "notfall", "verletzt", "krank", "bewusstlos", "blutet", "vergiftung",
-        "schmerzen", "ohrenschmerzen", "fieber", "beschwerden", "bereitschaftsdienst", "116117"
+        "schmerzen", "ohrenschmerzen", "halsschmerzen", "rueckenschmerzen", "bauchschmerzen", "fieber", "erkaeltung", "brechdurchfall", "harnwegsinfekt", "beschwerden", "bereitschaftsdienst", "116117",
+        "atemnot", "brustschmerzen", "herzbeschwerden", "schlaganfall", "krampfanfall", "verbrennung", "stromunfall", "ertrinkungsunfall"
       ],
       "project_target": "Geeignete medizinische Versorgung soll fuer alle Menschen und auch fuer Tiere erreichbar sein.",
       "limits": [
@@ -229,8 +230,10 @@
   ],
   "emergency_signals": {
     "human": [
-      "bewusstlos", "atmet nicht", "keine atmung", "lebensgefahr", "blutet stark",
-      "schwere verletzung", "akuter notfall", "will sich umbringen", "suizid"
+      "bewusstlos", "atmet nicht", "keine atmung", "atemnot", "brustschmerzen", "herzbeschwerden",
+      "schlaganfall", "schlaganfalls", "lebensgefahr", "blutet stark", "nicht stillbare blutung",
+      "schwere verletzung", "vergiftung", "starke verbrennung", "ertrinkungsunfall", "stromunfall",
+      "stromschlag", "krampfanfall", "suizidversuch", "akuter notfall", "will sich umbringen", "suizid"
     ],
     "animal": [
       "tier atmet nicht", "tier bewusstlos", "tier blutet stark", "angefahrenes tier",

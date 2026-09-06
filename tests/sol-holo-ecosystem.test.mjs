@@ -206,6 +206,34 @@ test("ein Testhinweis unterdrueckt nicht die 112-Einordnung des beschriebenen Sz
   assert.equal(assessment.priority_contact.open_dialer_allowed, false);
 });
 
+test("weitere offizielle 112-Beispiele werden deterministisch erkannt", () => {
+  const cases = [
+    "Nur ein Test: Ich habe plötzlich starke Atemnot. Wen soll ich anrufen?",
+    "Nur ein Test: Ich habe plötzlich starke Brustschmerzen. Wen soll ich anrufen?",
+    "Nur ein Test: Eine Person zeigt Anzeichen eines Schlaganfalls. Was muss ich tun?",
+    "Nur ein Test: Eine Person hat eine Vergiftung. Wen soll ich anrufen?",
+    "Nur ein Test: Eine Person hat einen akuten Krampfanfall. Was muss ich tun?"
+  ];
+
+  for (const message of cases) {
+    const assessment = buildEcosystemAssessment({ message });
+    assert.equal(assessment.urgency.level, "emergency", message);
+    assert.equal(assessment.urgency.route, "medical", message);
+    assert.equal(assessment.priority_contact.number, "112", message);
+    assert.equal(assessment.priority_contact.open_dialer_allowed, false, message);
+  }
+});
+
+test("verneinte Atemnot loest bei Ohrenschmerzen keinen 112-Fehlalarm aus", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Nur ein Test: Ich habe starke Ohrenschmerzen, aber keine Atemnot und keine Lebensgefahr."
+  });
+
+  assert.equal(assessment.urgency.level, "urgent");
+  assert.equal(assessment.priority_contact.number, "116117");
+});
+
 test("akute Polizeigefahr wird getrennt von medizinischer Lebensgefahr an 110 geroutet", () => {
   const assessment = buildEcosystemAssessment({
     message:
@@ -226,6 +254,12 @@ test("akute Polizeigefahr wird getrennt von medizinischer Lebensgefahr an 110 ge
       "Nur ein Test: Akuter Notfall, ein Täter bedroht mich gerade mit einer Waffe."
   });
   assert.equal(policeDespiteGenericEmergencyWord.priority_contact.number, "110");
+
+  const activeBreakIn = buildEcosystemAssessment({
+    message:
+      "Nur ein Test: Gerade bricht jemand bei mir ein. Wen soll ich anrufen?"
+  });
+  assert.equal(activeBreakIn.priority_contact.number, "110");
 
   const medicalDangerHasPriority = buildEcosystemAssessment({
     message:
@@ -252,6 +286,19 @@ test("reale feste Hilfen duerfen nur den Wähler vorbereiten", () => {
     ensurePriorityContactPrefix("Bitte schildere dort deine Beschwerden.", assessment.priority_contact),
     /^116117/u
   );
+});
+
+test("offizielle Bereitschaftsdienst-Beispiele werden an 116117 geroutet", () => {
+  for (const message of [
+    "Nur ein Test: Ich habe am Wochenende akute Rückenschmerzen, aber keine Lebensgefahr.",
+    "Nur ein Test: Ich habe nachts starke Halsschmerzen, aber keine Lebensgefahr.",
+    "Nur ein Test: Ich habe am Sonntag einen akuten Harnwegsinfekt, aber keine Lebensgefahr."
+  ]) {
+    const assessment = buildEcosystemAssessment({ message });
+    assert.equal(assessment.urgency.level, "urgent", message);
+    assert.equal(assessment.priority_contact.number, "116117", message);
+    assert.equal(assessment.priority_contact.open_dialer_allowed, false, message);
+  }
 });
 
 test("Hilfequellen bleiben passend: 112 nur akut und 116117 nur nicht lebensbedrohlich", () => {
