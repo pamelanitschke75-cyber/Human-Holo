@@ -8008,6 +8008,7 @@ async function sendMessage(
       false,
       data?.weather?.sources ||
         data?.web?.sources ||
+        data?.ecosystem?.sources ||
         []
     );
 
@@ -8191,7 +8192,9 @@ function cancelRealtimeResponse(){
 }
 
 
-function requestRealtimeResponse(){
+function requestRealtimeResponse({
+  forcedToolName = ""
+} = {}){
 
   if(
     !dc ||
@@ -8203,10 +8206,23 @@ function requestRealtimeResponse(){
   }
 
 
+  const event = {
+    type:"response.create"
+  };
+
+
+  if(forcedToolName){
+    event.response = {
+      tool_choice:{
+        type:"function",
+        name:forcedToolName
+      }
+    };
+  }
+
+
   dc.send(
-    JSON.stringify({
-      type:"response.create"
-    })
+    JSON.stringify(event)
   );
 
 
@@ -8359,6 +8375,60 @@ function speakPersonalRecallResult(
 }
 
 
+function speakEcosystemResult(
+  ecosystem
+){
+
+  if(
+    !dc ||
+    dc.readyState !==
+      "open" ||
+    ecosystem?.matched !==
+      true ||
+    !ecosystem?.context
+  ){
+
+    return false;
+  }
+
+
+  const safeContext =
+    JSON.stringify(
+      ecosystem.context
+    ).slice(0, 30000);
+
+
+  cancelRealtimeResponse();
+
+
+  dc.send(
+    JSON.stringify({
+      type:"conversation.item.create",
+      item:{
+        type:"message",
+        role:"system",
+        content:[{
+          type:"input_text",
+          text:
+            "[LOKALES_OEKOSYSTEMERGEBNIS]\n" +
+            "Verbindliche serverseitige Auswertung der unmittelbar vorherigen Nutzerfrage:\n" +
+            safeContext
+        }]
+      }
+    })
+  );
+
+
+  return requestRealtimeResponse({
+    forcedToolName:
+      ecosystem?.liveSearchRequired ===
+        true
+        ? "search_live_web"
+        : ""
+  });
+}
+
+
 let realtimeWeatherPlacePending =
   false;
 
@@ -8475,7 +8545,11 @@ async function sendLiveTranscriptToMemory(
                 createFulltimeEventId(),
 
               source:
-                "voice"
+                "voice",
+
+              suppressAssistantResponse:
+                suppressAssistantResponse ===
+                true
             })
         }
       );
@@ -8604,6 +8678,41 @@ async function sendLiveTranscriptToMemory(
 
 
       return true;
+    }
+
+
+    if(
+      role === "user" &&
+      !suppressAssistantResponse &&
+      !data?.recall?.handled &&
+      data?.ecosystem?.matched
+    ){
+
+      const spoken =
+        speakEcosystemResult(
+          data.ecosystem
+        );
+
+
+      const urgency =
+        String(
+          data.ecosystem?.context
+            ?.urgency?.level ||
+          "information"
+        );
+
+
+      chatStatus.textContent =
+        urgency === "emergency"
+          ? "Ökosystem-Notfallweg hat Vorrang."
+          : data.ecosystem?.context
+              ?.location
+              ?.clarification_required
+            ? "Für passende Hilfe fehlt noch der ausdrücklich genannte Ort."
+            : "Sol Holos Ökosystem hat die Anfrage eingeordnet.";
+
+
+      return spoken;
     }
 
 
@@ -9376,10 +9485,22 @@ async function handleRealtimeMemoryToolCall(
     })
   );
 
+  const responseCreateEvent = {
+    type:"response.create"
+  };
+
+
+  if(toolCall?.name === "search_live_web"){
+    responseCreateEvent.response = {
+      tool_choice:"none"
+    };
+  }
+
+
   dc.send(
-    JSON.stringify({
-      type:"response.create"
-    })
+    JSON.stringify(
+      responseCreateEvent
+    )
   );
 }
 

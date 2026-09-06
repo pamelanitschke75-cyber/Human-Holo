@@ -6,7 +6,7 @@
 
 ## Persönliches digitales Ich · Individueller KI-Clone
 
-**Aktueller Entwicklungsstand:** 03.09.2026<br>
+**Aktueller Entwicklungsstand:** 06.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke  
 **KI-Technologie:** OpenAI · ChatGPT · OpenAI API  
 **Status:** FUNKTIONSFÄHIGER ENTWICKLUNGSSTAND ✅
@@ -225,6 +225,35 @@ Der aktuelle Android-Build erweitert Sol Holo um zwei bewusst begrenzte Wege fü
 Health Connect besitzt in Sol Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
 
 Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.
+
+---
+
+# 🌎 Sol-Holo-Ökosystem
+
+Der gemeinsame Ökosystem-Kern für **Menschen, Tiere, Natur und Ressourcen** ist
+in den geschriebenen Chat und den ownergebundenen Realtime-Sprachweg
+eingebunden. Er erkennt elf Bereiche von Wasser, Lebensmitteln, Abfall,
+Plastik, Mobilität und Hilfe in Not bis zu wirkungsorientiertem Investieren und
+Beschaffen.
+
+Akute Gefahr hat Vorrang. Menschen- und Tiernotfälle werden getrennt. Lokale
+Hilfe nutzt nur einen ausdrücklich genannten oder freigegebenen Ort;
+veränderliche Kontaktdaten werden vor der Ausgabe live aus offiziellen oder
+primären Quellen geprüft. Anrufe, Nachrichten, Spenden, Käufe, Investitionen
+und Zahlungen bleiben ohne klare Freigabe gesperrt.
+
+Dokumentation:
+
+- [Vollständiger Start des Sol-Holo-Ökosystems](./SOL-HOLO-OEKOSYSTEM-START-06-09-2026.md)
+- [Meilenstein: Verbindung mit Text und Realtime-Sprache](./MEILENSTEIN-SOL-HOLO-OEKOSYSTEM-TEXT-SPRACHE-06-09-2026.md)
+
+Der technische Stand ist verbunden; der praktische S23-Test und Pams eigene
+Fertig-Bestätigung bleiben davon getrennt.
+
+Automatische Spracherkennung, Erkennung der gesprochenen Sprache, Übersetzung,
+Vorlesen und Untertitel gehören als übergreifende Bedienfunktionen zu Claws
+Alltag und Verständigung, nicht als künstlicher zwölfter Bereich zum
+Ökosystem.
 
 ---
 

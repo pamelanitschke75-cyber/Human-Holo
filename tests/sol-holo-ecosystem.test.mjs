@@ -5,7 +5,10 @@ import {
   buildEcosystemAssessment,
   classifyEcosystemUrgency,
   detectEcosystemAreas,
+  ecosystemModelContext,
   ecosystemManifest,
+  extractExplicitEcosystemLocation,
+  looksLikeEcosystemLocationReply,
   normalizeEcosystemText,
   renderGermanEcosystemAssessment,
   selectEcosystemHelpSources
@@ -33,6 +36,18 @@ test("das Manifest deckt den ganzen vereinbarten Umfang ab", () => {
     ]
   );
   assert.equal(ecosystemManifest.scope, "Menschen, Tiere, Natur und Ressourcen");
+  assert.equal(ecosystemManifest.integration.text_route, "/sol");
+  assert.equal(ecosystemManifest.integration.voice_transcript_route, "/live/memory");
+  assert.equal(ecosystemManifest.integration.same_rules_for_text_and_voice, true);
+  assert.equal(ecosystemManifest.integration.passive_device_location, false);
+  assert.equal(
+    ecosystemManifest.architecture_boundaries.alltag_und_verstaendigung.owner,
+    "OpenClaw worker-alltag"
+  );
+  assert.equal(
+    ecosystemManifest.architecture_boundaries.alltag_und_verstaendigung.classification,
+    "cross-cutting-interaction-layer-not-ecosystem-area"
+  );
   assert.ok(ecosystemManifest.principles.some(value => value.includes("allen in Not")));
   assert.ok(ecosystemManifest.system_gaps.some(value => value.id === "tiernotrettung_sonderrechte"));
 });
@@ -105,6 +120,20 @@ test("E-Auto und E-Roller werden nicht als automatische Komplettloesung behandel
   );
 });
 
+test("fossile Kraftstoffe und der Lebensweg von Batterien bleiben gemeinsam sichtbar", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Keine fossilen Kraftstoffe mehr, aber E-Autos mit Batterien sind nicht automatisch die ganze Lösung."
+  });
+  assert.ok(ids(assessment.areas).includes("energie_mobilitaet"));
+  assert.ok(ids(assessment.areas).includes("abfall_haushalt"));
+  assert.ok(
+    assessment.assessment_criteria.some(entry =>
+      entry.criterion.includes("Rohstoffgewinnung")
+    )
+  );
+});
+
 test("Investitionen werden nach sozialer, oekologischer und tierfreundlicher Wirkung geprueft", () => {
   const assessment = buildEcosystemAssessment({
     message: "Soll Sol Holo in dieses Unternehmen investieren oder ist das Greenwashing?"
@@ -112,6 +141,17 @@ test("Investitionen werden nach sozialer, oekologischer und tierfreundlicher Wir
   assert.ok(ids(assessment.areas).includes("investieren_beschaffen"));
   assert.equal(assessment.controls.payment_or_investment_performed, false);
   assert.equal(assessment.controls.external_action_performed, false);
+  assert.ok(
+    assessment.assessment_criteria.some(entry =>
+      entry.criterion.includes("Menschenrechte")
+    )
+  );
+  assert.ok(
+    assessment.assessment_criteria.some(entry =>
+      entry.criterion.includes("Tierwohl")
+    )
+  );
+  assert.equal(assessment.controls.current_evidence_required, true);
 });
 
 test("ein menschlicher Akutnotfall hat Vorrang und verweist in Deutschland auf 112", () => {
@@ -129,6 +169,39 @@ test("ein menschlicher Akutnotfall hat Vorrang und verweist in Deutschland auf 1
   assert.equal(assessment.controls.external_action_performed, false);
 });
 
+test("Hilfequellen bleiben passend: 112 nur akut und 116117 nur nicht lebensbedrohlich", () => {
+  const vagueSupport = buildEcosystemAssessment({
+    message: "Ein Mensch braucht Hilfe.",
+    country: "Deutschland",
+    city: "München",
+    locationConsent: true
+  });
+  assert.deepEqual(vagueSupport.help_sources, []);
+
+  const medicalSupport = buildEcosystemAssessment({
+    message: "Ich brauche medizinische Hilfe, aber es ist nicht lebensbedrohlich.",
+    country: "Deutschland",
+    city: "München",
+    locationConsent: true
+  });
+  assert.ok(ids(medicalSupport.areas).includes("medizinische_versorgung"));
+  assert.deepEqual(
+    medicalSupport.help_sources.map(source => source.id),
+    ["de_medical_116117"]
+  );
+
+  const emergency = buildEcosystemAssessment({
+    message: "Eine Person ist bewusstlos und atmet nicht.",
+    country: "Deutschland",
+    city: "München",
+    locationConsent: true
+  });
+  assert.deepEqual(
+    emergency.help_sources.map(source => source.id),
+    ["de_emergency_112"]
+  );
+});
+
 test("ein Tiernotfall wird nicht versehentlich als menschlicher Notfall ausgegeben", () => {
   const urgency = classifyEcosystemUrgency(
     "Ein angefahrenes Tier blutet stark und braucht eine Tierklinik."
@@ -137,6 +210,12 @@ test("ein Tiernotfall wird nicht versehentlich als menschlicher Notfall ausgegeb
   assert.equal(urgency.subject, "animal");
   assert.ok(urgency.matched_signals.includes("angefahrenes tier"));
   assert.ok(urgency.matched_signals.includes("blutet stark"));
+
+  const ownDog = classifyEcosystemUrgency(
+    "Mein Hund blutet stark und atmet nicht."
+  );
+  assert.equal(ownDog.level, "emergency");
+  assert.equal(ownDog.subject, "animal");
 });
 
 test("bei Tiernotfall in Muenchen wird nur eine erneut zu pruefende Stelle vorgeschlagen", () => {
@@ -149,7 +228,73 @@ test("bei Tiernotfall in Muenchen wird nur eine erneut zu pruefende Stelle vorge
   const rescue = assessment.help_sources.find(source => source.id === "munich_animal_rescue");
   assert.ok(rescue);
   assert.equal(rescue.verification_required_before_use, true);
+  assert.equal(rescue.phone, undefined);
+  assert.equal(rescue.contact_data_withheld_until_verified, true);
+  assert.deepEqual(
+    assessment.help_sources.map(source => source.id),
+    ["munich_animal_rescue"]
+  );
+  assert.ok(ids(assessment.areas).includes("tiere_in_not"));
+  assert.ok(
+    assessment.system_gaps.some(gap =>
+      gap.id === "tiernotrettung_sonderrechte"
+    )
+  );
   assert.equal(assessment.controls.official_source_verification_required, true);
+});
+
+test("Blaulicht und Sonderrechte für Tiere werden als Projektziel, nicht als Rechtsbehauptung eingeordnet", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Blaulicht und geeignete Sonderrechte auch für Tierrettungswagen und Tiere in Not."
+  });
+  assert.ok(ids(assessment.areas).includes("tiere_in_not"));
+  assert.ok(
+    assessment.system_gaps.some(gap =>
+      gap.classification === "policy-goal-not-current-legal-claim"
+    )
+  );
+  assert.equal(assessment.controls.legal_claim_performed, false);
+});
+
+test("ein ausdrücklich genanntes München wird verwendet, aber keine beliebige Aussage als Ort", () => {
+  assert.deepEqual(
+    extractExplicitEcosystemLocation(
+      "Wo finde ich in München eine Tafel?"
+    ),
+    {
+      country: "DE",
+      city: "Muenchen",
+      explicit: true,
+      source: "explicit_message"
+    }
+  );
+  assert.equal(
+    looksLikeEcosystemLocationReply("München"),
+    true
+  );
+  assert.equal(
+    looksLikeEcosystemLocationReply(
+      "Feuchttücher gehören nicht ins Klo."
+    ),
+    false
+  );
+});
+
+test("der Modellkontext enthält nur die geprüfte strukturierte Auswertung", () => {
+  const assessment = buildEcosystemAssessment({
+    message: "Keine E-Autos als Scheinlösung; was passiert mit den Batterien?"
+  });
+  const context = ecosystemModelContext(assessment);
+
+  assert.equal(context.scope, "Menschen, Tiere, Natur und Ressourcen");
+  assert.ok(
+    context.assessment_criteria.some(entry =>
+      entry.criterion.includes("Akkulebensdauer")
+    )
+  );
+  assert.equal(context.controls.external_action_performed, false);
+  assert.equal(context.location.passive_device_location_used, false);
 });
 
 test("ohne Ortsfreigabe wird kein lokaler Standort unterstellt", () => {
@@ -184,9 +329,24 @@ test("internationale medizinische Hilfe bleibt als globale Anlaufstelle auffindb
   const sources = selectEcosystemHelpSources({
     areaIds: ["menschen_in_not", "medizinische_versorgung"],
     country: "DE",
-    city: "Muenchen"
+    city: "Muenchen",
+    matchedRequestTerms: ["aerzte ohne grenzen"]
   });
   assert.ok(sources.some(source => source.id === "msf_global"));
+
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Ärzte ohne Grenzen und medizinische Versorgung für alle Menschen und Tiere."
+  });
+  assert.ok(ids(assessment.areas).includes("menschen_in_not"));
+  assert.ok(ids(assessment.areas).includes("medizinische_versorgung"));
+  assert.ok(ids(assessment.areas).includes("tiere_in_not"));
+  assert.equal(assessment.urgency.subject, "both");
+  assert.ok(
+    assessment.help_sources.some(source =>
+      source.id === "msf_global"
+    )
+  );
 });
 
 test("die Textausgabe trennt Soforthilfe, Bereiche und Ortsrueckfrage", () => {
@@ -207,4 +367,14 @@ test("bei einem fremden Thema behauptet der Kern keinen Treffer", () => {
   assert.equal(assessment.matched, false);
   assert.equal(assessment.controls.external_action_performed, false);
   assert.equal(assessment.controls.data_written, false);
+});
+
+test("automatische Spracherkennung bleibt bei Claws Alltag und wird kein zwoelfter Oekosystembereich", () => {
+  const assessment = buildEcosystemAssessment({
+    message:
+      "Automatische Spracherkennung, Übersetzung und Untertitel gehören zu Claws Alltag."
+  });
+
+  assert.equal(assessment.matched, false);
+  assert.equal(ecosystemManifest.areas.length, 11);
 });

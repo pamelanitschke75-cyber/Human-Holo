@@ -1,7 +1,7 @@
 # Sol Holo × OpenClaw Lab
 
-Stand: 05.09.2026  
-Status: **Phase 1 verifiziert; Phase 2c ergänzt für die einzelne Alltag-Laborvorschau einen OpenAI-Testweg über vorhandene Dienste; standardmäßig ausgeschaltet und nicht produktiv**
+Stand: 06.09.2026
+Status: **Phase 1 verifiziert; Phase 2c ergänzt für die einzelne Alltag-Laborvorschau einen OpenAI-Testweg; Phase 2d ordnet Verständigung dem Alltag-Worker zu; alles standardmäßig ausgeschaltet und nicht produktiv**
 
 OpenClaw `2026.9.1` läuft als getrenntes Labor. Sechs Fach-Worker sind angelegt: Alltag, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin. Jeder Worker sieht ausschließlich das Werkzeug `read`, sein eigenes Workspace und klar markierte erfundene Testdaten.
 
@@ -41,6 +41,28 @@ Als Alternative zu einer dauerhaft laufenden Docker-Bridge kann der bestehende R
 An OpenAI gehen nur die feste Frage und der Inhalt der eingecheckten Datei `testdaten/alltag-fiktiv.md`. Freitext aus der App, Owner-, Geräte- und Sitzungskennungen sowie Umgebungsgeheimnisse werden nicht aufgenommen. Die Anfrage besitzt keine Werkzeuge, setzt `store: false` und verlangt ein striktes JSON-Schema. Das Ergebnis durchläuft anschließend unverändert die bestehende zweite Worker-Vertragsprüfung.
 
 Dieser Ausführungsweg ist eine OpenAI-gestützte Vertragsvorschau und behauptet ausdrücklich nicht, OpenClaw dauerhaft in Docker auf Render auszuführen. Die echte OpenClaw-Containerisolation wird weiterhin separat im GitHub-Actions-Pflichtlauf nachgewiesen. `phase2/sol-holo-openai-alltag-preview.manifest.json` hält diese Trennung maschinenlesbar fest.
+
+## Phase 2d – Verständigung gehört zu Claws Alltag
+
+Das Verständigungssystem ist fachlich dem `worker-alltag` zugeordnet. Dazu
+gehören automatische Spracherkennung nach bewusstem Start einer Sol-Holo-
+Sprachsitzung, Erkennung der gesprochenen Sprache, sinngenaue Übersetzung,
+klare oder einfache Sprache, Untertitel und Vorlesen. Es ist ausdrücklich kein
+zwölfter Bereich des Sol-Holo-Ökosystems.
+
+`phase2/alltag-verstaendigung.manifest.json` hält diese Zuordnung und die
+spätere Funktionsgrenze maschinenlesbar fest. Der aktuelle Stand ist ein
+abgeschalteter Vertrag, keine behauptete Live-Funktion von OpenClaw: Claws
+erhält weder Mikrofon noch Roh-Audio, Freitext, Transkripte oder persönliche
+Daten. Audio und Transkripte werden vom Worker nicht gespeichert. Unsichere
+Spracherkennung muss sichtbar bleiben und eine manuelle Sprachwahl erlauben.
+Übersetzungen dürfen weder Identitäten imitieren noch ohne Freigabe gesendet
+oder veröffentlicht werden.
+
+Eine spätere Aktivierung benötigt eine eigene Laufzeitimplementierung,
+technische Tests, Datenschutz- und Barrierefreiheitsprüfung sowie Pams
+praktische Bestätigung. Die bestehenden Laborrechte bleiben bis dahin exakt
+`read`, synthetisch und ohne automatisches Routing.
 
 ## Harte Grenze
 
@@ -112,8 +134,9 @@ Die ursprünglichen lokalen Tooltests liefen mit demselben Rechteprofil und eine
 3. **Phase 2 – Vorschau:** der Alltag-Worker erzeugt für genau einen manuell freigegebenen fiktiven Test einen Vorschlag, führt aber nichts extern aus. *(technischer Pflichtlauf bestanden und gemergt)*
 4. **Phase 2b – sichtbare Sol-Holo-Testverbindung:** fester Android-Testknopf, Trusted-App-Gate, authentifizierte Loopback-Bridge und erneut validiertes Ergebnis. *(implementiert, standardmäßig aus; neuer Docker-Pflichtlauf erforderlich)*
 5. **Phase 2c – OpenAI-Testweg über vorhandene Dienste:** feste Fantasiedaten, keine Tools, striktes Schema und zweite Vertragsprüfung. *(Entwurf, standardmäßig aus; kein Live-OpenClaw-Dockerlauf behauptet)*
-6. **Phase 3 – Einzelaktion mit Freigabe:** genau eine klar begrenzte Aktion nach bewusster Bestätigung.
-7. **Phase 4 – produktiver Sol-Holo-Adapter:** erst nach gesonderter Prüfung und neuer ausdrücklicher Freigabe.
+6. **Phase 2d – Alltag und Verständigung:** automatische Spracherkennung und barrierearme Verständigung sind dem Alltag-Worker zugeordnet. *(Vertrag angelegt; nicht mit Mikrofon, Transkripten oder persönlichen Daten verbunden)*
+7. **Phase 3 – Einzelaktion mit Freigabe:** genau eine klar begrenzte Aktion nach bewusster Bestätigung.
+8. **Phase 4 – produktiver Sol-Holo-Adapter:** erst nach gesonderter Prüfung und neuer ausdrücklicher Freigabe.
 
 Nur Pam entscheidet, wann eine Stufe als abgeschlossen gilt und ob die nächste Stufe beginnt.
 
@@ -144,6 +167,7 @@ Die Konfiguration erwartet drei Laufzeitwerte außerhalb des Repositorys:
 - `phase2/alltag-preview-bridge.mjs` – authentifizierter, ausschließlich lokal gebundener Runner für genau diesen Test
 - `phase2/sol-holo-alltag-connection.manifest.json` – maschinenlesbare Grenzen der sichtbaren Verbindung
 - `phase2/sol-holo-openai-alltag-preview.manifest.json` – maschinenlesbare Grenzen des ausgeschalteten OpenAI-Testwegs über vorhandene Dienste
+- `phase2/alltag-verstaendigung.manifest.json` – abgeschaltete Zuordnung von automatischer Spracherkennung und barrierearmer Verständigung zu `worker-alltag`
 - `examples/*` – rein synthetische Vertrags- und Vorschau-Beispiele mit menschlicher Prüfung
 - `workspace/*` – neutrale Regeln für den werkzeuglosen Labor-Koordinator
 - `workspaces/*` – sechs getrennte Worker mit festen neutralen Identitäten und fiktiven Testdaten
