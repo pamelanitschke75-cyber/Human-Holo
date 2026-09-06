@@ -41,7 +41,7 @@ assert.equal(alltagPreviewManifest.manual_approval.reusable, false);
 assert.equal(alltagPreviewManifest.inactive_interfaces.sol_holo_adapter, false);
 assert.equal(alltagPreviewManifest.inactive_interfaces.production_backend, false);
 assert.equal(alltagPreviewManifest.inactive_interfaces.personal_data, false);
-assert.equal(foundation.status, "verification-pending");
+assert.equal(foundation.status, "verified");
 assert.equal(foundation.productive, false);
 assert.equal(foundation.inactive_interfaces.sol_holo_adapter, false);
 assert.ok(taskSchema.properties.manual_approval, "Manuelle Freigabe fehlt im Aufgabenvertrag");

@@ -57,7 +57,7 @@ const config = read("openclaw.lab.example.json5");
 const mockServer = read("tests/mock-openai-server.mjs");
 
 assert.equal(manifest.phase, 1);
-assert.equal(manifest.status, "verification-pending");
+assert.equal(manifest.status, "verified");
 assert.equal(manifest.productive, false);
 assert.equal(manifest.data_class, "synthetic-only");
 assert.equal(manifest.execution_mode, "proposal-only");

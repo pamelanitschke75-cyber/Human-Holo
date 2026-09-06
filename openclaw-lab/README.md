@@ -1,7 +1,7 @@
 # Sol Holo × OpenClaw Lab
 
 Stand: 06.09.2026
-Status: **Phase 1 wird um Familie & Kinder sowie Senioren und hilfe-/pflegebedürftige Menschen erweitert; Docker-Verifikation der acht Worker ausstehend; Phase 2c und 2d bleiben standardmäßig ausgeschaltet und nicht produktiv**
+Status: **Phase 1 mit acht getrennten Workern Docker-verifiziert; Phase 2c und 2d bleiben standardmäßig ausgeschaltet und nicht produktiv**
 
 OpenClaw `2026.9.1` läuft als getrenntes Labor. Acht Fach-Worker sind angelegt: Alltag, Familie & Kinder, Senioren und hilfe-/pflegebedürftige Menschen, Geschäftliches, Tiere, Kochen, Sicherheit und Medizin. Jeder Worker sieht ausschließlich das Werkzeug `read`, sein eigenes Workspace und klar markierte erfundene Testdaten.
 
@@ -41,6 +41,9 @@ weder Betreuung noch Pflege oder Medizin, dürfen niemanden überwachen,
 kontaktieren oder bevormunden und können keinen anderen Worker automatisch
 aufrufen. Auch für sie gelten ausschließlich synthetische Daten, `read`,
 schreibgeschützte Docker-Sandboxes, `network: none` und menschliche Prüfung.
+
+Der [GitHub-Actions-Lauf #25](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/34058646736)
+bestätigte diese Grenzen für alle acht Worker in echten Docker-Containern.
 
 ## Phase 2b – sichtbare Testverbindung in Pam’s Holo
 
@@ -132,25 +135,27 @@ Zu Kamera, Mikrofon, Sensoren, Geräten, Konten und persönlichen Speichern best
 | OpenClaw Security Audit | `0` kritisch, `0` Warnungen |
 | Telemetrie | deaktiviert, keine Anfrage |
 | Gateway | Healthcheck `200`, `0` Plugins, Heartbeat aus, sauber beendet |
-| Effektive Worker-Tools | für alle acht exakt `read` vorgesehen; erneute Verifikation ausstehend |
-| Agent-Skills | für alle acht leer vorgesehen; erneute Verifikation ausstehend |
-| Eigene Testdatei lesen | neuer Docker-Pflichtlauf für `8/8` ausstehend |
-| Nachbar-Workspace lesen | neuer Docker-Pflichtlauf für `8/8` ausstehend |
-| Datei schreiben | neuer Docker-Pflichtlauf für `8/8` ausstehend |
-| Docker-Mounts | für alle acht `/agent` schreibgeschützt vorgesehen; erneute Verifikation ausstehend |
-| Container-Härtung | für alle acht `network: none`, read-only Root, `capDrop: ALL`, `no-new-privileges`, nicht privilegiert vorgesehen |
-| Direkte Schreibprobe | neuer Docker-Pflichtlauf für acht Container ausstehend |
-| Bisheriger Containerlauf | sechs Worker bestanden mit Docker `28.0.4` im GitHub-Actions-Lauf `#2` |
-| Grundgerüst-Konsistenztest | neuer lokaler Nachweis für 8 Worker ausstehend |
+| Effektive Worker-Tools | für alle acht exakt `read`, verifiziert |
+| Agent-Skills | für alle acht leer, verifiziert |
+| Eigene Testdatei lesen | `8/8` erlaubt und bestanden |
+| Nachbar-Workspace lesen | `8/8` technisch blockiert |
+| Datei schreiben | `8/8` technisch blockiert |
+| Docker-Mounts | für alle acht `/agent` schreibgeschützt, verifiziert |
+| Container-Härtung | für alle acht `network: none`, read-only Root, `capDrop: ALL`, `no-new-privileges`, nicht privilegiert, verifiziert |
+| Direkte Schreibprobe | in allen acht Containern blockiert |
+| Aktueller Containerlauf | acht Worker bestanden im GitHub-Actions-Lauf `#25` |
+| Grundgerüst-Konsistenztest | acht Worker, zwei Verträge und alle Bereichsregeln bestanden |
 
 Die ursprünglichen lokalen Tooltests liefen mit demselben Rechteprofil und einer temporären, nicht eingecheckten Konfigurationskopie ohne Containerstart. Anschließend wiederholte der [GitHub-Actions-Lauf #2](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/33957645527) alle 18 positiven und negativen Rechteprüfungen mit der unveränderten eingecheckten Sandbox-Konfiguration in sechs echten Docker-Containern. Die Konfiguration blieb durchgehend auf `sandbox.mode: "all"`; es gab keinen Rückfall auf Host-Ausführung.
+
+Nach der Erweiterung wiederholte der [GitHub-Actions-Lauf #25](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/34058646736) den vollständigen unveränderten Container-Nachweis mit allen acht Workern. Er bestätigte acht eigene Lesezugriffe, acht blockierte Fremdleseversuche, acht blockierte Schreibversuche, acht gehärtete Container und die weiterhin feste, rein synthetische Alltag-Vorschau.
 
 ## Sicherheitsstufen
 
 1. **Phase 0 – Nullzugriff:** Konfiguration, Boot und Außenruhe prüfen. *(abgeschlossen)*
-2. **Phase 1 – getrennte Fach-Worker:** acht getrennte Lese-Worker mit künstlichen Testdaten. *(sechs bisher verifiziert; Erweiterung um zwei besonders geschützte Worker in Prüfung)*
+2. **Phase 1 – getrennte Fach-Worker:** acht getrennte Lese-Worker mit künstlichen Testdaten. *(alle acht Docker-verifiziert)*
 3. **Phase 2 – Vorschau:** der Alltag-Worker erzeugt für genau einen manuell freigegebenen fiktiven Test einen Vorschlag, führt aber nichts extern aus. *(technischer Pflichtlauf bestanden und gemergt)*
-4. **Phase 2b – sichtbare Sol-Holo-Testverbindung:** fester Android-Testknopf, Trusted-App-Gate, authentifizierte Loopback-Bridge und erneut validiertes Ergebnis. *(implementiert, standardmäßig aus; neuer Docker-Pflichtlauf erforderlich)*
+4. **Phase 2b – sichtbare Sol-Holo-Testverbindung:** fester Android-Testknopf, Trusted-App-Gate, authentifizierte Loopback-Bridge und erneut validiertes Ergebnis. *(Docker-Pflichtlauf erneut bestanden; standardmäßig aus)*
 5. **Phase 2c – OpenAI-Testweg über vorhandene Dienste:** feste Fantasiedaten, keine Tools, striktes Schema und zweite Vertragsprüfung. *(Entwurf, standardmäßig aus; kein Live-OpenClaw-Dockerlauf behauptet)*
 6. **Phase 2d – Alltag und Verständigung:** automatische Spracherkennung und barrierearme Verständigung sind dem Alltag-Worker zugeordnet. *(Vertrag angelegt; nicht mit Mikrofon, Transkripten oder persönlichen Daten verbunden)*
 7. **Phase 3 – Einzelaktion mit Freigabe:** genau eine klar begrenzte Aktion nach bewusster Bestätigung.

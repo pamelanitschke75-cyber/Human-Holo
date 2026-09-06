@@ -4,8 +4,8 @@
 **Initiatorin und Projektinhaberin:** Pamela Nitschke  
 **Projekt:** Sol Holo · SH♾️  
 **Leitsatz:** Miteinander füreinander. Together forever.  
-**Status:** technisch ergänzt; lokaler Pflichtnachweis folgt; Docker-Nachweis im
-GitHub-Pull-Request noch ausstehend; nicht produktiv
+**Status:** technisch ergänzt und im GitHub-Docker-Pflichtlauf verifiziert;
+nicht produktiv
 
 ## Korrektur des bisherigen Worker-Grundgerüsts
 
@@ -106,8 +106,11 @@ sechs auf acht Worker erweitert. Der Pflichtlauf prüft für jeden neuen Worker:
 - alle Capabilities entfernt und `no-new-privileges` aktiv;
 - kein schreibbarer Bind-Mount.
 
-Der Status wird erst nach grünem GitHub-Docker-Pflichtlauf von
-`verification-pending` auf `verified` gesetzt. Eine produktive Verbindung oder
-Freigabe folgt daraus ausdrücklich nicht.
+Der [GitHub-Actions-Lauf #25](https://github.com/pamelanitschke75-cyber/Sol-Holo-/actions/runs/34058646736)
+bestand den vollständigen Nachweis für alle acht Worker: `8/8` eigene
+Lesezugriffe erlaubt, `8/8` Fremdleseversuche blockiert und `8/8`
+Schreibversuche blockiert. Alle acht Container erfüllten die vorgesehenen
+Mount- und Härtungsregeln. Der Status ist deshalb `verified`. Eine produktive
+Verbindung oder Freigabe folgt daraus ausdrücklich nicht.
 
 **Der bisherige Stand wird erweitert, niemals ersetzt.**
