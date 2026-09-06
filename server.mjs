@@ -53,6 +53,7 @@ import {
 } from "./modules/pending-calendar-action.mjs";
 import {
   calendarMemorySearchQuery,
+  resolveCalendarFollowUpReference,
   resolveGroundedBirthdayCalendarCommand
 } from "./modules/calendar-memory-grounding.mjs";
 import {
@@ -3397,6 +3398,46 @@ async function loadCalendarGroundingRows(
   return result.rows;
 }
 
+async function loadRecentCalendarConversationRows(
+  identity,
+  limit = 12
+) {
+  const safeLimit =
+    Math.min(
+      24,
+      Math.max(4, Number(limit) || 12)
+    );
+
+  const result = await db.query(
+    `
+      SELECT
+        id,
+        role,
+        content,
+        created_at,
+        'fulltime-calendar-recent' AS source
+      FROM (
+        SELECT
+          id,
+          role,
+          content,
+          created_at
+        FROM sol_fulltime_memory
+        WHERE clone_id = $1
+        ORDER BY id DESC
+        LIMIT $2
+      ) AS recent_owner_rows
+      ORDER BY id ASC
+    `,
+    [
+      cloneIdForOwner(identity.ownerId),
+      safeLimit
+    ]
+  );
+
+  return result.rows;
+}
+
 async function loadCalendarGroundingMemory(
   identity,
   message
@@ -4039,6 +4080,58 @@ async function handleCalendarWriteRequest(
       );
     }
 
+    let conversationRows = [];
+
+    try {
+      conversationRows =
+        getConversationMessages(
+          conversationId,
+          identity
+        );
+    } catch (error) {
+      if (
+        !(error instanceof ConversationContextError)
+      ) {
+        throw error;
+      }
+    }
+
+    let followUpReference =
+      resolveCalendarFollowUpReference({
+        message,
+        rows: conversationRows
+      });
+
+    if (
+      followUpReference.matched &&
+      !followUpReference.resolved
+    ) {
+      try {
+        const recentFulltimeRows =
+          await loadRecentCalendarConversationRows(
+            identity
+          );
+
+        followUpReference =
+          resolveCalendarFollowUpReference({
+            message,
+            rows: recentFulltimeRows
+          });
+      } catch (error) {
+        console.error(
+          "Kalender-Anschlusskontext:",
+          error?.code ||
+          error?.name ||
+          "Fehler"
+        );
+      }
+    }
+
+    const groundedMessage =
+      followUpReference.resolved
+        ? followUpReference.message
+        : message;
+
     let calendarGrounding = {
       searchQuery: "",
       rows: [],
@@ -4049,7 +4142,7 @@ async function handleCalendarWriteRequest(
       calendarGrounding =
         await loadCalendarGroundingMemory(
           identity,
-          message
+          groundedMessage
         );
     } catch (error) {
       console.error(
@@ -4062,7 +4155,8 @@ async function handleCalendarWriteRequest(
 
     const groundedBirthday =
       resolveGroundedBirthdayCalendarCommand({
-        message,
+        message:
+          groundedMessage,
         rows:
           calendarGrounding.rows,
         todayIso:
@@ -4086,7 +4180,7 @@ async function handleCalendarWriteRequest(
       groundedBirthday.resolved
         ? groundedBirthday.command
         : await parseCalendarCommand(
-            message,
+            groundedMessage,
             identity,
             calendarGrounding.memoryText
           );
