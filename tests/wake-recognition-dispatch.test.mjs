@@ -22,6 +22,10 @@ const installerSource = await readFile(
   new URL("../scripts/install-speaker-identity.mjs", import.meta.url),
   "utf8"
 );
+const drivingInstallerSource = await readFile(
+  new URL("../scripts/install-whatsapp-driving-mode.mjs", import.meta.url),
+  "utf8"
+);
 
 function methodSource(startMarker, endMarker) {
   const start = serviceSource.indexOf(startMarker);
@@ -237,4 +241,93 @@ test("blockierter Hintergrundstart bleibt sichtbar und hat einen sicheren Tipp-R
     serviceSource,
     /launchIntent\.putExtra\("hey_ho_sol_wake", true\)/u
   );
+});
+
+test("Hey Pam bleibt bei ausgeschaltetem Bildschirm aufnahmebereit", () => {
+  assert.match(serviceSource, /PowerManager\.PARTIAL_WAKE_LOCK/u);
+  assert.match(serviceSource, /:hey-pam-listening/u);
+  assert.match(serviceSource, /acquireRecognitionWakeLock\(\)/u);
+  assert.match(serviceSource, /releaseRecognitionWakeLock\(\)/u);
+  assert.match(drivingInstallerSource, /android\.permission\.WAKE_LOCK/u);
+  assert.match(serviceSource, /Intent\.ACTION_SCREEN_OFF/u);
+  assert.match(serviceSource, /rearmAfterScreenTransition/u);
+  const restart = methodSource(
+    "private void scheduleRestart(long delayMillis)",
+    "private void verifyRecognitionHealth()"
+  );
+  assert.match(restart, /shouldKeepWakeLockForRestart/u);
+  assert.match(restart, /acquireRecognitionWakeLock\(\)/u);
+});
+
+test("Sperren und Entsperren ersetzen eine festgefahrene Mikrofonsitzung", () => {
+  assert.match(serviceSource, /filter\.addAction\(Intent\.ACTION_SCREEN_OFF\)/u);
+  assert.match(serviceSource, /filter\.addAction\(Intent\.ACTION_USER_PRESENT\)/u);
+  assert.match(
+    serviceSource,
+    /private void rearmAfterScreenTransition[\s\S]*?scheduleRestart\(350L\)/u
+  );
+});
+
+test("stummer oder stehender PCM-Strom wird automatisch frisch verbunden", () => {
+  const health = methodSource(
+    "private void verifyRecognitionHealth()",
+    "private void pauseRecognition()"
+  );
+  assert.match(serviceSource, /setPrivacySensitive\(true\)/u);
+  assert.match(serviceSource, /isClientSilenced\(\)/u);
+  assert.match(health, /capturedSamples <= observedAudioSampleCount/u);
+  assert.match(health, /nonZeroSamples <= observedNonZeroSampleCount/u);
+  assert.match(health, /scheduleRestart\(350L\)/u);
+  assert.match(serviceSource, /RECOGNITION_HEALTH_INTERVAL_MILLIS = 4_000L/u);
+});
+
+test("ein laufender Dienst pausiert und startet intern ohne verbotenen FGS-Neustart", () => {
+  assert.match(serviceSource, /private static volatile HeyHoSolService activeService/u);
+  assert.match(
+    serviceSource,
+    /HeyHoSolService service = activeService;[\s\S]*?service\.mainHandler\.post\(service::pauseForConversationInPlace\)/u
+  );
+  assert.match(
+    serviceSource,
+    /service\.mainHandler\.post\(\(\) -> service\.resumeInPlace\(mode\)\)/u
+  );
+  assert.match(
+    serviceSource,
+    /if \(!HeyHoSolPlugin\.isActivityVisible\(\)\) \{\s*return;/u
+  );
+});
+
+test("nach erkanntem Hey Pam bleibt die CPU bis zum sichtbaren Sperrbildschirm-Start wach", () => {
+  const handleWake = methodSource(
+    "private void handleWakePhrase(String phrase)",
+    "private void registerSystemStateReceiver()"
+  );
+  assert.match(handleWake, /keepCpuAwakeForWakeHandoff\(\)/u);
+  assert.ok(
+    handleWake.indexOf("keepCpuAwakeForWakeHandoff()")
+      < handleWake.indexOf("pauseRecognition()"),
+    "Der kurze Übergabe-Weckschutz muss vor dem Listener-Stopp beginnen"
+  );
+  assert.match(serviceSource, /:hey-pam-handoff/u);
+  assert.match(
+    serviceSource,
+    /handoffWakeLock\.acquire\(WAKE_HANDOFF_CPU_TIMEOUT_MILLIS\)/u
+  );
+  assert.match(
+    drivingInstallerSource,
+    /WindowManager\.LayoutParams\.FLAG_KEEP_SCREEN_ON/u
+  );
+
+  const createStart = drivingInstallerSource.indexOf(
+    "public void onCreate(Bundle savedInstanceState)"
+  );
+  const wakeFlags = drivingInstallerSource.indexOf(
+    "applyWakeScreenBehavior(getIntent());",
+    createStart
+  );
+  const superCreate = drivingInstallerSource.indexOf(
+    "super.onCreate(savedInstanceState);",
+    createStart
+  );
+  assert.ok(createStart >= 0 && wakeFlags > createStart && superCreate > wakeFlags);
 });
