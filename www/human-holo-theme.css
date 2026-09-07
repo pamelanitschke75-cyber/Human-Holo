@@ -12,14 +12,21 @@
   --human-holo-glass-cyan:rgba(72,222,255,.8);
 }
 
-/* Das quadratische Motiv etwas herauszoomen, ohne den Bildschirm zu verlaengern. */
+/* Das quadratische Motiv vollstaendig zeigen, ohne den Bildschirm zu verlaengern. */
 .humanHoloHero{
   isolation:isolate;
+  border:1px solid transparent;
   background:
-    radial-gradient(circle at 20% 19%,rgba(255,147,91,.48),transparent 35%),
-    radial-gradient(circle at 81% 24%,rgba(52,120,255,.62),transparent 38%),
-    radial-gradient(circle at 50% 87%,rgba(174,55,255,.58),transparent 48%),
-    linear-gradient(180deg,#223a91 0%,#0d185f 48%,#251067 100%);
+    radial-gradient(circle at 20% 19%,rgba(255,147,91,.48),transparent 35%) padding-box,
+    radial-gradient(circle at 81% 24%,rgba(52,120,255,.62),transparent 38%) padding-box,
+    radial-gradient(circle at 50% 87%,rgba(174,55,255,.58),transparent 48%) padding-box,
+    linear-gradient(180deg,#223a91 0%,#0d185f 48%,#251067 100%) padding-box,
+    linear-gradient(115deg,rgba(214,232,255,.84),rgba(187,104,255,.76) 48%,rgba(74,228,255,.88)) border-box;
+  box-shadow:
+    0 0 15px rgba(70,220,255,.3),
+    0 0 31px rgba(158,76,255,.34),
+    0 20px 35px rgba(0,5,40,.32),
+    inset 0 1px 0 rgba(255,255,255,.2);
 }
 
 .humanHoloHero>img{
@@ -28,13 +35,143 @@
   top:50%;
   left:50%;
   width:auto;
-  height:116%;
+  height:100%;
   max-width:none;
   object-fit:contain;
   object-position:center;
   transform:translate(-50%,-50%);
   filter:saturate(1.02) contrast(1.03) brightness(.99)
     drop-shadow(0 0 16px rgba(126,88,255,.42));
+}
+
+/* Startseite: dieselbe helle Human-Holo-Glasoptik wie in allen Unterbereichen. */
+#homeView.humanHoloHome{
+  background:
+    radial-gradient(circle at 10% 7%,rgba(173,91,255,.44),transparent 27%),
+    radial-gradient(circle at 91% 14%,rgba(45,203,255,.36),transparent 30%),
+    radial-gradient(circle at 50% 70%,rgba(96,79,241,.27),transparent 42%),
+    linear-gradient(180deg,#112f88 0%,#281b89 34%,#0a2674 69%,#031540 100%);
+}
+
+#homeView .humanHoloTopbar{
+  width:calc(100% + 20px);
+  margin:0 -10px;
+  padding-right:10px;
+  padding-left:10px;
+  border-bottom:1px solid rgba(205,229,255,.6);
+  background:
+    radial-gradient(circle at 50% 0,rgba(255,255,255,.2),transparent 57%),
+    linear-gradient(180deg,rgba(77,106,218,.6),rgba(36,45,151,.44));
+  box-shadow:
+    0 10px 29px rgba(1,8,58,.3),
+    0 0 23px rgba(72,215,255,.19),
+    inset 0 -1px 0 rgba(255,255,255,.12);
+  backdrop-filter:blur(20px) saturate(1.32);
+  -webkit-backdrop-filter:blur(20px) saturate(1.32);
+}
+
+#homeView .humanHoloRoundButton{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 30% 18%,rgba(255,255,255,.29),transparent 35%) padding-box,
+    linear-gradient(145deg,rgba(123,126,237,.62),rgba(51,53,164,.55)) padding-box,
+    linear-gradient(135deg,rgba(224,236,255,.87),rgba(188,107,255,.78) 50%,rgba(81,232,255,.91)) border-box;
+  box-shadow:
+    0 0 12px rgba(70,224,255,.55),
+    0 0 25px rgba(164,78,255,.46),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  backdrop-filter:blur(19px) saturate(1.32);
+  -webkit-backdrop-filter:blur(19px) saturate(1.32);
+}
+
+#homeView .humanHoloMenuButton{
+  border-color:transparent;
+  background:
+    radial-gradient(circle at 30% 18%,rgba(255,255,255,.24),transparent 35%) padding-box,
+    linear-gradient(145deg,rgba(108,118,231,.47),rgba(45,48,155,.42)) padding-box,
+    linear-gradient(135deg,rgba(222,234,255,.8),rgba(181,104,255,.68) 50%,rgba(77,228,255,.84)) border-box;
+}
+
+#homeView .humanHoloAreaCard{
+  position:relative;
+  overflow:hidden;
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 25% 7%,rgba(255,255,255,.32),transparent 34%) padding-box,
+    linear-gradient(145deg,rgba(125,145,240,.6),rgba(58,53,167,.54)) padding-box,
+    linear-gradient(135deg,rgba(222,235,255,.88),rgba(190,111,255,.8) 49%,rgba(78,230,255,.92)) border-box;
+  box-shadow:
+    0 0 11px color-mix(in srgb,var(--area-color) 57%,transparent),
+    0 0 25px rgba(151,79,255,.39),
+    0 13px 28px rgba(0,9,62,.24),
+    inset 0 1px 0 rgba(255,255,255,.31),
+    inset 0 -11px 24px rgba(22,19,103,.2);
+  backdrop-filter:blur(21px) saturate(1.34);
+  -webkit-backdrop-filter:blur(21px) saturate(1.34);
+}
+
+#homeView .humanHoloAreaCard::after{
+  content:"";
+  position:absolute;
+  inset:1px 1px auto;
+  height:42%;
+  border-radius:18px 18px 50% 50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.13),transparent);
+  pointer-events:none;
+}
+
+#homeView .humanHoloAreaIcon{
+  width:43px;
+  height:43px;
+  border:1px solid rgba(218,233,255,.52);
+  border-radius:15px;
+  background:
+    radial-gradient(circle at 30% 17%,rgba(255,255,255,.24),transparent 37%),
+    linear-gradient(145deg,rgba(129,119,235,.42),rgba(53,65,169,.36));
+  box-shadow:
+    0 0 10px color-mix(in srgb,var(--area-color) 46%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+#homeView .humanHoloMessageField,
+#homeView .humanHoloComposerButton{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 25% 7%,rgba(255,255,255,.28),transparent 35%) padding-box,
+    linear-gradient(145deg,rgba(126,143,238,.59),rgba(58,56,170,.53)) padding-box,
+    linear-gradient(135deg,rgba(224,236,255,.9),rgba(190,111,255,.82) 49%,rgba(77,231,255,.94)) border-box;
+  box-shadow:
+    0 0 12px rgba(69,223,255,.48),
+    0 0 26px rgba(158,78,255,.4),
+    inset 0 1px 0 rgba(255,255,255,.28);
+  backdrop-filter:blur(21px) saturate(1.34);
+  -webkit-backdrop-filter:blur(21px) saturate(1.34);
+}
+
+#app[data-active-view="home"] #bottomNav{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 24% 0,rgba(255,255,255,.24),transparent 34%) padding-box,
+    linear-gradient(145deg,rgba(99,116,224,.61),rgba(24,39,126,.66)) padding-box,
+    linear-gradient(110deg,rgba(215,139,255,.82),rgba(112,140,255,.66),rgba(75,229,255,.86)) border-box;
+  box-shadow:
+    0 0 14px rgba(69,222,255,.38),
+    0 0 30px rgba(159,77,255,.4),
+    0 16px 34px rgba(0,6,55,.28),
+    inset 0 1px 0 rgba(255,255,255,.24);
+  backdrop-filter:blur(22px) saturate(1.35);
+  -webkit-backdrop-filter:blur(22px) saturate(1.35);
+}
+
+#app[data-active-view="home"] #bottomNav .navItem.active{
+  color:#fff;
+  background:
+    radial-gradient(circle at 50% 0,rgba(255,255,255,.27),transparent 40%),
+    linear-gradient(145deg,rgba(169,86,240,.83),rgba(54,105,213,.75));
+  box-shadow:
+    0 0 14px rgba(77,224,255,.38),
+    0 0 27px rgba(172,79,255,.47),
+    inset 0 1px 0 rgba(255,255,255,.22);
 }
 
 .humanHoloHero::after{
@@ -381,6 +518,6 @@
 
 @media(max-width:370px){
   .humanHoloHero>img{
-    height:114%;
+    height:100%;
   }
 }
