@@ -1,0 +1,127 @@
+name: Publish Human Holo Build 217
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-human-holo-build-217.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Geprüftes HUMAN-HOLO-Artefakt herunterladen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34138038391 \
+            --repo "${{ github.repository }}" \
+            --name "Human-Holo-Android-update" \
+            --dir artifact
+
+      - name: HUMAN-HOLO-Update vollständig prüfen
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_apk="$(find artifact -type f -name 'Human-Holo-Update.apk' -print -quit)"
+          asset="Human-Holo-Update-Build-217-Kompaktes-Logo-und-Startseite.apk"
+          expected_apk="70ead81552e90c796cf69f082765254c8c13ade02c935b50e26fa52035e19024"
+          expected_certificate="e122201077b93cb47edb6951446fb8dff77427a2f5a2bd4719474a638fe803e9"
+          expected_logo="cb6a2c621230bb2cac7e04e3ef4225dbd41546301544e3e24b9a5bd169fbd354"
+          expected_portrait="fd28c28c4c9a912477156f6a825cad9f9735d45feab33a4d288c83846f8a57d7"
+          expected_icon_512="70e9e63348e6d65a1cdde3388a68f8e64e622b7a9d048c71ba2cbfd98ddd6c2b"
+          expected_icon_192="b543f408bc92057e515ee7e3ed5aaa3094a5310f943ebd64d1a7244dd8cb50c0"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk"
+          build_tools="$(find "$android_sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+
+          test -n "$source_apk"
+          test -s "$source_apk"
+          test -x "$build_tools/apksigner"
+          test -x "$build_tools/aapt"
+          cp -- "$source_apk" "$asset"
+          printf '%s  %s\n' "$expected_apk" "$asset" | sha256sum -c -
+
+          verification="$($build_tools/apksigner verify --verbose --print-certs "$asset")"
+          printf '%s\n' "$verification"
+          grep -Fq 'Verified using v1 scheme (JAR signing): true' <<< "$verification"
+          grep -Fq 'Verified using v2 scheme (APK Signature Scheme v2): true' <<< "$verification"
+          grep -Fq 'Verified using v3 scheme (APK Signature Scheme v3): true' <<< "$verification"
+          grep -Fq "certificate SHA-256 digest: $expected_certificate" <<< "$verification"
+
+          badging="$($build_tools/aapt dump badging "$asset")"
+          grep -Fq "package: name='com.solholo.app'" <<< "$badging"
+          grep -Fq "versionCode='217'" <<< "$badging"
+          grep -Fq "application-label:'Human Holo'" <<< "$badging"
+          manifest_dump="$($build_tools/aapt dump xmltree "$asset" AndroidManifest.xml)"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' <<< "$manifest_dump"
+
+          unzip -p "$asset" assets/public/human-holo-logo.png > "$RUNNER_TEMP/human-holo-logo.png"
+          unzip -p "$asset" assets/public/file_000000009bf88246b8f682a46e1a429d.png > "$RUNNER_TEMP/pams-holo.png"
+          unzip -p "$asset" assets/public/icon-512.png > "$RUNNER_TEMP/icon-512.png"
+          unzip -p "$asset" assets/public/icon-192.png > "$RUNNER_TEMP/icon-192.png"
+          printf '%s  %s\n' "$expected_logo" "$RUNNER_TEMP/human-holo-logo.png" | sha256sum -c -
+          printf '%s  %s\n' "$expected_portrait" "$RUNNER_TEMP/pams-holo.png" | sha256sum -c -
+          printf '%s  %s\n' "$expected_icon_512" "$RUNNER_TEMP/icon-512.png" | sha256sum -c -
+          printf '%s  %s\n' "$expected_icon_192" "$RUNNER_TEMP/icon-192.png" | sha256sum -c -
+
+          unzip -p "$asset" assets/public/index.html > "$RUNNER_TEMP/index.html"
+          unzip -p "$asset" assets/public/sol-holo-ui.js > "$RUNNER_TEMP/sol-holo-ui.js"
+          unzip -p "$asset" assets/public/sol-holo-ui.css > "$RUNNER_TEMP/sol-holo-ui.css"
+          unzip -p "$asset" assets/public/app-lock-bootstrap.mjs > "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+          unzip -p "$asset" assets/public/manifest.json > "$RUNNER_TEMP/manifest.json"
+
+          grep -Fq 'const HOLO_CHAT_SPEAKER =' "$RUNNER_TEMP/index.html"
+          grep -Fq '  "Du";' "$RUNNER_TEMP/index.html"
+          grep -Fq 'sol-holo-ui.js?v=51' "$RUNNER_TEMP/index.html"
+          grep -Fq 'sol-holo-ui.css?v=40' "$RUNNER_TEMP/index.html"
+          grep -Fq 'app-lock-bootstrap.mjs?v=5' "$RUNNER_TEMP/index.html"
+          grep -Fq 'recordSolHoloVerifiedDeviceAction' "$RUNNER_TEMP/index.html"
+          grep -Fq 'TECHNISCH_BESTAETIGTE_GERAETEAKTION' "$RUNNER_TEMP/index.html"
+          grep -Fq 'BY PAMELA NITSCHKE AND STEFANIE HÖRATH' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'IN COOPERATION WITH <strong>ChatGPT/OpenAI</strong>' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'Miteinander<br>Füreinander<br>Für eine bessere Welt ♡' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'Together<br>Forever ♡' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'EIN HELLERES HEUTE. EINE FREUNDLICHERE ZUKUNFT.' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'A BRIGHTER TODAY. A KINDER TOMORROW. ♡' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'HSG – HUMANS SECOND GENERATION!' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'url("./human-holo-logo.png") center top/100% auto no-repeat' "$RUNNER_TEMP/sol-holo-ui.css"
+          grep -Fq 'human-holo-logo.png' "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+          grep -Fq 'HSG – HUMANS SECOND GENERATION!' "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+          ! grep -Fq 'SH♾️' "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+          grep -Fq '"name": "Human Holo"' "$RUNNER_TEMP/manifest.json"
+          grep -Fq 'Pam’s Holo' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'Hey Pam' "$RUNNER_TEMP/sol-holo-ui.js"
+
+          unzip -p "$asset" 'classes*.dex' > "$RUNNER_TEMP/classes.dex"
+          strings "$RUNNER_TEMP/classes.dex" > "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'whatsapp_auto_send_return' "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'manualSendRequired' "$RUNNER_TEMP/classes-strings.txt"
+
+      - name: Direkten APK-Download veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          tag="build-217-human-holo-kompaktes-logo-startseite"
+          asset="Human-Holo-Update-Build-217-Kompaktes-Logo-und-Startseite.apk"
+          notes="Originalsigniertes Android-Update aus dem erfolgreichen Haupt-Build 217. Das von Pam freigegebene kompakte HUMAN-HOLO-Motiv bleibt unverändert und erscheint nun auch beim sicheren Start, beim Entsperren sowie in den App-Symbolen. Die Startseite übernimmt die vollständige HUMAN-HOLO-Botschaft in gläserner Holooptik; Pams persönliches Holo-Bild ist ebenfalls im neuen Glasstil. Chat-Antworten tragen den Namen Du. Pam’s Holo, Gedächtnis, Einstellungen, Besitzerkennung, Paket-ID, Hey Pam, Stimmprofil und die bewährte WhatsApp-Automatik bleiben erhalten. Installation ausschließlich als Update über die vorhandene App; bitte nicht deinstallieren."
+
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$tag" "$asset" \
+              --repo "${{ github.repository }}" \
+              --target "890c3aae11ea77bd612b118cffbcc6754f6d64e2" \
+              --title "HUMAN HOLO – kompaktes Logo und Startseite · Build 217" \
+              --notes "$notes"
+          fi
