@@ -38,7 +38,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </div>
       <div class="humanHoloPosterCredits">
         BY PAMELA NITSCHKE AND STEFANIE HÖRATH
-        <span>IN COOPERATION WITH <strong>ChatGPT/OpenAI</strong></span>
+        <span>DEVELOPED WITH <strong>CHATGPT BY OPENAI</strong></span>
       </div>
     </div>
     <div class="humanHoloPosterCopy glassCard">

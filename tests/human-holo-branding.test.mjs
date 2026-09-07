@@ -36,12 +36,13 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=52/u);
+  assert.match(html, /sol-holo-ui\.js\?v=53/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
   assert.match(ui, /BY PAMELA NITSCHKE AND STEFANIE HÖRATH/u);
-  assert.match(ui, /IN COOPERATION WITH <strong>ChatGPT\/OpenAI<\/strong>/u);
+  assert.match(ui, /DEVELOPED WITH <strong>CHATGPT BY OPENAI<\/strong>/u);
+  assert.doesNotMatch(ui, /IN COOPERATION WITH/u);
   assert.match(ui, /Miteinander<br>Füreinander<br>Für eine bessere Welt ♡/u);
   assert.match(ui, /MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE/u);
   assert.match(ui, /EIN HELLERES HEUTE\. EINE FREUNDLICHERE ZUKUNFT\./u);
@@ -50,6 +51,8 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /humanHoloPosterVisual[\s\S]*humanHoloPosterMottos[\s\S]*humanHoloPosterCredits/u);
   assert.match(css, /url\("\.\/human-holo-logo\.png"\) center\/100% auto no-repeat/u);
   assert.match(css, /\.humanHoloPosterCredits\{[\s\S]*top:auto;[\s\S]*bottom:12px;/u);
+  const creditsCss = css.match(/\.humanHoloPosterCredits\{([\s\S]*?)\n\}/u)?.[1] ?? "";
+  assert.doesNotMatch(creditsCss, /background:|border:|backdrop-filter:|padding:/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
