@@ -2500,11 +2500,25 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         const recipient = String(result?.recipientName || "dem Kontakt");
         if (result?.sendControlActivated) {
           showToast(`WhatsApp an ${recipient} automatisch gesendet ✅️`);
+          void window.recordSolHoloVerifiedDeviceAction?.({
+            token: String(result?.token || ""),
+            recipientName: recipient,
+            message: String(result?.message || ""),
+            sendControlActivated: true,
+            deliveryConfirmed: result?.deliveryConfirmed === true
+          });
           return;
         }
         showToast(
           `WhatsApp an ${recipient} wurde zur Sicherheit nicht automatisch gesendet.`
         );
+        void window.recordSolHoloVerifiedDeviceAction?.({
+          token: String(result?.token || ""),
+          recipientName: recipient,
+          message: String(result?.message || ""),
+          sendControlActivated: false,
+          deliveryConfirmed: false
+        });
       });
     } catch (error) {
       phoneListenersRegistered = false;

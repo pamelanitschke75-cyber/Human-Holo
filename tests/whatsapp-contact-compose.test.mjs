@@ -282,6 +282,9 @@ test("WhatsApp-Auto-Senden ist einmalig, explizit und fail-closed", () => {
   assert.match(autoSendService, /clickableSelfOrAncestor/u);
   assert.match(autoSendService, /RETRY_INTERVAL_MS/u);
   assert.match(autoSendService, /WhatsAppAutoSendCommand\.claim/u);
+  assert.match(autoSendService, /scheduleReturnToSolHolo\(claimed\)/u);
+  assert.match(autoSendService, /performGlobalAction\(GLOBAL_ACTION_BACK\)/u);
+  assert.match(autoSendService, /new Intent\(this, MainActivity\.class\)/u);
   assert.equal(
     (autoSendService.match(/ACTION_CLICK/g) || []).length,
     1,
@@ -309,4 +312,18 @@ test("Text- und Sprachchat kennen dasselbe lokale WhatsApp-Werkzeug", () => {
   assert.match(ui, /explicit_whatsapp_command/u);
   assert.match(ui, /whatsAppAutoSendResult/u);
   assert.match(ui, /automatisch gesendet/u);
+});
+
+test("technisch bestätigter WhatsApp-Versand wird Sol verbindlich übergeben", () => {
+  assert.match(android, /event\.put\("message", message/u);
+  assert.match(android, /event\.put\("executedBy", "Pam’s Holo"\)/u);
+  assert.match(android, /event\.put\("manualSendRequired", false\)/u);
+  assert.match(ui, /recordSolHoloVerifiedDeviceAction/u);
+  assert.match(html, /window\.recordSolHoloVerifiedDeviceAction/u);
+  assert.match(html, /TECHNISCH_BESTAETIGTE_GERAETEAKTION/u);
+  assert.match(html, /Technisch bestätigte Geräteaktion:/u);
+  assert.match(html, /sendLiveTranscriptToMemory\([\s\S]*?"assistant"/u);
+  assert.match(server, /VERBINDLICHE TECHNISCHE GERÄTEAKTIONEN/u);
+  assert.match(server, /Widersprich einem solchen Beleg nicht/u);
+  assert.match(server, /Die Nutzerin\s+erteilt den Auftrag;[\s\S]*führt ihn technisch aus/u);
 });

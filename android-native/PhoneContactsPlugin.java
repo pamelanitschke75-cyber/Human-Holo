@@ -213,6 +213,7 @@ public class PhoneContactsPlugin extends Plugin {
     public static void publishWhatsAppAutoSendResult(
         String token,
         String recipientName,
+        String message,
         boolean sendControlActivated,
         String reason
     ) {
@@ -226,10 +227,14 @@ public class PhoneContactsPlugin extends Plugin {
             "recipientName",
             recipientName == null ? "" : recipientName
         );
+        event.put("message", message == null ? "" : message);
         event.put("automaticSendRequested", true);
         event.put("sendControlActivated", sendControlActivated);
         event.put("sent", sendControlActivated);
         event.put("deliveryConfirmed", false);
+        event.put("manualTypingRequired", false);
+        event.put("manualSendRequired", false);
+        event.put("executedBy", "Pam’s Holo");
         event.put("reason", reason == null ? "" : reason);
         plugin.notifyListeners("whatsAppAutoSendResult", event, true);
     }

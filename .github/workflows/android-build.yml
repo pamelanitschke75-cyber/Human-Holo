@@ -294,6 +294,10 @@ jobs:
           grep -q 'android:packageNames="com.whatsapp,com.whatsapp.w4b"' "$service_xml"
           grep -q 'android:isAccessibilityTool="false"' "$service_xml"
           grep -q 'WhatsAppAutoSendCommand.claim' "$service_java"
+          grep -q 'scheduleReturnToSolHolo(claimed)' "$service_java"
+          grep -q 'performGlobalAction(GLOBAL_ACTION_BACK)' "$service_java"
+          grep -q 'event.put("message", message' \
+            android/app/src/main/java/com/solholo/app/PhoneContactsPlugin.java
           test "$(grep -c 'ACTION_CLICK' "$service_java")" -eq 1
 
       - name: Mehrfaktor-Zugriffssicherheit einbinden
