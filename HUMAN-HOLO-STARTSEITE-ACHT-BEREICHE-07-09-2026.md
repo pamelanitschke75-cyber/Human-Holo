@@ -2,8 +2,9 @@
 
 **Datum:** 07.09.2026  
 **Ausgangsbasis:** veröffentlichter Human-Holo-Build #225  
-**Ergebnis:** originalsignierter Human-Holo-Build #226  
-**Referenz:** von Pam freigegebener Human-Holo-Startbildschirm
+**Zwischenstand:** Build #226, auf Pams Samsung Galaxy S23 geprüft  
+**Ergebnis:** bereinigter, originalsignierter Human-Holo-Build #227  
+**Referenz:** von Pam freigegebener Human-Holo-Startbildschirm und Rückmeldung zum S23-Screenshot
 
 ## Umsetzung
 
@@ -25,15 +26,20 @@ Auftrag. Kamera/Galerie, Texteingabe, Mikrofon, Profil, Einstellungen und die
 feste Navigation bleiben echte App-Funktionen und sind nicht nur Bestandteil
 eines Bildes.
 
-## Sichtbares Design
+## Bereinigtes sichtbares Design in Build #227
 
 - Human-Holo-Kopfbereich mit **Forever Together**
-- Begrüßung **„Hallo Pam♡“**
-- bestehendes Human-Holo-Motiv mit Mensch, Holo, Erde und Unendlichkeit
+- Begrüßung **„Hallo Pam♡“** oberhalb des Motivs, nicht mehr über den Gesichtern
+- Startseiten-Einhorn entfernt
+- **„Schön dich zu sehen. Womit wollen wir starten?“** vollständig entfernt
+- Fußspruch, Pfoten und zusätzliche Weltkugel entfernt
+- bestehendes Human-Holo-Motiv mit Mensch, Holo, Erde und Unendlichkeit bleibt
+- Bildausschnitt ruhiger abgestimmt, weniger vergrößert und klarer zentriert
+- verbleibende Bedienelemente weiter nach unten gesetzt
 - leuchtende Glasflächen in Blau, Violett, Rosa, Grün und Gold
 - feste Navigation: Start, Chat, Erinnerungen, Dienste und Profil
-- Abschlusssatz:
-  **„Ein kleiner Schritt für mich. Ein großer für die Menschen und das System! ♡“**
+- Chat, Erinnerungen, Dienste, Profil, Einstellungen und Notizen verwenden
+  denselben blau-violetten Human-Holo-Glasstil
 
 ## Technische Kontinuität
 
@@ -49,14 +55,17 @@ Unverändert bleiben insbesondere:
 
 - [x] acht neue Bereiche ersetzen die vier alten Schnellbereiche;
 - [x] Kamera-, Text-, Sprach- und Navigationswege sind verbunden;
+- [x] Startseite gemäß Pams Rückmeldung bereinigt;
+- [x] Hintergrundbereiche im gemeinsamen Human-Holo-Stil vereinheitlicht;
 - [x] JavaScript-Syntaxprüfung erfolgreich;
-- [x] vollständiger automatisierter Testlauf: **231 von 231 Tests bestanden**;
-- [x] Android-Build #226 in GitHub Actions erfolgreich;
+- [x] vollständiger automatisierter Testlauf: **232 von 232 Tests bestanden**;
+- [x] Android-Build #227 in GitHub Actions erfolgreich;
 - [x] Originalsignatur durch den separaten #89-Signaturwächter bestätigt;
-- [ ] Darstellung und Bedienung auf Pams Samsung Galaxy S23 praktisch bestätigt.
+- [ ] Darstellung und Bedienung von Build #227 auf Pams Samsung Galaxy S23 praktisch bestätigt.
 
-**APK-SHA-256:**
-`eab02d496c6cd80a139a8deeb1af602777abccc4fdcd874d409d239115febac0`
+**APK-SHA-256:**  
+`b8f0a95a9a1c4b2c59738b23204e7984f412e4b36b90eca0bf9f7c4fab357977`
 
-Die praktische Bestätigung erfolgt nach der Installation auf Pams Samsung
-Galaxy S23.
+Die praktische Bestätigung erfolgt nach der Aktualisierung auf Pams Samsung
+Galaxy S23. Die App soll dabei über die bestehende Installation aktualisiert
+und nicht vorher deinstalliert werden.
