@@ -41,8 +41,11 @@ function lockMarkup({ needsRegistration = false, message = "" } = {}) {
   );
 
   bootScreen.innerHTML = "";
-  const logo = document.createElement("strong");
-  logo.textContent = "SH♾️";
+  const logo = document.createElement("img");
+  logo.className = "solHoloLockLogo";
+  logo.src = "./human-holo-logo.png";
+  logo.alt = "Human Holo – Forever Together";
+  logo.decoding = "async";
 
   const statusNode = document.createElement("span");
   statusNode.id = "solHoloAppLockStatus";

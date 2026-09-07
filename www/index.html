@@ -55,6 +55,15 @@ body{
   font-size:clamp(28px,8vw,46px);
 }
 
+#solHoloBootScreen .solHoloLockLogo{
+  display:block;
+  width:min(68vw,280px);
+  height:auto;
+  margin:0 auto 4px;
+  border-radius:24%;
+  filter:drop-shadow(0 0 22px rgba(107,98,255,.42));
+}
+
 #solHoloBootScreen span{
   color:#d7d4e8;
   font-size:16px;
@@ -1567,7 +1576,11 @@ MOBIL
 <body>
 
 <div id="solHoloBootScreen" role="status" aria-live="polite">
-  <strong>HUMAN HOLO ♾️</strong>
+  <img
+    class="solHoloLockLogo"
+    src="./human-holo-logo.png"
+    alt="Human Holo – Forever Together"
+  >
   <span>Human Holo wird sicher vorbereitet …</span>
 </div>
 
@@ -10828,7 +10841,7 @@ if(
 </script>
 
 <script src="./sol-holo-ui.js?v=49"></script>
-<script type="module" src="./app-lock-bootstrap.mjs?v=4"></script>
+<script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=1"></script>
 <script>

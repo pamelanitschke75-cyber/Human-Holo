@@ -87,13 +87,16 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=4/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=5/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /authorizeAppAccess/u);
   assert.match(appLock, /consumeCriticalAuthorization/u);
   assert.match(appLock, /document\.addEventListener\("visibilitychange"/u);
   assert.match(appLock, /document\.documentElement\.classList\.add\("solholo-booting"\)/u);
+  assert.match(appLock, /logo\.src = "\.\/human-holo-logo\.png"/u);
+  assert.match(appLock, /logo\.className = "solHoloLockLogo"/u);
+  assert.doesNotMatch(appLock, /SH♾️/u);
   assert.doesNotMatch(appLock, /localStorage|sessionStorage/u);
   assert.doesNotMatch(appLock, /steffi(?:-sol|s-holo)?/iu);
 });

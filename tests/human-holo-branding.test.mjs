@@ -26,6 +26,7 @@ test("Human Holo ist der sichtbare Name bei unveränderter Android-Identität", 
 test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   const html = readText("www/index.html");
   const ui = readText("www/sol-holo-ui.js");
+  const appLock = readText("www/app-lock-bootstrap.mjs");
 
   assert.match(html, /<title>Human Holo<\/title>/u);
   assert.match(html, /human-holo-logo\.png/u);
@@ -33,6 +34,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /ownerId:"pam-sol"/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
+  assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
+  assert.match(appLock, /human-holo-logo\.png/u);
+  assert.doesNotMatch(appLock, /SH♾️/u);
   assert.doesNotMatch(`${html}\n${ui}`, /Sol Holo/u);
 });
 
