@@ -8368,12 +8368,24 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
                   description:
                     `Der vollständige, unveränderte WhatsApp-Text von ${identity.displayName}.`
+                },
+                explicit_whatsapp_command: {
+                  type:
+                    "boolean",
+
+                  enum: [
+                    true
+                  ],
+
+                  description:
+                    "Muss true sein: Dieses Werkzeug wird nur verwendet, wenn die Nutzerin WhatsApp im aktuellen Auftrag ausdrücklich genannt hat. Dadurch wird nach ihrer aktivierten Bedienungshilfe automatisch gesendet."
                 }
               },
 
               required: [
                 "contact_name",
-                "message"
+                "message",
+                "explicit_whatsapp_command"
               ],
 
               additionalProperties:

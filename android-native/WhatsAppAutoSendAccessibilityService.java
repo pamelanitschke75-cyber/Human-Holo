@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import java.util.ArrayDeque;
 import java.util.List;
-import java.util.Locale;
 import java.util.Queue;
 
 /**
@@ -22,10 +21,13 @@ import java.util.Queue;
  */
 public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
     private static final int MAX_VISITED_NODES = 600;
+    private static final long RETRY_INTERVAL_MS = 180L;
+    private static final int MAX_CLICKABLE_ANCESTOR_DEPTH = 3;
     private static volatile WhatsAppAutoSendAccessibilityService activeInstance;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private String scheduledExpiryToken = "";
+    private String scheduledRetryToken = "";
 
     @Override
     protected void onServiceConnected() {
@@ -59,6 +61,7 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
 
         scheduleExpiry(pending);
         attemptCurrentCommand();
+        scheduleRetryIfPending(pending);
     }
 
     @Override
@@ -89,6 +92,7 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
             }
             instance.scheduleExpiry(pending);
             instance.attemptCurrentCommand();
+            instance.scheduleRetryIfPending(pending);
         });
     }
 
@@ -108,11 +112,46 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
                 return;
             }
             scheduledExpiryToken = "";
+            scheduledRetryToken = "";
             publishResult(expired, false, "verification_timeout");
             showResult(
                 "Nicht automatisch gesendet: WhatsApp konnte nicht sicher geprüft werden."
             );
         }, delay);
+    }
+
+    private void scheduleRetryIfPending(
+        WhatsAppAutoSendCommand.Pending expected
+    ) {
+        WhatsAppAutoSendCommand.Pending active =
+            WhatsAppAutoSendCommand.peek();
+        if (
+            active == null
+                || !active.token.equals(expected.token)
+                || expected.token.equals(scheduledRetryToken)
+        ) {
+            return;
+        }
+
+        scheduledRetryToken = expected.token;
+        mainHandler.postDelayed(() -> {
+            if (!expected.token.equals(scheduledRetryToken)) {
+                return;
+            }
+            scheduledRetryToken = "";
+
+            WhatsAppAutoSendCommand.Pending stillActive =
+                WhatsAppAutoSendCommand.peek();
+            if (
+                stillActive == null
+                    || !stillActive.token.equals(expected.token)
+            ) {
+                return;
+            }
+
+            attemptCurrentCommand();
+            scheduleRetryIfPending(stillActive);
+        }, RETRY_INTERVAL_MS);
     }
 
     private void attemptCurrentCommand() {
@@ -143,6 +182,7 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
             return;
         }
         scheduledExpiryToken = "";
+        scheduledRetryToken = "";
 
         boolean clicked;
         try {
@@ -265,29 +305,53 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
             AccessibilityNodeInfo node = firstMatchingViewId(
                 root,
                 packageName + ":id/" + id,
-                this::isClickableSendControl
+                this::isVisibleAndEnabled
             );
-            if (node != null) {
-                return node;
+            AccessibilityNodeInfo clickable =
+                clickableSelfOrAncestor(node);
+            if (clickable != null) {
+                return clickable;
             }
         }
-        return firstBreadthFirst(root, this::isClickableSendControl);
+
+        AccessibilityNodeInfo labeled = firstBreadthFirst(
+            root,
+            this::hasSendControlLabel
+        );
+        return clickableSelfOrAncestor(labeled);
     }
 
-    private boolean isClickableSendControl(AccessibilityNodeInfo node) {
-        if (
-            node == null
-                || !node.isVisibleToUser()
-                || !node.isEnabled()
-                || !node.isClickable()
-        ) {
+    private boolean isVisibleAndEnabled(AccessibilityNodeInfo node) {
+        return node != null && node.isVisibleToUser() && node.isEnabled();
+    }
+
+    private boolean hasSendControlLabel(AccessibilityNodeInfo node) {
+        if (!isVisibleAndEnabled(node)) {
             return false;
         }
-        String description = cleanLabel(node.getContentDescription());
-        return "senden".equals(description)
-            || "send".equals(description)
-            || "nachricht senden".equals(description)
-            || "send message".equals(description);
+        return WhatsAppAutoSendCommand.matchesSendLabel(
+            node.getContentDescription()
+        ) || WhatsAppAutoSendCommand.matchesSendLabel(node.getText());
+    }
+
+    private AccessibilityNodeInfo clickableSelfOrAncestor(
+        AccessibilityNodeInfo node
+    ) {
+        AccessibilityNodeInfo candidate = node;
+        for (
+            int depth = 0;
+            candidate != null && depth <= MAX_CLICKABLE_ANCESTOR_DEPTH;
+            depth += 1
+        ) {
+            if (
+                isVisibleAndEnabled(candidate)
+                    && candidate.isClickable()
+            ) {
+                return candidate;
+            }
+            candidate = candidate.getParent();
+        }
+        return null;
     }
 
     private AccessibilityNodeInfo firstMatchingViewId(
@@ -336,13 +400,6 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
         return null;
     }
 
-    private String cleanLabel(CharSequence value) {
-        return (value == null ? "" : value.toString())
-            .replaceAll("\\s+", " ")
-            .trim()
-            .toLowerCase(Locale.GERMANY);
-    }
-
     private void cancelCurrentCommand(String reason) {
         WhatsAppAutoSendCommand.Pending pending =
             WhatsAppAutoSendCommand.peek();
@@ -352,6 +409,8 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
         WhatsAppAutoSendCommand.Pending cancelled =
             WhatsAppAutoSendCommand.cancel(pending.token);
         if (cancelled != null) {
+            scheduledExpiryToken = "";
+            scheduledRetryToken = "";
             publishResult(cancelled, false, reason);
         }
     }

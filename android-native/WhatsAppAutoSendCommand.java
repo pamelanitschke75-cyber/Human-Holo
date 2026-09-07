@@ -172,7 +172,13 @@ public final class WhatsAppAutoSendCommand {
             visible == null ? "" : visible.toString()
         );
         String name = normalizedWords(expectedName);
-        if (!name.isEmpty() && evidence.equals(name)) {
+        if (
+            !name.isEmpty()
+                && (
+                    evidence.equals(name)
+                        || matchesWhatsAppRecipientDescription(evidence, name)
+                )
+        ) {
             return true;
         }
 
@@ -187,6 +193,37 @@ public final class WhatsAppAutoSendCommand {
         return visibleDigits.endsWith(
             expectedDigits.substring(expectedDigits.length() - suffixLength)
         );
+    }
+
+    public static boolean matchesSendLabel(CharSequence visible) {
+        String label = normalizedWords(
+            visible == null ? "" : visible.toString()
+        );
+        return "senden".equals(label)
+            || "send".equals(label)
+            || "nachricht senden".equals(label)
+            || "send message".equals(label)
+            || "senden schaltflache".equals(label)
+            || "send button".equals(label);
+    }
+
+    private static boolean matchesWhatsAppRecipientDescription(
+        String evidence,
+        String expectedName
+    ) {
+        String prefix = expectedName + " ";
+        if (!evidence.startsWith(prefix)) {
+            return false;
+        }
+
+        String details = evidence.substring(prefix.length());
+        return details.startsWith("tippe hier ")
+            || details.startsWith("zum anzeigen ")
+            || details.startsWith("kontaktinfo ")
+            || details.startsWith("kontaktinfos ")
+            || details.startsWith("kontaktinformationen ")
+            || details.startsWith("tap here ")
+            || details.startsWith("contact info ");
     }
 
     private static String normalizeLineEndings(String value) {

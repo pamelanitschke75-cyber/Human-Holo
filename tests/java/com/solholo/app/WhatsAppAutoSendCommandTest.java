@@ -10,6 +10,7 @@ public final class WhatsAppAutoSendCommandTest {
         expiresAndConsumesExactlyOnce();
         requiresExactMessageText();
         verifiesRecipientByExactNameOrPhoneSuffix();
+        acceptsCurrentWhatsAppAccessibilityLabels();
         System.out.println("WhatsAppAutoSendCommandTest: OK");
     }
 
@@ -157,6 +158,14 @@ public final class WhatsAppAutoSendCommandTest {
             ),
             "Passende internationale Nummer muss passen"
         );
+        assertTrue(
+            WhatsAppAutoSendCommand.matchesRecipientEvidence(
+                "Schatz ❤️, tippe hier, um Kontaktinfos anzuzeigen",
+                "Schatz ❤️",
+                "491234567890"
+            ),
+            "WhatsApps erweiterte Kontaktbeschreibung muss passen"
+        );
         assertFalse(
             WhatsAppAutoSendCommand.matchesRecipientEvidence(
                 "Stefanie",
@@ -172,6 +181,21 @@ public final class WhatsAppAutoSendCommandTest {
                 "491234567890"
             ),
             "Andere Nummer muss gesperrt bleiben"
+        );
+    }
+
+    private static void acceptsCurrentWhatsAppAccessibilityLabels() {
+        assertTrue(
+            WhatsAppAutoSendCommand.matchesSendLabel("Senden"),
+            "Deutsche Senden-Beschriftung muss passen"
+        );
+        assertTrue(
+            WhatsAppAutoSendCommand.matchesSendLabel("Senden, Schaltfläche"),
+            "Erweiterte deutsche Senden-Beschriftung muss passen"
+        );
+        assertFalse(
+            WhatsAppAutoSendCommand.matchesSendLabel("Sprachnachricht senden"),
+            "Andere WhatsApp-Aktionen dürfen nicht als Text-Senden gelten"
         );
     }
 
