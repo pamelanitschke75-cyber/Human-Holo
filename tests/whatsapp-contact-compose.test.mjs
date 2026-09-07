@@ -129,6 +129,17 @@ test("natürliche WhatsApp-Aufträge behalten Empfänger und Text vollständig",
     }
   );
   assert.deepEqual(
+    syntaxParser(
+      "Hey Pam, schicke Schatz ❤️ eine WhatsApp mit dem Text: Ich liebe dich"
+    ),
+    {
+      explicitWhatsApp: true,
+      contactName: "Schatz",
+      message: "Ich liebe dich",
+      body: "Schatz ❤️ eine WhatsApp mit dem Text: Ich liebe dich"
+    }
+  );
+  assert.deepEqual(
     syntaxParser("schreib Schatz❤️ ich liebe dich ❤️"),
     {
       explicitWhatsApp: false,
@@ -267,6 +278,9 @@ test("WhatsApp-Auto-Senden ist einmalig, explizit und fail-closed", () => {
   assert.match(autoSendService, /findExactDraft/u);
   assert.match(autoSendService, /findRecipientEvidence/u);
   assert.match(autoSendService, /findSendControl/u);
+  assert.match(autoSendService, /scheduleRetryIfPending/u);
+  assert.match(autoSendService, /clickableSelfOrAncestor/u);
+  assert.match(autoSendService, /RETRY_INTERVAL_MS/u);
   assert.match(autoSendService, /WhatsAppAutoSendCommand\.claim/u);
   assert.equal(
     (autoSendService.match(/ACTION_CLICK/g) || []).length,
@@ -284,6 +298,8 @@ test("WhatsApp-Auto-Senden ist einmalig, explizit und fail-closed", () => {
 test("Text- und Sprachchat kennen dasselbe lokale WhatsApp-Werkzeug", () => {
   assert.match(server, /name:\s*\n\s*"prepare_whatsapp"/u);
   assert.match(server, /ausdrücklichem WhatsApp-Sendeauftrag/u);
+  assert.match(server, /explicit_whatsapp_command/u);
+  assert.match(server, /enum:\s*\[\s*true\s*\]/u);
   assert.match(server, /Ohne diese technische Rückmeldung niemals behaupten/u);
   assert.match(html, /"prepare_whatsapp"/u);
   assert.match(ui, /executePhoneTool\("prepare_whatsapp"/u);
