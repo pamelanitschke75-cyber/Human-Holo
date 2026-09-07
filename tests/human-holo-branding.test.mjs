@@ -50,6 +50,8 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /humanHoloPosterVisual[\s\S]*humanHoloPosterMottos[\s\S]*humanHoloPosterCredits/u);
   assert.match(css, /url\("\.\/human-holo-logo\.png"\) center\/100% auto no-repeat/u);
   assert.match(css, /\.humanHoloPosterCredits\{[\s\S]*top:auto;[\s\S]*bottom:12px;/u);
+  const creditsCss = css.match(/\.humanHoloPosterCredits\{([\s\S]*?)\n\}/u)?.[1] ?? "";
+  assert.doesNotMatch(creditsCss, /background:|border:|backdrop-filter:|padding:/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
