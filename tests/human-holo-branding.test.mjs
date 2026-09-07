@@ -36,24 +36,24 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=54/u);
+  assert.match(html, /sol-holo-ui\.js\?v=55/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
-  assert.match(ui, /BY PAMELA NITSCHKE AND STEFANIE HÖRATH/u);
+  assert.match(ui, /BY PAMELA NITSCHKE UND STEFANIE HÖRATH/u);
   assert.match(ui, /DEVELOPED WITH <strong>CHATGPT BY OPENAI<\/strong>/u);
   assert.doesNotMatch(ui, /IN COOPERATION WITH/u);
-  assert.doesNotMatch(ui, /Miteinander<br>|Füreinander<br>|Together<br>Forever/u);
-  assert.match(ui, /MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE/u);
-  assert.match(ui, /EIN HELLERES HEUTE\. EINE FREUNDLICHERE ZUKUNFT\./u);
-  assert.match(ui, /A BRIGHTER TODAY\. A KINDER TOMORROW\. ♡/u);
-  assert.match(ui, /HSG – HUMANS SECOND GENERATION!/u);
-  assert.match(ui, /humanHoloPosterVisual[\s\S]*humanHoloPosterCredits/u);
-  assert.doesNotMatch(`${ui}\n${css}`, /humanHoloPosterMottos/u);
-  assert.match(css, /url\("\.\/human-holo-logo\.png"\) center\/100% auto no-repeat/u);
-  assert.match(css, /\.humanHoloPosterCredits\{[\s\S]*top:auto;[\s\S]*bottom:12px;/u);
-  const creditsCss = css.match(/\.humanHoloPosterCredits\{([\s\S]*?)\n\}/u)?.[1] ?? "";
-  assert.doesNotMatch(creditsCss, /background:|border:|backdrop-filter:|padding:/u);
+  assert.match(ui, /humanHoloHome\.innerHTML = `/u);
+  assert.match(ui, /humanHoloHero[\s\S]*humanHoloPosterCredits/u);
+  assert.match(ui, /Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡/u);
+  assert.match(ui, /Together<br>Forever♡/u);
+  assert.match(ui, /Ein kleiner Schritt für mich\./u);
+  assert.match(ui, /Ein großer für die Menschen und das System! ♡/u);
+  assert.match(ui, /id="homeCameraButton"/u);
+  assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
+  assert.match(css, /#homeView\.humanHoloHome\{/u);
+  assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
+  assert.match(css, /\.humanHoloHero>img\{[\s\S]*object-fit:cover/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
@@ -61,6 +61,32 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(appLock, /HSG – HUMANS SECOND GENERATION!/u);
   assert.doesNotMatch(appLock, /SH♾️/u);
   assert.doesNotMatch(`${html}\n${ui}`, /Sol Holo/u);
+});
+
+test("Startseite ersetzt die vier alten Schnellbereiche durch genau acht Human-Holo-Bereiche", () => {
+  const ui = readText("www/sol-holo-ui.js");
+  const homeMarkup = ui.match(/humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u)?.[1] ?? "";
+
+  assert.notEqual(homeMarkup, "");
+  assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 8);
+
+  for (const label of [
+    "Menschen",
+    "Familie &amp;<br>Freunde",
+    "Tiere",
+    "Umwelt",
+    "Gesundheit",
+    "Bildung",
+    "Zusammen",
+    "Geschäftliches"
+  ]) {
+    assert.match(homeMarkup, new RegExp(`>${label}<`, "u"));
+  }
+
+  assert.doesNotMatch(
+    homeMarkup,
+    /quickGrid|quickCard|>Erinnerungen<|>Ziele<|>Heute<|>Verbindungen</u
+  );
 });
 
 test("neues Markenbild ist quadratisch und für Android-Icons vorbereitet", () => {

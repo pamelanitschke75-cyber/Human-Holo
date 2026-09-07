@@ -24,60 +24,141 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   currentHeader.insertAdjacentHTML("beforebegin", uiMarkup);
 
-  const homeMissionPoster = document.createElement("section");
-  homeMissionPoster.className = "humanHoloMissionPoster";
-  homeMissionPoster.setAttribute(
-    "aria-label",
-    "Human Holo – Menschen, Tiere, Umwelt, zusammen, für alle"
-  );
-  homeMissionPoster.innerHTML = `
-    <div class="humanHoloPosterVisual">
-      <div class="humanHoloPosterCredits">
-        BY PAMELA NITSCHKE AND STEFANIE HÖRATH
+  const humanHoloHome = document.getElementById("homeView");
+  humanHoloHome.classList.add("humanHoloHome");
+  humanHoloHome.innerHTML = `
+    <header class="humanHoloTopbar">
+      <button id="homeSettingsButton" class="humanHoloRoundButton humanHoloMenuButton"
+        type="button" aria-label="Menü und Einstellungen öffnen">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+
+      <div class="humanHoloBrand" aria-label="Human Holo – Forever Together">
+        <span class="humanHoloBrandInfinity" aria-hidden="true">∞</span>
+        <strong>HUMAN HOLO <span aria-hidden="true">∞</span></strong>
+        <small>FOREVER TOGETHER</small>
+      </div>
+
+      <button class="humanHoloRoundButton humanHoloProfileButton" type="button"
+        data-open-view="profile" aria-label="Profil öffnen">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5"/>
+          <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
+        </svg>
+      </button>
+    </header>
+
+    <button id="homeOrbButton" class="humanHoloHero" type="button"
+      aria-label="Sprachgespräch mit Pam’s Holo starten">
+      <img src="human-holo-logo.png"
+        alt="Mensch und Holo verbunden durch ein leuchtendes Unendlichkeitszeichen und die Erde">
+      <span class="humanHoloGreeting">
+        <strong id="homeTitle">Hallo Pam♡</strong>
+        <span>Schön dich zu sehen.<br>Womit wollen wir starten?</span>
+      </span>
+      <span class="humanHoloSideMotto humanHoloSideMotto--left" aria-hidden="true">
+        Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡
+      </span>
+      <span class="humanHoloSideMotto humanHoloSideMotto--right" aria-hidden="true">
+        Together<br>Forever♡
+      </span>
+      <span class="humanHoloPosterCredits">
+        BY PAMELA NITSCHKE UND STEFANIE HÖRATH
         <span>DEVELOPED WITH <strong>CHATGPT BY OPENAI</strong></span>
-      </div>
+      </span>
+    </button>
+
+    <div class="humanHoloAreaGrid" aria-label="Human-Holo-Bereiche">
+      <button class="humanHoloAreaCard humanHoloAreaCard--people" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Menschen. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><circle cx="12" cy="11" r="4"/><circle cx="22" cy="12" r="3"/><path d="M4.5 26c.7-5.2 3.3-8 7.5-8s6.8 2.8 7.5 8M18 19c3.7-.8 7.4 1.1 8.5 6"/></svg>
+        </span>
+        <span>Menschen</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--family" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Familie und Freunde. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><circle cx="9" cy="13" r="3"/><circle cx="23" cy="13" r="3"/><path d="M3.5 26c.5-4.5 2.5-7 5.5-7s5 2.5 5.5 7M17.5 26c.5-4.5 2.5-7 5.5-7s5 2.5 5.5 7"/><path d="M16 17.5s-5-2.9-5-6.2A3.2 3.2 0 0 1 16 8.7a3.2 3.2 0 0 1 5 2.6c0 3.3-5 6.2-5 6.2Z"/></svg>
+        </span>
+        <span>Familie &amp;<br>Freunde</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--animals" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Tiere. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><ellipse cx="16" cy="21" rx="7" ry="6"/><circle cx="8" cy="13" r="3"/><circle cx="14" cy="9" r="3"/><circle cx="21" cy="10" r="3"/><circle cx="25" cy="15" r="3"/></svg>
+        </span>
+        <span>Tiere</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--environment" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Umwelt. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M26.5 5.5C16 6 8.5 10.5 7.5 19.5c-.4 3.8 2.2 6.8 6 6.3 8.7-1 12.7-9.1 13-20.3Z"/><path d="M6 27c4.2-6.2 8.8-10.3 16-14"/></svg>
+        </span>
+        <span>Umwelt</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--health" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Gesundheit. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M16 27S5.5 21 5.5 13.4A6 6 0 0 1 16 9.5a6 6 0 0 1 10.5 3.9C26.5 21 16 27 16 27Z"/><path d="M8.5 17h4l2-4 3.2 8 2.2-4H24"/></svg>
+        </span>
+        <span>Gesundheit</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--education" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Bildung. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="m3.5 12 12.5-6 12.5 6L16 18 3.5 12Z"/><path d="M8.5 15.3V22c4.5 3 10.5 3 15 0v-6.7M28.5 12v9"/></svg>
+        </span>
+        <span>Bildung</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--together" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Zusammen. Hilf uns dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="m5 12 5-4 5 4-5 5-5-5ZM17 12l5-4 5 4-5 5-5-5Z"/><path d="m10 17 5 5 2-2 5 5M22 17l-5 5-2-2-5 5"/></svg>
+        </span>
+        <span>Zusammen</span>
+      </button>
+      <button class="humanHoloAreaCard humanHoloAreaCard--business" type="button"
+        data-sol-prompt="Ich möchte zum Bereich Geschäftliches. Hilf mir dort bitte weiter.">
+        <span class="humanHoloAreaIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><rect x="4" y="10" width="24" height="16" rx="3"/><path d="M11 10V7h10v3M4 16h24M13 16v3h6v-3"/></svg>
+        </span>
+        <span>Geschäftliches</span>
+      </button>
     </div>
-    <div class="humanHoloPosterCopy glassCard">
-      <p class="humanHoloTogether">MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE</p>
-      <h3>HUMAN HOLO</h3>
-      <strong class="humanHoloForever">FOREVER TOGETHER</strong>
-      <p class="humanHoloFuture">EIN HELLERES HEUTE. EINE FREUNDLICHERE ZUKUNFT.</p>
-      <div class="humanHoloAreas" aria-label="Menschen, Tiere, Umwelt, Hilfe, Bildung, Gesundheit, Zusammen, Für alle">
-        <span>♧ MENSCHEN</span>
-        <span>🐾 TIERE</span>
-        <span>♧ UMWELT</span>
-        <span>♡ HILFE</span>
-        <span>▤ BILDUNG</span>
-        <span>✚ GESUNDHEIT</span>
-        <span>⌂ ZUSAMMEN</span>
-        <span>◎ FÜR ALLE</span>
+
+    <form id="homeComposer" class="humanHoloComposer">
+      <button id="homeCameraButton" class="humanHoloComposerButton" type="button"
+        aria-label="Kamera oder Galerie öffnen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l1.5-2h5L16 7h4v12H4Z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <div class="humanHoloMessageField">
+        <label class="srOnly" for="homeMessageInput">Nachricht an Pam’s Holo</label>
+        <input id="homeMessageInput" type="text" autocomplete="off"
+          placeholder="Sag oder schreib mir, wobei ich helfen kann … ♡">
+        <button id="homeSendButton" class="srOnly" type="submit">Nachricht senden</button>
       </div>
-      <p class="humanHoloTomorrow" lang="en">A BRIGHTER TODAY. A KINDER TOMORROW. ♡</p>
-      <strong class="humanHoloHsg">HSG – HUMANS SECOND GENERATION!</strong>
-    </div>
+      <button id="homeMicButton" class="humanHoloComposerButton" type="button"
+        aria-label="Sprachgespräch starten">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7"/></svg>
+      </button>
+    </form>
+
+    <footer class="humanHoloHomeFooter">
+      <span class="humanHoloFooterPaw" aria-hidden="true">🐾</span>
+      <p>Ein kleiner Schritt für mich.<br><strong>Ein großer für die Menschen und das System! ♡</strong></p>
+      <span class="humanHoloFooterEarth" aria-hidden="true">🌎</span>
+      <span class="humanHoloFooterInfinity" aria-hidden="true">∞</span>
+      <span id="todayCardMeta" class="srOnly">Dein Überblick</span>
+    </footer>
   `;
-  document.querySelector("#homeView .homeIntro")?.insertAdjacentElement(
-    "afterend",
-    homeMissionPoster
-  );
 
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
     profileMemoryState.textContent = "Nur nach Bestätigung";
   }
-
-  const memoryQuickCard = document.querySelector(
-    '.quickCard[data-open-view="memory"]'
-  );
-  memoryQuickCard?.insertAdjacentHTML(
-    "afterend",
-    '<button id="samsungNotesQuickCard" class="quickCard" type="button">' +
-      '<span class="quickIcon">✎</span>' +
-      '<span class="quickTitle">Samsung Notes</span>' +
-      '<span class="quickMeta">Notizen auf deinem Handy</span>' +
-      '<span class="quickChevron">›</span>' +
-    '</button>'
-  );
 
   const notesView = document.createElement("section");
   notesView.id = "notesView";
@@ -4585,6 +4666,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   document.getElementById("homeMicButton").addEventListener("click", () => {
     void startSolVoice();
+  });
+
+  document.getElementById("homeCameraButton").addEventListener("click", () => {
+    showView("chat");
+    document.getElementById("imageButton")?.click();
   });
 
   document.getElementById("homeOrbButton").addEventListener("click", () => {

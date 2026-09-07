@@ -2531,6 +2531,492 @@ body.voice-open #onboardingScreen{
 }
 
 /*
+ * Human Holo Startseite – freigegebenes Acht-Bereiche-Design.
+ * Die darunterliegenden Chat-, Gedächtnis- und Dienstefunktionen bleiben erhalten.
+ */
+#homeView.humanHoloHome{
+  min-height:100dvh;
+  padding:0 10px calc(104px + env(safe-area-inset-bottom));
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 7%,rgba(142,85,255,.3),transparent 23%),
+    radial-gradient(circle at 82% 14%,rgba(35,174,255,.26),transparent 28%),
+    linear-gradient(180deg,#0a1951 0%,#15166a 20%,#091d67 56%,#031039 100%);
+  isolation:isolate;
+}
+
+#homeView.humanHoloHome::before,
+#homeView.humanHoloHome::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+}
+
+#homeView.humanHoloHome::before{
+  inset:0;
+  opacity:.5;
+  background-image:
+    radial-gradient(circle at 12% 12%,#fff 0 1px,transparent 1.4px),
+    radial-gradient(circle at 80% 9%,#bbddff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 34% 28%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 92% 38%,#d4b9ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 16% 66%,#8fdcff 0 1px,transparent 1.5px);
+  background-size:143px 131px,191px 173px,229px 211px,277px 253px,311px 293px;
+}
+
+#homeView.humanHoloHome::after{
+  left:-20%;
+  right:-20%;
+  bottom:84px;
+  height:180px;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(71,159,255,.35),transparent 62%),
+    linear-gradient(180deg,transparent,rgba(2,9,35,.68));
+}
+
+.humanHoloTopbar{
+  position:relative;
+  z-index:5;
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr) 50px;
+  align-items:center;
+  min-height:78px;
+  padding:calc(7px + env(safe-area-inset-top)) 0 4px;
+}
+
+.humanHoloRoundButton{
+  display:grid;
+  place-items:center;
+  width:46px;
+  height:46px;
+  padding:0;
+  border:1px solid rgba(174,208,255,.72);
+  border-radius:50%;
+  color:#fff;
+  background:
+    radial-gradient(circle at 34% 26%,rgba(255,255,255,.25),transparent 20%),
+    linear-gradient(145deg,rgba(78,113,235,.36),rgba(96,39,191,.28));
+  box-shadow:
+    0 0 10px rgba(81,213,255,.76),
+    0 0 24px rgba(156,74,255,.48),
+    inset 0 0 13px rgba(255,255,255,.13);
+  cursor:pointer;
+}
+
+.humanHoloRoundButton svg{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width:1.9;
+}
+
+.humanHoloMenuButton{
+  justify-self:start;
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+
+.humanHoloProfileButton{
+  justify-self:end;
+}
+
+.humanHoloBrand{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  flex-direction:column;
+  color:#fff;
+  text-align:center;
+  text-shadow:0 0 13px rgba(102,196,255,.58);
+}
+
+.humanHoloBrandInfinity{
+  height:24px;
+  margin-bottom:-2px;
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:43px;
+  font-weight:700;
+  line-height:.55;
+  background:linear-gradient(90deg,#ff74dc,#846dff 43%,#46e9ff 70%,#ffbadd);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 7px rgba(159,88,255,.9));
+}
+
+.humanHoloBrand strong{
+  overflow:hidden;
+  max-width:100%;
+  font-size:clamp(18px,5.8vw,25px);
+  font-weight:430;
+  letter-spacing:.08em;
+  line-height:1.08;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.humanHoloBrand strong span{
+  font-family:Georgia,serif;
+  font-size:1.1em;
+  letter-spacing:0;
+}
+
+.humanHoloBrand small{
+  margin-top:3px;
+  color:rgba(255,255,255,.9);
+  font-size:8px;
+  font-weight:650;
+  letter-spacing:.38em;
+  text-indent:.38em;
+}
+
+.humanHoloHero{
+  position:relative;
+  z-index:2;
+  display:block;
+  width:calc(100% + 20px);
+  height:clamp(222px,33dvh,292px);
+  margin:0 -10px;
+  padding:0;
+  overflow:hidden;
+  border:0;
+  border-radius:0 0 28px 28px;
+  color:#fff;
+  background:#10165d;
+  box-shadow:0 20px 35px rgba(0,5,40,.38);
+  cursor:pointer;
+}
+
+.humanHoloHero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(5,15,70,.58) 0%,transparent 30%,transparent 66%,rgba(4,18,70,.5) 100%),
+    linear-gradient(108deg,transparent 20%,rgba(255,255,255,.09) 43%,transparent 55%);
+}
+
+.humanHoloHero>img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 47%;
+  transform:scale(1.035);
+  filter:saturate(1.08) contrast(1.03);
+}
+
+.humanHoloGreeting{
+  position:absolute;
+  z-index:3;
+  top:8px;
+  left:50%;
+  width:min(68%,310px);
+  transform:translateX(-50%);
+  text-align:center;
+  text-shadow:0 2px 9px rgba(7,7,45,.85),0 0 14px rgba(128,70,255,.7);
+}
+
+.humanHoloGreeting strong{
+  display:block;
+  font-family:"Segoe Script","Brush Script MT",cursive;
+  font-size:clamp(25px,8.5vw,39px);
+  font-weight:500;
+  line-height:1;
+}
+
+.humanHoloGreeting span{
+  display:block;
+  margin-top:3px;
+  font-size:clamp(11px,3.4vw,15px);
+  line-height:1.2;
+}
+
+.humanHoloSideMotto{
+  position:absolute;
+  z-index:3;
+  top:48px;
+  width:22%;
+  color:rgba(255,255,255,.93);
+  font-family:"Segoe Script","Brush Script MT",cursive;
+  font-size:clamp(8px,2.55vw,12px);
+  line-height:1.2;
+  text-shadow:0 2px 7px rgba(4,4,35,.85);
+}
+
+.humanHoloSideMotto--left{
+  left:10px;
+  transform:rotate(-5deg);
+  text-align:left;
+}
+
+.humanHoloSideMotto--right{
+  right:11px;
+  transform:rotate(-5deg);
+  text-align:right;
+}
+
+.humanHoloHero .humanHoloPosterCredits{
+  z-index:3;
+  bottom:7px;
+  font-size:clamp(6px,1.85vw,8px);
+  letter-spacing:.12em;
+  line-height:1.35;
+}
+
+.humanHoloHero .humanHoloPosterCredits span{
+  font-size:clamp(5.5px,1.65vw,7px);
+}
+
+.humanHoloHero .humanHoloPosterCredits strong{
+  font-size:inherit;
+  letter-spacing:inherit;
+}
+
+.humanHoloAreaGrid{
+  position:relative;
+  z-index:4;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:8px;
+}
+
+.humanHoloAreaCard{
+  --area-color:#80c9ff;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-direction:column;
+  min-width:0;
+  min-height:78px;
+  padding:7px 2px 6px;
+  border:1px solid rgba(210,231,255,.68);
+  border-radius:20px;
+  color:#fff;
+  text-align:center;
+  background:
+    radial-gradient(circle at 35% 18%,rgba(255,255,255,.21),transparent 30%),
+    linear-gradient(145deg,rgba(119,144,242,.3),rgba(40,29,124,.37));
+  box-shadow:
+    0 0 8px color-mix(in srgb,var(--area-color) 72%,transparent),
+    0 0 19px rgba(114,77,255,.37),
+    inset 0 1px 0 rgba(255,255,255,.27),
+    inset 0 -10px 22px rgba(18,12,77,.25);
+  backdrop-filter:blur(13px) saturate(1.25);
+  cursor:pointer;
+}
+
+.humanHoloAreaCard:active{
+  transform:translateY(1px) scale(.98);
+}
+
+.humanHoloAreaCard:focus-visible,
+.humanHoloRoundButton:focus-visible,
+.humanHoloComposerButton:focus-visible,
+.humanHoloHero:focus-visible{
+  outline:3px solid rgba(255,255,255,.94);
+  outline-offset:2px;
+}
+
+.humanHoloAreaIcon{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  margin-bottom:2px;
+  color:var(--area-color);
+  filter:drop-shadow(0 0 6px currentColor);
+}
+
+.humanHoloAreaIcon svg{
+  width:34px;
+  height:34px;
+  fill:none;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width:1.8;
+}
+
+.humanHoloAreaCard>span:last-child{
+  display:block;
+  overflow-wrap:anywhere;
+  font-size:clamp(8.5px,2.65vw,11px);
+  font-weight:520;
+  line-height:1.05;
+  text-shadow:0 1px 5px rgba(0,0,30,.8);
+}
+
+.humanHoloAreaCard--people{--area-color:#70c7ff}
+.humanHoloAreaCard--family{--area-color:#ff83c5}
+.humanHoloAreaCard--animals{--area-color:#ffe878}
+.humanHoloAreaCard--environment{--area-color:#83f58f}
+.humanHoloAreaCard--health{--area-color:#ff6eaa}
+.humanHoloAreaCard--education{--area-color:#b589ff}
+.humanHoloAreaCard--together{--area-color:#ffadff}
+.humanHoloAreaCard--business{--area-color:#ffe287}
+
+.humanHoloComposer{
+  position:relative;
+  z-index:4;
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) 52px;
+  align-items:center;
+  gap:8px;
+  margin-top:9px;
+}
+
+.humanHoloComposerButton{
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  padding:0;
+  border:1px solid rgba(209,235,255,.85);
+  border-radius:50%;
+  color:#fff;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(255,255,255,.23),transparent 28%),
+    linear-gradient(145deg,rgba(78,116,243,.54),rgba(63,31,168,.53));
+  box-shadow:
+    0 0 9px rgba(69,214,255,.92),
+    0 0 23px rgba(126,68,255,.6),
+    inset 0 0 13px rgba(255,255,255,.12);
+  cursor:pointer;
+}
+
+.humanHoloComposerButton svg{
+  width:27px;
+  height:27px;
+  fill:none;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width:1.8;
+}
+
+.humanHoloMessageField{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  height:52px;
+  padding:0 15px;
+  border:1px solid rgba(217,226,255,.7);
+  border-radius:999px;
+  background:
+    linear-gradient(145deg,rgba(141,142,229,.52),rgba(64,64,170,.48));
+  box-shadow:
+    0 0 10px rgba(95,207,255,.45),
+    0 0 24px rgba(133,76,255,.39),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter:blur(14px);
+}
+
+#homeView #homeMessageInput{
+  width:100%;
+  min-width:0;
+  height:48px;
+  padding:0;
+  border:0;
+  outline:0;
+  color:#fff;
+  background:transparent;
+  font-size:clamp(10px,3vw,13px);
+}
+
+#homeView #homeMessageInput::placeholder{
+  color:rgba(255,255,255,.85);
+  opacity:1;
+}
+
+.humanHoloHomeFooter{
+  position:relative;
+  z-index:3;
+  min-height:62px;
+  margin-top:9px;
+  padding:4px 42px 13px;
+  color:#fff;
+  text-align:center;
+  text-shadow:0 2px 7px rgba(0,4,36,.88),0 0 9px rgba(135,88,255,.55);
+}
+
+.humanHoloHomeFooter p{
+  margin:0;
+  font-family:"Segoe Script","Brush Script MT",cursive;
+  font-size:clamp(10px,3.2vw,14px);
+  line-height:1.35;
+}
+
+.humanHoloHomeFooter strong{
+  font-weight:500;
+}
+
+.humanHoloFooterPaw,
+.humanHoloFooterEarth{
+  position:absolute;
+  top:5px;
+  font-size:25px;
+  filter:drop-shadow(0 0 8px rgba(116,171,255,.7));
+}
+
+.humanHoloFooterPaw{left:8px}
+.humanHoloFooterEarth{right:8px}
+
+.humanHoloFooterInfinity{
+  display:block;
+  height:18px;
+  margin-top:2px;
+  color:#d7b8ff;
+  font-family:Georgia,serif;
+  font-size:34px;
+  line-height:.5;
+  text-shadow:0 0 7px #915fff,0 0 12px #43d9ff;
+}
+
+#app[data-active-view="home"] #bottomNav{
+  border-color:rgba(204,223,255,.46);
+  background:linear-gradient(180deg,rgba(18,34,105,.86),rgba(7,18,67,.91));
+  box-shadow:
+    0 0 10px rgba(66,207,255,.58),
+    0 0 25px rgba(133,75,255,.5),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+#app[data-active-view="home"] #bottomNav .navItem.active{
+  color:#fff;
+  background:linear-gradient(145deg,rgba(158,89,255,.72),rgba(65,91,228,.45));
+  box-shadow:0 0 18px rgba(171,84,255,.54),inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+@media(max-width:360px){
+  .humanHoloAreaGrid{gap:5px}
+  .humanHoloAreaCard{min-height:74px;border-radius:17px}
+  .humanHoloAreaIcon{width:38px;height:38px}
+  .humanHoloAreaIcon svg{width:31px;height:31px}
+  .humanHoloComposer{grid-template-columns:48px minmax(0,1fr) 48px;gap:6px}
+  .humanHoloComposerButton{width:48px;height:48px}
+  .humanHoloMessageField{height:48px;padding:0 11px}
+}
+
+@media(max-height:700px){
+  .humanHoloTopbar{min-height:68px}
+  .humanHoloBrandInfinity{display:none}
+  .humanHoloHero{height:210px}
+  .humanHoloAreaCard{min-height:70px}
+  .humanHoloAreaIcon{width:35px;height:35px}
+  .humanHoloAreaIcon svg{width:29px;height:29px}
+  .humanHoloHomeFooter{min-height:52px;margin-top:6px;padding-bottom:7px}
+}
+
+/*
  * Freigegebener Chat-Aufbau:
  * viel Raum fuer Sols Antworten, Pams Eingabe direkt ueber dem kleinen Holo.
  */
