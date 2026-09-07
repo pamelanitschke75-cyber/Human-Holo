@@ -10,6 +10,10 @@ const css = fs.readFileSync(
   new URL("../www/sol-holo-chat-115.css", import.meta.url),
   "utf8"
 );
+const humanHoloTheme = fs.readFileSync(
+  new URL("../www/human-holo-theme.css", import.meta.url),
+  "utf8"
+);
 const ui = fs.readFileSync(
   new URL("../www/sol-holo-ui.js", import.meta.url),
   "utf8"
@@ -70,6 +74,7 @@ test("Build #115 setzt Kamera und Mikrofon klein frei darunter", () => {
     /#stageVolumeCard,[\s\S]*?#solStage\{[\s\S]*?display:none!important/u
   );
   assert.match(workflow, /www\/sol-holo-chat-115\.css/u);
+  assert.match(workflow, /www\/human-holo-theme\.css/u);
 });
 
 test("Build #115 gibt dem Antwortsfeld den Platz des Holo-Bildes", () => {
@@ -96,24 +101,20 @@ test("Build #115 gibt dem Antwortsfeld den Platz des Holo-Bildes", () => {
   );
 });
 
-test("Build #115 zeigt Pam klein im Header und genau ein Chat-Einhorn", () => {
+test("Human-Holo-Chat zeigt Pam klein im Header und kein altes Einhorn", () => {
   assert.match(
     html,
     /id="subtitle"[\s\S]*?id="chatOwnerPortrait"[\s\S]*?alt="Pam"/u
   );
-  assert.match(
-    html,
-    /id="chatUnicornSignature"[\s\S]*?aria-label="Einhorn"[\s\S]*?🦄/u
-  );
+  assert.doesNotMatch(html, /id="chatUnicornSignature"/u);
   assert.doesNotMatch(html, /pamUnicorn--chatHeader/u);
   assert.doesNotMatch(html, /pamChatMessageUnicorn/u);
-  assert.equal((html.match(/id="chatUnicornSignature"/gu) || []).length, 1);
   assert.match(
     css,
     /#chatOwnerPortrait\{[\s\S]*?width:27px[\s\S]*?border-radius:50%/u
   );
   assert.match(
-    css,
-    /#chatUnicornSignature\{[\s\S]*?right:16px[\s\S]*?bottom:11px/u
+    humanHoloTheme,
+    /\.pamUnicorn,[\s\S]*?#chatUnicornSignature\{[\s\S]*?display:none!important/u
   );
 });

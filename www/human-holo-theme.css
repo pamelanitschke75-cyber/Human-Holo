@@ -1,0 +1,386 @@
+/*
+ * HUMAN HOLO · EINHEITLICHE GLASOPTIK
+ * Wird bewusst als letzte Designschicht geladen. Bestehende Funktionen,
+ * Abstaende und Bedienlogik bleiben unveraendert.
+ */
+
+:root{
+  --human-holo-glass-text:#fbfcff;
+  --human-holo-glass-copy:rgba(232,238,255,.82);
+  --human-holo-glass-edge:rgba(211,232,255,.78);
+  --human-holo-glass-violet:rgba(174,102,255,.72);
+  --human-holo-glass-cyan:rgba(72,222,255,.8);
+}
+
+/* Das quadratische Motiv etwas herauszoomen, ohne den Bildschirm zu verlaengern. */
+.humanHoloHero{
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 20% 19%,rgba(255,147,91,.48),transparent 35%),
+    radial-gradient(circle at 81% 24%,rgba(52,120,255,.62),transparent 38%),
+    radial-gradient(circle at 50% 87%,rgba(174,55,255,.58),transparent 48%),
+    linear-gradient(180deg,#223a91 0%,#0d185f 48%,#251067 100%);
+}
+
+.humanHoloHero>img{
+  position:absolute;
+  z-index:1;
+  top:50%;
+  left:50%;
+  width:auto;
+  height:116%;
+  max-width:none;
+  object-fit:contain;
+  object-position:center;
+  transform:translate(-50%,-50%);
+  filter:saturate(1.02) contrast(1.03) brightness(.99)
+    drop-shadow(0 0 16px rgba(126,88,255,.42));
+}
+
+.humanHoloHero::after{
+  z-index:2;
+  background:
+    linear-gradient(180deg,rgba(5,15,70,.13) 0%,transparent 28%,transparent 72%,rgba(4,18,70,.26) 100%),
+    linear-gradient(108deg,transparent 20%,rgba(255,255,255,.055) 43%,transparent 55%);
+}
+
+/* Eine gemeinsame kosmische Basis fuer alle Bereiche hinter der Startseite. */
+:is(#chatView,#memoryView,#servicesView,#profileView,#settingsView,#notesView){
+  isolation:isolate;
+  color:var(--human-holo-glass-text);
+  background:
+    radial-gradient(circle at 11% 8%,rgba(151,89,255,.4),transparent 28%),
+    radial-gradient(circle at 89% 16%,rgba(35,184,255,.34),transparent 31%),
+    radial-gradient(circle at 52% 72%,rgba(94,76,240,.26),transparent 41%),
+    linear-gradient(180deg,#102c83 0%,#241a83 35%,#09246d 69%,#03143f 100%);
+}
+
+:is(#chatView,#memoryView,#servicesView,#profileView,#settingsView,#notesView)::before{
+  z-index:0;
+  opacity:.52;
+}
+
+:is(#chatView,#memoryView,#servicesView,#profileView,#settingsView,#notesView)>*{
+  position:relative;
+  z-index:1;
+}
+
+#chatView>header,
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView) .subHeader{
+  border-bottom:1px solid rgba(197,224,255,.58);
+  background:
+    radial-gradient(circle at 50% 0,rgba(255,255,255,.13),transparent 55%),
+    linear-gradient(180deg,rgba(62,89,201,.62),rgba(28,43,139,.46));
+  box-shadow:
+    0 10px 28px rgba(2,9,61,.3),
+    0 0 22px rgba(80,203,255,.16),
+    inset 0 -1px 0 rgba(255,255,255,.12);
+  backdrop-filter:blur(20px) saturate(1.3);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3);
+}
+
+/* Helle Holo-Glaskarten wie auf der neuen Startseite. */
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView)
+  :is(.glassCard,.actionRow,.serviceRow,.settingsGroup,.profileStatus,.noteCard),
+#bottomNav{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 28% 8%,rgba(255,255,255,.2),transparent 31%) padding-box,
+    linear-gradient(145deg,rgba(91,116,231,.5),rgba(36,32,126,.58)) padding-box,
+    linear-gradient(135deg,var(--human-holo-glass-edge),var(--human-holo-glass-violet) 48%,var(--human-holo-glass-cyan)) border-box;
+  box-shadow:
+    0 0 12px rgba(67,211,255,.28),
+    0 0 27px rgba(143,79,255,.32),
+    0 15px 35px rgba(0,6,55,.27),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -12px 28px rgba(21,16,89,.21);
+  backdrop-filter:blur(20px) saturate(1.3);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3);
+}
+
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView)
+  :is(.featureCopy,.profileMeta,.profilePhotoHelp,.permissionNote,.rowMeta,.settingsIntro p,.settingsGroupHeader p,.notesIntro p){
+  color:var(--human-holo-glass-copy);
+}
+
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView)
+  :is(.featureHeadline,.profileName,.rowTitle,.settingsIntro h2,.settingsGroupHeader h3,.notesIntro h3){
+  color:#fff;
+  text-shadow:0 0 13px rgba(108,205,255,.35);
+}
+
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView) :is(.rowIcon,.settingsGroupIcon,.notesIntroIcon){
+  border:1px solid rgba(205,226,255,.7);
+  color:#91e7ff;
+  background:
+    radial-gradient(circle at 30% 18%,rgba(255,255,255,.25),transparent 35%),
+    linear-gradient(145deg,rgba(123,105,238,.56),rgba(60,63,183,.52));
+  box-shadow:
+    0 0 11px rgba(70,220,255,.52),
+    0 0 23px rgba(161,78,255,.4),
+    inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+:is(#memoryView,#servicesView,#profileView,#settingsView,#notesView)
+  :is(.secondaryButton,.noteComposer button,.noteActions button){
+  border:1px solid transparent;
+  color:#fff;
+  background:
+    linear-gradient(115deg,rgba(170,82,239,.9),rgba(44,139,234,.86)) padding-box,
+    linear-gradient(125deg,rgba(240,221,255,.9),rgba(99,230,255,.86)) border-box;
+  box-shadow:
+    0 0 13px rgba(73,218,255,.48),
+    0 0 28px rgba(161,73,255,.42),
+    inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* Chat: Antwortsfeld, Nachrichten und Eingabe als echte Holo-Glasflaechen. */
+#chatView #menuButton{
+  border:1px solid rgba(207,228,255,.7);
+  color:#fff;
+  background:linear-gradient(145deg,rgba(99,102,222,.56),rgba(38,39,126,.58));
+  box-shadow:0 0 12px rgba(68,219,255,.48),0 0 24px rgba(159,78,255,.4),inset 0 1px 0 rgba(255,255,255,.2);
+  backdrop-filter:blur(18px) saturate(1.25);
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);
+}
+
+#chatView .brandLogo--header{
+  border:1px solid rgba(204,227,255,.48);
+  border-radius:18px;
+  box-shadow:0 0 13px rgba(76,220,255,.36),0 0 25px rgba(166,78,255,.37);
+}
+
+#chatView #subtitle{
+  color:rgba(239,243,255,.88);
+  text-shadow:0 0 11px rgba(105,204,255,.34);
+}
+
+#app:not(.voice-mode) #chatView #chatPanel{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 25% 5%,rgba(255,255,255,.15),transparent 32%) padding-box,
+    linear-gradient(155deg,rgba(79,104,219,.36),rgba(25,27,111,.47)) padding-box,
+    linear-gradient(135deg,rgba(214,232,255,.76),rgba(173,93,255,.73) 48%,rgba(70,222,255,.82)) border-box;
+  box-shadow:
+    0 0 14px rgba(72,214,255,.3),
+    0 0 31px rgba(148,77,255,.34),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter:blur(22px) saturate(1.32);
+  -webkit-backdrop-filter:blur(22px) saturate(1.32);
+}
+
+#chatView .message{
+  border:1px solid rgba(207,226,255,.54);
+  color:#fff;
+  background:
+    radial-gradient(circle at 22% 5%,rgba(255,255,255,.13),transparent 34%),
+    linear-gradient(145deg,rgba(84,103,211,.39),rgba(31,28,118,.46));
+  box-shadow:0 0 13px rgba(80,206,255,.2),0 0 24px rgba(143,81,255,.22),inset 0 1px 0 rgba(255,255,255,.15);
+  backdrop-filter:blur(17px) saturate(1.25);
+  -webkit-backdrop-filter:blur(17px) saturate(1.25);
+}
+
+#chatView .sol-message,
+#chatView .system-message{
+  border-color:rgba(117,226,255,.65);
+  background:
+    radial-gradient(circle at 18% 5%,rgba(255,255,255,.15),transparent 34%),
+    linear-gradient(145deg,rgba(55,144,223,.37),rgba(49,37,144,.47));
+  box-shadow:0 0 14px rgba(65,218,255,.28),0 0 27px rgba(119,91,255,.25),inset 2px 0 0 rgba(104,230,255,.7);
+}
+
+#chatView .user-message{
+  border-color:rgba(222,154,255,.67);
+  background:
+    radial-gradient(circle at 78% 5%,rgba(255,255,255,.15),transparent 34%),
+    linear-gradient(145deg,rgba(157,75,221,.4),rgba(69,58,169,.48));
+  box-shadow:0 0 14px rgba(187,96,255,.28),0 0 27px rgba(70,191,255,.2),inset -2px 0 0 rgba(224,143,255,.72);
+}
+
+#app:not(.voice-mode) #chatView #messageWrap{
+  border:1px solid transparent;
+  background:
+    radial-gradient(circle at 24% 5%,rgba(255,255,255,.17),transparent 34%) padding-box,
+    linear-gradient(145deg,rgba(87,98,218,.46),rgba(31,29,124,.58)) padding-box,
+    linear-gradient(135deg,rgba(223,232,255,.8),rgba(190,104,255,.78) 48%,rgba(71,227,255,.88)) border-box;
+  box-shadow:0 0 14px rgba(74,219,255,.35),0 0 29px rgba(159,77,255,.36),inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter:blur(21px) saturate(1.3);
+  -webkit-backdrop-filter:blur(21px) saturate(1.3);
+}
+
+#chatView #messageInput{
+  color:#fff;
+  background:transparent;
+}
+
+#chatView #messageInput::placeholder{
+  color:rgba(228,220,247,.76);
+}
+
+#app:not(.voice-mode) #chatView #imageButton,
+#app:not(.voice-mode) #chatView #liveButton,
+#chatView #sendButton{
+  border:1px solid rgba(215,231,255,.77);
+  color:#fff;
+  background:
+    radial-gradient(circle at 30% 20%,rgba(255,255,255,.22),transparent 36%),
+    linear-gradient(145deg,rgba(126,101,238,.78),rgba(48,91,194,.74));
+  box-shadow:0 0 12px rgba(66,223,255,.58),0 0 24px rgba(166,80,255,.48),inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter:blur(18px) saturate(1.3);
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);
+}
+
+/* Das alte Einhornzeichen passt nicht mehr zum neuen Human-Holo-Auftritt. */
+.pamUnicorn,
+#chatUnicornSignature{
+  display:none!important;
+}
+
+#app:not(.voice-mode) #chatView #chat{
+  padding-bottom:12px;
+}
+
+/* Einstellungen: auch alle verschachtelten und zur Laufzeit erzeugten Felder. */
+#settingsView :is(.settingsPhotoEditor,.drawerVoiceSettings,.settingsSubsection,.settingsSystemDetails),
+#settingsView #speakerIdentityPanel,
+#settingsView .profileMouthControls,
+#servicesView .openClawPreviewResult{
+  border:1px solid transparent!important;
+  background:
+    radial-gradient(circle at 24% 7%,rgba(255,255,255,.18),transparent 33%) padding-box,
+    linear-gradient(145deg,rgba(89,108,222,.45),rgba(35,29,124,.55)) padding-box,
+    linear-gradient(135deg,rgba(216,233,255,.76),rgba(179,102,255,.72) 48%,rgba(76,222,255,.82)) border-box!important;
+  box-shadow:0 0 13px rgba(70,214,255,.28),0 0 27px rgba(151,78,255,.31),inset 0 1px 0 rgba(255,255,255,.17)!important;
+  backdrop-filter:blur(19px) saturate(1.28);
+  -webkit-backdrop-filter:blur(19px) saturate(1.28);
+}
+
+#settingsView :is(.profilePhotoEdit,.profilePhotoActions button,.profileMouthConfirmRow button){
+  border:1px solid rgba(210,229,255,.66);
+  color:#fff;
+  background:
+    radial-gradient(circle at 28% 12%,rgba(255,255,255,.17),transparent 38%),
+    linear-gradient(145deg,rgba(113,102,225,.57),rgba(44,53,151,.59));
+  box-shadow:0 0 11px rgba(72,216,255,.34),0 0 22px rgba(156,78,255,.3),inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+#settingsView .profileMouthControls :is(p,label){
+  color:var(--human-holo-glass-copy);
+}
+
+#notesView :is(.noteComposer textarea,.notesSearch input),
+#settingsView :is(input,textarea){
+  border:1px solid rgba(207,226,255,.62);
+  color:#fff;
+  background:
+    radial-gradient(circle at 22% 5%,rgba(255,255,255,.12),transparent 35%),
+    linear-gradient(145deg,rgba(83,95,205,.43),rgba(34,31,123,.5));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 12px rgba(75,204,255,.18);
+}
+
+#notesView :is(.noteComposer textarea,.notesSearch input)::placeholder{
+  color:rgba(226,226,246,.68);
+}
+
+#settingsView #solVoiceSelect{
+  border:1px solid rgba(207,229,255,.7);
+  color:#fff;
+  background:rgba(67,65,175,.62);
+  box-shadow:0 0 11px rgba(75,213,255,.26),inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+#settingsView #solVoiceSelect option{
+  color:#fff;
+  background:#202378;
+}
+
+#settingsView :is(.settingsChoiceRow,.wakeModeChooser){
+  border:1px solid rgba(191,216,255,.44);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(99,107,220,.26),rgba(34,31,126,.34));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 14px rgba(83,198,255,.14);
+}
+
+#settingsView .settingsChoiceRow button,
+#settingsView .wakeModeChooser button{
+  border:1px solid rgba(201,222,255,.57);
+  color:rgba(239,242,255,.82);
+  background:
+    radial-gradient(circle at 30% 14%,rgba(255,255,255,.14),transparent 38%),
+    linear-gradient(145deg,rgba(89,99,210,.4),rgba(36,33,127,.48));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 0 10px rgba(101,191,255,.13);
+}
+
+#settingsView .settingsChoiceRow button.active,
+#settingsView .wakeModeChooser button.active{
+  border-color:rgba(116,229,255,.86);
+  color:#fff;
+  background:linear-gradient(135deg,rgba(164,81,235,.86),rgba(40,143,226,.83));
+  box-shadow:0 0 12px rgba(64,224,255,.48),0 0 24px rgba(162,75,255,.42),inset 0 1px 0 rgba(255,255,255,.23);
+}
+
+#settingsView #speakerIdentityPanel>div:first-of-type{
+  border:1px solid rgba(202,220,255,.4)!important;
+  background:linear-gradient(145deg,rgba(122,84,218,.43),rgba(52,58,162,.45))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11)!important;
+}
+
+#settingsView #speakerIdentityStatus{
+  color:var(--human-holo-glass-copy);
+}
+
+#settingsView #speakerIdentityPanel :is(#speakerEnrollButton,#speakerTestButton){
+  border:1px solid rgba(222,232,255,.78);
+  color:#fff;
+  background:linear-gradient(115deg,rgba(170,82,239,.9),rgba(43,139,234,.86));
+  box-shadow:0 0 12px rgba(71,220,255,.45),0 0 26px rgba(161,74,255,.38);
+}
+
+#settingsView #speakerClearButton{
+  width:100%;
+  min-height:42px;
+  padding:8px 12px;
+  border:1px solid rgba(205,218,255,.38)!important;
+  border-radius:14px;
+  color:rgba(238,238,255,.73)!important;
+  background:linear-gradient(145deg,rgba(101,91,202,.25),rgba(37,34,120,.31))!important;
+}
+
+#settingsView .settingsSystemStatus{
+  border-color:rgba(199,222,255,.5);
+  color:rgba(238,243,255,.82)!important;
+  background:linear-gradient(145deg,rgba(92,103,213,.34),rgba(37,34,126,.4));
+}
+
+/* Hinweise nach dem Antippen: lesbares Human-Holo-Glas statt schwarzer Box. */
+#uiToast{
+  border:1px solid transparent;
+  color:#fff;
+  background:
+    radial-gradient(circle at 23% 0,rgba(255,255,255,.2),transparent 37%) padding-box,
+    linear-gradient(145deg,rgba(106,103,221,.9),rgba(35,45,139,.91)) padding-box,
+    linear-gradient(135deg,rgba(227,237,255,.9),rgba(193,110,255,.86) 49%,rgba(75,228,255,.92)) border-box;
+  box-shadow:0 18px 52px rgba(0,7,58,.46),0 0 16px rgba(71,220,255,.47),0 0 32px rgba(161,76,255,.45),inset 0 1px 0 rgba(255,255,255,.2);
+  backdrop-filter:blur(24px) saturate(1.35);
+  -webkit-backdrop-filter:blur(24px) saturate(1.35);
+}
+
+#bottomNav{
+  background:
+    radial-gradient(circle at 25% 0,rgba(255,255,255,.15),transparent 31%) padding-box,
+    linear-gradient(145deg,rgba(53,66,167,.55),rgba(10,24,81,.69)) padding-box,
+    linear-gradient(110deg,rgba(198,121,255,.68),rgba(88,108,255,.45),rgba(70,221,255,.68)) border-box;
+}
+
+#bottomNav .navItem.active{
+  background:
+    radial-gradient(circle at 50% 0,rgba(255,255,255,.2),transparent 38%),
+    linear-gradient(145deg,rgba(151,78,233,.74),rgba(48,91,197,.67));
+  box-shadow:0 0 13px rgba(77,222,255,.3),0 0 25px rgba(164,77,255,.37),inset 0 1px 0 rgba(255,255,255,.17);
+}
+
+@media(max-width:370px){
+  .humanHoloHero>img{
+    height:114%;
+  }
+}

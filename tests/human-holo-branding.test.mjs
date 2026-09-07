@@ -27,6 +27,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   const html = readText("www/index.html");
   const ui = readText("www/sol-holo-ui.js");
   const css = readText("www/sol-holo-ui.css");
+  const theme = readText("www/human-holo-theme.css");
   const appLock = readText("www/app-lock-bootstrap.mjs");
 
   assert.match(html, /<title>Human Holo<\/title>/u);
@@ -54,7 +55,13 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
   assert.match(css, /#homeView\.humanHoloHome\{/u);
   assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
-  assert.match(css, /\.humanHoloHero>img\{[\s\S]*object-fit:cover/u);
+  assert.match(html, /human-holo-theme\.css\?v=1/u);
+  assert.ok(
+    html.indexOf("human-holo-theme.css?v=1") >
+      html.indexOf("sol-holo-backup.css?v=1")
+  );
+  assert.match(theme, /\.humanHoloHero>img\{[\s\S]*height:116%[\s\S]*object-fit:contain/u);
+  assert.match(theme, /transform:translate\(-50%,-50%\)/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
@@ -100,6 +107,7 @@ test("Startseite ersetzt die vier alten Schnellbereiche durch genau acht Human-H
 
 test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
   const css = readText("www/sol-holo-ui.css");
+  const theme = readText("www/human-holo-theme.css");
 
   for (const view of [
     "chatView",
@@ -114,6 +122,15 @@ test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
 
   assert.match(css, /Einheitlicher Human-Holo-Stil fuer alle Bereiche/u);
   assert.match(css, /\.appView:not\(\.humanHoloHome\) :is\(\.glassCard,\.actionRow,\.serviceRow,\.settingsGroup,\.profileStatus,\.noteCard\)/u);
+  assert.match(theme, /HUMAN HOLO · EINHEITLICHE GLASOPTIK/u);
+  assert.match(theme, /#app:not\(\.voice-mode\) #chatView #chatPanel/u);
+  assert.match(theme, /#app:not\(\.voice-mode\) #chatView #messageWrap/u);
+  assert.match(theme, /#chatView \.message/u);
+  assert.match(theme, /#settingsView #speakerIdentityPanel/u);
+  assert.match(theme, /#settingsView :is\(\.settingsChoiceRow,\.wakeModeChooser\)/u);
+  assert.match(theme, /#uiToast\{/u);
+  assert.match(theme, /backdrop-filter:blur\(24px\) saturate\(1\.35\)/u);
+  assert.match(theme, /\.pamUnicorn,[\s\S]*#chatUnicornSignature\{[\s\S]*display:none!important/u);
 });
 
 test("neues Markenbild ist quadratisch und für Android-Icons vorbereitet", () => {

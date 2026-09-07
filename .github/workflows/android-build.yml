@@ -46,6 +46,7 @@ on:
       - "www/sol-holo-backup-core.mjs"
       - "www/sol-holo-backup.css"
       - "www/sol-holo-backup.mjs"
+      - "www/human-holo-theme.css"
       - "www/sol-holo-ui.js"
       - "www/service-worker.js"
       - "www/third-party/**"
