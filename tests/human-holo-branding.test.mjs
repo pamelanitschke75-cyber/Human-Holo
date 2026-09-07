@@ -26,6 +26,7 @@ test("Human Holo ist der sichtbare Name bei unveränderter Android-Identität", 
 test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   const html = readText("www/index.html");
   const ui = readText("www/sol-holo-ui.js");
+  const css = readText("www/sol-holo-ui.css");
   const appLock = readText("www/app-lock-bootstrap.mjs");
 
   assert.match(html, /<title>Human Holo<\/title>/u);
@@ -35,10 +36,18 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=50/u);
+  assert.match(html, /sol-holo-ui\.js\?v=51/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
+  assert.match(ui, /BY PAMELA NITSCHKE AND STEFANIE HÖRATH/u);
+  assert.match(ui, /IN COOPERATION WITH <strong>ChatGPT\/OpenAI<\/strong>/u);
+  assert.match(ui, /Miteinander<br>Füreinander<br>Für eine bessere Welt ♡/u);
+  assert.match(ui, /MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE/u);
+  assert.match(ui, /EIN HELLERES HEUTE\. EINE FREUNDLICHERE ZUKUNFT\./u);
+  assert.match(ui, /A BRIGHTER TODAY\. A KINDER TOMORROW\. ♡/u);
+  assert.match(ui, /HSG – HUMANS SECOND GENERATION!/u);
+  assert.match(css, /url\("\.\/human-holo-logo\.png"\) center top\/100% auto no-repeat/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
