@@ -36,12 +36,12 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=52/u);
+  assert.match(html, /sol-holo-ui\.js\?v=53/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
   assert.match(ui, /BY PAMELA NITSCHKE AND STEFANIE HÖRATH/u);
-  assert.match(ui, /IN COOPERATION WITH <strong>ChatGPT\/OpenAI<\/strong>/u);
+  assert.match(ui, /DEVELOPED WITH <strong>CHATGPT BY OPENAI<\/strong>/u);\n  assert.doesNotMatch(ui, /IN COOPERATION WITH/u);
   assert.match(ui, /Miteinander<br>Füreinander<br>Für eine bessere Welt ♡/u);
   assert.match(ui, /MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE/u);
   assert.match(ui, /EIN HELLERES HEUTE\. EINE FREUNDLICHERE ZUKUNFT\./u);
