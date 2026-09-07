@@ -36,7 +36,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=51/u);
+  assert.match(html, /sol-holo-ui\.js\?v=52/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -47,7 +47,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /EIN HELLERES HEUTE\. EINE FREUNDLICHERE ZUKUNFT\./u);
   assert.match(ui, /A BRIGHTER TODAY\. A KINDER TOMORROW\. ♡/u);
   assert.match(ui, /HSG – HUMANS SECOND GENERATION!/u);
-  assert.match(css, /url\("\.\/human-holo-logo\.png"\) center top\/100% auto no-repeat/u);
+  assert.match(ui, /humanHoloPosterVisual[\s\S]*humanHoloPosterMottos[\s\S]*humanHoloPosterCredits/u);
+  assert.match(css, /url\("\.\/human-holo-logo\.png"\) center\/100% auto no-repeat/u);
+  assert.match(css, /\.humanHoloPosterCredits\{[\s\S]*top:auto;[\s\S]*bottom:12px;/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
