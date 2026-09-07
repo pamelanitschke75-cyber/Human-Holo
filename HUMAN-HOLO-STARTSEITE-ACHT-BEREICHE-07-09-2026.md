@@ -2,6 +2,7 @@
 
 **Datum:** 07.09.2026  
 **Ausgangsbasis:** veröffentlichter Human-Holo-Build #225  
+**Ergebnis:** originalsignierter Human-Holo-Build #226  
 **Referenz:** von Pam freigegebener Human-Holo-Startbildschirm
 
 ## Umsetzung
@@ -50,8 +51,12 @@ Unverändert bleiben insbesondere:
 - [x] Kamera-, Text-, Sprach- und Navigationswege sind verbunden;
 - [x] JavaScript-Syntaxprüfung erfolgreich;
 - [x] vollständiger automatisierter Testlauf: **231 von 231 Tests bestanden**;
-- [ ] Android-Build und Originalsignatur in GitHub Actions bestätigt;
+- [x] Android-Build #226 in GitHub Actions erfolgreich;
+- [x] Originalsignatur durch den separaten #89-Signaturwächter bestätigt;
 - [ ] Darstellung und Bedienung auf Pams Samsung Galaxy S23 praktisch bestätigt.
 
-Die letzten beiden Punkte werden erst nach dem jeweiligen Build- und Gerätetest
-als bestätigt markiert.
+**APK-SHA-256:**
+`eab02d496c6cd80a139a8deeb1af602777abccc4fdcd874d409d239115febac0`
+
+Die praktische Bestätigung erfolgt nach der Installation auf Pams Samsung
+Galaxy S23.
