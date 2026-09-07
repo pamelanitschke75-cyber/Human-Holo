@@ -31,13 +31,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "Human Holo – Miteinander, füreinander, für eine bessere Welt"
   );
   homeMissionPoster.innerHTML = `
-    <div class="humanHoloPosterCredits">
-      BY PAMELA NITSCHKE AND STEFANIE HÖRATH
-      <span>IN COOPERATION WITH <strong>ChatGPT/OpenAI</strong></span>
-    </div>
-    <div class="humanHoloPosterMottos">
-      <span>Miteinander<br>Füreinander<br>Für eine bessere Welt ♡</span>
-      <span lang="en">Together<br>Forever ♡</span>
+    <div class="humanHoloPosterVisual">
+      <div class="humanHoloPosterMottos">
+        <span>Miteinander<br>Füreinander<br>Für eine bessere Welt ♡</span>
+        <span lang="en">Together<br>Forever ♡</span>
+      </div>
+      <div class="humanHoloPosterCredits">
+        BY PAMELA NITSCHKE AND STEFANIE HÖRATH
+        <span>IN COOPERATION WITH <strong>ChatGPT/OpenAI</strong></span>
+      </div>
     </div>
     <div class="humanHoloPosterCopy glassCard">
       <p class="humanHoloTogether">MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE</p>
