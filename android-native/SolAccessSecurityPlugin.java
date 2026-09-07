@@ -45,7 +45,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Native, local foundation for Sol Holo access security.
+ * Native, local foundation for Human Holo access security.
  *
  * <p>Critical grants require a fresh Android Keystore challenge from the
  * registered phone plus a fresh Android system authentication. The system
@@ -585,7 +585,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
     /**
      * Unlocks the owner-bound app surface after a fresh device-key proof and
      * Android system authentication. Android owns all biometric templates;
-     * Sol Holo receives neither fingerprint data nor a biometric identity.
+     * Human Holo receives neither fingerprint data nor a biometric identity.
      */
     @PluginMethod
     public void authorizeAppAccess(PluginCall call) {
@@ -1284,12 +1284,12 @@ public final class SolAccessSecurityPlugin extends Plugin {
         );
 
         String title = purpose == AuthenticationPurpose.REGISTER_DEVICE
-            ? "Dieses Gerät für Sol Holo registrieren"
+            ? "Dieses Gerät für Human Holo registrieren"
             : purpose == AuthenticationPurpose.APP_ACCESS
                 ? "Pam’s Holo entsperren"
                 : purpose == AuthenticationPurpose.BIOMETRIC_RECOVERY
                     ? "Zugang mit Geräte-PIN wiederherstellen"
-                    : "Kritische Sol-Holo-Aktion bestätigen";
+                    : "Kritische Human-Holo-Aktion bestätigen";
         String subtitle = purpose == AuthenticationPurpose.BIOMETRIC_RECOVERY
             ? "Bitte Android-Geräte-PIN, Muster oder Passwort verwenden"
             : "Starke Android-Biometrie oder Geräte-PIN verwenden";

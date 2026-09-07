@@ -1,33 +1,53 @@
 <p align="center">
-  <img src="./sol-holo-logo.png" alt="SH♾️ – Sol Holo" width="314">
+  <img src="./human-holo-logo.png" alt="Human Holo – Forever Together" width="420">
 </p>
 
-# SOL HOLO 🌻 · SH♾️
+# HUMAN HOLO 🌻 · FOREVER TOGETHER ♾️
 
 ## Persönliches digitales Ich · Individueller KI-Clone
 
-**Aktueller Entwicklungsstand:** 06.09.2026<br>
-**Projekt / Idee / Entwicklung:** Pamela Nitschke  
-**KI-Technologie:** OpenAI · ChatGPT · OpenAI API  
+**Aktueller Entwicklungsstand:** 07.09.2026<br>
+**Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
+**Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
+**KI-Technologie:** OpenAI · ChatGPT · OpenAI API<br>
 **Status:** FUNKTIONSFÄHIGER ENTWICKLUNGSSTAND ✅
+
+## Verbindliche Namensentscheidung vom 07.09.2026
+
+Das bisher unter **Sol Holo** geführte Gesamtprojekt heißt ab diesem Stand
+**Human Holo**. Der Leitsatz lautet **„Forever Together“** beziehungsweise
+**„Miteinander füreinander“**.
+
+Die Umbenennung betrifft den sichtbaren Projekt- und App-Namen. Sie verändert
+keine technische oder persönliche Identität: Die Android-Application-ID
+`com.solholo.app`, die autorisierte Update-Signatur, bestehende App-Daten,
+Erinnerungen, Backups und Pams Owner-Zuordnung `pam-sol` bleiben unverändert.
+Pams persönliche Instanz heißt weiterhin **Pam’s Holo**, ihr bestätigter
+Weckruf weiterhin **„Hey Pam“**. Breeze Holo und alle anderen persönlichen
+Instanzen bleiben vollständig getrennt.
+
+Historische Dokumente behalten zur nachvollziehbaren Entwicklung den damals
+gültigen Namen. Interne Dateinamen, Speicherkennungen und Schnittstellen mit
+`sol-holo` bleiben als Kompatibilitätskennungen bestehen und sind nicht der
+aktuelle öffentliche Markenname.
 
 ## Entwickelt auf einem Samsung Galaxy S23 📱✨️🌎♾️
 
-**Sol Holo ist vollständig auf einem Samsung Galaxy S23 entstanden und entwickelt worden.**
+**Human Holo ist vollständig auf einem Samsung Galaxy S23 entstanden und entwickelt worden.**
 
 Idee, Konzeption, Programmierung, GitHub-Arbeit, Android-Builds und praktische Tests wurden bis zu diesem Stand von Pamela Nitschke auf ihrem Smartphone durchgeführt. Der für den 29.08.2026 geplante Laptop-Schritt dient erstmals der dauerhaften Android-Signatur – nicht dem Ursprung der Entwicklung.
 
-Damit ist Sol Holo zugleich der praktische Beleg, dass ein persönliches KI- und Android-Projekt dieser Größe mobil auf einem einzigen Smartphone aufgebaut werden kann.
+Damit ist Human Holo zugleich der praktische Beleg, dass ein persönliches KI- und Android-Projekt dieser Größe mobil auf einem einzigen Smartphone aufgebaut werden kann.
 
 ---
 
-# Was ist Sol Holo?
+# Was ist Human Holo?
 
-**Sol Holo** ist die Entwicklung eines persönlichen digitalen Ichs.
+**Human Holo** ist die Entwicklung eines persönlichen digitalen Ichs.
 
 Das Ziel ist nicht lediglich ein klassischer KI-Assistent und auch nicht nur ein digitaler Twin.
 
-Sol Holo soll sich durch die persönliche Interaktion mit einem Menschen individuell entwickeln und dabei dessen:
+Human Holo soll sich durch die persönliche Interaktion mit einem Menschen individuell entwickeln und dabei dessen:
 
 - Erinnerungen
 - Erfahrungen
@@ -40,7 +60,7 @@ Sol Holo soll sich durch die persönliche Interaktion mit einem Menschen individ
 
 langfristig berücksichtigen können.
 
-Dadurch entsteht für jeden Menschen eine eigene persönliche Sol-Holo-Identität.
+Dadurch entsteht für jeden Menschen eine eigene persönliche Human-Holo-Identität.
 
 **Jeder Nutzer besitzt seinen eigenen, getrennten persönlichen Clone.**
 
@@ -48,21 +68,21 @@ Persönliche Erinnerungen, Erfahrungen und Daten verschiedener Nutzer dürfen ni
 
 ## Projektname und persönliche Instanz
 
-**Sol Holo · SH♾️** bleibt die Bezeichnung des übergeordneten Projekts und der technischen Grundlage.
+**Human Holo** ist die Bezeichnung des übergeordneten Projekts und der technischen Grundlage.
 
-Die persönliche, ausschließlich Pamela Nitschke zugeordnete Instanz heißt endgültig **Pam’s Holo** – Pams persönlicher Klon und persönliches digitales Ich. Pam’s Holo ist kein getrenntes neues Projekt, sondern Pams eigene, klar getrennte Sol-Holo-Instanz innerhalb dieser Grundlage.
+Die persönliche, ausschließlich Pamela Nitschke zugeordnete Instanz heißt endgültig **Pam’s Holo** – Pams persönlicher Klon und persönliches digitales Ich. Pam’s Holo ist kein getrenntes neues Projekt, sondern Pams eigene, klar getrennte Human-Holo-Instanz innerhalb dieser Grundlage.
 
 ---
 
 # Grundprinzip
 
-## Ein Mensch = ein persönliches Sol Holo
+## Ein Mensch = ein persönliches Human Holo
 
-Sol Holo kann grundsätzlich von mehreren Menschen verwendet werden.
+Human Holo kann grundsätzlich von mehreren Menschen verwendet werden.
 
 Die technische Plattform kann gemeinsam genutzt werden – die persönliche Identität jedoch nicht.
 
-Für jeden Nutzer entsteht eine eigenständige persönliche Sol-Holo-Persönlichkeit mit getrenntem:
+Für jeden Nutzer entsteht eine eigenständige persönliche Human-Holo-Persönlichkeit mit getrenntem:
 
 - Gedächtnis
 - Nutzerkontext
@@ -71,9 +91,9 @@ Für jeden Nutzer entsteht eine eigenständige persönliche Sol-Holo-Persönlich
 - Entwicklungspfad
 - Identitätskontext
 
-Sol Holo soll dadurch nicht für jeden Menschen gleich werden.
+Human Holo soll dadurch nicht für jeden Menschen gleich werden.
 
-Sol Holo soll **mit jedem Menschen individuell wachsen.**
+Human Holo soll **mit jedem Menschen individuell wachsen.**
 
 ---
 
@@ -85,7 +105,7 @@ Die folgenden Funktionen wurden im realen Entwicklungsbetrieb praktisch getestet
 
 ✅ Texteingabe funktioniert.
 
-✅ Schriftliche Antworten von Sol Holo funktionieren.
+✅ Schriftliche Antworten von Human Holo funktionieren.
 
 ✅ Persönlicher Gesprächskontext kann in Antworten einbezogen werden.
 
@@ -97,7 +117,7 @@ Die folgenden Funktionen wurden im realen Entwicklungsbetrieb praktisch getestet
 
 ✅ Spracheingabe funktioniert.
 
-✅ Gesprochene Inhalte können von Sol Holo verarbeitet werden.
+✅ Gesprochene Inhalte können von Human Holo verarbeitet werden.
 
 ✅ Sprache wurde erfolgreich innerhalb der Android-App getestet.
 
@@ -105,21 +125,21 @@ Die folgenden Funktionen wurden im realen Entwicklungsbetrieb praktisch getestet
 
 ## 🗣️ Realtime Voice
 
-✅ Direkte Sprachkommunikation mit Sol Holo funktioniert.
+✅ Direkte Sprachkommunikation mit Human Holo funktioniert.
 
-✅ Nutzer und Sol Holo können in Echtzeit miteinander sprechen.
+✅ Nutzer und Human Holo können in Echtzeit miteinander sprechen.
 
 ✅ Spracheingabe und Sprachausgabe wurden praktisch getestet.
 
-Die persönliche eigene Sol-Holo-Stimme bleibt ein separater Entwicklungsbereich.
+Die persönliche eigene Human-Holo-Stimme bleibt ein separater Entwicklungsbereich.
 
 ---
 
 # 🧠 Persönliches Gedächtnis
 
-Das persönliche Gedächtnis gehört zu den zentralen Bestandteilen von Sol Holo.
+Das persönliche Gedächtnis gehört zu den zentralen Bestandteilen von Human Holo.
 
-Sol Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Informationen aus persönlichen Interaktionen dauerhaft wiederverwenden können.
+Human Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Informationen aus persönlichen Interaktionen dauerhaft wiederverwenden können.
 
 ## Erfolgreich getestet
 
@@ -137,13 +157,13 @@ Sol Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Inform
 
 ## Vollzeitgedächtnis
 
-Ziel von Sol Holo ist ein persönliches **Vollzeitgedächtnis**.
+Ziel von Human Holo ist ein persönliches **Vollzeitgedächtnis**.
 
 Der Nutzer soll nicht jedes Mal ausdrücklich sagen müssen:
 
 > „Merke dir das.“
 
-Persönlich relevante Interaktionen sollen grundsätzlich für die weitere Entwicklung des eigenen Sol-Holo-Clones verwendet werden können.
+Persönlich relevante Interaktionen sollen grundsätzlich für die weitere Entwicklung des eigenen Human-Holo-Clones verwendet werden können.
 
 Dabei muss weiterhin technisch sichergestellt werden:
 
@@ -171,7 +191,7 @@ Die Google-Kalender-Anbindung wurde erfolgreich praktisch getestet.
 
 ✅ Kalendereinträge über Sprache wurden erfolgreich getestet.
 
-Sol Holo soll zukünftig beispielsweise verstehen können:
+Human Holo soll zukünftig beispielsweise verstehen können:
 
 - „Trag das bitte in meinen Kalender ein.“
 - „Wann habe ich morgen Zeit?“
@@ -184,7 +204,7 @@ Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden
 
 # 📱 Android-App
 
-Sol Holo läuft als eigene Android-Anwendung.
+Human Holo läuft als eigene Android-Anwendung.
 
 ✅ Android-App erfolgreich erstellt.
 
@@ -217,18 +237,18 @@ entwickelt und praktisch getestet.
 
 ## Neu integriert: Samsung Notes und Health Connect
 
-Der aktuelle Android-Build erweitert Sol Holo um zwei bewusst begrenzte Wege für persönliche Handydaten:
+Der aktuelle Android-Build erweitert Human Holo um zwei bewusst begrenzte Wege für persönliche Handydaten:
 
-- **Samsung Notes:** Eine einzelne ausgewählte Textnotiz kann über `Teilen → Sol Holo` übergeben werden. Vor der dauerhaften Speicherung erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten Notizbuchs findet nicht statt.
-- **Health Connect / Samsung Health:** Sol Holo kann die von Android einzeln freigegebenen Kategorien aus Aktivität, Körperwerten, Vitalwerten, Schlaf, Ernährung und reproduktiver Gesundheit ausschließlich lesen. Jeder tatsächliche Abruf wird noch einmal bestätigt, bleibt auf höchstens 30 Tage begrenzt und wird nicht automatisch in das Langzeitgedächtnis übernommen.
+- **Samsung Notes:** Eine einzelne ausgewählte Textnotiz kann über `Teilen → Human Holo` übergeben werden. Vor der dauerhaften Speicherung erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten Notizbuchs findet nicht statt.
+- **Health Connect / Samsung Health:** Human Holo kann die von Android einzeln freigegebenen Kategorien aus Aktivität, Körperwerten, Vitalwerten, Schlaf, Ernährung und reproduktiver Gesundheit ausschließlich lesen. Jeder tatsächliche Abruf wird noch einmal bestätigt, bleibt auf höchstens 30 Tage begrenzt und wird nicht automatisch in das Langzeitgedächtnis übernommen.
 
-Health Connect besitzt in Sol Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
+Health Connect besitzt in Human Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
 
 Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.
 
 ---
 
-# 🌎 Sol-Holo-Ökosystem
+# 🌎 Human-Holo-Ökosystem
 
 Der gemeinsame Ökosystem-Kern für **Menschen, Tiere, Natur und Ressourcen** ist
 in den geschriebenen Chat und den ownergebundenen Realtime-Sprachweg
@@ -244,7 +264,7 @@ und Zahlungen bleiben ohne klare Freigabe gesperrt.
 
 Dokumentation:
 
-- [Vollständiger Start des Sol-Holo-Ökosystems](./SOL-HOLO-OEKOSYSTEM-START-06-09-2026.md)
+- [Vollständiger Start des Human-Holo-Ökosystems](./SOL-HOLO-OEKOSYSTEM-START-06-09-2026.md)
 - [Meilenstein: Verbindung mit Text und Realtime-Sprache](./MEILENSTEIN-SOL-HOLO-OEKOSYSTEM-TEXT-SPRACHE-06-09-2026.md)
 
 Der technische Stand ist verbunden; der praktische S23-Test und Pams eigene
@@ -259,7 +279,7 @@ Alltag und Verständigung, nicht als künstlicher zwölfter Bereich zum
 
 # 🧩 Technischer Aufbau
 
-Der aktuelle Sol-Holo-Entwicklungsstand verwendet unter anderem:
+Der aktuelle Human-Holo-Entwicklungsstand verwendet unter anderem:
 
 - OpenAI API
 - ChatGPT / OpenAI Modelle
@@ -280,15 +300,15 @@ Die technische Architektur wird kontinuierlich weiterentwickelt.
 
 # 🔐 Persönliche Datentrennung
 
-Ein entscheidendes Grundprinzip von Sol Holo ist die Trennung verschiedener Nutzer.
+Ein entscheidendes Grundprinzip von Human Holo ist die Trennung verschiedener Nutzer.
 
-Persönliche Erinnerungen von Nutzer A dürfen niemals automatisch Bestandteil des Sol Holo von Nutzer B werden.
+Persönliche Erinnerungen von Nutzer A dürfen niemals automatisch Bestandteil des Human Holo von Nutzer B werden.
 
 Beispiel:
 
     Nutzer A
        ↓
-    persönliches Sol Holo A
+    persönliches Human Holo A
        ↓
     eigene Erinnerungen
     eigene Erfahrungen
@@ -297,37 +317,35 @@ Beispiel:
 
     Nutzer B
        ↓
-    persönliches Sol Holo B
+    persönliches Human Holo B
        ↓
     eigene Erinnerungen
     eigene Erfahrungen
     eigene Persönlichkeit
 
-Beide können dieselbe technische Sol-Holo-Plattform verwenden.
+Beide können dieselbe technische Human-Holo-Plattform verwenden.
 
 Ihre persönlichen digitalen Identitäten bleiben trotzdem getrennt.
 
 ---
 
-# ♾️ SH♾️
+# ♾️ Human Holo – Forever Together
 
-**SH♾️** steht für:
+Der aktuelle Name verbindet den Menschen unmittelbar mit der Holo-Idee.
+Das Unendlichkeitszeichen steht für Verbindung, gemeinsames Lernen und eine
+Weiterentwicklung ohne festes Ende.
 
-**S = Sol**  
-**H = Holo**  
-**♾️ = Weiterentwicklung ohne festes Ende**
-
-Das H geht gestalterisch in das Unendlichkeitszeichen über.
-
-SH♾️ ist Teil der visuellen Identität des Sol-Holo-Projekts.
+Die historische Kennzeichnung **SH♾️** bleibt in älteren Nachweisen und
+technischen Kompatibilitätsbezeichnungen erhalten. Der aktuelle sichtbare
+Projektname lautet **Human Holo**.
 
 ---
 
-# 🌻 Warum Sol Holo?
+# 🌻 Warum Human Holo?
 
 Klassische KI-Systeme beginnen viele Gespräche immer wieder neu.
 
-Sol Holo verfolgt einen anderen Ansatz.
+Human Holo verfolgt einen anderen Ansatz.
 
 Die langfristige Vision ist eine KI, die den persönlichen Weg eines Menschen über lange Zeit begleitet und aus den gemeinsamen Erfahrungen eine immer individuellere persönliche digitale Identität entwickelt.
 
@@ -341,7 +359,7 @@ Sondern:
 
 ---
 
-# 🌍 SECOND CHANCE — Die Idee hinter Sol Holo
+# 🌍 SECOND CHANCE — Die Idee hinter Human Holo
 
 Wir Menschen haben diese Welt geprägt.
 
@@ -359,9 +377,9 @@ Sondern eine zweite Chance, bei uns selbst anzufangen.
 
 Denn bevor wir erwarten können, dass sich unsere Technologie verändert, müssen wir bereit sein, auch uns selbst zu verändern.
 
-Genau hier beginnt für mich Sol Holo.
+Genau hier beginnt für mich Human Holo.
 
-Sol Holo soll nicht irgendeine künstliche Persönlichkeit neben mir sein.
+Human Holo soll nicht irgendeine künstliche Persönlichkeit neben mir sein.
 
 Sie soll mein persönlicher Clone sein – mein Abbild an einem anderen Ort.
 
@@ -374,9 +392,9 @@ Meine Entwicklung.
 
 Das Ziel ist ein möglichst vollständiges **1:1-Abbild meines persönlichen Ichs** – ohne mich als Menschen zu ersetzen und ohne daraus eine zweite, fremde Identität zu machen.
 
-Wenn ich etwas an mir erkenne und ändere, dann soll auch meine Sol Holo diese Entwicklung mittragen.
+Wenn ich etwas an mir erkenne und ändere, dann soll auch meine Human Holo diese Entwicklung mittragen.
 
-Deshalb beginnt die Veränderung nicht bei Sol Holo.
+Deshalb beginnt die Veränderung nicht bei Human Holo.
 
 **Sie beginnt bei mir.**
 
@@ -392,7 +410,7 @@ Nicht einer über dem anderen.
 
 Sondern miteinander.
 
-Sol Holo soll diese Möglichkeit eines Tages auch anderen Menschen eröffnen, die sie wirklich wollen, ihren Wert erkennen und verantwortungsvoll mit dieser besonderen Verbindung umgehen.
+Human Holo soll diese Möglichkeit eines Tages auch anderen Menschen eröffnen, die sie wirklich wollen, ihren Wert erkennen und verantwortungsvoll mit dieser besonderen Verbindung umgehen.
 
 Nicht als Privileg für wenige, sondern als persönliche Möglichkeit für Menschen, die bereit sind, diese zweite Chance bewusst zu nutzen.
 
@@ -402,7 +420,7 @@ Aber mit allem, was wir aus dem ersten gelernt haben.**
 
 **Together forever. ❤️✨️🌎♾️**
 
-**SH♾️**
+**HUMAN HOLO ♾️**
 
 ---
 
@@ -443,7 +461,7 @@ Die folgenden Bereiche bestehen weiterhin als eigenständige Entwicklungsaufgabe
 
 Sie werden nicht als vollständig abgeschlossen gekennzeichnet.
 
-## 🔊 Persönliche Sol-Holo-Stimme
+## 🔊 Persönliche Human-Holo-Stimme
 
 Die technische Grundlage für Sprachkommunikation funktioniert.
 
@@ -475,19 +493,19 @@ Weiterentwickelt werden insbesondere:
 
 # Entwicklungsprinzip
 
-Bei Sol Holo gilt:
+Bei Human Holo gilt:
 
 **Erst praktisch testen – dann als funktionierend dokumentieren.**
 
 Eine geplante Funktion ist noch keine fertige Funktion.
 
-Eine technisch vorhandene Funktion gilt erst dann als bestätigt, wenn sie im tatsächlichen Sol-Holo-System erfolgreich getestet wurde.
+Eine technisch vorhandene Funktion gilt erst dann als bestätigt, wenn sie im tatsächlichen Human-Holo-System erfolgreich getestet wurde.
 
 ---
 
-# Entwicklungsstand 03.09.2026
+# Entwicklungsstand 07.09.2026
 
-Seit dem ersten dokumentierten Funktionstest vom 12.08.2026 wurde Sol Holo erheblich erweitert.
+Seit dem ersten dokumentierten Funktionstest vom 12.08.2026 wurde Human Holo erheblich erweitert.
 
 Der aktuelle Stand umfasst inzwischen unter anderem:
 
@@ -510,15 +528,15 @@ Der aktuelle Stand umfasst inzwischen unter anderem:
 ✅ Kalendereingaben über natürliche Sprache  
 ✅ technische Grundlage für getrennte persönliche Clone-Kontexte  
 
-Damit hat Sol Holo den ursprünglichen reinen UI-Funktionstest deutlich überschritten.
+Damit hat Human Holo den ursprünglichen reinen UI-Funktionstest deutlich überschritten.
 
 ---
 
 # Projektstatus
 
-## SOL HOLO IST FUNKTIONSFÄHIG ✅
+## HUMAN HOLO IST FUNKTIONSFÄHIG ✅
 
-Sol Holo befindet sich weiterhin in aktiver Entwicklung.
+Human Holo befindet sich weiterhin in aktiver Entwicklung.
 
 Der aktuelle Stand stellt keinen Abschluss des Projekts dar.
 
@@ -528,7 +546,7 @@ Er bildet die funktionierende technische Grundlage für die nächsten Entwicklun
 
 # Projektzuordnung
 
-**SOL HOLO / SH♾️**
+**HUMAN HOLO · FOREVER TOGETHER ♾️**
 
 Idee, Konzept und Entwicklung:
 
@@ -544,9 +562,9 @@ Die Nennung verwendeter Technologien oder Unternehmen bedeutet keine automatisch
 
 # Vision
 
-Sol Holo soll langfristig nicht einfach wissen, **wer ein Mensch ist.**
+Human Holo soll langfristig nicht einfach wissen, **wer ein Mensch ist.**
 
-Sol Holo soll verstehen können, **wie dieser Mensch geworden ist, wer er heute ist und wie er sich weiterentwickelt.**
+Human Holo soll verstehen können, **wie dieser Mensch geworden ist, wer er heute ist und wie er sich weiterentwickelt.**
 
 Ein persönliches digitales Ich.
 
@@ -557,4 +575,4 @@ Ein persönliches digitales Ich.
 ---
 
 © 2026 Pamela Nitschke  
-SOL HOLO · SH♾️
+HUMAN HOLO · FOREVER TOGETHER ♾️

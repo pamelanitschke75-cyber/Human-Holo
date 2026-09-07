@@ -1,5 +1,5 @@
 /**
- * Sol Holo - Identitaets- und Gedaechtnisrichtlinie
+ * Human Holo - Identitaets- und Gedaechtnisrichtlinie
  *
  * Dieses Modul ist absichtlich unabhaengig von Express, PostgreSQL und der UI.
  * Text und Sprache durchlaufen dadurch exakt dieselbe Speicherentscheidung.

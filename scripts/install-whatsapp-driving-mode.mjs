@@ -83,7 +83,7 @@ if (!strings.includes('name="whatsapp_auto_send_accessibility_description"')) {
   strings = strings.replace(
     resourcesEnd,
     "    <string name=\"whatsapp_auto_send_accessibility_description\">" +
-      "Sendet nach einem ausdrücklichen Sol-Holo-Auftrag genau eine " +
+      "Sendet nach einem ausdrücklichen Human-Holo-Auftrag genau eine " +
       "WhatsApp-Nachricht und prüft dafür Empfänger, Text und Senden-Schaltfläche." +
       "</string>\n" + resourcesEnd
   );
@@ -455,7 +455,7 @@ if (!manifest.includes(".WhatsAppAutoSendAccessibilityService")) {
     applicationEnd,
     `        <service
             android:name=".WhatsAppAutoSendAccessibilityService"
-            android:label="Sol Holo – WhatsApp automatisch senden"
+            android:label="Human Holo – WhatsApp automatisch senden"
             android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>

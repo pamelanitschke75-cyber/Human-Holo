@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "phase": "2b",
-  "name": "Sol Holo – sichtbare Verbindung zur Alltag-Laborvorschau",
+  "name": "Human Holo – sichtbare Verbindung zur Alltag-Laborvorschau",
   "status": "implemented-disabled-by-default",
   "productive": false,
   "active_worker": "worker-alltag",

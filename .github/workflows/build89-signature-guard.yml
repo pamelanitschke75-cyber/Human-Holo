@@ -1,9 +1,9 @@
-name: Pam’s Holo · Build #89 Signaturwächter
+name: Human Holo · Build #89 Signaturwächter
 
 on:
   workflow_run:
     workflows:
-      - "Pam’s Holo Android APK · Sol Holo"
+      - "Human Holo Android APK · Pam’s Holo"
     types:
       - completed
 
@@ -40,11 +40,11 @@ jobs:
 
           selected = [
               item for item in artifacts
-              if str(item.get('name', '')).startswith('Pams-Holo-Android-')
+              if str(item.get('name', '')).startswith('Human-Holo-Android-')
           ]
           if len(selected) != 1:
               raise SystemExit(
-                  f'Erwartet genau ein Pam’s-Holo-Android-Artefakt, gefunden: {len(selected)}'
+                  f'Erwartet genau ein Human-Holo-Android-Artefakt, gefunden: {len(selected)}'
               )
 
           artifact = selected[0]
@@ -62,12 +62,12 @@ jobs:
             > artifact.zip
           unzip -q artifact.zip -d artifacts
 
-      - name: Nur fertig signierte Pam’s-Holo-Update-APK zulassen
+      - name: Nur fertig signierte Human-Holo-Update-APK zulassen
         run: |
           set -Eeuo pipefail
-          mapfile -t signed_apks < <(find artifacts -type f -name 'Pams-Holo-Update.apk' -print)
+          mapfile -t signed_apks < <(find artifacts -type f -name 'Human-Holo-Update.apk' -print)
           if [[ ${#signed_apks[@]} -ne 1 ]]; then
-            echo "FEHLER: Es wurde keine eindeutig fertig signierte Pams-Holo-Update.apk erzeugt."
+            echo "FEHLER: Es wurde keine eindeutig fertig signierte Human-Holo-Update.apk erzeugt."
             echo "Ein unsigniertes oder extern zu signierendes Artefakt ist KEIN freigegebenes Update."
             exit 1
           fi
@@ -111,8 +111,8 @@ jobs:
           {
             echo "## ✅ Build #89 Signatur bestätigt"
             echo
-            echo "Das Android-Artefakt enthält genau eine fertige \`Pams-Holo-Update.apk\`."
+            echo "Das Android-Artefakt enthält genau eine fertige \`Human-Holo-Update.apk\`."
             echo "Der SHA-256-Zertifikatsfingerabdruck stimmt exakt mit der festgelegten Build-#89-Referenz überein."
             echo
-            echo "Nur ein Build mit diesem erfolgreichen Wächter darf als Pam’s-Holo-Update veröffentlicht werden."
+            echo "Nur ein Build mit diesem erfolgreichen Wächter darf als Human-Holo-Update veröffentlicht werden."
           } >> "$GITHUB_STEP_SUMMARY"

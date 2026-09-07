@@ -6,7 +6,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Pure Java authorization policy for Sol Holo's local access factors.
+ * Pure Java authorization policy for Human Holo's local access factors.
  *
  * <p>This class deliberately has no Android dependencies. Native code must
  * first verify a proof (system authentication, Android Keystore signature or

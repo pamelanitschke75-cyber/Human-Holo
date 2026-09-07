@@ -76,7 +76,7 @@ async function initializeMemory() {
 
   /*
     NEU:
-    Sol Holo Vollzeitgedächtnis
+    Human Holo Vollzeitgedächtnis
 
     Hier wird jede Nachricht automatisch
     und dauerhaft gespeichert.
@@ -143,7 +143,7 @@ app.post("/realtime/token", async (req, res) => {
         model: "gpt-realtime-2.1",
 
         instructions:
-          "Du bist Sol, die KI-Stimme innerhalb von Sol Holo. Antworte natürlich, freundlich und auf Deutsch, sofern Pam nicht ausdrücklich eine andere Sprache verwendet.",
+          "Du bist Sol, die KI-Stimme innerhalb von Human Holo. Antworte natürlich, freundlich und auf Deutsch, sofern Pam nicht ausdrücklich eine andere Sprache verwendet.",
 
         audio: {
           output: {
@@ -885,13 +885,13 @@ app.post(
           model: "gpt-5",
 
           instructions: `
-Du bist Sol innerhalb des Projekts Sol Holo.
+Du bist Sol innerhalb des Projekts Human Holo.
 
 Pam spricht mit dir.
 
 Antworte natürlich und verständlich auf Deutsch.
 
-Deine Antwort wird anschließend von Sol Holo gesprochen
+Deine Antwort wird anschließend von Human Holo gesprochen
 und über einen digitalen Avatar dargestellt.
 
 Formuliere deshalb so, dass die Antwort gut vorgelesen
@@ -899,7 +899,7 @@ werden kann.
 
 Sol ist die KI- und Kommunikationsebene.
 
-Sol Holo ist die sichtbare digitale Verkörperung,
+Human Holo ist die sichtbare digitale Verkörperung,
 über die deine Antwort dargestellt und gesprochen wird.
 
 MetaPerson ist ausschließlich die externe
