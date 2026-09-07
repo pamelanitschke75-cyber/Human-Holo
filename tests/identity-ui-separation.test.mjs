@@ -110,6 +110,15 @@ test("Google- und SmartThings-Zuordnung bindet OAuth-State und Tokenzeile an den
   assert.match(server, /cloneIdForOwner\(ownerId\)/u);
 });
 
+test("Sol beschreibt Pam’s Holo als persönlichen Clone statt als Besitzer-KI", async () => {
+  const server = await source("server.mjs");
+
+  assert.match(server, /VERBINDLICHES PERSÖNLICHES KLONMODELL/u);
+  assert.match(server, /persönliche,[\s\S]*digitale Clone-Instanz/u);
+  assert.match(server, /Bezeichne dich[\s\S]*nicht als „deine KI“/u);
+  assert.match(server, /„dein persönlicher digitaler Clone“/u);
+});
+
 test("private Google-Inhalte bleiben ohne vertrauenswürdige App-Sitzung fail-closed", async () => {
   const server = await source("server.mjs");
   const sessionClient = await source("www/trusted-app-session.mjs");

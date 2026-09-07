@@ -2,6 +2,7 @@ package com.solholo.app;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,12 +23,15 @@ import java.util.Queue;
 public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
     private static final int MAX_VISITED_NODES = 600;
     private static final long RETRY_INTERVAL_MS = 180L;
+    private static final long RETURN_TO_SOL_DELAY_MS = 700L;
+    private static final long RETURN_TO_SOL_FALLBACK_MS = 800L;
     private static final int MAX_CLICKABLE_ANCESTOR_DEPTH = 3;
     private static volatile WhatsAppAutoSendAccessibilityService activeInstance;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private String scheduledExpiryToken = "";
     private String scheduledRetryToken = "";
+    private String scheduledReturnToken = "";
 
     @Override
     protected void onServiceConnected() {
@@ -201,6 +205,71 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
                 ? "WhatsApp an " + claimed.recipientName + " automatisch gesendet."
                 : "Nicht automatisch gesendet: WhatsApp hat den Sendeauftrag abgelehnt."
         );
+        if (clicked) {
+            scheduleReturnToSolHolo(claimed);
+        }
+    }
+
+    private void scheduleReturnToSolHolo(
+        WhatsAppAutoSendCommand.Pending sent
+    ) {
+        scheduledReturnToken = sent.token;
+        mainHandler.postDelayed(() -> {
+            if (
+                !sent.token.equals(scheduledReturnToken)
+                    || !isPackageInForeground(sent.packageName)
+            ) {
+                return;
+            }
+
+            boolean backAccepted;
+            try {
+                backAccepted = performGlobalAction(GLOBAL_ACTION_BACK);
+            } catch (RuntimeException error) {
+                backAccepted = false;
+            }
+
+            if (!backAccepted) {
+                scheduledReturnToken = "";
+                launchSolHoloAfterSend();
+                return;
+            }
+
+            mainHandler.postDelayed(() -> {
+                if (!sent.token.equals(scheduledReturnToken)) {
+                    return;
+                }
+                scheduledReturnToken = "";
+                if (
+                    !HeyHoSolPlugin.isActivityVisible()
+                        && isPackageInForeground(sent.packageName)
+                ) {
+                    launchSolHoloAfterSend();
+                }
+            }, RETURN_TO_SOL_FALLBACK_MS);
+        }, RETURN_TO_SOL_DELAY_MS);
+    }
+
+    private boolean isPackageInForeground(String packageName) {
+        AccessibilityNodeInfo root = getRootInActiveWindow();
+        return root != null
+            && root.getPackageName() != null
+            && packageName.contentEquals(root.getPackageName());
+    }
+
+    private void launchSolHoloAfterSend() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+        intent.putExtra("whatsapp_auto_send_return", true);
+        try {
+            startActivity(intent);
+        } catch (RuntimeException ignored) {
+            // Der bereits angezeigte Erfolgs-Toast bleibt als sichere Rückmeldung.
+        }
     }
 
     private AccessibilityNodeInfo findExactDraft(
@@ -423,6 +492,7 @@ public class WhatsAppAutoSendAccessibilityService extends AccessibilityService {
         PhoneContactsPlugin.publishWhatsAppAutoSendResult(
             pending.token,
             pending.recipientName,
+            pending.message,
             sendControlActivated,
             reason
         );
