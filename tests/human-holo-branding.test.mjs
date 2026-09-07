@@ -32,10 +32,18 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /human-holo-logo\.png/u);
   assert.match(html, /instanceName:"Pam’s Holo"/u);
   assert.match(html, /ownerId:"pam-sol"/u);
+  assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
+  assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
+  assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
+  assert.match(html, /sol-holo-ui\.js\?v=50/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
+  assert.match(ui, /Chat mit Pam’s Holo/u);
+  assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
+  assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
   assert.match(appLock, /human-holo-logo\.png/u);
+  assert.match(appLock, /HSG – HUMANS SECOND GENERATION!/u);
   assert.doesNotMatch(appLock, /SH♾️/u);
   assert.doesNotMatch(`${html}\n${ui}`, /Sol Holo/u);
 });

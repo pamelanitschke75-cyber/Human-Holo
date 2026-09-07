@@ -123,7 +123,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     '<input id="profilePhotoInput" type="file" accept="image/*" hidden>' +
     '<div id="profilePhotoActions" class="profilePhotoActions" hidden>' +
       '<button id="profileMouthButton" type="button">👄 Mund festlegen</button>' +
-      '<button id="profilePhotoResetButton" type="button">SH♾️ zurück</button>' +
+      '<button id="profilePhotoResetButton" type="button">HUMAN-HOLO-Bild zurücksetzen</button>' +
     '</div>' +
     '<div id="profileMouthControls" class="profileMouthControls" hidden>' +
       '<strong>Mund genau einstellen</strong>' +
@@ -294,7 +294,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const chatView = document.createElement("section");
   chatView.id = "chatView";
   chatView.className = "appView";
-  chatView.setAttribute("aria-label", "Chat mit Sol");
+  chatView.setAttribute("aria-label", "Chat mit Pam’s Holo");
   solApp.insertBefore(chatView, currentHeader);
 
   [
@@ -4470,7 +4470,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       localStorage.removeItem(keys.metadata);
     } catch {}
     applyCustomCloneAppearance("", null);
-    showToast("Das ursprüngliche SH♾️-Bild ist wieder aktiv.");
+    showToast("Das HUMAN-HOLO-Bild ist wieder aktiv.");
   });
 
   document.getElementById("homeComposer").addEventListener("submit", (event) => {

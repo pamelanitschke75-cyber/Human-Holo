@@ -64,6 +64,13 @@ body{
   filter:drop-shadow(0 0 22px rgba(107,98,255,.42));
 }
 
+#solHoloBootScreen .humanHoloMission{
+  color:#fff;
+  font-size:clamp(17px,4.8vw,23px);
+  font-weight:800;
+  letter-spacing:.02em;
+}
+
 #solHoloBootScreen span{
   color:#d7d4e8;
   font-size:16px;
@@ -1581,6 +1588,7 @@ MOBIL
     src="./human-holo-logo.png"
     alt="Human Holo – Forever Together"
   >
+  <span class="humanHoloMission">HSG – HUMANS SECOND GENERATION!</span>
   <span>Human Holo wird sicher vorbereitet …</span>
 </div>
 
@@ -1691,7 +1699,7 @@ Du kannst noch etwas dazu schreiben oder es direkt senden.
   <button
     id="confirmMediaButton"
     type="button">
-    Video an Sol senden
+    Video senden
   </button>
 </div>
 
@@ -1705,13 +1713,13 @@ Du kannst noch etwas dazu schreiben oder es direkt senden.
 <textarea
   id="messageInput"
   rows="1"
-  placeholder="Schreib Sol etwas..."
+  placeholder="Schreib deinem Holo etwas..."
   autocomplete="off"
   autocapitalize="sentences"
   autocorrect="on"
   spellcheck="true"
   enterkeyhint="send"
-  aria-label="Nachricht an Sol"></textarea>
+  aria-label="Nachricht an Pam’s Holo"></textarea>
 
 <button
   id="sendButton"
@@ -1740,7 +1748,7 @@ Du kannst noch etwas dazu schreiben oder es direkt senden.
 <button
   id="liveButton"
   type="button"
-  aria-label="Mit Sol sprechen">
+  aria-label="Mit Pam’s Holo sprechen">
 🎙️
 </button>
 
@@ -1804,7 +1812,7 @@ Me, Myself &amp; I. 💜
 
 
 <div id="voiceStatus">
-Sol verbindet sich ...
+Pam’s Holo verbindet sich ...
 </div>
 
 
@@ -1982,7 +1990,7 @@ Mehr
   id="closeMenuButton"
   class="drawerButton"
   type="button">
-← Zurück zu Sol
+← Zurück zum Chat
 </button>
 
 <div class="drawerVoiceSettings">
@@ -2041,6 +2049,9 @@ Schreiben bereit.
 
 const BACKEND_URL =
   "https://sol-holo.onrender.com";
+
+const HOLO_CHAT_SPEAKER =
+  "Du";
 
 
 function backendJsonHeaders(
@@ -7431,7 +7442,7 @@ async function loadFulltimeHistory(){
             addMessage(
               role === "user"
                 ? identity.displayName
-                : "Sol",
+                : HOLO_CHAT_SPEAKER,
               entry?.content,
               role === "user"
                 ? "user-message"
@@ -7703,7 +7714,7 @@ async function sendMessage(
         );
 
       addMessage(
-        "Sol",
+        HOLO_CHAT_SPEAKER,
         localAnswer,
         "sol-message"
       );
@@ -7983,7 +7994,7 @@ async function sendMessage(
         "Die feste Holo-ID konnte vom Server nicht bestätigt werden. Es wurden keine persönlichen Daten geladen.";
 
       addMessage(
-        "Sol",
+        HOLO_CHAT_SPEAKER,
         identityQuestion,
         "sol-message"
       );
@@ -8133,7 +8144,7 @@ async function sendMessage(
 
 
     addMessage(
-      "Sol",
+      HOLO_CHAT_SPEAKER,
       answer,
       "sol-message",
       null,
@@ -8508,7 +8519,7 @@ async function(
 
 
   addMessage(
-    "Sol",
+    HOLO_CHAT_SPEAKER,
     chatText,
     "sol-message"
   );
@@ -8617,7 +8628,7 @@ function showExecutedRealtimeResult({
 
 
   addMessage(
-    "Sol",
+    HOLO_CHAT_SPEAKER,
     answer,
     "sol-message",
     null,
@@ -9180,7 +9191,7 @@ async function handleRealtimeLocalNoteTranscript(
 
 
     addMessage(
-      "Sol",
+      HOLO_CHAT_SPEAKER,
       localAnswer,
       "sol-message"
     );
@@ -9742,7 +9753,7 @@ async function handleRealtimeMemoryToolCall(
       );
       output = result.answer;
       addMessage(
-        "Sol",
+        HOLO_CHAT_SPEAKER,
         result.answer,
         "sol-message",
         null,
@@ -10840,7 +10851,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=49"></script>
+<script src="./sol-holo-ui.js?v=50"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=1"></script>
