@@ -1,0 +1,108 @@
+name: Publish Human Holo Build 223
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-human-holo-build-223.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Geprüftes HUMAN-HOLO-Artefakt herunterladen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34145868918 \
+            --repo "${{ github.repository }}" \
+            --name "Human-Holo-Android-update" \
+            --dir artifact
+
+      - name: HUMAN-HOLO-Update vollständig prüfen
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_apk="$(find artifact -type f -name 'Human-Holo-Update.apk' -print -quit)"
+          asset="Human-Holo-Update-Build-223-Ohne-Balken.apk"
+          expected_apk="e3aaadd022f91faf3407399603f696cc8b998ef5782140500109b78672263a35"
+          expected_certificate="e122201077b93cb47edb6951446fb8dff77427a2f5a2bd4719474a638fe803e9"
+          expected_logo="cb6a2c621230bb2cac7e04e3ef4225dbd41546301544e3e24b9a5bd169fbd354"
+          expected_portrait="fd28c28c4c9a912477156f6a825cad9f9735d45feab33a4d288c83846f8a57d7"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk"
+          build_tools="$(find "$android_sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+
+          test -n "$source_apk"
+          test -s "$source_apk"
+          test -x "$build_tools/apksigner"
+          test -x "$build_tools/aapt"
+          cp -- "$source_apk" "$asset"
+          printf '%s  %s\n' "$expected_apk" "$asset" | sha256sum -c -
+
+          verification="$($build_tools/apksigner verify --verbose --print-certs "$asset")"
+          printf '%s\n' "$verification"
+          grep -Fq 'Verified using v1 scheme (JAR signing): true' <<< "$verification"
+          grep -Fq 'Verified using v2 scheme (APK Signature Scheme v2): true' <<< "$verification"
+          grep -Fq 'Verified using v3 scheme (APK Signature Scheme v3): true' <<< "$verification"
+          grep -Fq "certificate SHA-256 digest: $expected_certificate" <<< "$verification"
+
+          badging="$($build_tools/aapt dump badging "$asset")"
+          grep -Fq "package: name='com.solholo.app'" <<< "$badging"
+          grep -Fq "versionCode='223'" <<< "$badging"
+          grep -Fq "application-label:'Human Holo'" <<< "$badging"
+          manifest_dump="$($build_tools/aapt dump xmltree "$asset" AndroidManifest.xml)"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' <<< "$manifest_dump"
+
+          unzip -p "$asset" assets/public/human-holo-logo.png > "$RUNNER_TEMP/human-holo-logo.png"
+          unzip -p "$asset" assets/public/file_000000009bf88246b8f682a46e1a429d.png > "$RUNNER_TEMP/pams-holo.png"
+          printf '%s  %s\n' "$expected_logo" "$RUNNER_TEMP/human-holo-logo.png" | sha256sum -c -
+          printf '%s  %s\n' "$expected_portrait" "$RUNNER_TEMP/pams-holo.png" | sha256sum -c -
+
+          unzip -p "$asset" assets/public/index.html > "$RUNNER_TEMP/index.html"
+          unzip -p "$asset" assets/public/sol-holo-ui.js > "$RUNNER_TEMP/sol-holo-ui.js"
+          unzip -p "$asset" assets/public/sol-holo-ui.css > "$RUNNER_TEMP/sol-holo-ui.css"
+          unzip -p "$asset" assets/public/app-lock-bootstrap.mjs > "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+
+          grep -Fq 'sol-holo-ui.js?v=53' "$RUNNER_TEMP/index.html"
+          grep -Fq 'sol-holo-ui.css?v=42' "$RUNNER_TEMP/index.html"
+          grep -Fq 'BY PAMELA NITSCHKE AND STEFANIE HÖRATH' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'DEVELOPED WITH <strong>CHATGPT BY OPENAI</strong>' "$RUNNER_TEMP/sol-holo-ui.js"
+          ! grep -Fq 'IN COOPERATION WITH' "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'top:auto;' "$RUNNER_TEMP/sol-holo-ui.css"
+          grep -Fq 'bottom:12px;' "$RUNNER_TEMP/sol-holo-ui.css"
+          credits_css="$(sed -n '/\.humanHoloPosterCredits{/,/^}/p' "$RUNNER_TEMP/sol-holo-ui.css")"
+          ! grep -Eq 'background:|border:|backdrop-filter:|padding:' <<< "$credits_css"
+          grep -Fq 'human-holo-logo.png' "$RUNNER_TEMP/app-lock-bootstrap.mjs"
+
+          unzip -p "$asset" 'classes*.dex' > "$RUNNER_TEMP/classes.dex"
+          strings "$RUNNER_TEMP/classes.dex" > "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'whatsapp_auto_send_return' "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'manualSendRequired' "$RUNNER_TEMP/classes-strings.txt"
+
+      - name: Direkten APK-Download veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          tag="build-223-human-holo-ohne-balken"
+          asset="Human-Holo-Update-Build-223-Ohne-Balken.apk"
+          notes="Originalsigniertes Android-Update aus dem erfolgreichen Haupt-Build 223. Der Namensblock steht in seiner ursprünglichen freien Schrift direkt unter dem HUMAN-HOLO-Unendlichkeitszeichen, ohne Balken, Rahmen oder zusätzliche Fläche. Pamela Nitschke und Stefanie Hörath bleiben gemeinsam genannt. Die sachliche Zeile 'DEVELOPED WITH CHATGPT BY OPENAI' ersetzt die missverständliche Kooperationsaussage. Motiv, Pam’s Holo, Du-Chat, Gedächtnis, Einstellungen, Besitzerkennung, Paket-ID, Hey Pam, Stimmprofil und WhatsApp-Automatik bleiben erhalten. Installation ausschließlich als Update über die vorhandene App; bitte nicht deinstallieren."
+
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$tag" "$asset" \
+              --repo "${{ github.repository }}" \
+              --target "2a434c3e8356e0fb8a59b904e2662f86efb20bb0" \
+              --title "HUMAN HOLO – Schrift ohne Balken · Build 223" \
+              --notes "$notes"
+          fi
