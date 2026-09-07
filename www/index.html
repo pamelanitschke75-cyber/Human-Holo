@@ -1577,8 +1577,8 @@ MOBIL
 <link rel="stylesheet" href="./sol-holo-ui.css?v=45">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=1">
-<link rel="stylesheet" href="./sol-holo-backup.css?v=1">
-<link rel="stylesheet" href="./human-holo-theme.css?v=2">
+<link rel="stylesheet" href="./sol-holo-backup.css?v=2">
+<link rel="stylesheet" href="./human-holo-theme.css?v=3">
 </head>
 
 <body>
@@ -1990,7 +1990,7 @@ Mehr
 <div class="drawerVoiceSettings">
 
 <label for="solVoiceSelect">
-🔊 Sols Stimme
+🔊 Pam’s Holos Stimme
 </label>
 
 <select id="solVoiceSelect">
@@ -3681,7 +3681,7 @@ function enterVoiceMode(){
 
 
   voiceStatus.textContent =
-    "Sol verbindet sich ...";
+    "Pam’s Holo verbindet sich ...";
 
 
   requestAnimationFrame(
@@ -4101,7 +4101,7 @@ imageInput.addEventListener(
           )} · ${(
             file.size /
             (1024 * 1024)
-          ).toFixed(1)} MB<br>Noch nicht übertragen. Erst „Video an Sol senden“ gibt Bildfolge und Tonspur einmalig zur Auswertung frei.`
+          ).toFixed(1)} MB<br>Noch nicht übertragen. Erst „Video an Pam’s Holo senden“ gibt Bildfolge und Tonspur einmalig zur Auswertung frei.`
           :
           "Foto bereit.<br>Du kannst noch etwas dazu schreiben oder es direkt senden.";
 
@@ -6096,7 +6096,7 @@ async function attachHeadAudioVisemes(
 
 
     lipSyncStatus.textContent =
-      "👄 Echte Sprachlaute steuern Sols natürliche Mundbewegung.";
+      "👄 Echte Sprachlaute steuern Pam’s Holos natürliche Mundbewegung.";
 
 
     return true;
@@ -6228,7 +6228,7 @@ async function startLipSync(
 
 
     lipSyncStatus.textContent =
-      "👄 Sols Mund folgt der Stimme.";
+      "👄 Der Mund von Pam’s Holo folgt der Stimme.";
 
 
     requestLipSyncFrame();
@@ -6727,6 +6727,49 @@ window.visualViewport?.addEventListener(
   keepLatestMessageVisible
 );
 
+function humanHoloVisibleText(value){
+
+  let visibleText =
+    String(value ?? "");
+
+
+  visibleText = visibleText
+    .replace(
+      /(^|\n)(\s*)Sol\s*,\s*/giu,
+      "$1$2"
+    )
+    .replace(
+      /\bSol[- ]Holo\b/giu,
+      "Human Holo"
+    )
+    .replace(
+      /\bSols\b/gu,
+      "Pam’s Holos"
+    )
+    .replace(
+      /\bSol\b/gu,
+      "Pam’s Holo"
+    );
+
+
+  return visibleText.replace(
+    /^(\s*)([a-zäöü])/u,
+    (
+      _match,
+      whitespace,
+      firstLetter
+    ) =>
+      whitespace +
+      firstLetter.toLocaleUpperCase(
+        "de-DE"
+      )
+  );
+}
+
+
+window.humanHoloVisibleText =
+  humanHoloVisibleText;
+
 function addMessage(
   speaker,
   text,
@@ -6764,7 +6807,7 @@ function addMessage(
 
 
   const cleanText =
-    String(
+    humanHoloVisibleText(
       text || ""
     ).trim();
 
@@ -7761,9 +7804,9 @@ async function sendMessage(
       :
       imageToSend
         ?
-        "Sol schaut sich das Foto an ..."
+        "Pam’s Holo schaut sich das Foto an ..."
         :
-        "Sol denkt ...";
+        "Pam’s Holo denkt ...";
 
 
   try{
@@ -7898,13 +7941,13 @@ async function sendMessage(
         videoAudioStatusToSend ===
           "transcribed"
           ?
-          "Sprache erkannt · Sol analysiert jetzt Bildfolge und Inhalt ..."
+          "Sprache erkannt · Pam’s Holo analysiert jetzt Bildfolge und Inhalt ..."
           : videoAudioStatusToSend ===
               "no_speech"
             ?
-            "Keine verständliche Sprache erkannt · Sol analysiert die Bildfolge ..."
+            "Keine verständliche Sprache erkannt · Pam’s Holo analysiert die Bildfolge ..."
             :
-            "Ton technisch nicht verfügbar · Sol analysiert die Bildfolge ...";
+            "Ton technisch nicht verfügbar · Pam’s Holo analysiert die Bildfolge ...";
     }
 
     const response =
@@ -7973,7 +8016,7 @@ async function sendMessage(
       throw new Error(
         response.ok
           ?
-          "Sol hat keine gültige Antwort geliefert."
+          "Pam’s Holo hat keine gültige Antwort geliefert."
           :
           `Serverfehler (${response.status}).`
       );
@@ -8006,7 +8049,7 @@ async function sendMessage(
 
       throw new Error(
         data?.error ||
-        "Verbindung zu Sol fehlgeschlagen."
+        "Verbindung zu Pam’s Holo fehlgeschlagen."
       );
     }
 
@@ -8109,7 +8152,7 @@ async function sendMessage(
     ){
 
       throw new Error(
-        "Sol hat keine Antwort geliefert."
+        "Pam’s Holo hat keine Antwort geliefert."
       );
     }
 
@@ -8204,7 +8247,7 @@ async function sendMessage(
       "System",
 
       error?.message ||
-      "Verbindung zu Sol fehlgeschlagen.",
+      "Verbindung zu Pam’s Holo fehlgeschlagen.",
 
       "system-message"
     );
@@ -8304,7 +8347,7 @@ memoryButton.addEventListener(
 
 
     await sendMessage(
-      "Sol, was weißt du dauerhaft?"
+      "Was weißt du dauerhaft?"
     );
   }
 );
@@ -10011,7 +10054,7 @@ async function startLiveConversation(){
 
 
   setLiveStatus(
-    "Sol verbindet sich ..."
+    "Pam’s Holo verbindet sich ..."
   );
 
 
@@ -10378,12 +10421,12 @@ async function startLiveConversation(){
 
 
             setLiveStatus(
-              "🌻 Sol spricht ..."
+              "🌻 Pam’s Holo spricht ..."
             );
 
 
             lipSyncStatus.textContent =
-              "👄 Sol spricht · Mundbewegung aktiv.";
+              "👄 Pam’s Holo spricht · Mundbewegung aktiv.";
           }
 
 
@@ -10477,12 +10520,12 @@ async function startLiveConversation(){
 
 
             setLiveStatus(
-              "🌻 Sol spricht ..."
+              "🌻 Pam’s Holo spricht ..."
             );
 
 
             lipSyncStatus.textContent =
-              "👄 Sol spricht · natürliche Bewegung aktiv.";
+              "👄 Pam’s Holo spricht · natürliche Bewegung aktiv.";
           }
 
 
@@ -10495,7 +10538,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Sol spricht · Mundbewegung aktiv.";
+              "👄 Pam’s Holo spricht · Mundbewegung aktiv.";
           }
 
 
@@ -10554,7 +10597,7 @@ async function startLiveConversation(){
 
 
             setLiveStatus(
-              "Sol hat gerade ein Verbindungsproblem."
+              "Pam’s Holo hat gerade ein Verbindungsproblem."
             );
           }
 
@@ -10608,7 +10651,7 @@ async function startLiveConversation(){
 
 
           setLiveStatus(
-            "Verbindung zu Sol unterbrochen."
+            "Verbindung zu Pam’s Holo unterbrochen."
           );
         }
       }
@@ -10845,9 +10888,9 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=56"></script>
+<script src="./sol-holo-ui.js?v=57"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
-<script type="module" src="./sol-holo-backup.mjs?v=1"></script>
+<script type="module" src="./sol-holo-backup.mjs?v=2"></script>
 </body>
 </html>

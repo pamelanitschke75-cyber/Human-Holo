@@ -12,7 +12,8 @@
   --human-holo-glass-cyan:rgba(72,222,255,.8);
 }
 
-/* Das quadratische Motiv vollstaendig zeigen, ohne den Bildschirm zu verlaengern. */
+/* Landschaftsmotiv ohne Leerbalken zeigen; die seitlich erweiterte Bildfläche
+   hält Gesichter, Erde und Unendlichkeitszeichen vollständig im sicheren Fokus. */
 .humanHoloHero{
   isolation:isolate;
   border:1px solid transparent;
@@ -34,10 +35,10 @@
   z-index:1;
   top:50%;
   left:50%;
-  width:auto;
+  width:100%;
   height:100%;
-  max-width:none;
-  object-fit:contain;
+  max-width:100%;
+  object-fit:cover;
   object-position:center;
   transform:translate(-50%,-50%);
   filter:saturate(1.02) contrast(1.03) brightness(.99)
@@ -514,6 +515,61 @@
     radial-gradient(circle at 50% 0,rgba(255,255,255,.2),transparent 38%),
     linear-gradient(145deg,rgba(151,78,233,.74),rgba(48,91,197,.67));
   box-shadow:0 0 13px rgba(77,222,255,.3),0 0 25px rgba(164,77,255,.37),inset 0 1px 0 rgba(255,255,255,.17);
+}
+
+/* Auch Sicherung, Import und alle darin erzeugten Inhalte bleiben im Glasstil. */
+.solBackupOverlay{
+  background:
+    radial-gradient(circle at 14% 9%,rgba(154,82,255,.3),transparent 31%),
+    radial-gradient(circle at 88% 17%,rgba(45,203,255,.24),transparent 34%),
+    rgba(1,8,42,.78);
+  backdrop-filter:blur(22px) saturate(1.3);
+  -webkit-backdrop-filter:blur(22px) saturate(1.3);
+}
+
+.solBackupDialog,
+.solBackupCard,
+.humanHoloMemoryImportList{
+  border:1px solid transparent;
+  color:#fff;
+  background:
+    radial-gradient(circle at 24% 4%,rgba(255,255,255,.19),transparent 34%) padding-box,
+    linear-gradient(145deg,rgba(91,111,225,.58),rgba(31,31,123,.69)) padding-box,
+    linear-gradient(135deg,rgba(220,234,255,.82),rgba(187,104,255,.78) 49%,rgba(75,226,255,.88)) border-box;
+  box-shadow:
+    0 0 13px rgba(70,218,255,.34),
+    0 0 29px rgba(158,77,255,.36),
+    inset 0 1px 0 rgba(255,255,255,.2);
+  backdrop-filter:blur(21px) saturate(1.32);
+  -webkit-backdrop-filter:blur(21px) saturate(1.32);
+}
+
+.solBackupDialog{
+  box-shadow:
+    0 24px 70px rgba(0,5,45,.55),
+    0 0 18px rgba(70,218,255,.38),
+    0 0 38px rgba(158,77,255,.4),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.solBackupCard :is(h3,label),
+.solBackupHeader h2{
+  color:#fff;
+  text-shadow:0 0 12px rgba(104,207,255,.34);
+}
+
+.solBackupLead,
+.solBackupHint,
+.solBackupExclusions,
+.solBackupExclusions summary{
+  color:rgba(234,239,255,.79);
+}
+
+.solBackupCard input[type="password"]{
+  border:1px solid rgba(211,230,255,.64);
+  color:#fff;
+  background:linear-gradient(145deg,rgba(76,89,196,.45),rgba(28,30,116,.57));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 0 12px rgba(74,208,255,.2);
 }
 
 @media(max-width:370px){

@@ -38,7 +38,7 @@ test("Realtime und Text erhalten dieselbe verbindliche Weckrufregel", () => {
   );
   assert.match(
     serverSource,
-    /Sol ist der Name der Assistentin, nicht der persönliche Weckname/u
+    /Frühere Projekt- oder Assistenznamen sind keine[\s\S]*?persönlichen Wecknamen/u
   );
   assert.match(
     serverSource,

@@ -275,6 +275,53 @@ test("Store legt nur additive Tabellen/Indizes an und veraendert Legacy-Daten ni
   assert.doesNotMatch(schemaSql, /\b(?:DROP|DELETE|TRUNCATE|ALTER)\b/iu);
 });
 
+test("bestätigter Pam-Stapel wird atomar ergänzt und ersetzt alte Fakten nur im Abruf", async () => {
+  const calls = [];
+  const database = {
+    async query(sql, parameters = []) {
+      calls.push({ sql, parameters });
+      if (/\bblocked AS\s*\(/u.test(sql)) {
+        return {
+          rows: [
+            {
+              blocked_count: 1,
+              inserted_count: 2
+            }
+          ]
+        };
+      }
+      return { rows: [] };
+    }
+  };
+  const store = createIdentityMemoryStore({ database });
+
+  const result = await store.importConfirmedBatch({
+    ownerId: "pam-sol",
+    speakerId: "pam",
+    contents: ["Aktuelle bestätigte Angabe A.", "Aktuelle bestätigte Angabe B."],
+    supersededContents: ["Alte ungenaue Angabe."]
+  });
+
+  assert.deepEqual(result, {
+    accepted: 2,
+    inserted: 2,
+    alreadyStored: 0,
+    superseded: 1
+  });
+  const importCall = calls.find(({ sql }) => /\bblocked AS\s*\(/u.test(sql));
+  assert.deepEqual(importCall.parameters, [
+    "pam-sol",
+    "pam",
+    ["Alte ungenaue Angabe."],
+    ["Aktuelle bestätigte Angabe A.", "Aktuelle bestätigte Angabe B."]
+  ]);
+  assert.match(importCall.sql, /SET recall_status = 'blocked'/u);
+  assert.match(importCall.sql, /sol_identity_memory_supersession/u);
+  assert.match(importCall.sql, /'owner_batch_import'/u);
+  assert.match(importCall.sql, /ON CONFLICT DO NOTHING/u);
+  assert.doesNotMatch(importCall.sql, /\b(?:DELETE|DROP|TRUNCATE)\b/iu);
+});
+
 test("Store verweigert jeden Write ohne positive Policy-Entscheidung", async () => {
   const database = createRecordingDatabase();
   const auditEvents = [];

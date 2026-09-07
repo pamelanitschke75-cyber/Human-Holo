@@ -3,6 +3,78 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 (() => {
   "use strict";
 
+  function normalizedVisibleText(value) {
+    const normalizer = window.humanHoloVisibleText;
+    if (typeof normalizer === "function") {
+      return normalizer(value);
+    }
+
+    return String(value ?? "")
+      .replace(/(^|\n)(\s*)Sol\s*,\s*/giu, "$1$2")
+      .replace(/\bSol[- ]Holo\b/giu, "Human Holo")
+      .replace(/\bSols\b/gu, "Pam’s Holos")
+      .replace(/\bSol\b/gu, "Pam’s Holo")
+      .replace(/^(\s*)([a-zäöü])/u, (_match, whitespace, firstLetter) =>
+        whitespace + firstLetter.toLocaleUpperCase("de-DE")
+      );
+  }
+
+  function applyHumanHoloVisibleNaming(root = document) {
+    if (root?.nodeType === Node.TEXT_NODE) {
+      const normalized = normalizedVisibleText(root.nodeValue);
+      if (normalized !== root.nodeValue) {
+        root.nodeValue = normalized;
+      }
+      return;
+    }
+
+    const elements = [];
+    if (root?.nodeType === Node.ELEMENT_NODE) {
+      elements.push(root);
+    }
+    if (typeof root?.querySelectorAll === "function") {
+      elements.push(...root.querySelectorAll("*"));
+    }
+
+    for (const element of elements) {
+      if (element.dataset?.solPrompt) {
+        element.dataset.solPrompt = normalizedVisibleText(
+          element.dataset.solPrompt
+        );
+      }
+      for (const attribute of ["aria-label", "placeholder", "title"]) {
+        if (!element.hasAttribute?.(attribute)) continue;
+        const current = element.getAttribute(attribute);
+        const normalized = normalizedVisibleText(current);
+        if (normalized !== current) {
+          element.setAttribute(attribute, normalized);
+        }
+      }
+    }
+
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          return /^(?:SCRIPT|STYLE)$/u.test(node.parentElement?.tagName || "")
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    const textNodes = [];
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode);
+    }
+    for (const node of textNodes) {
+      const normalized = normalizedVisibleText(node.nodeValue);
+      if (normalized !== node.nodeValue) {
+        node.nodeValue = normalized;
+      }
+    }
+  }
+
   const solApp = document.getElementById("app");
   const currentHeader = solApp?.querySelector(":scope > header");
   const currentControls = document.getElementById("controls");
@@ -54,7 +126,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     <button id="homeOrbButton" class="humanHoloHero" type="button"
       aria-label="Sprachgespräch mit Pam’s Holo starten">
-      <img src="human-holo-logo.png"
+      <img src="human-holo-home-hero.png"
         alt="Mensch und Holo verbunden durch ein leuchtendes Unendlichkeitszeichen und die Erde">
       <span class="humanHoloSideMotto humanHoloSideMotto--left" aria-hidden="true">
         Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡
@@ -152,7 +224,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
-    profileMemoryState.textContent = "Nur nach Bestätigung";
+    profileMemoryState.textContent = "Immer aktiv · updatefest";
   }
 
   const notesView = document.createElement("section");
@@ -165,14 +237,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         aria-label="Zurück zur Startseite">‹</button>
       <div id="notesViewTitle" class="subHeaderTitle">Notizen ✏️</div>
       <button id="notesVoiceButton" class="iconButton" type="button"
-        aria-label="Notiz mit Sol sprechen">◉</button>
+        aria-label="Notiz mit Pam’s Holo sprechen">◉</button>
     </div>
 
     <div class="notesIntro glassCard">
       <span class="notesIntroIcon" aria-hidden="true">✎</span>
       <div>
         <h3>Dein Notizbuch in Pam’s Holo</h3>
-        <p>Schreib hier direkt – oder sag: „Sol, notiere …“</p>
+        <p>Schreib hier direkt – oder sag: „Notiere …“</p>
       </div>
     </div>
 
@@ -297,7 +369,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       '<span id="heyHoSolStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>' +
     '<div id="wakeModeChooser" class="wakeModeChooser" ' +
-      'aria-label="Sol-Weckruf-Hörmodus auswählen">' +
+      'aria-label="Hey-Pam-Hörmodus auswählen">' +
       '<button type="button" data-wake-mode="off">Aus</button>' +
       '<button type="button" data-wake-mode="foreground">App offen</button>' +
       '<button type="button" data-wake-mode="background">Hintergrund</button>' +
@@ -774,7 +846,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName} erinnert sich nur an ausdrücklich bestätigte Inhalte von ${displayName}. Diese Installation kann niemals die Identität oder Erinnerungen einer anderen Person laden.`
+        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Eure Text- und Sprachgespräche werden Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben auch bei App- und Designupdates erhalten; eine andere Person kann sie niemals laden.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
     }
 
@@ -790,7 +862,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const permissionCopy = document.querySelector("#servicesView .permissionNote");
     if (permissionCopy) {
       permissionCopy.textContent = identity
-        ? `${instanceName} speichert normale Alltagsinhalte nur auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung.`
+        ? `Euer Dialog bleibt automatisch in ${instanceName}s ownergebundenem Vollzeitgedächtnis. Zusätzliche Alltagsinhalte wie Listen speichert ${instanceName} auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung.`
         : "Die feste Holo-ID ist nicht verfügbar. Keine persönliche Verbindung wird geladen.";
     }
 
@@ -846,7 +918,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   let openClawAlltagPreviewCompleted = false;
 
   function showToast(text) {
-    uiToast.textContent = String(text || "");
+    uiToast.textContent = normalizedVisibleText(text);
     uiToast.classList.add("visible");
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => {
@@ -1384,7 +1456,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         : "Noch keine Notiz.";
       emptyCopy.textContent = query
         ? "Versuch einen anderen Suchbegriff."
-        : "Schreib oben etwas hinein oder sag: „Sol, notiere …“";
+        : "Schreib oben etwas hinein oder sag: „Notiere …“";
     }
 
     visibleNotes.forEach((note) => {
@@ -1904,7 +1976,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (state === "ready") {
       profileMouthButton.hidden = true;
       profilePhotoHelp.textContent =
-        "Gesicht lokal erkannt · Augen, Wangen, Kiefer und Lippen bewegen sich mit Sol.";
+        "Gesicht lokal erkannt · Augen, Wangen, Kiefer und Lippen bewegen sich mit Pam’s Holo.";
       return;
     }
 
@@ -2028,7 +2100,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       `Bild für ${activePersonalName()}s Holo aus der Galerie ändern`
     );
     profilePhotoHelp.textContent =
-      "Mund gespeichert · natürliche Mundformen folgen der echten Sol-Stimme.";
+      "Mund gespeichert · natürliche Mundformen folgen der echten Holo-Stimme.";
     window.SolHoloClone?.setMouthGeometry(customCloneMouth);
 
     try {
@@ -2113,7 +2185,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function askSol(prompt) {
-    const cleanPrompt = String(prompt || "").trim();
+    const cleanPrompt = normalizedVisibleText(prompt).trim();
     if (!cleanPrompt) {
       return;
     }
@@ -3103,7 +3175,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
               pendingToken: String(handoff?.pendingToken || ""),
               answer:
                 `Der einmalige automatische WhatsApp-Sendeauftrag an ${contact.name} läuft. ` +
-                "Sol sendet nur, wenn Empfänger und vollständiger Text in WhatsApp exakt stimmen."
+                "Pam’s Holo sendet nur, wenn Empfänger und vollständiger Text in WhatsApp exakt stimmen."
             }
           : {
               success: true,
@@ -3675,7 +3747,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       const confirmed = window.confirm(
         `Health-Connect-Daten der letzten ${days} Tage jetzt lesend abrufen?\n\n` +
-        "Die freigegebenen Werte werden nur für diese bestätigte Antwort an Sol " +
+        "Die freigegebenen Werte werden nur für diese bestätigte Holo-Antwort " +
         "verarbeitet, nicht verändert und nicht automatisch als Erinnerung gespeichert."
       );
       if (!confirmed) {
@@ -4172,7 +4244,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       statusElement.textContent = "Stimme fehlt";
       statusElement.classList.add("setup");
     } else if (wakeStatus.pausedForConversation) {
-      statusElement.textContent = "Sol spricht";
+      statusElement.textContent = "Holo spricht";
       statusElement.classList.add("connected");
     } else if (
       wakeStatus.mode === "background" &&
@@ -4228,7 +4300,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         if (event?.stage === "phrase_heard") {
           showToast("„Hey Pam“ gehört · deine Stimme wird geprüft …");
         } else if (event?.stage === "owner_accepted") {
-          showToast("Stimme freigegeben · Sol startet ✨");
+          showToast("Stimme freigegeben · Pam’s Holo startet ✨");
         } else if (event?.stage === "owner_rejected") {
           showToast(
             "„Hey Pam“ gehört · Stimme nicht freigegeben 🔒" + scoreText
@@ -4288,7 +4360,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const plugin = getHeyHoSolPlugin();
     if (!plugin) {
-      showToast("Der Sol-Weckruf ist nur in der Android-App verfügbar.");
+      showToast("Der Hey-Pam-Weckruf ist nur in der Android-App verfügbar.");
       return;
     }
 
@@ -4313,9 +4385,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           "Hintergrund-Hören und automatisches Öffnen sind aktiv."
         );
       } else if (mode === "foreground") {
-        showToast("Sol hört nur auf den Weckruf, solange die App geöffnet ist.");
+        showToast("Pam’s Holo hört nur auf den Weckruf, solange die App geöffnet ist.");
       } else {
-        showToast("Der Sol-Weckruf ist ausgeschaltet.");
+        showToast("Der Hey-Pam-Weckruf ist ausgeschaltet.");
       }
     } catch (error) {
       const message = String(error?.message || error || "");
@@ -4330,7 +4402,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           await plugin.openSpeechSettings();
         } catch {}
       } else {
-        showToast(message || "Der Sol-Weckruf konnte gerade nicht aktiviert werden.");
+        showToast(message || "Der Hey-Pam-Weckruf konnte gerade nicht aktiviert werden.");
       }
 
       await loadWakeStatus();
@@ -4382,7 +4454,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     pendingWakePrompt = String(
       event?.phrase || "Hey Pam"
     );
-    showToast("Stimme freigegeben · Sol startet ✨");
+    showToast("Stimme freigegeben · Pam’s Holo startet ✨");
     await startSolVoice();
   }
 
@@ -4405,7 +4477,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const promptButton = event.target.closest("[data-sol-prompt]");
     if (promptButton) {
-      void askSol(promptButton.dataset.solPrompt);
+      void askSol(normalizedVisibleText(promptButton.dataset.solPrompt));
     }
   });
 
@@ -4665,7 +4737,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   document.getElementById("manageMemoriesButton").addEventListener("click", () => {
-    void askSol("Sol, was weißt du dauerhaft?");
+    void askSol("Was weißt du dauerhaft?");
   });
 
   document.getElementById("refreshServicesButton").addEventListener("click", () => {
@@ -4881,7 +4953,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   document.getElementById("liveWeatherRow")?.addEventListener(
     "click",
-    () => void askSol("Sol, wie ist das Wetter?")
+    () => void askSol("Wie ist das Wetter?")
   );
 
   document.getElementById("healthConnectRow").addEventListener("click", () => {
@@ -4958,6 +5030,29 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   renderPersonalNotes();
   renderPersonalIdentityUi();
   restoreCustomCloneAppearance();
+  document.querySelectorAll(".pamUnicorn, #chatUnicornSignature").forEach(
+    node => node.remove()
+  );
+  applyHumanHoloVisibleNaming(document);
+  const visibleNamingObserver = new MutationObserver((records) => {
+    for (const record of records) {
+      if (record.type === "characterData") {
+        const normalized = normalizedVisibleText(record.target.nodeValue);
+        if (normalized !== record.target.nodeValue) {
+          record.target.nodeValue = normalized;
+        }
+        continue;
+      }
+      for (const node of record.addedNodes) {
+        applyHumanHoloVisibleNaming(node);
+      }
+    }
+  });
+  visibleNamingObserver.observe(document.body, {
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
   showView("home");
   void loadGoogleStatus();
   void loadSmartThingsStatus();

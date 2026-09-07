@@ -11,6 +11,14 @@ const html = fs.readFileSync(
   new URL("../www/index.html", import.meta.url),
   "utf8"
 );
+const ui = fs.readFileSync(
+  new URL("../www/sol-holo-ui.js", import.meta.url),
+  "utf8"
+);
+const backup = fs.readFileSync(
+  new URL("../www/sol-holo-backup.mjs", import.meta.url),
+  "utf8"
+);
 
 function routeBlock(path, nextPath) {
   const start = server.indexOf(path);
@@ -126,4 +134,70 @@ test("persönliche Rückfragen durchsuchen bestätigte und vollständige Histori
     server,
     /PASSENDE EINTRÄGE AUS BESTÄTIGTEN ERINNERUNGEN UND VOLLZEITGEDÄCHTNIS/u
   );
+});
+
+test("frühere Holo-Antworten gelten niemals als persönliche Fakten", () => {
+  assert.match(
+    server,
+    /function ownerGroundedPersonalMemoryRows[\s\S]*?row\?\.role === "user" \|\| row\?\.role === "memory"/u
+  );
+  assert.match(
+    server,
+    /return ownerGroundedPersonalMemoryRows\(result\.rows\)\.filter/u
+  );
+  assert.match(
+    server,
+    /Frühere Antworten der Assistenz sind niemals\nBelege/u
+  );
+  assert.match(server, /jüngste Korrektur/u);
+  assert.match(server, /standesamtliche Trauung von einer späteren Hochzeitsfeier/u);
+});
+
+test("alter ungebundener Bestand wird ausschließlich Pam lesend wieder angebunden", () => {
+  assert.match(
+    server,
+    /async function loadLegacyPamMemoryEvidence[\s\S]*?identity\?\.ownerId !== "pam-sol"[\s\S]*?identity\?\.speakerId !== "pam"[\s\S]*?return \[\]/u
+  );
+  assert.match(
+    server,
+    /loadLegacyPamMemoryEvidence\(\s*tokenIdentity/u
+  );
+  assert.match(
+    server,
+    /loadLegacyPamMemoryEvidence\(\s*identity/u
+  );
+  assert.match(
+    server,
+    /async function loadLegacyPamLongTermMemoryEvidence[\s\S]*?identity\?\.ownerId !== "pam-sol"[\s\S]*?identity\?\.speakerId !== "pam"[\s\S]*?return \[\]/u
+  );
+  assert.match(
+    server,
+    /loadLegacyPamLongTermMemoryEvidence\(\s*tokenIdentity/u
+  );
+  assert.match(
+    server,
+    /loadLegacyPamLongTermMemoryEvidence\(\s*identity/u
+  );
+});
+
+test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest", () => {
+  const importRoute = routeBlock(
+    '"/memory/import-confirmed"',
+    "Geschützter Abruf für Realtime-Tool-Calls"
+  );
+
+  assert.match(importRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(importRoute, /identity\.ownerId !== "pam-sol"/u);
+  assert.match(importRoute, /identity\.speakerId !== "pam"/u);
+  assert.match(importRoute, /batchConfirmation !== true/u);
+  assert.match(importRoute, /identityMemoryStore\.importConfirmedBatch/u);
+  assert.match(importRoute, /alwaysOn:\s*true/u);
+  assert.match(importRoute, /updateSafe:\s*true/u);
+  assert.match(backup, /Alle Erinnerungen übernehmen/u);
+  assert.match(backup, /humanHoloMemoryImportList/u);
+  assert.match(backup, /SolHoloTrustedSession\?\.ensure/u);
+  assert.match(backup, /\/memory\/import-confirmed/u);
+  assert.match(ui, /Immer aktiv · updatefest/u);
+  assert.match(ui, /Vollzeitgedächtnis ist immer aktiv/u);
+  assert.match(ui, /auch bei App- und Designupdates erhalten/u);
 });

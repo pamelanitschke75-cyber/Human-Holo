@@ -14,8 +14,13 @@ import {
 const state = {
   selectedFileName: "",
   selectedFileContents: "",
-  restorePlan: null
+  restorePlan: null,
+  memoryImportFileName: "",
+  memoryImport: null
 };
+
+const HUMAN_HOLO_BACKEND_URL = "https://sol-holo.onrender.com";
+const MEMORY_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
 
 function currentIdentity() {
   const identity = window.SolHoloIdentity?.selected?.();
@@ -37,6 +42,12 @@ function setBusy(busy) {
   document.querySelectorAll("[data-sol-backup-action]").forEach((button) => {
     button.disabled = Boolean(busy);
   });
+  if (!busy) {
+    const importButton = document.getElementById("humanHoloMemoryImportCommit");
+    if (importButton) {
+      importButton.disabled = !state.memoryImport;
+    }
+  }
   document.getElementById("solBackupDialog")?.setAttribute(
     "aria-busy",
     String(Boolean(busy))
@@ -245,6 +256,186 @@ async function verifyAndRestore() {
   }
 }
 
+function validateConfirmedMemoryExport(value) {
+  if (
+    value?.schema_version !== "1.0" ||
+    value?.export_type !== "pam-sol-confirmed-memory-copy" ||
+    value?.transfer?.mode !== "copy" ||
+    value?.transfer?.source_delete !== false ||
+    value?.transfer?.target_owner_id !== BACKUP_OWNER_ID ||
+    value?.transfer?.target_speaker_id !== "pam" ||
+    value?.transfer?.public_repository_allowed !== false ||
+    !Array.isArray(value?.memories) ||
+    value.memories.length < 1 ||
+    value.memories.length > 250
+  ) {
+    throw new Error("Diese Datei ist kein freigegebener Erinnerungsstapel für Pam.");
+  }
+
+  for (const memory of value.memories) {
+    const content = String(memory?.content || "").trim();
+    if (
+      !/^confirmed_/u.test(String(memory?.state || "")) ||
+      !content ||
+      content.length > 10_000
+    ) {
+      throw new Error("Die Erinnerungsdatei enthält einen ungültigen Eintrag.");
+    }
+  }
+
+  return value;
+}
+
+function renderMemoryImportList(memoryExport) {
+  const list = document.getElementById("humanHoloMemoryImportList");
+  const importButton = document.getElementById("humanHoloMemoryImportCommit");
+  const fileName = document.getElementById("humanHoloMemoryImportFileName");
+  if (!list || !importButton || !fileName) return;
+
+  list.replaceChildren();
+  for (const memory of memoryExport.memories) {
+    const item = document.createElement("li");
+    item.textContent = String(memory.content || "").trim();
+    list.appendChild(item);
+  }
+  list.hidden = false;
+  fileName.textContent =
+    `${state.memoryImportFileName} · ${memoryExport.memories.length} Erinnerungen`;
+  importButton.textContent =
+    `Alle ${memoryExport.memories.length} Erinnerungen jetzt übernehmen`;
+  importButton.disabled = false;
+}
+
+async function selectConfirmedMemoryImport() {
+  setBusy(true);
+  setStatus("Private Erinnerungsdatei wird geöffnet …");
+  try {
+    const file = await chooseMemoryImportFile();
+    const byteLength = new TextEncoder().encode(file.contents).byteLength;
+    if (!byteLength || byteLength > MEMORY_IMPORT_MAX_BYTES) {
+      throw new Error("Die Erinnerungsdatei ist leer oder größer als 2 MB.");
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(file.contents);
+    } catch {
+      throw new Error("Die ausgewählte Erinnerungsdatei ist kein gültiges JSON.");
+    }
+
+    state.memoryImportFileName = file.fileName;
+    state.memoryImport = validateConfirmedMemoryExport(parsed);
+    renderMemoryImportList(state.memoryImport);
+    setStatus(
+      `${state.memoryImport.memories.length} private Erinnerungen geprüft. ` +
+      "Lies die Liste und bestätige darunter die vollständige Übernahme.",
+      "success"
+    );
+  } finally {
+    setBusy(false);
+  }
+}
+
+function chooseMemoryImportFile() {
+  const plugin = backupPlugin();
+  if (plugin?.openEncryptedBackup) {
+    return plugin.openEncryptedBackup().then((result) => {
+      if (!result?.contents) {
+        throw new Error("Die ausgewählte Erinnerungsdatei ist leer.");
+      }
+      return {
+        fileName: String(result.fileName || "Human-Holo-Erinnerungen.json"),
+        contents: String(result.contents)
+      };
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const input = document.getElementById("humanHoloMemoryImportFile");
+    const cleanup = () => {
+      input.removeEventListener("change", onChange);
+      input.removeEventListener("cancel", onCancel);
+    };
+    const onChange = async () => {
+      try {
+        resolve(await readBrowserFile(input.files?.[0]));
+      } catch (error) {
+        reject(error);
+      } finally {
+        cleanup();
+        input.value = "";
+      }
+    };
+    const onCancel = () => {
+      cleanup();
+      reject(new Error("Dateiauswahl abgebrochen."));
+    };
+    input.addEventListener("change", onChange);
+    input.addEventListener("cancel", onCancel);
+    input.click();
+  });
+}
+
+async function importConfirmedMemoryBatch() {
+  const identity = currentIdentity();
+  if (!identity || !state.memoryImport) {
+    throw new Error("Bitte wähle zuerst Pams Erinnerungsdatei aus.");
+  }
+
+  const count = state.memoryImport.memories.length;
+  const confirmed = window.confirm(
+    `Alle ${count} angezeigten Erinnerungen dauerhaft in Pam’s Holo übernehmen?\n\n` +
+    "Bestehende Erinnerungen und der Vollzeitverlauf bleiben erhalten."
+  );
+  if (!confirmed) {
+    setStatus("Erinnerungsimport abgebrochen. Es wurde nichts verändert.");
+    return;
+  }
+
+  setBusy(true);
+  setStatus("Sichere Gerätefreigabe und Erinnerungsimport werden vorbereitet …");
+  try {
+    const trustedSession = await window.SolHoloTrustedSession?.ensure?.({
+      interactive: true
+    });
+    if (!trustedSession?.trusted) {
+      throw new Error("Die sichere App-Sitzung wurde nicht bestätigt.");
+    }
+
+    const response = await fetch(
+      `${HUMAN_HOLO_BACKEND_URL}/memory/import-confirmed`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...window.SolHoloTrustedSession.headers()
+        },
+        body: JSON.stringify({
+          memoryExport: state.memoryImport,
+          batchConfirmation: true
+        }),
+        cache: "no-store"
+      }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.imported !== true) {
+      throw new Error(
+        String(data?.error || "Der Erinnerungsimport wurde nicht bestätigt.")
+      );
+    }
+
+    setStatus(
+      `${data.accepted} Erinnerungen sind jetzt mit Pam verbunden: ` +
+      `${data.inserted} neu, ${data.alreadyStored} bereits vorhanden, ` +
+      `${data.superseded} alte Angaben sicher ersetzt. ` +
+      "Always-on-Vollzeitgedächtnis bleibt updatefest aktiv.",
+      "success"
+    );
+  } finally {
+    setBusy(false);
+  }
+}
+
 function markup() {
   const exclusions = EXCLUDED_BACKUP_CATEGORIES
     .map((category) => `<li>${category}</li>`)
@@ -282,7 +473,7 @@ function markup() {
           <button id="solBackupCreate" class="primaryButton" type="button"
             data-sol-backup-action>Verschlüsselte Kopie speichern</button>
           <p class="solBackupHint">
-            Das Passwort wird nicht gespeichert und kann von Sol nicht
+            Das Passwort wird nicht gespeichert und kann von Pam’s Holo nicht
             wiederhergestellt werden. Bewahre es getrennt von der Datei auf.
           </p>
         </section>
@@ -303,6 +494,34 @@ function markup() {
           <p class="solBackupHint">
             Vor jeder Änderung siehst du eine Zusammenfassung und bestätigst
             sie. Vorhandene Notizen und Dialoge werden nicht gelöscht.
+          </p>
+        </section>
+
+        <section class="solBackupCard" aria-labelledby="humanHoloMemoryImportTitle">
+          <h3 id="humanHoloMemoryImportTitle">Alle Erinnerungen übernehmen</h3>
+          <p class="solBackupHint">
+            Übernimmt einen privaten, bestätigten Pam-Erinnerungsstapel in das
+            dauerhafte Servergedächtnis. Das Always-on-Vollzeitgedächtnis bleibt
+            bei App- und Designupdates unverändert aktiv.
+          </p>
+          <input id="humanHoloMemoryImportFile" type="file"
+            accept=".json,application/json" hidden>
+          <button id="humanHoloMemoryImportSelect" class="secondaryButton"
+            type="button" data-sol-backup-action>
+            Private Erinnerungsdatei auswählen
+          </button>
+          <p id="humanHoloMemoryImportFileName" class="solBackupFileName">
+            Noch keine Erinnerungsdatei ausgewählt
+          </p>
+          <ol id="humanHoloMemoryImportList" class="humanHoloMemoryImportList"
+            aria-label="Vollständige Liste der zu übernehmenden Erinnerungen" hidden></ol>
+          <button id="humanHoloMemoryImportCommit" class="primaryButton"
+            type="button" data-sol-backup-action disabled>
+            Erinnerungen prüfen und übernehmen
+          </button>
+          <p class="solBackupHint">
+            Die Übernahme ist additiv. Alte, ausdrücklich ersetzte Angaben
+            werden nur für den Abruf gesperrt und nicht aus der Historie gelöscht.
           </p>
         </section>
 
@@ -359,6 +578,26 @@ function installUi() {
   document.getElementById("solBackupRestore")?.addEventListener("click", () => {
     void verifyAndRestore().catch((error) => setStatus(error.message, "error"));
   });
+  document.getElementById("humanHoloMemoryImportSelect")?.addEventListener(
+    "click",
+    () => {
+      void selectConfirmedMemoryImport().catch((error) => {
+        if (String(error?.message || "").toLowerCase().includes("abgebrochen")) {
+          setStatus("Dateiauswahl abgebrochen.");
+          return;
+        }
+        setStatus(error.message, "error");
+      });
+    }
+  );
+  document.getElementById("humanHoloMemoryImportCommit")?.addEventListener(
+    "click",
+    () => {
+      void importConfirmedMemoryBatch().catch((error) =>
+        setStatus(error.message, "error")
+      );
+    }
+  );
 }
 
 installUi();

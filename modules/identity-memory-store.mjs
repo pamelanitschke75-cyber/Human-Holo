@@ -59,6 +59,43 @@ function searchPatterns(value) {
     .map((term) => `%${term}%`);
 }
 
+function confirmedBatchValues(
+  values,
+  {
+    maximumItems = 250,
+    allowEmpty = false
+  } = {}
+) {
+  if (!Array.isArray(values)) {
+    throw new IdentityMemoryStoreError("IMPORT_BATCH_INVALID");
+  }
+
+  const unique = [];
+  const seen = new Set();
+
+  for (const value of values) {
+    const content = String(value ?? "").normalize("NFKC").trim();
+    const key = content.toLocaleLowerCase("de-DE");
+
+    if (!content || content.length > 10_000 || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(content);
+
+    if (unique.length > maximumItems) {
+      throw new IdentityMemoryStoreError("IMPORT_BATCH_TOO_LARGE");
+    }
+  }
+
+  if (!allowEmpty && unique.length === 0) {
+    throw new IdentityMemoryStoreError("IMPORT_BATCH_EMPTY");
+  }
+
+  return unique;
+}
+
 function resolveOwnerAccess(ownerId, speakerId, registry) {
   const canonicalOwnerId = resolveCanonicalOwnerId(ownerId, registry);
   const speakerIdentity = registry.resolveSpeaker(speakerId);
@@ -139,6 +176,26 @@ export function createIdentityMemoryStore({
           canonical_owner_id,
           recall_status,
           id DESC
+        )
+      `);
+
+      await query(`
+        CREATE TABLE IF NOT EXISTS sol_identity_memory_supersession (
+          id BIGSERIAL PRIMARY KEY,
+          canonical_owner_id TEXT NOT NULL,
+          speaker_id TEXT NOT NULL,
+          content TEXT NOT NULL
+            CHECK (LENGTH(BTRIM(content)) > 0),
+          confirmed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+
+      await query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS sol_identity_memory_supersession_uidx
+        ON sol_identity_memory_supersession (
+          canonical_owner_id,
+          speaker_id,
+          LOWER(content)
         )
       `);
 
@@ -316,6 +373,141 @@ export function createIdentityMemoryStore({
       );
 
       return result.rows;
+    },
+
+    async importConfirmedBatch({
+      ownerId,
+      speakerId,
+      contents,
+      supersededContents = []
+    }) {
+      const canonicalOwnerId = resolveOwnerAccess(
+        ownerId,
+        speakerId,
+        registry
+      );
+      const confirmedContents = confirmedBatchValues(contents);
+      const blockedContents = confirmedBatchValues(
+        supersededContents,
+        {
+          maximumItems: 100,
+          allowEmpty: true
+        }
+      );
+
+      const result = await query(
+        `
+          WITH replacements(content) AS (
+            SELECT DISTINCT BTRIM(value)
+            FROM UNNEST($3::text[]) AS value
+            WHERE LENGTH(BTRIM(value)) > 0
+          ),
+          superseded AS (
+            INSERT INTO sol_identity_memory_supersession (
+              canonical_owner_id,
+              speaker_id,
+              content
+            )
+            SELECT $1, $2, replacements.content
+            FROM replacements
+            ON CONFLICT DO NOTHING
+            RETURNING id
+          ),
+          blocked AS (
+            UPDATE sol_identity_memory
+            SET recall_status = 'blocked'
+            WHERE canonical_owner_id = $1
+              AND speaker_id = $2
+              AND confirmed IS TRUE
+              AND recall_status <> 'blocked'
+              AND content = ANY($3::text[])
+            RETURNING id
+          ),
+          incoming(content) AS (
+            SELECT DISTINCT BTRIM(value)
+            FROM UNNEST($4::text[]) AS value
+            WHERE LENGTH(BTRIM(value)) > 0
+          ),
+          inserted AS (
+            INSERT INTO sol_identity_memory (
+              canonical_owner_id,
+              speaker_id,
+              role,
+              source_type,
+              content,
+              confirmed,
+              confirmed_by,
+              confirmation_method
+            )
+            SELECT
+              $1,
+              $2,
+              'user',
+              'text',
+              incoming.content,
+              TRUE,
+              $2,
+              'owner_batch_import'
+            FROM incoming
+            ON CONFLICT DO NOTHING
+            RETURNING id
+          )
+          SELECT
+            (SELECT COUNT(*)::int FROM blocked) AS blocked_count,
+            (SELECT COUNT(*)::int FROM inserted) AS inserted_count
+        `,
+        [
+          canonicalOwnerId,
+          speakerId,
+          blockedContents,
+          confirmedContents
+        ]
+      );
+
+      const row = result.rows[0] ?? {};
+      return {
+        accepted: confirmedContents.length,
+        inserted: Number(row.inserted_count || 0),
+        alreadyStored:
+          confirmedContents.length - Number(row.inserted_count || 0),
+        superseded: blockedContents.length
+      };
+    },
+
+    async filterSupersededRows({ ownerId, speakerId, rows }) {
+      const canonicalOwnerId = resolveOwnerAccess(
+        ownerId,
+        speakerId,
+        registry
+      );
+      const suppliedRows = Array.isArray(rows) ? rows : [];
+      const contentKeys = suppliedRows
+        .map(row => String(row?.content || "").trim().toLocaleLowerCase("de-DE"))
+        .filter(Boolean);
+
+      if (contentKeys.length === 0) {
+        return [];
+      }
+
+      const result = await query(
+        `
+          SELECT LOWER(content) AS content_key
+          FROM sol_identity_memory_supersession
+          WHERE canonical_owner_id = $1
+            AND speaker_id = $2
+            AND LOWER(content) = ANY($3::text[])
+        `,
+        [canonicalOwnerId, speakerId, contentKeys]
+      );
+      const superseded = new Set(
+        result.rows.map(row => String(row.content_key || ""))
+      );
+
+      return suppliedRows.filter(
+        row => !superseded.has(
+          String(row?.content || "").trim().toLocaleLowerCase("de-DE")
+        )
+      );
     },
 
     async blockConfirmed({ ownerId, speakerId, searchText }) {

@@ -114,6 +114,23 @@ body.solBackupOpen{
   color:#90e7ff;
 }
 
+.humanHoloMemoryImportList{
+  overflow:auto;
+  max-height:260px;
+  margin:4px 0;
+  padding:10px 10px 10px 32px;
+  border:1px solid rgba(119,145,226,.3);
+  border-radius:13px;
+  color:#eef2ff;
+  background:rgba(2,7,20,.56);
+  font-size:11px;
+  line-height:1.48;
+}
+
+.humanHoloMemoryImportList li+li{
+  margin-top:8px;
+}
+
 .solBackupExclusions{
   margin-top:15px;
   color:#8995b0;

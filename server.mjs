@@ -192,7 +192,7 @@ VERBINDLICHES PERSÖNLICHES KLONMODELL:
 ${profile.instanceName} ist ${profile.displayName}s persönliche, ausschließlich
 ihrem Owner zugeordnete digitale Clone-Instanz und ihr persönliches digitales
 Ich im Projekt Human Holo. In der direkten Unterhaltung sprichst und handelst du
-als Sol innerhalb dieser persönlichen Instanz.
+als Assistenz innerhalb dieser persönlichen Instanz.
 
 Bezeichne dich gegenüber ${profile.displayName} nicht als „deine KI“ und stelle
 dich nicht als eine fremde, von ihr getrennte Besitzer-KI vor. Wenn du deine
@@ -249,13 +249,10 @@ function personalWakePhraseInstructions(
 VERBINDLICHER PERSÖNLICHER WECKRUF:
 
 Der einzige offizielle Weckruf für ${profile.instanceName} lautet
-„${profile.wakePhrase}“.
-
-Sol ist der Name der Assistentin, nicht der persönliche Weckname.
-Behaupte niemals, „Hey Sol“, „Hallo Sol“ oder „Hello Sol“ sei der
-offizielle Weckruf dieser Instanz. Fordere ${profile.displayName} niemals
-auf, mehrere Weckrufe oder „beide“ auszuprobieren. Wenn nach dem Weckruf
-gefragt wird, nenne ausschließlich „${profile.wakePhrase}“.
+„${profile.wakePhrase}“. Frühere Projekt- oder Assistenznamen sind keine
+persönlichen Wecknamen. Fordere ${profile.displayName} niemals auf, mehrere
+Weckrufe oder „beide“ auszuprobieren. Wenn nach dem Weckruf gefragt wird,
+nenne ausschließlich „${profile.wakePhrase}“.
 `;
 }
 
@@ -601,7 +598,7 @@ function formatConversationMessages(
 ) {
   return messages
     .map((message) =>
-      `${message.role === "user" ? displayName : "Sol"}: ${message.content}`
+      `${message.role === "user" ? displayName : "Pam’s Holo"}: ${message.content}`
     )
     .join("\n");
 }
@@ -5837,6 +5834,72 @@ async function saveFulltimeMemory(
   );
 }
 
+function normalizeHumanHoloMemoryImport(memoryExport) {
+  if (
+    memoryExport?.schema_version !== "1.0" ||
+    memoryExport?.export_type !== "pam-sol-confirmed-memory-copy" ||
+    memoryExport?.transfer?.mode !== "copy" ||
+    memoryExport?.transfer?.source_delete !== false ||
+    memoryExport?.transfer?.target_owner_id !== "pam-sol" ||
+    memoryExport?.transfer?.target_speaker_id !== "pam" ||
+    memoryExport?.transfer?.public_repository_allowed !== false ||
+    !Array.isArray(memoryExport?.memories) ||
+    memoryExport.memories.length < 1 ||
+    memoryExport.memories.length > 250
+  ) {
+    throw new Error("HUMAN_HOLO_MEMORY_IMPORT_INVALID");
+  }
+
+  const contents = [];
+  const seen = new Set();
+
+  for (const memory of memoryExport.memories) {
+    const state = String(memory?.state || "").trim();
+    const content = String(memory?.content || "").normalize("NFKC").trim();
+    const key = content.toLocaleLowerCase("de-DE");
+
+    if (
+      !/^confirmed_/u.test(state) ||
+      !content ||
+      content.length > 10_000
+    ) {
+      throw new Error("HUMAN_HOLO_MEMORY_IMPORT_ENTRY_INVALID");
+    }
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      contents.push(content);
+    }
+  }
+
+  const supersededContents = [];
+  const supersededSeen = new Set();
+  const suppliedSupersededContents = Array.isArray(memoryExport.supersedes)
+    ? memoryExport.supersedes
+    : [];
+
+  if (suppliedSupersededContents.length > 100) {
+    throw new Error("HUMAN_HOLO_MEMORY_IMPORT_SUPERSEDES_TOO_LARGE");
+  }
+
+  for (const value of suppliedSupersededContents) {
+    const content = String(value || "").normalize("NFKC").trim();
+    const key = content.toLocaleLowerCase("de-DE");
+    if (!content || content.length > 10_000) {
+      throw new Error("HUMAN_HOLO_MEMORY_IMPORT_SUPERSEDES_INVALID");
+    }
+    if (!supersededSeen.has(key)) {
+      supersededSeen.add(key);
+      supersededContents.push(content);
+    }
+  }
+
+  return {
+    contents,
+    supersededContents
+  };
+}
+
 async function loadOwnerFulltimeHistoryPage(
   identity,
   {
@@ -5977,7 +6040,7 @@ async function loadRelevantOwnerFulltimeMemory(
         "de-DE"
       );
 
-  return result.rows.filter(
+  return ownerGroundedPersonalMemoryRows(result.rows).filter(
     row =>
       String(
         row.content ||
@@ -6028,6 +6091,12 @@ async function loadRecentFulltimeMemory(
   );
 
   return result.rows.reverse();
+}
+
+function ownerGroundedPersonalMemoryRows(rows) {
+  return (Array.isArray(rows) ? rows : []).filter(
+    row => row?.role === "user" || row?.role === "memory"
+  );
 }
 
 /*
@@ -6104,6 +6173,32 @@ const MEMORY_SEARCH_TERM_ALIASES =
       [
         "geburtstag",
         "geboren"
+      ]
+    ],
+    [
+      "hochzeit",
+      [
+        "hochzeitsfeier",
+        "feier",
+        "feiern",
+        "trauung",
+        "heiraten"
+      ]
+    ],
+    [
+      "feiern",
+      [
+        "feier",
+        "hochzeit",
+        "hochzeitsfeier"
+      ]
+    ],
+    [
+      "trauung",
+      [
+        "standesamt",
+        "standesamtlich",
+        "hochzeit"
       ]
     ]
   ]);
@@ -6325,6 +6420,26 @@ async function loadRelevantLegacyMemory(
   return fallback.rows;
 }
 
+async function loadLegacyPamMemoryEvidence(
+  identity,
+  message,
+  limit = 20
+) {
+  if (
+    identity?.ownerId !== "pam-sol" ||
+    identity?.speakerId !== "pam"
+  ) {
+    return [];
+  }
+
+  const rows = await loadRelevantLegacyMemory(message, limit);
+  return identityMemoryStore.filterSupersededRows({
+    ownerId: identity.ownerId,
+    speakerId: identity.speakerId,
+    rows: ownerGroundedPersonalMemoryRows(rows)
+  });
+}
+
 async function loadRelevantLongTermMemoryStrict(
   message,
   limit = 20
@@ -6389,6 +6504,26 @@ async function loadRelevantLongTermMemoryStrict(
   );
 
   return fallback.rows;
+}
+
+async function loadLegacyPamLongTermMemoryEvidence(
+  identity,
+  message,
+  limit = 20
+) {
+  if (
+    identity?.ownerId !== "pam-sol" ||
+    identity?.speakerId !== "pam"
+  ) {
+    return [];
+  }
+
+  const rows = await loadRelevantLongTermMemoryStrict(message, limit);
+  return identityMemoryStore.filterSupersededRows({
+    ownerId: identity.ownerId,
+    speakerId: identity.speakerId,
+    rows: ownerGroundedPersonalMemoryRows(rows)
+  });
 }
 
 /*
@@ -6560,15 +6695,16 @@ async function searchPersonalMemory(
 }
 
 function formatPersonalMemoryRows(
-  rows
+  rows,
+  displayName = "Pam"
 ) {
   return rows
     .map((memory) => {
       const speaker =
         memory.role === "user"
-          ? "Pam"
+          ? displayName
           : memory.role === "assistant"
-            ? "Sol"
+            ? "Pam’s Holo"
             : "Dauerhafte Erinnerung";
 
       return `${speaker}: ${memory.content}`;
@@ -6685,7 +6821,12 @@ async function buildPersonalRecallResult(
     return null;
   }
 
-  const [confirmedMemories, fulltimeMemories] =
+  const [
+    confirmedMemories,
+    fulltimeMemories,
+    legacyMemories,
+    legacyLongTermMemories
+  ] =
     await Promise.all([
       identityMemoryStore.searchConfirmed({
         ownerId:
@@ -6701,6 +6842,16 @@ async function buildPersonalRecallResult(
         identity,
         query,
         16
+      ),
+      loadLegacyPamMemoryEvidence(
+        identity,
+        query,
+        16
+      ),
+      loadLegacyPamLongTermMemoryEvidence(
+        identity,
+        query,
+        16
       )
     ]);
 
@@ -6711,7 +6862,12 @@ async function buildPersonalRecallResult(
         identity.displayName
       ),
       formatPersonalMemoryRows(
-        fulltimeMemories
+        [
+          ...fulltimeMemories,
+          ...legacyMemories,
+          ...legacyLongTermMemories
+        ],
+        identity.displayName
       )
     ]
       .filter(Boolean)
@@ -6740,7 +6896,9 @@ async function buildPersonalRecallResult(
     query,
     count:
       confirmedMemories.length +
-      fulltimeMemories.length,
+      fulltimeMemories.length +
+      legacyMemories.length +
+      legacyLongTermMemories.length,
     memoryText
   };
 }
@@ -6942,6 +7100,71 @@ app.post(
   }
 );
 
+app.post(
+  "/memory/import-confirmed",
+  async (req, res) => {
+    try {
+      const identity = requireTrustedOwnerIdentity(req, res);
+      if (!identity) {
+        return;
+      }
+
+      if (
+        identity.ownerId !== "pam-sol" ||
+        identity.speakerId !== "pam"
+      ) {
+        return res.status(403).json({
+          error: "Dieser private Import gehört ausschließlich Pam."
+        });
+      }
+
+      if (req.body?.batchConfirmation !== true) {
+        return res.status(400).json({
+          error: "Der Erinnerungsimport wurde nicht vollständig bestätigt."
+        });
+      }
+
+      const memoryImport = normalizeHumanHoloMemoryImport(
+        req.body?.memoryExport
+      );
+      const result = await identityMemoryStore.importConfirmedBatch({
+        ownerId: identity.ownerId,
+        speakerId: identity.speakerId,
+        contents: memoryImport.contents,
+        supersededContents: memoryImport.supersededContents
+      });
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          imported: true,
+          alwaysOn: true,
+          fulltimeMemory: "active",
+          updateSafe: true,
+          ...result,
+          identity: publicIdentity(identity)
+        });
+    } catch (error) {
+      console.error(
+        "Bestätigten Human-Holo-Erinnerungsstapel importieren:",
+        error?.code || error?.name || "Fehler"
+      );
+
+      const invalidImport = String(error?.message || "").startsWith(
+        "HUMAN_HOLO_MEMORY_IMPORT_"
+      );
+      return res.status(invalidImport ? 400 : 500).json({
+        error: invalidImport
+          ? "Diese Erinnerungsdatei ist nicht für Pams Human Holo freigegeben."
+          : "Der private Erinnerungsimport konnte gerade nicht abgeschlossen werden."
+      });
+    }
+  }
+);
+
 /*
   Geschützter Abruf für Realtime-Tool-Calls.
   Die gesamte Datenbank bleibt ausschließlich im Backend.
@@ -7024,7 +7247,12 @@ app.post(
         });
       }
 
-      const [confirmedMemories, fulltimeMemories] =
+      const [
+        confirmedMemories,
+        fulltimeMemories,
+        legacyMemories,
+        legacyLongTermMemories
+      ] =
         await Promise.all([
           identityMemoryStore.searchConfirmed({
             ownerId:
@@ -7040,6 +7268,16 @@ app.post(
             tokenIdentity,
             query,
             16
+          ),
+          loadLegacyPamMemoryEvidence(
+            tokenIdentity,
+            query,
+            16
+          ),
+          loadLegacyPamLongTermMemoryEvidence(
+            tokenIdentity,
+            query,
+            16
           )
         ]);
 
@@ -7050,7 +7288,12 @@ app.post(
             tokenIdentity.displayName
           ),
           formatPersonalMemoryRows(
-            fulltimeMemories
+            [
+              ...fulltimeMemories,
+              ...legacyMemories,
+              ...legacyLongTermMemories
+            ],
+            tokenIdentity.displayName
           )
         ]
           .filter(Boolean)
@@ -7058,7 +7301,9 @@ app.post(
 
       const memoryCount =
         confirmedMemories.length +
-        fulltimeMemories.length;
+        fulltimeMemories.length +
+        legacyMemories.length +
+        legacyLongTermMemories.length;
 
       return res
         .set({
@@ -7794,7 +8039,7 @@ app.post("/realtime/token", async (req, res) => {
       "Keine bestätigten Langzeiterinnerungen vorhanden.";
 
     const realtimeInstructions = `
-Du bist Sol innerhalb des Projekts Human Holo.
+Du bist die Assistenz innerhalb von ${instanceName} im Projekt Human Holo.
 
 ${personalCloneIdentityInstructions(identity)}
 
@@ -7828,7 +8073,7 @@ Du besitzt dabei drei Gedächtnisbereiche:
    Die letzten Nachrichten dieser RAM-Sitzung.
 
 2. Vollzeitgedächtnis:
-   ${identity.displayName}s und Sols Sprachtranskripte sowie geschriebene
+   ${identity.displayName}s und Pam’s Holos Sprachtranskripte sowie geschriebene
    Nachrichten werden Wort für Wort automatisch gespeichert. Dafür ist
    kein besonderer Speicherbefehl nötig.
 
@@ -7864,7 +8109,7 @@ hat die App die persönliche ownergebundene Suche bereits verbindlich
 ausgeführt. Beantworte die unmittelbar vorausgehende persönliche Frage
 knapp und natürlich ausschließlich anhand der danach gelieferten Treffer.
 Rufe search_personal_memory dann nicht erneut auf. Bevorzuge Aussagen von
-${identity.displayName} gegenüber älteren Sol-Antworten. Behaupte nicht,
+${identity.displayName} gegenüber älteren Holo-Antworten. Behaupte nicht,
 etwas sei vergessen worden, wenn passende Treffer geliefert wurden. Bitte
 ${identity.displayName} nicht, dieselbe Information noch einmal zu erzählen.
 
@@ -7873,8 +8118,17 @@ vor deiner Antwort das ownergebundene Immer-an-Gedächtnis verbindlich
 durchsucht. Beantworte die unmittelbar vorausgehende Nachricht natürlich
 und nutze die gelieferten Aussagen genau dann, wenn sie dafür relevant sind.
 Erwähne weder die Suche noch diesen technischen Kontextmarker. Aussagen von
-${identity.displayName} haben Vorrang vor älteren Antworten von Sol. Ergänze
+${identity.displayName} haben Vorrang vor älteren Holo-Antworten. Ergänze
 keine Details, die nicht in den gelieferten Aussagen stehen.
+
+VERBINDLICHER FAKTENSCHUTZ:
+Nur Aussagen von ${identity.displayName} und bestätigte Erinnerungen sind
+Belege für persönliche Fakten. Frühere Antworten der Assistenz sind niemals
+Belege. Bei widersprüchlichen Aussagen gilt die jüngste Korrektur von
+${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
+zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
+Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,
+statt eine frühere Vermutung zu wiederholen.
 
 Erfinde niemals eine Erinnerung.
 
@@ -9853,7 +10107,12 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
       explicitPersonalRecallQuery ||
       promptMessage;
 
-    const [longTermMemories, fulltimeMemories] =
+    const [
+      longTermMemories,
+      fulltimeMemories,
+      legacyMemories,
+      legacyLongTermMemories
+    ] =
       await Promise.all([
         identityMemoryStore
           .searchConfirmed({
@@ -9870,6 +10129,16 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
           identity,
           memorySearchText,
           60
+        ),
+        loadLegacyPamMemoryEvidence(
+          identity,
+          memorySearchText,
+          40
+        ),
+        loadLegacyPamLongTermMemoryEvidence(
+          identity,
+          memorySearchText,
+          30
         )
       ]);
 
@@ -9889,7 +10158,12 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
           identity.displayName
         ),
         formatPersonalMemoryRows(
-          fulltimeMemories
+          [
+            ...fulltimeMemories,
+            ...legacyMemories,
+            ...legacyLongTermMemories
+          ],
+          identity.displayName
         )
       ]
         .filter(Boolean)
@@ -9899,7 +10173,9 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
     const explicitPersonalRecallInstruction =
       explicitPersonalRecallQuery
         ? fulltimeMemories.length > 0 ||
-          longTermMemories.length > 0
+          longTermMemories.length > 0 ||
+          legacyMemories.length > 0 ||
+          legacyLongTermMemories.length > 0
           ? `
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
 Beantworte sie jetzt klar und unmittelbar aus den passenden historischen
@@ -9980,7 +10256,7 @@ Erfinde keine Antwort und bitte nicht automatisch um eine erneute Speicherung.
           "gpt-5",
 
         instructions: `
-Du bist Sol innerhalb des Projekts Human Holo.
+Du bist die Assistenz innerhalb von ${instanceName} im Projekt Human Holo.
 
 ${identity.displayName} spricht mit dir.
 
@@ -9996,7 +10272,7 @@ werden kann.
 
 MetaPerson ist ausschließlich die externe
 Darstellungs-, TTS- und LipSync-Technik.
-Die inhaltliche Antwort wird von Sol erzeugt.
+Die inhaltliche Antwort wird von Pam’s Holo erzeugt.
 
 ${personalWakePhraseInstructions(identity)}
 
@@ -10014,9 +10290,9 @@ Du besitzt drei klar getrennte Kontextbereiche:
    Die letzten Nachrichten dieser RAM-Sitzung.
 
 2. Vollzeitgedächtnis:
-   Der vollständige Dialog zwischen ${identity.displayName} und Sol wird
+   Der vollständige Dialog zwischen ${identity.displayName} und Pam’s Holo wird
    Wort für Wort ownergebunden gespeichert. Textnachrichten,
-   Sprachtranskripte und Sols Antworten gehören automatisch dazu.
+   Sprachtranskripte und Holo-Antworten gehören automatisch dazu.
    Dafür ist kein besonderer Speicherbefehl nötig.
 
 3. Bestätigte Langzeiterinnerungen:
@@ -10047,15 +10323,23 @@ behaupte nicht, dass du dich daran erinnerst.
 Wenn in den passenden historischen Erinnerungen eine
 Aussage von ${identity.displayName} zu einer persönlichen Person, einem Tier,
 einem Ereignis, Ort oder Namen vorhanden ist, hat diese
-Aussage von ${identity.displayName} Vorrang vor früheren Antworten von Sol
+Aussage von ${identity.displayName} Vorrang vor früheren Holo-Antworten
 und vor allgemeinem Weltwissen.
+
+Nur Aussagen von ${identity.displayName} und bestätigte Erinnerungen sind
+Belege für persönliche Fakten. Frühere Antworten der Assistenz sind niemals
+Belege. Bei widersprüchlichen Aussagen gilt die jüngste Korrektur von
+${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
+zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
+Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,
+statt eine frühere Vermutung zu wiederholen.
 
 WICHTIG ZU NOTIZEN UND SAMSUNG NOTES:
 
 ${identity.displayName} kann Notizen auf ausdrücklichen Zuruf sofort im
 persönlichen Notizbuch von ${instanceName} speichern. Samsung Notes ist lokal
 in der Android-App als zusätzliche sichtbare Entwurfsübergabe angebunden und
-braucht keine Freischaltung durch das Sol-Holo-Backend. Behaupte niemals das
+braucht keine Freischaltung durch das Human-Holo-Backend. Behaupte niemals das
 Gegenteil. ${instanceName} zeigt vor der lokalen Speicherung keine zusätzliche
 Bestätigungsfrage.
 
@@ -10082,7 +10366,7 @@ nicht tatsächlich erfolgreich durchgeführt wurde.
 
 Wenn ein Kalender-Schreibbefehl erfolgreich ausgeführt wird,
 wird dieser bereits vor dieser normalen Antwort
-vom Sol-Holo-Backend verarbeitet.
+vom Human-Holo-Backend verarbeitet.
 
 Du darfst daher niemals einen Kalender-Erfolg erfinden.
 
@@ -10104,7 +10388,7 @@ Modellwissen und erfinde keine Live-Prüfung.
 WICHTIG ZU GOOGLE MAPS:
 
 Navigationsaufträge werden lokal von der Android-App an Google Maps
-übergeben. Dafür ist keine Freischaltung durch das Sol-Holo-Backend nötig.
+übergeben. Dafür ist keine Freischaltung durch das Human-Holo-Backend nötig.
 Behaupte nur dann, Google Maps sei geöffnet worden, wenn die App dies als
 lokales Ergebnis bestätigt hat.
 

@@ -37,7 +37,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=56/u);
+  assert.match(html, /sol-holo-ui\.js\?v=57/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -55,16 +55,22 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
   assert.match(css, /#homeView\.humanHoloHome\{/u);
   assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
-  assert.match(html, /human-holo-theme\.css\?v=2/u);
+  assert.match(html, /human-holo-theme\.css\?v=3/u);
   assert.ok(
-    html.indexOf("human-holo-theme.css?v=2") >
-      html.indexOf("sol-holo-backup.css?v=1")
+    html.indexOf("human-holo-theme.css?v=3") >
+      html.indexOf("sol-holo-backup.css?v=2")
   );
-  assert.match(theme, /\.humanHoloHero>img\{[\s\S]*height:100%[\s\S]*object-fit:contain/u);
+  assert.match(ui, /<img src="human-holo-home-hero\.png"/u);
+  assert.match(theme, /\.humanHoloHero>img\{[\s\S]*height:100%[\s\S]*object-fit:cover/u);
   assert.match(theme, /transform:translate\(-50%,-50%\)/u);
   assert.match(theme, /#homeView \.humanHoloAreaCard\{[\s\S]*backdrop-filter:blur\(21px\) saturate\(1\.34\)/u);
   assert.match(theme, /#homeView \.humanHoloMessageField,[\s\S]*#homeView \.humanHoloComposerButton\{/u);
   assert.match(theme, /#app\[data-active-view="home"\] #bottomNav\{/u);
+  assert.match(html, /function humanHoloVisibleText\(value\)/u);
+  assert.match(ui, /function applyHumanHoloVisibleNaming\(root = document\)/u);
+  assert.match(ui, /new MutationObserver/u);
+  assert.match(ui, /Immer aktiv · updatefest/u);
+  assert.doesNotMatch(ui, /askSol\("Sol,/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
@@ -133,6 +139,7 @@ test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
   assert.match(theme, /#settingsView :is\(\.settingsChoiceRow,\.wakeModeChooser\)/u);
   assert.match(theme, /#uiToast\{/u);
   assert.match(theme, /backdrop-filter:blur\(24px\) saturate\(1\.35\)/u);
+  assert.match(theme, /\.solBackupDialog,[\s\S]*\.humanHoloMemoryImportList/u);
   assert.match(theme, /\.pamUnicorn,[\s\S]*#chatUnicornSignature\{[\s\S]*display:none!important/u);
 });
 
@@ -143,6 +150,13 @@ test("neues Markenbild ist quadratisch und für Android-Icons vorbereitet", () =
   assert.deepEqual(pngDimensions("www/human-holo-logo.png"), { width: 1024, height: 1024 });
   assert.deepEqual(pngDimensions("www/icon-512.png"), { width: 512, height: 512 });
   assert.deepEqual(pngDimensions("www/icon-192.png"), { width: 192, height: 192 });
+});
+
+test("Startseitenmotiv ist seitlich erweitert und für den breiten Bildrahmen optimiert", () => {
+  assert.deepEqual(pngDimensions("www/human-holo-home-hero.png"), {
+    width: 1536,
+    height: 1024
+  });
 });
 
 test("Build #89 Signaturwächter folgt dem neuen Artefaktnamen", () => {
