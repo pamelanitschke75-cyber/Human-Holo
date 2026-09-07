@@ -24,6 +24,45 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   currentHeader.insertAdjacentHTML("beforebegin", uiMarkup);
 
+  const homeMissionPoster = document.createElement("section");
+  homeMissionPoster.className = "humanHoloMissionPoster";
+  homeMissionPoster.setAttribute(
+    "aria-label",
+    "Human Holo – Miteinander, füreinander, für eine bessere Welt"
+  );
+  homeMissionPoster.innerHTML = `
+    <div class="humanHoloPosterCredits">
+      BY PAMELA NITSCHKE AND STEFANIE HÖRATH
+      <span>IN COOPERATION WITH <strong>ChatGPT/OpenAI</strong></span>
+    </div>
+    <div class="humanHoloPosterMottos">
+      <span>Miteinander<br>Füreinander<br>Für eine bessere Welt ♡</span>
+      <span lang="en">Together<br>Forever ♡</span>
+    </div>
+    <div class="humanHoloPosterCopy glassCard">
+      <p class="humanHoloTogether">MENSCHEN · TIERE · UMWELT · ZUSAMMEN · FÜR ALLE</p>
+      <h3>HUMAN HOLO</h3>
+      <strong class="humanHoloForever">FOREVER TOGETHER</strong>
+      <p class="humanHoloFuture">EIN HELLERES HEUTE. EINE FREUNDLICHERE ZUKUNFT.</p>
+      <div class="humanHoloAreas" aria-label="Menschen, Tiere, Umwelt, Hilfe, Bildung, Gesundheit, Zusammen, Für alle">
+        <span>♧ MENSCHEN</span>
+        <span>🐾 TIERE</span>
+        <span>♧ UMWELT</span>
+        <span>♡ HILFE</span>
+        <span>▤ BILDUNG</span>
+        <span>✚ GESUNDHEIT</span>
+        <span>⌂ ZUSAMMEN</span>
+        <span>◎ FÜR ALLE</span>
+      </div>
+      <p class="humanHoloTomorrow" lang="en">A BRIGHTER TODAY. A KINDER TOMORROW. ♡</p>
+      <strong class="humanHoloHsg">HSG – HUMANS SECOND GENERATION!</strong>
+    </div>
+  `;
+  document.querySelector("#homeView .homeIntro")?.insertAdjacentElement(
+    "afterend",
+    homeMissionPoster
+  );
+
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
     profileMemoryState.textContent = "Nur nach Bestätigung";
@@ -123,7 +162,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     '<input id="profilePhotoInput" type="file" accept="image/*" hidden>' +
     '<div id="profilePhotoActions" class="profilePhotoActions" hidden>' +
       '<button id="profileMouthButton" type="button">👄 Mund festlegen</button>' +
-      '<button id="profilePhotoResetButton" type="button">SH♾️ zurück</button>' +
+      '<button id="profilePhotoResetButton" type="button">HUMAN-HOLO-Bild zurücksetzen</button>' +
     '</div>' +
     '<div id="profileMouthControls" class="profileMouthControls" hidden>' +
       '<strong>Mund genau einstellen</strong>' +
@@ -294,7 +333,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const chatView = document.createElement("section");
   chatView.id = "chatView";
   chatView.className = "appView";
-  chatView.setAttribute("aria-label", "Chat mit Sol");
+  chatView.setAttribute("aria-label", "Chat mit Pam’s Holo");
   solApp.insertBefore(chatView, currentHeader);
 
   [
@@ -4470,7 +4509,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       localStorage.removeItem(keys.metadata);
     } catch {}
     applyCustomCloneAppearance("", null);
-    showToast("Das ursprüngliche SH♾️-Bild ist wieder aktiv.");
+    showToast("Das HUMAN-HOLO-Bild ist wieder aktiv.");
   });
 
   document.getElementById("homeComposer").addEventListener("submit", (event) => {

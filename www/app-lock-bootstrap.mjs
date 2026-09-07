@@ -41,8 +41,15 @@ function lockMarkup({ needsRegistration = false, message = "" } = {}) {
   );
 
   bootScreen.innerHTML = "";
-  const logo = document.createElement("strong");
-  logo.textContent = "SH♾️";
+  const logo = document.createElement("img");
+  logo.className = "solHoloLockLogo";
+  logo.src = "./human-holo-logo.png";
+  logo.alt = "Human Holo – Forever Together";
+  logo.decoding = "async";
+
+  const mission = document.createElement("span");
+  mission.className = "humanHoloMission";
+  mission.textContent = "HSG – HUMANS SECOND GENERATION!";
 
   const statusNode = document.createElement("span");
   statusNode.id = "solHoloAppLockStatus";
@@ -64,7 +71,7 @@ function lockMarkup({ needsRegistration = false, message = "" } = {}) {
   hint.textContent =
     "Fingerabdruckdaten bleiben ausschließlich bei Android. Human Holo speichert keine biometrischen Rohdaten.";
 
-  bootScreen.append(logo, statusNode, unlockButton, hint);
+  bootScreen.append(logo, mission, statusNode, unlockButton, hint);
 }
 
 function showLocked(options = {}) {

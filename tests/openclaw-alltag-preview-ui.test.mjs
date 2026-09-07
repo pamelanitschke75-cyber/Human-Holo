@@ -90,6 +90,6 @@ test("the backend route is owner-gated before the preview service runs", () => {
 });
 
 test("the Android asset versions include the new preview UI", () => {
-  assert.match(html, /sol-holo-ui\.css\?v=39/u);
-  assert.match(html, /sol-holo-ui\.js\?v=49/u);
+  assert.match(html, /sol-holo-ui\.css\?v=40/u);
+  assert.match(html, /sol-holo-ui\.js\?v=51/u);
 });
