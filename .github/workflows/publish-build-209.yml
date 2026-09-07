@@ -1,0 +1,89 @@
+name: Publish Pam's Holo Build 209
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-build-209.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified Build 209 artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34108726421 \
+            --repo "${{ github.repository }}" \
+            --name "Pams-Holo-Android-update" \
+            --dir artifact
+
+      - name: Verify and prepare APK
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_apk="$(find artifact -type f -name 'Pams-Holo-Update.apk' -print -quit)"
+          asset="Pams-Holo-Update-Build-209-WhatsApp-Ausfuehrungsbeleg.apk"
+          expected_certificate="e122201077b93cb47edb6951446fb8dff77427a2f5a2bd4719474a638fe803e9"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk"
+          build_tools="$(find "$android_sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+
+          test -n "$source_apk"
+          test -s "$source_apk"
+          test -x "$build_tools/apksigner"
+          test -x "$build_tools/aapt"
+          cp -- "$source_apk" "$asset"
+
+          verification="$($build_tools/apksigner verify --verbose --print-certs "$asset")"
+          printf '%s\n' "$verification"
+          grep -Fq 'Verified using v1 scheme (JAR signing): true' <<< "$verification"
+          grep -Fq 'Verified using v2 scheme (APK Signature Scheme v2): true' <<< "$verification"
+          grep -Fq 'Verified using v3 scheme (APK Signature Scheme v3): true' <<< "$verification"
+          grep -Fq "certificate SHA-256 digest: $expected_certificate" <<< "$verification"
+
+          badging="$($build_tools/aapt dump badging "$asset")"
+          grep -Fq "versionCode='209'" <<< "$badging"
+          manifest_dump="$($build_tools/aapt dump xmltree "$asset" AndroidManifest.xml)"
+          grep -Fq 'WhatsAppAutoSendAccessibilityService' <<< "$manifest_dump"
+
+          unzip -p "$asset" assets/public/index.html \
+            > "$RUNNER_TEMP/index.html"
+          unzip -p "$asset" assets/public/sol-holo-ui.js \
+            > "$RUNNER_TEMP/sol-holo-ui.js"
+          grep -Fq 'recordSolHoloVerifiedDeviceAction' "$RUNNER_TEMP/index.html"
+          grep -Fq 'TECHNISCH_BESTAETIGTE_GERAETEAKTION' "$RUNNER_TEMP/index.html"
+          grep -Fq 'recordSolHoloVerifiedDeviceAction' "$RUNNER_TEMP/sol-holo-ui.js"
+
+          unzip -p "$asset" 'classes*.dex' > "$RUNNER_TEMP/classes.dex"
+          strings "$RUNNER_TEMP/classes.dex" > "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'whatsapp_auto_send_return' "$RUNNER_TEMP/classes-strings.txt"
+          grep -Fq 'manualSendRequired' "$RUNNER_TEMP/classes-strings.txt"
+          sha256sum "$asset"
+
+      - name: Publish direct APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          tag="build-209-whatsapp-ausfuehrungsbeleg"
+          asset="Pams-Holo-Update-Build-209-WhatsApp-Ausfuehrungsbeleg.apk"
+          notes="Originalsigniertes Android-Update aus dem erfolgreichen main-Build #209. Der auf Pams S23 bestätigte automatische WhatsApp-Versand bleibt unverändert aktiv. Neu ist die verbindliche Rückmeldung: Nach dem automatischen Sende-Klick erhält Sol Empfänger und unveränderten Text als technisch bestätigten Ausführungsbeleg im laufenden Gespräch und im ownergebundenen Vollzeitgedächtnis. Sol trennt danach korrekt zwischen Auftrag und Ausführung: Pam erteilt den Sprachauftrag; Pam’s Holo aktiviert automatisch die WhatsApp-Senden-Schaltfläche. Nach dem Versand kehrt die App automatisch aus WhatsApp zurück. Die Selbstbeschreibung lautet persönlicher digitaler Clone statt Besitzer-KI. Wake-up, Stimmprofil, Owner-Zuordnung und Originalsignatur wurden nicht verändert. Installation nur als Update über die vorhandene App; nicht deinstallieren."
+
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$tag" "$asset" \
+              --repo "${{ github.repository }}" \
+              --target "8a6f6eeac2f8cb6133bab7590f5cd4bfc9d55ce1" \
+              --title "Pam's Holo – WhatsApp-Ausführungsbeleg Build 209" \
+              --notes "$notes"
+          fi
