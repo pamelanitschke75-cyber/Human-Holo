@@ -48,16 +48,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>
         </svg>
       </button>
+
+      <h2 id="homeTitle" class="humanHoloWelcomeTitle">Hallo Pam♡</h2>
     </header>
 
     <button id="homeOrbButton" class="humanHoloHero" type="button"
       aria-label="Sprachgespräch mit Pam’s Holo starten">
       <img src="human-holo-logo.png"
         alt="Mensch und Holo verbunden durch ein leuchtendes Unendlichkeitszeichen und die Erde">
-      <span class="humanHoloGreeting">
-        <strong id="homeTitle">Hallo Pam♡</strong>
-        <span>Schön dich zu sehen.<br>Womit wollen wir starten?</span>
-      </span>
       <span class="humanHoloSideMotto humanHoloSideMotto--left" aria-hidden="true">
         Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡
       </span>
@@ -147,9 +145,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     </form>
 
     <footer class="humanHoloHomeFooter">
-      <span class="humanHoloFooterPaw" aria-hidden="true">🐾</span>
-      <p>Ein kleiner Schritt für mich.<br><strong>Ein großer für die Menschen und das System! ♡</strong></p>
-      <span class="humanHoloFooterEarth" aria-hidden="true">🌎</span>
       <span class="humanHoloFooterInfinity" aria-hidden="true">∞</span>
       <span id="todayCardMeta" class="srOnly">Dein Überblick</span>
     </footer>
@@ -762,15 +757,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const homeTitle = document.getElementById("homeTitle");
     if (homeTitle) {
-      homeTitle.replaceChildren(
-        document.createTextNode(displayName ? `Hallo ${displayName} ` : "Hallo ")
-      );
-      const unicorn = document.createElement("span");
-      unicorn.className = "pamUnicorn pamUnicorn--home";
-      unicorn.setAttribute("role", "img");
-      unicorn.setAttribute("aria-label", "Rosa Einhorn");
-      unicorn.textContent = "🦄";
-      homeTitle.append(unicorn);
+      homeTitle.textContent = displayName ? `Hallo ${displayName}♡` : "Hallo♡";
     }
 
     const profileName = document.querySelector("#profileView .profileName");

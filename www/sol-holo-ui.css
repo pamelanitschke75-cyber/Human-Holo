@@ -2580,9 +2580,10 @@ body.voice-open #onboardingScreen{
   z-index:5;
   display:grid;
   grid-template-columns:50px minmax(0,1fr) 50px;
+  grid-template-rows:minmax(62px,auto) 32px;
   align-items:center;
-  min-height:78px;
-  padding:calc(7px + env(safe-area-inset-top)) 0 4px;
+  min-height:98px;
+  padding:calc(5px + env(safe-area-inset-top)) 0 3px;
 }
 
 .humanHoloRoundButton{
@@ -2676,6 +2677,20 @@ body.voice-open #onboardingScreen{
   text-indent:.38em;
 }
 
+.humanHoloWelcomeTitle{
+  grid-row:2;
+  grid-column:1/-1;
+  align-self:center;
+  margin:-1px 0 2px;
+  color:#fff;
+  font-family:"Segoe Script","Brush Script MT",cursive;
+  font-size:clamp(24px,7.5vw,34px);
+  font-weight:500;
+  line-height:1;
+  text-align:center;
+  text-shadow:0 2px 9px rgba(7,7,45,.85),0 0 14px rgba(128,70,255,.72);
+}
+
 .humanHoloHero{
   position:relative;
   z-index:2;
@@ -2699,8 +2714,8 @@ body.voice-open #onboardingScreen{
   inset:0;
   pointer-events:none;
   background:
-    linear-gradient(180deg,rgba(5,15,70,.58) 0%,transparent 30%,transparent 66%,rgba(4,18,70,.5) 100%),
-    linear-gradient(108deg,transparent 20%,rgba(255,255,255,.09) 43%,transparent 55%);
+    linear-gradient(180deg,rgba(5,15,70,.25) 0%,transparent 24%,transparent 68%,rgba(4,18,70,.38) 100%),
+    linear-gradient(108deg,transparent 20%,rgba(255,255,255,.06) 43%,transparent 55%);
 }
 
 .humanHoloHero>img{
@@ -2708,35 +2723,9 @@ body.voice-open #onboardingScreen{
   width:100%;
   height:100%;
   object-fit:cover;
-  object-position:center 47%;
-  transform:scale(1.035);
-  filter:saturate(1.08) contrast(1.03);
-}
-
-.humanHoloGreeting{
-  position:absolute;
-  z-index:3;
-  top:8px;
-  left:50%;
-  width:min(68%,310px);
-  transform:translateX(-50%);
-  text-align:center;
-  text-shadow:0 2px 9px rgba(7,7,45,.85),0 0 14px rgba(128,70,255,.7);
-}
-
-.humanHoloGreeting strong{
-  display:block;
-  font-family:"Segoe Script","Brush Script MT",cursive;
-  font-size:clamp(25px,8.5vw,39px);
-  font-weight:500;
-  line-height:1;
-}
-
-.humanHoloGreeting span{
-  display:block;
-  margin-top:3px;
-  font-size:clamp(11px,3.4vw,15px);
-  line-height:1.2;
+  object-position:center 50%;
+  transform:scale(1.008);
+  filter:saturate(1.02) contrast(1.03) brightness(.98);
 }
 
 .humanHoloSideMotto{
@@ -2786,7 +2775,7 @@ body.voice-open #onboardingScreen{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:7px;
-  margin-top:8px;
+  margin-top:24px;
 }
 
 .humanHoloAreaCard{
@@ -2940,35 +2929,13 @@ body.voice-open #onboardingScreen{
 .humanHoloHomeFooter{
   position:relative;
   z-index:3;
-  min-height:62px;
-  margin-top:9px;
-  padding:4px 42px 13px;
+  min-height:30px;
+  margin-top:12px;
+  padding:0 0 8px;
   color:#fff;
   text-align:center;
   text-shadow:0 2px 7px rgba(0,4,36,.88),0 0 9px rgba(135,88,255,.55);
 }
-
-.humanHoloHomeFooter p{
-  margin:0;
-  font-family:"Segoe Script","Brush Script MT",cursive;
-  font-size:clamp(10px,3.2vw,14px);
-  line-height:1.35;
-}
-
-.humanHoloHomeFooter strong{
-  font-weight:500;
-}
-
-.humanHoloFooterPaw,
-.humanHoloFooterEarth{
-  position:absolute;
-  top:5px;
-  font-size:25px;
-  filter:drop-shadow(0 0 8px rgba(116,171,255,.7));
-}
-
-.humanHoloFooterPaw{left:8px}
-.humanHoloFooterEarth{right:8px}
 
 .humanHoloFooterInfinity{
   display:block;
@@ -3007,13 +2974,14 @@ body.voice-open #onboardingScreen{
 }
 
 @media(max-height:700px){
-  .humanHoloTopbar{min-height:68px}
+  .humanHoloTopbar{min-height:88px;grid-template-rows:minmax(54px,auto) 28px}
   .humanHoloBrandInfinity{display:none}
+  .humanHoloWelcomeTitle{font-size:24px}
   .humanHoloHero{height:210px}
   .humanHoloAreaCard{min-height:70px}
   .humanHoloAreaIcon{width:35px;height:35px}
   .humanHoloAreaIcon svg{width:29px;height:29px}
-  .humanHoloHomeFooter{min-height:52px;margin-top:6px;padding-bottom:7px}
+  .humanHoloHomeFooter{min-height:26px;margin-top:8px;padding-bottom:5px}
 }
 
 /*
@@ -3185,4 +3153,159 @@ body.voice-open #onboardingScreen{
   #app:not(.voice-mode) #chatView #stageVolumeCard{
     width:80px;
   }
+}
+
+/* Einheitlicher Human-Holo-Stil fuer alle Bereiche hinter der Startseite. */
+#chatView,
+#memoryView,
+#servicesView,
+#profileView,
+#settingsView,
+#notesView{
+  background:
+    radial-gradient(circle at 13% 7%,rgba(142,85,255,.28),transparent 25%),
+    radial-gradient(circle at 86% 15%,rgba(35,174,255,.24),transparent 29%),
+    radial-gradient(circle at 50% 88%,rgba(79,65,224,.18),transparent 34%),
+    linear-gradient(180deg,#09184f 0%,#12145f 31%,#071a5b 65%,#020d31 100%);
+}
+
+#chatView::before,
+#memoryView::before,
+#servicesView::before,
+#profileView::before,
+#settingsView::before,
+#notesView::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  pointer-events:none;
+  opacity:.4;
+  background-image:
+    radial-gradient(circle at 12% 12%,#fff 0 1px,transparent 1.4px),
+    radial-gradient(circle at 80% 9%,#bbddff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 34% 28%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 92% 38%,#d4b9ff 0 1px,transparent 1.5px);
+  background-size:143px 131px,191px 173px,229px 211px,277px 253px;
+}
+
+#chatView>header,
+#memoryView .subHeader,
+#servicesView .subHeader,
+#profileView .subHeader,
+#settingsView .subHeader,
+#notesView .subHeader{
+  border-bottom:1px solid rgba(173,205,255,.34);
+  background:linear-gradient(180deg,rgba(30,53,145,.72),rgba(13,32,105,.52));
+  box-shadow:0 9px 24px rgba(1,7,45,.24),inset 0 -1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(16px) saturate(1.2);
+}
+
+#memoryView .subHeader,
+#servicesView .subHeader,
+#profileView .subHeader,
+#settingsView .subHeader,
+#notesView .subHeader{
+  margin-right:-18px;
+  margin-left:-18px;
+  padding-right:18px;
+  padding-left:18px;
+}
+
+#memoryView .subHeaderTitle,
+#servicesView .subHeaderTitle,
+#profileView .subHeaderTitle,
+#settingsView .subHeaderTitle,
+#notesView .subHeaderTitle{
+  color:#fff;
+  letter-spacing:.08em;
+  text-shadow:0 0 12px rgba(86,210,255,.58);
+}
+
+#memoryView .iconButton,
+#servicesView .iconButton,
+#profileView .iconButton,
+#settingsView .iconButton,
+#notesView .iconButton{
+  border-color:rgba(190,222,255,.62);
+  color:#fff;
+  background:linear-gradient(145deg,rgba(102,126,238,.4),rgba(88,45,185,.34));
+  box-shadow:0 0 10px rgba(74,211,255,.52),0 0 20px rgba(143,75,255,.35);
+}
+
+.appView:not(.humanHoloHome) :is(.glassCard,.actionRow,.serviceRow,.settingsGroup,.profileStatus,.noteCard){
+  border-color:rgba(200,224,255,.46);
+  background:
+    radial-gradient(circle at 28% 12%,rgba(255,255,255,.12),transparent 28%),
+    linear-gradient(145deg,rgba(78,103,211,.35),rgba(34,25,112,.47));
+  box-shadow:
+    0 0 10px rgba(72,202,255,.28),
+    0 0 22px rgba(135,73,255,.3),
+    0 15px 34px rgba(0,5,45,.28),
+    inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(15px) saturate(1.22);
+}
+
+.appView:not(.humanHoloHome) :is(.featureHeadline,.profileName,.notesIntro h3,.settingsIntro h2){
+  color:#fff;
+  text-shadow:0 0 13px rgba(108,185,255,.46);
+}
+
+.appView:not(.humanHoloHome) :is(.featureCopy,.profileMeta,.notesIntro p,.settingsIntro p,.rowMeta,.permissionNote){
+  color:rgba(226,234,255,.76);
+}
+
+.appView:not(.humanHoloHome) .rowIcon,
+#notesView .notesIntroIcon{
+  border-color:rgba(183,211,255,.58);
+  color:#87dcff;
+  background:linear-gradient(145deg,rgba(103,100,230,.42),rgba(73,43,170,.38));
+  box-shadow:0 0 12px rgba(81,211,255,.38),0 0 19px rgba(149,76,255,.32);
+}
+
+.appView:not(.humanHoloHome) :is(.secondaryButton,.noteComposer button,.noteActions button){
+  border-color:rgba(210,225,255,.67);
+  color:#fff;
+  background:linear-gradient(125deg,rgba(151,79,239,.82),rgba(39,126,222,.76));
+  box-shadow:0 0 11px rgba(78,210,255,.38),0 0 23px rgba(150,72,255,.36);
+}
+
+#notesView :is(textarea,input),
+#settingsView :is(input,textarea){
+  border-color:rgba(198,218,255,.48);
+  color:#fff;
+  background:linear-gradient(145deg,rgba(79,88,190,.42),rgba(31,29,102,.5));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 0 12px rgba(91,189,255,.18);
+}
+
+#chatView #chatPanel,
+#chatView #messageWrap,
+#chatView #solStage,
+#chatView #statusCard,
+#chatView #stageVolumeCard{
+  border-color:rgba(190,214,255,.42);
+  background:linear-gradient(150deg,rgba(61,78,178,.36),rgba(17,21,82,.55));
+  box-shadow:0 0 13px rgba(72,204,255,.22),0 0 27px rgba(139,76,255,.25);
+  backdrop-filter:blur(15px) saturate(1.18);
+}
+
+#chatView :is(#imageButton,#liveButton,#sendButton){
+  border-color:rgba(205,231,255,.75);
+  color:#fff;
+  background:linear-gradient(145deg,rgba(113,103,239,.7),rgba(65,67,190,.66));
+  box-shadow:0 0 10px rgba(68,215,255,.55),0 0 22px rgba(152,77,255,.45);
+}
+
+#chatView .message{
+  border-color:rgba(185,208,255,.38);
+  box-shadow:0 0 14px rgba(104,95,235,.18),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+#chatView .user-message{
+  background:linear-gradient(145deg,rgba(146,78,224,.48),rgba(64,70,182,.5));
+}
+
+#chatView .sol-message,
+#chatView .system-message{
+  background:linear-gradient(145deg,rgba(48,124,204,.42),rgba(43,35,132,.5));
 }

@@ -1574,7 +1574,7 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=44">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=45">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=1">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=1">
@@ -10851,31 +10851,9 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=55"></script>
+<script src="./sol-holo-ui.js?v=56"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=1"></script>
-<script>
-(() => {
-  "use strict";
-
-  const createUnicorn = (className, label = "Rosa Einhorn") => {
-    const unicorn = document.createElement("span");
-    unicorn.className = className;
-    unicorn.setAttribute("role", "img");
-    unicorn.setAttribute("aria-label", label);
-    unicorn.textContent = "🦄";
-    return unicorn;
-  };
-
-  const homeTitle = document.getElementById("homeTitle");
-  if (homeTitle && !homeTitle.querySelector(".pamUnicorn--home")) {
-    homeTitle.querySelector(".accent")?.remove();
-    homeTitle.append(" ", createUnicorn("pamUnicorn pamUnicorn--home"));
-  }
-
-})();
-</script>
-
 </body>
 </html>

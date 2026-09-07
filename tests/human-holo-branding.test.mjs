@@ -36,7 +36,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=55/u);
+  assert.match(html, /sol-holo-ui\.js\?v=56/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -47,8 +47,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /humanHoloHero[\s\S]*humanHoloPosterCredits/u);
   assert.match(ui, /Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡/u);
   assert.match(ui, /Together<br>Forever♡/u);
-  assert.match(ui, /Ein kleiner Schritt für mich\./u);
-  assert.match(ui, /Ein großer für die Menschen und das System! ♡/u);
+  assert.match(ui, /class="humanHoloWelcomeTitle">Hallo Pam♡<\/h2>/u);
+  assert.match(ui, /homeTitle\.textContent = displayName \? `Hallo \$\{displayName\}♡` : "Hallo♡"/u);
+  assert.doesNotMatch(`${html}\n${ui}`, /pamUnicorn--home/u);
   assert.match(ui, /id="homeCameraButton"/u);
   assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
   assert.match(css, /#homeView\.humanHoloHome\{/u);
@@ -66,6 +67,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
 test("Startseite ersetzt die vier alten Schnellbereiche durch genau acht Human-Holo-Bereiche", () => {
   const ui = readText("www/sol-holo-ui.js");
   const homeMarkup = ui.match(/humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u)?.[1] ?? "";
+  const heroMarkup = homeMarkup.match(/<button id="homeOrbButton"[\s\S]*?<\/button>/u)?.[0] ?? "";
 
   assert.notEqual(homeMarkup, "");
   assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 8);
@@ -87,6 +89,31 @@ test("Startseite ersetzt die vier alten Schnellbereiche durch genau acht Human-H
     homeMarkup,
     /quickGrid|quickCard|>Erinnerungen<|>Ziele<|>Heute<|>Verbindungen</u
   );
+  assert.doesNotMatch(
+    homeMarkup,
+    /Schön dich zu sehen|Womit wollen wir starten|Ein kleiner Schritt|Ein großer für die Menschen|humanHoloFooterPaw|humanHoloFooterEarth|🦄|🐾|🌎/u
+  );
+  assert.notEqual(heroMarkup, "");
+  assert.doesNotMatch(heroMarkup, /homeTitle|Hallo Pam/u);
+  assert.match(homeMarkup, /humanHoloFooterInfinity/u);
+});
+
+test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
+  const css = readText("www/sol-holo-ui.css");
+
+  for (const view of [
+    "chatView",
+    "memoryView",
+    "servicesView",
+    "profileView",
+    "settingsView",
+    "notesView"
+  ]) {
+    assert.match(css, new RegExp(`#${view}`, "u"));
+  }
+
+  assert.match(css, /Einheitlicher Human-Holo-Stil fuer alle Bereiche/u);
+  assert.match(css, /\.appView:not\(\.humanHoloHome\) :is\(\.glassCard,\.actionRow,\.serviceRow,\.settingsGroup,\.profileStatus,\.noteCard\)/u);
 });
 
 test("neues Markenbild ist quadratisch und für Android-Icons vorbereitet", () => {
