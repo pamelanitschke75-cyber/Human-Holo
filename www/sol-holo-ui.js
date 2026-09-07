@@ -28,14 +28,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   homeMissionPoster.className = "humanHoloMissionPoster";
   homeMissionPoster.setAttribute(
     "aria-label",
-    "Human Holo – Miteinander, füreinander, für eine bessere Welt"
+    "Human Holo – Menschen, Tiere, Umwelt, zusammen, für alle"
   );
   homeMissionPoster.innerHTML = `
     <div class="humanHoloPosterVisual">
-      <div class="humanHoloPosterMottos">
-        <span>Miteinander<br>Füreinander<br>Für eine bessere Welt ♡</span>
-        <span lang="en">Together<br>Forever ♡</span>
-      </div>
       <div class="humanHoloPosterCredits">
         BY PAMELA NITSCHKE AND STEFANIE HÖRATH
         <span>DEVELOPED WITH <strong>CHATGPT BY OPENAI</strong></span>

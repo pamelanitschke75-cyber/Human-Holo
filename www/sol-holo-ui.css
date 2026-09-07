@@ -479,28 +479,6 @@ body{
   letter-spacing:0;
 }
 
-.humanHoloPosterMottos{
-  position:absolute;
-  z-index:1;
-  top:72px;
-  left:13px;
-  right:13px;
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:28px;
-  color:#fff;
-  font-family:cursive;
-  font-size:12px;
-  line-height:1.18;
-  text-align:left;
-  text-shadow:0 1px 10px rgba(0,0,0,.95),0 0 14px rgba(69,205,255,.34);
-}
-
-.humanHoloPosterMottos span:last-child{
-  text-align:right;
-}
-
 .humanHoloPosterCopy{
   position:relative;
   z-index:2;
