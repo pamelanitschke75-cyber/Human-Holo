@@ -180,7 +180,7 @@ if (!activity.includes("registerPlugin(SolSpeakerIdentityPlugin.class)")) {
   writeFileSync(mainActivity, activity, "utf8");
 }
 
-const sourceText = `SOL HOLO / PAM'S HOLO – LOKALE SPRECHERERKENNUNG\n\n` +
+const sourceText = `HUMAN HOLO / PAM'S HOLO – LOKALE SPRECHERERKENNUNG\n\n` +
 `Zweck: Lokale Unterscheidung und Freigabe der autorisierten Besitzerstimme.\n` +
 `Owner-Bindung: ${PERSONAL_WAKE_OWNER_ID} · persönlicher Weckname: ${PERSONAL_WAKE_NAME}.\n` +
 `Status: Der Weckruf „${PERSONAL_WAKE_PHRASE}“ wird nur nach lokaler Freigabe des gespeicherten Besitzerprofils ausgeführt.\n` +

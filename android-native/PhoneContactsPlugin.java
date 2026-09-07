@@ -372,16 +372,16 @@ public class PhoneContactsPlugin extends Plugin {
         }
 
         String disclosure =
-            "Damit Sol Holo nach deinem ausdrücklichen Auftrag in WhatsApp " +
+            "Damit Human Holo nach deinem ausdrücklichen Auftrag in WhatsApp " +
             "automatisch auf Senden tippen kann, benötigt sie die Android-" +
             "Bedienungshilfe.\n\n" +
             "Android bezeichnet diese Freigabe als weitreichenden Bildschirm- " +
-            "und Steuerungszugriff. Sol Holos technische Begrenzung lässt die " +
+            "und Steuerungszugriff. Human Holos technische Begrenzung lässt die " +
             "Funktion trotzdem ausschließlich in WhatsApp arbeiten.\n\n" +
             "Die Funktion reagiert ausschließlich auf einen kurzlebigen " +
             "Einmal-Auftrag, ausschließlich in WhatsApp und nur wenn " +
             "Empfänger sowie vollständiger Nachrichtentext übereinstimmen.\n\n" +
-            "Sol Holo speichert oder überträgt dabei keine sichtbaren " +
+            "Human Holo speichert oder überträgt dabei keine sichtbaren " +
             "WhatsApp-Inhalte. Du kannst den Zugriff jederzeit in den " +
             "Android-Einstellungen ausschalten.";
 
@@ -399,7 +399,7 @@ public class PhoneContactsPlugin extends Plugin {
                     result.put("settingsOpened", true);
                     result.put(
                         "instructions",
-                        "Wähle Sol Holo – WhatsApp automatisch senden und aktiviere den Zugriff. Danach den WhatsApp-Befehl einmal wiederholen."
+                        "Wähle Human Holo – WhatsApp automatisch senden und aktiviere den Zugriff. Danach den WhatsApp-Befehl einmal wiederholen."
                     );
                     call.resolve(result);
                 } catch (ActivityNotFoundException | SecurityException error) {

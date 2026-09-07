@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sol-holo-134-whatsapp-auto-senden";
+const CACHE_VERSION = "human-holo-210-branding";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

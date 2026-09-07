@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "phase": "2c",
-  "name": "Sol Holo – OpenAI-gestützte fiktive Alltag-Vorschau",
+  "name": "Human Holo – OpenAI-gestützte fiktive Alltag-Vorschau",
   "status": "implemented-disabled-by-default",
   "productive": false,
   "new_provider_required": false,

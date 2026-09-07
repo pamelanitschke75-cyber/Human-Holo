@@ -62,7 +62,7 @@ function lockMarkup({ needsRegistration = false, message = "" } = {}) {
   const hint = document.createElement("span");
   hint.className = "solHoloLockHint";
   hint.textContent =
-    "Fingerabdruckdaten bleiben ausschließlich bei Android. Sol Holo speichert keine biometrischen Rohdaten.";
+    "Fingerabdruckdaten bleiben ausschließlich bei Android. Human Holo speichert keine biometrischen Rohdaten.";
 
   bootScreen.append(logo, statusNode, unlockButton, hint);
 }

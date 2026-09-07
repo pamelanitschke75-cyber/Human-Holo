@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "phase": 2,
-  "name": "Sol Holo OpenClaw Lab – Alltag-Vorschau",
+  "name": "Human Holo OpenClaw Lab – Alltag-Vorschau",
   "status": "lab-preview",
   "productive": false,
   "active_worker": "worker-alltag",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sol-holo-v14-stable-hey-pam-voice";
+const CACHE_NAME = "human-holo-v1-brand-hey-pam-voice";
 
 const APP_FILES = [
   "/",
@@ -7,7 +7,7 @@ const APP_FILES = [
   "/sol-holo-ui.css",
   "/sol-holo-ui.js",
   "/media-tools.js",
-  "/sol-holo-logo.png",
+  "/human-holo-logo.png",
   "/icon-192.png",
   "/icon-512.png"
 ];

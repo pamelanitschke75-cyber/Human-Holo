@@ -88,7 +88,7 @@
     },
     entries: {
       "sol-holo-lab": {
-        name: "Sol Holo OpenClaw Lab",
+        name: "Human Holo OpenClaw Lab",
         workspace: "${OPENCLAW_LAB_ROOT}/workspace",
         agentDir: "${OPENCLAW_LAB_STATE_DIR}/agents/sol-holo-lab",
         tools: {

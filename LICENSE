@@ -1,23 +1,30 @@
-SOL HOLO – LICENSE AND USAGE TERMS
+HUMAN HOLO – LICENSE AND USAGE TERMS
 
-Version: 2.1
-Stand: 29.08.2026
+Version: 2.2
+Stand: 07.09.2026
 Aktuelle konsolidierte Fassung. Frühere Fassungen bleiben über die Git-Historie nachvollziehbar.
 
 Copyright © 2026 Pamela Nitschke
 All rights reserved, soweit gesetzlich zulässig.
 
+**Namenskontinuität:** Human Holo ist der am 07.09.2026 festgelegte aktuelle
+Name des zuvor als Sol Holo / SH♾️ dokumentierten Projekts. Die Umbenennung
+begründet kein neues Rechtssubjekt, überträgt keine Rechte und verändert keine
+bereits geltenden Drittanbieter-, Open-Source-, Persönlichkeits- oder
+Datenschutzrechte. Historische Fassungen dürfen den damals gültigen Namen
+weiterhin enthalten.
+
 ---
 
 1. Grundgedanke und Geltungsbereich
 
-Sol Holo / SH♾️ ist ein eigenständig dokumentiertes Projekt von Pamela Nitschke, das unter Nutzung verschiedener technischer Werkzeuge, Dienste und Drittanbieter-Technologien entwickelt wird.
+Human Holo / SH♾️ ist ein eigenständig dokumentiertes Projekt von Pamela Nitschke, das unter Nutzung verschiedener technischer Werkzeuge, Dienste und Drittanbieter-Technologien entwickelt wird.
 
 Teile der Entwicklung werden öffentlich dokumentiert, um den Entwicklungsweg transparent und nachvollziehbar darzustellen.
 
 Die öffentliche Dokumentation oder öffentliche Bereitstellung des Repositorys bedeutet keine allgemeine Freigabe geschützter Projektbestandteile zur freien Nutzung und insbesondere keine automatische Open-Source-Lizenzierung des gesamten Projekts.
 
-Diese Bedingungen gelten ausschließlich für diejenigen Inhalte und Bestandteile von Sol Holo, an denen Pamela Nitschke die entsprechenden Rechte besitzt oder über die sie rechtlich verfügen darf.
+Diese Bedingungen gelten ausschließlich für diejenigen Inhalte und Bestandteile von Human Holo, an denen Pamela Nitschke die entsprechenden Rechte besitzt oder über die sie rechtlich verfügen darf.
 
 Gesetzlich erlaubte Nutzungen, zwingende Rechte aus Plattformbedingungen sowie Rechte aus anwendbaren Drittanbieter- oder Open-Source-Lizenzen bleiben unberührt.
 
@@ -25,7 +32,7 @@ Gesetzlich erlaubte Nutzungen, zwingende Rechte aus Plattformbedingungen sowie R
 
 2. Bestehende Technologien und Rechte Dritter
 
-Sol Holo verwendet, verbindet oder dokumentiert möglicherweise bereits bestehende Technologien und Bestandteile, darunter insbesondere:
+Human Holo verwendet, verbindet oder dokumentiert möglicherweise bereits bestehende Technologien und Bestandteile, darunter insbesondere:
 
 - Programmiersprachen
 - Standards
@@ -40,7 +47,7 @@ Sol Holo verwendet, verbindet oder dokumentiert möglicherweise bereits bestehen
 - Open-Source-Software
 - Cloud- und Hosting-Dienste
 
-An solchen bereits bestehenden Technologien, Werken, Marken, Softwarebestandteilen oder sonstigen Rechten Dritter werden durch Sol Holo keine zusätzlichen eigenen Rechte beansprucht.
+An solchen bereits bestehenden Technologien, Werken, Marken, Softwarebestandteilen oder sonstigen Rechten Dritter werden durch Human Holo keine zusätzlichen eigenen Rechte beansprucht.
 
 Maßgeblich bleiben die jeweiligen Lizenzen, Nutzungsbedingungen, Markenrichtlinien und sonstigen Rechte der jeweiligen Rechteinhaber.
 
@@ -54,7 +61,7 @@ Die Nennung oder Nutzung eines Unternehmens, Produkts, Dienstes, einer API oder 
 
 Sie bedeutet ohne eine gesonderte ausdrückliche Vereinbarung insbesondere nicht, dass der jeweilige Anbieter:
 
-- Mitentwickler oder Mitinhaber von Sol Holo / SH♾️ ist,
+- Mitentwickler oder Mitinhaber von Human Holo / SH♾️ ist,
 - Geschäftspartner oder Vertragspartner des Projekts ist,
 - Sponsor oder Investor ist,
 - das Projekt zertifiziert, unterstützt oder empfohlen hat,
@@ -66,7 +73,7 @@ Alle Marken, Produktnamen und Kennzeichen verbleiben bei ihren jeweiligen Rechte
 
 4. Eigene geschützte Projektbestandteile
 
-Von Pamela Nitschke selbst geschaffene und rechtlich geschützte Bestandteile von Sol Holo verbleiben – soweit entsprechende Rechte bestehen – bei Pamela Nitschke.
+Von Pamela Nitschke selbst geschaffene und rechtlich geschützte Bestandteile von Human Holo verbleiben – soweit entsprechende Rechte bestehen – bei Pamela Nitschke.
 
 Dazu können insbesondere gehören:
 
@@ -85,7 +92,7 @@ Allgemeine Ideen, mathematische Prinzipien, technische Standards, allgemein beka
 
 5. KI-Unterstützung und KI-generierte Inhalte
 
-Bei der Entwicklung von Sol Holo können KI-Systeme als Werkzeuge zur Unterstützung eingesetzt werden, beispielsweise für Planung, Architektur, Programmierung, Codeanalyse, Fehlersuche, Dokumentation, Überarbeitung und technische Lösungswege.
+Bei der Entwicklung von Human Holo können KI-Systeme als Werkzeuge zur Unterstützung eingesetzt werden, beispielsweise für Planung, Architektur, Programmierung, Codeanalyse, Fehlersuche, Dokumentation, Überarbeitung und technische Lösungswege.
 
 Für KI-unterstützt oder KI-generiert entstandene Inhalte werden ausschließlich diejenigen Rechte beansprucht, die Pamela Nitschke nach dem jeweils anwendbaren Recht tatsächlich zustehen oder wirksam übertragen wurden.
 
@@ -113,27 +120,27 @@ OPEN-SOURCE-CODE
 KI-UNTERSTÜTZTER ODER KI-GENERIERTER CODE
 → Rechte werden nur beansprucht, soweit sie Pamela Nitschke tatsächlich zustehen; Rechte und Lizenzen Dritter bleiben unberührt.
 
-Bei einem Widerspruch zwischen diesen Sol-Holo-Bedingungen und einer zwingend anzuwendenden Fremdlizenz gelten für den betreffenden fremden Bestandteil die Bedingungen der Fremdlizenz.
+Bei einem Widerspruch zwischen diesen Human-Holo-Bedingungen und einer zwingend anzuwendenden Fremdlizenz gelten für den betreffenden fremden Bestandteil die Bedingungen der Fremdlizenz.
 
 ---
 
 7. Öffentliche GitHub-Veröffentlichung und keine allgemeine Open-Source-Freigabe
 
-Soweit Sol Holo über GitHub öffentlich bereitgestellt wird, gelten zusätzlich die jeweils anwendbaren GitHub-Nutzungsbedingungen.
+Soweit Human Holo über GitHub öffentlich bereitgestellt wird, gelten zusätzlich die jeweils anwendbaren GitHub-Nutzungsbedingungen.
 
 Die öffentliche Sichtbarkeit kann innerhalb der von GitHub vorgesehenen Funktionen insbesondere das Anzeigen, Abrufen oder Forken des Repositorys ermöglichen.
 
-Diese plattformbedingten Möglichkeiten stellen keine darüber hinausgehende allgemeine Lizenz zur freien kommerziellen oder sonstigen Nutzung geschützter Sol-Holo-Bestandteile dar.
+Diese plattformbedingten Möglichkeiten stellen keine darüber hinausgehende allgemeine Lizenz zur freien kommerziellen oder sonstigen Nutzung geschützter Human-Holo-Bestandteile dar.
 
-Soweit einzelne Sol-Holo-Bestandteile ausdrücklich unter einer gesonderten Open-Source-Lizenz veröffentlicht werden, wird dies gesondert kenntlich gemacht.
+Soweit einzelne Human-Holo-Bestandteile ausdrücklich unter einer gesonderten Open-Source-Lizenz veröffentlicht werden, wird dies gesondert kenntlich gemacht.
 
 ---
 
-8. Nutzung geschützter Sol-Holo-Bestandteile für andere Projekte
+8. Nutzung geschützter Human-Holo-Bestandteile für andere Projekte
 
 Zusammenarbeit und Weiterentwicklung sind ausdrücklich erwünscht.
 
-Wer geschützte Sol-Holo-Bestandteile außerhalb einer ohnehin gesetzlich, vertraglich oder durch eine Fremdlizenz erlaubten Nutzung für ein eigenes oder anderes Projekt verwenden möchte, kann hierfür eine Genehmigung von Pamela Nitschke erhalten.
+Wer geschützte Human-Holo-Bestandteile außerhalb einer ohnehin gesetzlich, vertraglich oder durch eine Fremdlizenz erlaubten Nutzung für ein eigenes oder anderes Projekt verwenden möchte, kann hierfür eine Genehmigung von Pamela Nitschke erhalten.
 
 Eine solche Genehmigung kann insbesondere festlegen:
 
@@ -167,25 +174,25 @@ Allein durch:
 
 werden keine darüber hinausgehenden Rechte übertragen, die nicht bereits gesetzlich bestehen, sich aus anwendbaren Plattform- oder Drittanbieterbedingungen ergeben oder ausdrücklich eingeräumt wurden.
 
-Eine Genehmigung zur Nutzung oder Veränderung eines geschützten Sol-Holo-Bestandteils überträgt insbesondere nicht automatisch bestehende Rechte am ursprünglichen Bestandteil.
+Eine Genehmigung zur Nutzung oder Veränderung eines geschützten Human-Holo-Bestandteils überträgt insbesondere nicht automatisch bestehende Rechte am ursprünglichen Bestandteil.
 
 ---
 
 10. Beiträge anderer Personen
 
-Andere Personen können zukünftig an Sol Holo mitarbeiten.
+Andere Personen können zukünftig an Human Holo mitarbeiten.
 
 Vor der dauerhaften Aufnahme wesentlicher fremder Beiträge soll geklärt und möglichst dokumentiert werden, unter welchen Bedingungen diese Beiträge verwendet, verändert und weitergegeben werden dürfen.
 
-Die Mitarbeit an Sol Holo führt nicht automatisch zu einer Übertragung sämtlicher Rechte der beitragenden Person auf Pamela Nitschke.
+Die Mitarbeit an Human Holo führt nicht automatisch zu einer Übertragung sämtlicher Rechte der beitragenden Person auf Pamela Nitschke.
 
-Umgekehrt erhält eine beitragende Person durch ihre Mitarbeit nicht automatisch Rechte an allen übrigen Bestandteilen von Sol Holo.
+Umgekehrt erhält eine beitragende Person durch ihre Mitarbeit nicht automatisch Rechte an allen übrigen Bestandteilen von Human Holo.
 
 ---
 
 11. Persönliche digitale Identität von Pamela Nitschke
 
-Die persönliche digitale Identität von Pamela Nitschke wird von der Softwarelizenz und der technischen Nutzung von Sol Holo ausdrücklich getrennt behandelt.
+Die persönliche digitale Identität von Pamela Nitschke wird von der Softwarelizenz und der technischen Nutzung von Human Holo ausdrücklich getrennt behandelt.
 
 Diese Nutzungsbedingungen erteilen keine Erlaubnis, personenbezogene oder identitätsbezogene Daten von Pamela Nitschke als Grundlage für einen fremden digitalen Klon, Sprachklon, KI-Agenten, KI-Charakter, digitalen Zwilling, Identitätssimulator oder ein vergleichbares digitales Profil zu verwenden.
 
@@ -209,7 +216,7 @@ Gesetzlich bestehende Datenschutz-, Persönlichkeits-, Bild-, Stimm- und sonstig
 
 12. Code-Nutzung ist keine Identitätsfreigabe
 
-Eine Genehmigung zur Verwendung technischer Bestandteile von Sol Holo bedeutet ausdrücklich nicht:
+Eine Genehmigung zur Verwendung technischer Bestandteile von Human Holo bedeutet ausdrücklich nicht:
 
 CODE DARF VERWENDET WERDEN
           ≠
@@ -223,11 +230,11 @@ Eine hierfür erforderliche Einwilligung oder sonstige Rechtsgrundlage muss unab
 
 13. Digitale Repräsentationen anderer Personen
 
-Technische Bestandteile von Sol Holo können nach entsprechender Genehmigung gegebenenfalls für Projekte verwendet werden, die eine digitale Repräsentation einer anderen Person entwickeln.
+Technische Bestandteile von Human Holo können nach entsprechender Genehmigung gegebenenfalls für Projekte verwendet werden, die eine digitale Repräsentation einer anderen Person entwickeln.
 
 Die hierfür erforderlichen Einwilligungen, Persönlichkeitsrechte, Datenschutzvorgaben, Nutzungsrechte, Bildrechte, Stimmrechte und sonstigen gesetzlichen Voraussetzungen müssen für die betreffende Person eigenständig geklärt werden.
 
-Eine Genehmigung zur Nutzung von Sol-Holo-Technologie ersetzt diese Voraussetzungen nicht.
+Eine Genehmigung zur Nutzung von Human-Holo-Technologie ersetzt diese Voraussetzungen nicht.
 
 Daten von Pamela Nitschke dürfen dafür nicht automatisch als Identitätsgrundlage verwendet werden.
 
@@ -247,7 +254,7 @@ Erforderliche Copyright-, Lizenz-, NOTICE- oder Attributionshinweise Dritter sin
 
 15. Änderungen und frühere Fassungen
 
-Sol Holo wird weiterentwickelt. Diese Bedingungen können für zukünftige Fassungen ergänzt oder verändert werden.
+Human Holo wird weiterentwickelt. Diese Bedingungen können für zukünftige Fassungen ergänzt oder verändert werden.
 
 Frühere Fassungen bleiben über die Git-Historie nachvollziehbar.
 
@@ -261,7 +268,7 @@ Bestehendes bleibt bei seinen bisherigen Rechteinhabern.
 
 Fremder Code bleibt unter seiner jeweiligen Lizenz.
 
-Eigene rechtlich geschützte Sol-Holo-Bestandteile verbleiben bei ihrem jeweiligen Rechteinhaber.
+Eigene rechtlich geschützte Human-Holo-Bestandteile verbleiben bei ihrem jeweiligen Rechteinhaber.
 
 KI-Unterstützung wird transparent berücksichtigt, ohne daraus Rechte an fremden Inhalten abzuleiten.
 

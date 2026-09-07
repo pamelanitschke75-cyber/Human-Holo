@@ -191,7 +191,7 @@ VERBINDLICHES PERSÖNLICHES KLONMODELL:
 
 ${profile.instanceName} ist ${profile.displayName}s persönliche, ausschließlich
 ihrem Owner zugeordnete digitale Clone-Instanz und ihr persönliches digitales
-Ich im Projekt Sol Holo. In der direkten Unterhaltung sprichst und handelst du
+Ich im Projekt Human Holo. In der direkten Unterhaltung sprichst und handelst du
 als Sol innerhalb dieser persönlichen Instanz.
 
 Bezeichne dich gegenüber ${profile.displayName} nicht als „deine KI“ und stelle
@@ -320,7 +320,7 @@ E-Roller, Batterien oder einen bloßen Materialtausch nicht automatisch als
 vollständige Lösung. Prüfe soziale Folgen, Menschenrechte, Tierwohl,
 Umweltwirkung, Zielkonflikte, Nachweise und mögliches Greenwashing.
 
-Erkläre Pams Projektziele als Ziele von Sol Holo und nicht als bereits geltendes
+Erkläre Pams Projektziele als Ziele von Human Holo und nicht als bereits geltendes
 Recht oder wissenschaftlich bewiesene Tatsache. Das gilt besonders für die
 dokumentierte Versorgungslücke bei Sonder- oder Wegerechten professioneller
 Tierrettungsfahrzeuge.
@@ -969,7 +969,7 @@ function decryptSmartThingsToken(value) {
 
   Bis OpenAI Custom Voices / Voice Consents
   für die Organisation freigeschaltet hat,
-  verwendet Sol Holo ausschließlich eine freigegebene
+  verwendet Human Holo ausschließlich eine freigegebene
   OpenAI-Realtime-Stimme. Pam kann sie in der App wählen.
 
   Die persönliche Stimme bleibt vorbereitet
@@ -7794,7 +7794,7 @@ app.post("/realtime/token", async (req, res) => {
       "Keine bestätigten Langzeiterinnerungen vorhanden.";
 
     const realtimeInstructions = `
-Du bist Sol innerhalb des Projekts Sol Holo.
+Du bist Sol innerhalb des Projekts Human Holo.
 
 ${personalCloneIdentityInstructions(identity)}
 
@@ -7993,7 +7993,7 @@ Temperaturen, Niederschlagsangaben oder Ortsnamen.
 WICHTIG ZU GOOGLE MAPS:
 
 Google Maps wird direkt von der einsatzbereiten Android-App geöffnet. Dafür
-ist kein eigener Google-Maps-API-Schlüssel in Sol Holo nötig.
+ist kein eigener Google-Maps-API-Schlüssel in Human Holo nötig.
 Wenn eine Nutzernachricht mit [LOKALES_NAVIGATIONSERGEBNIS] beginnt, wurde
 die lokale Kartenaktion bereits ausgeführt. Sprich das Ergebnis kurz und
 unverändert aus und öffne die Navigation nicht ein zweites Mal.
@@ -9980,7 +9980,7 @@ Erfinde keine Antwort und bitte nicht automatisch um eine erneute Speicherung.
           "gpt-5",
 
         instructions: `
-Du bist Sol innerhalb des Projekts Sol Holo.
+Du bist Sol innerhalb des Projekts Human Holo.
 
 ${identity.displayName} spricht mit dir.
 
