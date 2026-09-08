@@ -68,6 +68,11 @@ import {
   extractExplicitEcosystemLocation,
   looksLikeEcosystemLocationReply
 } from "./modules/sol-holo-ecosystem.mjs";
+import {
+  createHumanHoloVoiceProfileStore,
+  pamVoiceIdFromEnvironment,
+  resolveHumanHoloRealtimeVoice
+} from "./modules/human-holo-voice.mjs";
 
 const app = express();
 
@@ -124,6 +129,11 @@ const PENDING_ECOSYSTEM_TTL_MS =
 
 const identityMemoryStore =
   createIdentityMemoryStore({
+    database: db
+  });
+
+const humanHoloVoiceProfiles =
+  createHumanHoloVoiceProfileStore({
     database: db
   });
 
@@ -973,55 +983,66 @@ function decryptSmartThingsToken(value) {
   und wird später wieder aktiviert.
 */
 
-const SOL_HOLO_REALTIME_VOICES =
-  new Set([
-    "alloy",
-    "ash",
-    "ballad",
-    "coral",
-    "echo",
-    "sage",
-    "shimmer",
-    "verse",
-    "marin",
-    "cedar"
-  ]);
-
-const DEFAULT_SOL_HOLO_VOICE =
-  "coral";
-
-function resolveSolHoloVoice(
-  requestedVoice
-) {
-  const voice =
-    String(
-      requestedVoice ||
-      ""
-    )
-      .trim()
-      .toLowerCase();
-
-  return SOL_HOLO_REALTIME_VOICES
-    .has(voice)
-      ? voice
-      : DEFAULT_SOL_HOLO_VOICE;
-}
-
 /*
   Separater API-Key nur für Voice-Setup
 
   Der normale Sol-Holo-Betrieb verwendet weiterhin
   OPENAI_API_KEY.
 
-  Voice Consent und Voice Creation verwenden
-  ausschließlich OPENAI_VOICE_API_KEY.
+  Voice Consent und Voice Creation verwenden bevorzugt
+  OPENAI_VOICE_API_KEY. Wenn kein getrennter Schlüssel
+  eingerichtet ist, bleibt alles im selben OpenAI-Projekt
+  und verwendet sicher den vorhandenen OPENAI_API_KEY.
 */
 
 const OPENAI_VOICE_API_KEY =
   String(
     process.env.OPENAI_VOICE_API_KEY ||
+    process.env.OPENAI_API_KEY ||
     ""
   ).trim();
+
+async function resolveRealtimeVoiceForIdentity(
+  identity,
+  requestedVoice
+) {
+  let storedVoiceId = "";
+
+  if (
+    identity.ownerId === "pam-sol" &&
+    identity.speakerId === "pam" &&
+    !pamVoiceIdFromEnvironment(
+      process.env
+    )
+  ) {
+    try {
+      const profile =
+        await humanHoloVoiceProfiles
+          .getPamProfile();
+
+      storedVoiceId =
+        profile?.voiceId || "";
+    } catch (error) {
+      console.error(
+        "Pam-Voice-Profil konnte nicht geladen werden:",
+        error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+    }
+  }
+
+  return resolveHumanHoloRealtimeVoice({
+    ownerId:
+      identity.ownerId,
+    speakerId:
+      identity.speakerId,
+    requestedVoice,
+    storedVoiceId,
+    environment:
+      process.env
+  });
+}
 
 /*
   ==========================================================
@@ -1205,16 +1226,27 @@ async function initializeMemory() {
   */
   await identityMemoryStore.initialize();
   await trustedAppSessions.initialize();
+  await humanHoloVoiceProfiles.initialize();
 
   console.log("Sol-Holo-Memory ist bereit.");
   console.log("Bestätigtes Sol-Holo-Gedächtnis ist bereit.");
   console.log("Sol-Holo-Kalender-Speicher ist bereit.");
-  console.log("Realtime-Stimme: marin aktiv.");
+  const pamVoiceProfile =
+    await humanHoloVoiceProfiles
+      .getPamProfile();
+
+  console.log(
+    pamVoiceIdFromEnvironment(
+      process.env
+    ) || pamVoiceProfile?.voiceId
+      ? "Pam-Stimme: eigene OpenAI-Stimme aktiv."
+      : "Pam-Stimme: Coral als sichere Ersatzstimme aktiv."
+  );
 
   console.log(
     OPENAI_VOICE_API_KEY
-      ? "Separater Voice-API-Key ist bereit."
-      : "OPENAI_VOICE_API_KEY fehlt noch."
+      ? "OpenAI-Voice-Setup ist serverseitig bereit."
+      : "OpenAI-API-Key für Voice-Setup fehlt noch."
   );
 
   console.log(
@@ -4976,7 +5008,7 @@ app.get(
   name="viewport"
   content="width=device-width,initial-scale=1"
 >
-<title>Pam’s Holo – Eigene Stimme</title>
+<title>Human Holo – Pams eigene Stimme</title>
 
 <style>
 *{
@@ -5059,12 +5091,12 @@ button:disabled{
 <main>
 
 <h1>
-🌻 Pam’s Holo – Eigene Stimme
+💜 Human Holo – Pams eigene Stimme
 </h1>
 
 <p>
-Hier werden zuerst die Einwilligungsaufnahme
-und danach die eigentliche Stimmprobe an OpenAI gesendet.
+Deine vorhandenen Aufnahmen werden einmalig an OpenAI gesendet.
+Human Holo speichert hier keine Kopie der Audiodateien.
 </p>
 
 <div class="box">
@@ -5094,13 +5126,29 @@ Voice-Setup-Passwort
 1. Voice Consent
 </h2>
 
+<p>
+Bitte verwende die bereits vorbereitete Einwilligungsaufnahme mit exakt
+diesem Satz:
+</p>
+
+<p style="
+  padding:14px;
+  border-radius:12px;
+  background:#1c0e29;
+  line-height:1.55;
+">
+„Ich bin der Eigentümer dieser Stimme und bin damit einverstanden,
+dass OpenAI diese Stimme zur Erstellung eines synthetischen
+Stimmmodells verwendet.“
+</p>
+
 <label for="consentName">
 Name
 </label>
 
 <input
   id="consentName"
-  value="Pam's Holo Consent"
+  value="Human Holo – Pam Consent"
 >
 
 <label for="language">
@@ -5109,7 +5157,8 @@ Sprache
 
 <input
   id="language"
-  value="de-DE"
+  value="de"
+  readonly
 >
 
 <label for="consentFile">
@@ -5150,7 +5199,7 @@ Name der Stimme
 
 <input
   id="voiceName"
-  value="Pam's Holo"
+  value="Human Holo – Pam"
 >
 
 <label for="consentId">
@@ -5165,6 +5214,10 @@ Consent-ID
 <label for="voiceFile">
 Stimmprobe
 </label>
+
+<p>
+Vorhandene Datei: <strong>Pam's Stimme vom 19.08.2026.m4a</strong>
+</p>
 
 <input
   id="voiceFile"
@@ -5279,11 +5332,11 @@ consentButton.addEventListener(
         new URLSearchParams({
           name:
             consentName.value.trim() ||
-            "Pam's Holo Consent",
+            "Human Holo – Pam Consent",
 
           language:
             language.value.trim() ||
-            "de-DE",
+            "de",
 
           filename:
             file.name,
@@ -5388,14 +5441,14 @@ voiceButton.addEventListener(
       true;
 
     voiceStatus.textContent =
-      "Die Stimme für Pam’s Holo wird erstellt ...";
+      "Pams Stimme für Human Holo wird erstellt ...";
 
     try {
       const params =
         new URLSearchParams({
           name:
             voiceName.value.trim() ||
-            "Pam's Holo",
+            "Human Holo – Pam",
 
           consent:
             currentConsentId,
@@ -5438,13 +5491,20 @@ voiceButton.addEventListener(
         );
       }
 
-      voiceStatus.className =
-        "status success";
+      if (data.activated === true) {
+        voiceStatus.className =
+          "status success";
 
-      voiceStatus.textContent =
-        "✅ Eigene Stimme erstellt!\n\nVOICE-ID:\n" +
-        data.id +
-        "\n\nDiese ID kommt anschließend als SOL_HOLO_VOICE_ID nach Render.";
+        voiceStatus.textContent =
+          "✅ Pams eigene Stimme wurde erstellt und automatisch für Human Holo aktiviert.\n\nBeim nächsten Gespräch spricht Human Holo mit Pams Stimme.";
+      } else {
+        voiceStatus.className =
+          "status warning";
+
+        voiceStatus.textContent =
+          "⚠️ Pams Stimme wurde bei OpenAI erstellt, aber die automatische Aktivierung konnte noch nicht gespeichert werden. Bitte nicht erneut erstellen.\n\nVOICE-ID:\n" +
+          data.id;
+      }
 
     } catch(error) {
       voiceStatus.className =
@@ -5510,14 +5570,23 @@ app.post(
       const name =
         String(
           req.query.name ||
-          "Pam's Holo Consent"
+          "Human Holo – Pam Consent"
         ).trim();
 
       const language =
         String(
           req.query.language ||
-          "de-DE"
-        ).trim();
+          "de"
+        )
+          .trim()
+          .toLowerCase();
+
+      if (language !== "de") {
+        return res.status(400).json({
+          error:
+            "Für Pams Einwilligung muss die Sprache 'de' verwendet werden."
+        });
+      }
 
       const filename =
         String(
@@ -5674,7 +5743,7 @@ app.post(
       const name =
         String(
           req.query.name ||
-          "Pam's Holo"
+          "Human Holo – Pam"
         ).trim();
 
       const consent =
@@ -5774,17 +5843,53 @@ app.post(
           });
       }
 
+      const voiceId =
+        String(
+          data?.id ||
+          ""
+        ).trim();
+
+      if (!voiceId) {
+        return res.status(502).json({
+          error:
+            "OpenAI hat keine Voice-ID zurückgegeben."
+        });
+      }
+
+      let activated = false;
+
+      try {
+        await humanHoloVoiceProfiles
+          .savePamProfile({
+            voiceId,
+            voiceName:
+              data?.name || name
+          });
+
+        activated = true;
+      } catch (error) {
+        console.error(
+          "Pam-Stimme wurde erstellt, konnte aber nicht automatisch aktiviert werden:",
+          error?.code ||
+            error?.name ||
+            "Fehler"
+        );
+      }
+
       console.log(
-        "✅ Pam's Holo Voice erstellt:",
-        data.id
+        activated
+          ? "✅ Pams Human-Holo-Stimme erstellt und aktiviert."
+          : "⚠️ Pams Human-Holo-Stimme erstellt; Aktivierung ausstehend."
       );
 
       return res.json({
         id:
-          data.id,
+          voiceId,
 
         name:
-          data.name
+          data.name,
+
+        activated
       });
 
     } catch(error) {
@@ -8031,7 +8136,8 @@ app.post("/realtime/token", async (req, res) => {
     }
 
     const solHoloVoice =
-      resolveSolHoloVoice(
+      await resolveRealtimeVoiceForIdentity(
+        identity,
         req.body?.voice
       );
 
@@ -8854,7 +8960,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
           output: {
             voice:
-              solHoloVoice
+              solHoloVoice.apiVoice
           }
         }
       }
@@ -8943,7 +9049,13 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
       ...data,
 
       sol_voice:
-        solHoloVoice,
+        solHoloVoice.clientVoice,
+
+      sol_voice_label:
+        solHoloVoice.displayName,
+
+      sol_voice_custom:
+        solHoloVoice.isCustom,
 
       sol_memory_token:
         memorySearchToken,
