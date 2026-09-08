@@ -23,6 +23,7 @@
     "hairResponseMs",
     "bodyOverlayOpacity",
     "hairOverlayOpacity",
+    "speechActivityFloor",
     "idleActivity"
   ]);
 
@@ -30,27 +31,45 @@
     enabled:true,
     identityScope:"pam-sol",
     bodyBreathCycleMs:4700,
-    bodyBreathLift:0.0022,
-    bodyBreathScale:0.0028,
-    bodySpeechLift:0.0012,
-    bodySway:0.0016,
-    bodyRotateDegrees:0.10,
-    headSway:0.0022,
-    headNod:0.0015,
-    headTiltRadians:0.0024,
+    bodyBreathLift:0.0060,
+    bodyBreathScale:0.0072,
+    bodySpeechLift:0.0038,
+    bodySway:0.0065,
+    bodyRotateDegrees:0.38,
+    headSway:0.0090,
+    headNod:0.0058,
+    headTiltRadians:0.0085,
     browLift:0.12,
     eyeNarrow:0.08,
     cheekLift:0.10,
     mouthAsymmetry:0.035,
     hairFollow:0.78,
-    hairSway:0.0030,
-    hairLift:0.0015,
-    hairRotateDegrees:0.16,
+    hairSway:0.0130,
+    hairLift:0.0055,
+    hairRotateDegrees:0.62,
     motionResponseMs:90,
-    hairResponseMs:170,
-    bodyOverlayOpacity:0.36,
-    hairOverlayOpacity:0.52,
+    hairResponseMs:190,
+    bodyOverlayOpacity:0.64,
+    hairOverlayOpacity:0.76,
+    speechActivityFloor:0.38,
     idleActivity:0.035
+  });
+
+  /*
+    Dieser konservative Portraitausschnitt bleibt nur so lange aktiv, bis die
+    lokale Bildanalyse eine echte Gesichtsgeometrie liefert. Dadurch darf ein
+    neues Bild oder eine auf Android fehlgeschlagene Analyse die gesamte
+    Bewegung nicht mehr stillschweigend abschalten.
+  */
+  const SAFE_PORTRAIT_GEOMETRY = Object.freeze({
+    left:0.32,
+    top:0.16,
+    right:0.68,
+    bottom:0.50,
+    width:0.36,
+    height:0.34,
+    centerX:0.50,
+    centerY:0.33
   });
 
   const FRAME_KEYS = Object.freeze([
@@ -132,8 +151,13 @@
     profile.motionResponseMs = clamp(profile.motionResponseMs, 35, 360);
     profile.hairResponseMs = clamp(profile.hairResponseMs, 80, 520);
     profile.hairFollow = clamp(profile.hairFollow, 0, 1.4);
-    profile.bodyOverlayOpacity = clamp(profile.bodyOverlayOpacity, 0, 0.75);
-    profile.hairOverlayOpacity = clamp(profile.hairOverlayOpacity, 0, 0.82);
+    profile.bodyOverlayOpacity = clamp(profile.bodyOverlayOpacity, 0, 0.88);
+    profile.hairOverlayOpacity = clamp(profile.hairOverlayOpacity, 0, 0.90);
+    profile.speechActivityFloor = clamp(
+      profile.speechActivityFloor,
+      0.15,
+      0.65
+    );
     profile.idleActivity = clamp(profile.idleActivity, 0, 0.16);
     return profile;
   }
@@ -193,7 +217,7 @@
         roundness / 0.50 * 0.72,
         rms * 8.5,
         spectralActivity * 0.92,
-        input?.speaking ? 0.10 : 0
+        input?.speaking ? profile.speechActivityFloor : 0
       ),
       0,
       1
@@ -314,7 +338,8 @@
       bodyLayer.insertAdjacentElement("afterend", hairLayer);
     }
 
-    let geometry = null;
+    let geometry = {...SAFE_PORTRAIT_GEOMETRY};
+    let geometrySource = "fallback";
     let active = false;
     let currentFrame = {...NEUTRAL_FRAME};
     let lastFrameAt = 0;
@@ -328,17 +353,15 @@
     }
 
     function setGeometry(value){
-      geometry = normalizeGeometry(value);
+      const detectedGeometry = normalizeGeometry(value);
+      geometry = detectedGeometry || {...SAFE_PORTRAIT_GEOMETRY};
+      geometrySource = detectedGeometry ? "detected" : "fallback";
+      wrapper.classList.add("original-full-sync-geometry-ready");
       wrapper.classList.toggle(
-        "original-full-sync-geometry-ready",
-        Boolean(geometry)
+        "original-full-sync-geometry-fallback",
+        geometrySource === "fallback"
       );
-
-      if(!geometry){
-        bodyLayer.style.clipPath = "";
-        hairLayer.style.clipPath = "";
-        return false;
-      }
+      wrapper.dataset.originalFullSyncGeometry = geometrySource;
 
       const bodyTop = clamp(
         (geometry.bottom - geometry.height * 0.02) * 100,
@@ -365,7 +388,30 @@
       );
       hairLayer.style.clipPath =
         `ellipse(${hairRadiusX}% ${hairRadiusY}% at ${centerX}% ${hairCenterY}%)`;
-      return true;
+      reportState("geometry");
+      return Boolean(detectedGeometry);
+    }
+
+    function reportState(reason){
+      wrapper.dataset.originalFullSync = active ? "active" : "ready";
+      const eventScope = wrapper.ownerDocument?.defaultView || globalScope;
+      if(
+        typeof eventScope?.dispatchEvent === "function" &&
+        typeof eventScope?.CustomEvent === "function"
+      ){
+        eventScope.dispatchEvent(
+          new eventScope.CustomEvent(
+            "sol-holo:original-full-sync-state",
+            {
+              detail:{
+                active,
+                geometrySource,
+                reason:String(reason || "update")
+              }
+            }
+          )
+        );
+      }
     }
 
     function setActive(value){
@@ -374,6 +420,8 @@
       if(!active){
         reset();
       }
+      reportState("active");
+      return active;
     }
 
     function applyFrame(frame){
@@ -464,11 +512,13 @@
 
     image.addEventListener("load", syncSource);
     syncSource();
+    setGeometry(null);
     reset();
 
     return Object.freeze({
       get active(){ return active; },
       get geometryReady(){ return Boolean(geometry); },
+      get geometrySource(){ return geometrySource; },
       profile:Object.freeze({...profile}),
       reset,
       setActive,
@@ -485,6 +535,7 @@
     neutralFrame:NEUTRAL_FRAME,
     normalizeGeometry,
     normalizeProfile,
+    safePortraitGeometry:SAFE_PORTRAIT_GEOMETRY,
     smoothFrame
   });
 })(window);

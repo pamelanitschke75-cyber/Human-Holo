@@ -38,6 +38,8 @@ test("Original Full Sync besitzt ein ownergebundenes Gesamtbewegungsprofil", asy
   assert.equal(profile.originalFullSync.identityScope, "pam-sol");
   assert.ok(profile.originalFullSync.hairResponseMs > profile.originalFullSync.motionResponseMs);
   assert.ok(profile.originalFullSync.bodyBreathCycleMs >= 2200);
+  assert.ok(profile.originalFullSync.speechActivityFloor >= 0.35);
+  assert.match(profile.version, /visible/u);
   assert.ok(Object.isFrozen(profile.originalFullSync));
   assert.equal(engine.normalizeProfile(profile.originalFullSync).identityScope, "pam-sol");
 });
@@ -83,6 +85,52 @@ test("Stimme steuert Gesicht, Kopf, Haare und sichtbaren Koerper gemeinsam", asy
   assert.notEqual(speaking.torsoY, 0);
   assert.ok(speaking.browLift > 0);
   assert.ok(speaking.cheekLift > 0);
+});
+
+test("Android-Sprachfallback bleibt auf der kleinen Holo-Darstellung sichtbar", async () => {
+  const engine = await loadOriginalFullSync();
+  const profile = (await loadMotionProfile()).originalFullSync;
+  const displayWidth = 156;
+  const displayHeight = 277;
+  const samples = [];
+
+  for (let timestamp = 0; timestamp <= 8000; timestamp += 20) {
+    samples.push(
+      engine.calculateFrame(
+        {
+          timestamp,
+          speaking: true,
+          openness: 0,
+          wideness: 0,
+          roundness: 0,
+          rms: 0,
+          low: 0,
+          middle: 0,
+          high: 0
+        },
+        profile
+      )
+    );
+  }
+
+  const maximum = selector => Math.max(...samples.map(selector));
+  const bodyTravel = maximum(frame => Math.hypot(
+    frame.bodyX * displayWidth,
+    frame.bodyY * displayHeight
+  ));
+  const hairTravel = maximum(frame => Math.hypot(
+    frame.hairX * displayWidth,
+    frame.hairY * displayHeight
+  ));
+  const headTravel = maximum(frame => Math.hypot(
+    frame.headX * displayWidth,
+    frame.headY * displayHeight
+  ));
+
+  assert.ok(bodyTravel >= 1.8 && bodyTravel < 6);
+  assert.ok(hairTravel >= 1.4 && hairTravel < 5);
+  assert.ok(headTravel >= 0.9 && headTravel < 4);
+  assert.ok(maximum(frame => frame.bodyScaleY - 1) >= 0.006);
 });
 
 test("Haarbewegung folgt langsamer als Gesicht und bleibt weich", async () => {
@@ -143,6 +191,8 @@ test("Jedes neue Bild erhaelt eine neue sichere Geometriezuordnung", async () =>
   assert.equal(valid.centerX, 0.50);
   assert.equal(valid.height, 0.44);
   assert.equal(invalid, null);
+  assert.equal(engine.safePortraitGeometry.centerX, 0.50);
+  assert.ok(engine.safePortraitGeometry.width >= 0.30);
 });
 
 test("Bildwechsel setzt die alte Zuordnung vor jeder neuen Analyse zurueck", async () => {
@@ -162,6 +212,13 @@ test("Bildwechsel setzt die alte Zuordnung vor jeder neuen Analyse zurueck", asy
   assert.match(
     html,
     /rig\.getFullSyncGeometry\?\.\(\)/u
+  );
+  assert.match(
+    await readFile(
+      new URL("../www/original-full-sync.js", import.meta.url),
+      "utf8"
+    ),
+    /detectedGeometry\s*\|\|\s*\{\.\.\.SAFE_PORTRAIT_GEOMETRY\}[\s\S]*?original-full-sync-geometry-ready/u
   );
   assert.match(
     ui,
@@ -192,4 +249,32 @@ test("Bewegungscode speichert oder uebertraegt keine Bilddateien", async () => {
   assert.doesNotMatch(source, /\bfetch\s*\(|XMLHttpRequest|WebSocket/u);
   assert.match(source, /image\.addEventListener\("load", syncSource\)/u);
   assert.match(source, /setGeometry\(value\)/u);
+});
+
+test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+  const startIndex = html.indexOf("async function startLipSync");
+  const stopIndex = html.indexOf("function stopLipSync", startIndex);
+  const startFunction = html.slice(startIndex, stopIndex);
+  const deltaIndex = html.indexOf("function registerRealtimeAudioDelta");
+  const transcriptIndex = html.indexOf(
+    "function registerRealtimeTranscriptDelta",
+    deltaIndex
+  );
+  const deltaFunction = html.slice(deltaIndex, transcriptIndex);
+
+  assert.match(
+    startFunction,
+    /stopLipSync\([\s\S]*?activateOriginalFullSync\(\)[\s\S]*?await ensureLipAudioContext\(\)/u
+  );
+  assert.match(
+    startFunction,
+    /if\([\s\S]*?!ready[\s\S]*?Full-Sync-Sprachbewegung bleibt aktiv/u
+  );
+  assert.match(deltaFunction, /activateOriginalFullSync\(\)/u);
+  assert.match(html, /sol-motion-profile\.js\?v=2/u);
+  assert.match(html, /original-full-sync\.js\?v=2/u);
 });

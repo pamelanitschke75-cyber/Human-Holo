@@ -1,8 +1,34 @@
 # Human Holo – Original Full Sync
 
 Stand: 08.09.2026  
-Status: Technisch integriert – praktischer Test auf Pams Samsung Galaxy S23
-noch offen
+Status: Build #242 im Praxistest nicht bestanden – korrigierter S23-Test noch
+offen
+
+## Ehrlicher Praxisstand
+
+Pam hat Build #242 auf ihrem Samsung Galaxy S23 installiert und mit der echten
+App geprüft. Das sichtbare Ergebnis war exakt derselbe Stand wie vor dem
+Update. Damit ist Build #242 als **bestätigter praktischer Fehlversuch**
+dokumentiert; ein grüner Quellcode- oder Paket-Build ändert daran nichts.
+
+Die technische Nachprüfung zeigte zwei konkrete Ursachen:
+
+- Die zusätzlichen Körper-, Kopf- und Haarbewegungen lagen auf der kleinen
+  Smartphone-Darstellung überwiegend im Subpixelbereich und waren deshalb
+  praktisch nicht erkennbar.
+- Wenn Androids Audioanalyse oder die lokale Bildanalyse nicht verfügbar war,
+  konnte die Zusatzbewegung unbemerkt ausbleiben, obwohl der Textstatus Full
+  Sync als aktiv bezeichnete.
+
+Die Korrekturstufe hebt die Bewegungen innerhalb natürlicher Grenzen auf eine
+sichtbare Mindeststärke an, startet den Sprachfallback vor der optionalen
+Audioanalyse und hält bei unsicherer Bildanalyse eine reduzierte
+Portraitzuordnung aktiv. Der sichtbare Status unterscheidet jetzt zwischen
+erkannter Bildgeometrie, sicherem Bildfallback und einem tatsächlichen
+Startfehler.
+
+Diese Korrekturen gelten erst dann als praktisch bestanden, wenn Pam sie mit
+echter Sprachausgabe und einem Bildwechsel auf ihrem S23 bestätigt.
 
 ## Verbindliche Bezeichnung und Ziel
 

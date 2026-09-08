@@ -569,9 +569,12 @@ Original Full Sync ist nicht an das aktuelle Clone-Bild gebunden. Jedes neu
 gewählte Bild wird lokal neu analysiert und erhält eine eigene sichere
 Geometriezuordnung.
 
-Die technische Zusatzschicht ist integriert. Als praktisch bestanden wird sie
-erst nach Pams Test mit echter Sprachausgabe und einem Bildwechsel auf dem
-Samsung Galaxy S23 dokumentiert.
+Build #242 war trotz erfolgreicher technischer Erstellung auf Pams Samsung
+Galaxy S23 sichtbar unverändert und ist deshalb als praktischer Fehlversuch
+dokumentiert. Die Korrekturstufe beseitigt die gefundenen Subpixelwerte und
+den stillen Android-Abschaltpfad. Als praktisch bestanden wird Original Full
+Sync weiterhin erst nach Pams Test mit echter Sprachausgabe und einem
+Bildwechsel auf dem Samsung Galaxy S23 dokumentiert.
 
 Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-09-2026.md)
 

@@ -2406,8 +2406,8 @@ Schreiben bereit.
 </audio>
 
 
-<script src="./sol-motion-profile.js"></script>
-<script src="./original-full-sync.js?v=1"></script>
+<script src="./sol-motion-profile.js?v=2"></script>
+<script src="./original-full-sync.js?v=2"></script>
 <script src="./media-tools.js"></script>
 <script>
 
@@ -3223,6 +3223,56 @@ const originalFullSyncController =
   null;
 
 
+function activateOriginalFullSync(){
+
+  const active =
+    originalFullSyncController
+      ?.setActive(true) ===
+    true;
+
+
+  if(
+    active
+  ){
+
+    requestLipSyncFrame();
+  }
+
+
+  return active;
+}
+
+
+function showOriginalFullSyncSpeakingStatus(){
+
+  if(
+    !originalFullSyncController
+      ?.active
+  ){
+
+    lipSyncStatus.textContent =
+      "⚠️ Original Full Sync ist nicht gestartet.";
+
+
+    return;
+  }
+
+
+  const imageMapping =
+    originalFullSyncController
+      .geometrySource ===
+      "detected"
+      ?
+      "Bild erkannt"
+      :
+      "sicherer Bild-Fallback";
+
+
+  lipSyncStatus.textContent =
+    `✨ Pam’s Holo spricht · Original Full Sync aktiv · ${imageMapping}.`;
+}
+
+
 function applyLipSyncFace(
   nextFace
 ){
@@ -3590,8 +3640,7 @@ function startRealtimeSpeechFallback(){
     true;
 
 
-  originalFullSyncController
-    ?.setActive(true);
+  activateOriginalFullSync();
 
 
   realtimeAssistantSpeechUntil =
@@ -3622,6 +3671,9 @@ function registerRealtimeAudioDelta(
     realtimeAssistantSpeechStartedAt =
       now;
   }
+
+
+  activateOriginalFullSync();
 
 
   const duration =
@@ -6669,18 +6721,6 @@ async function startLipSync(
   }
 
 
-  const ready =
-    await ensureLipAudioContext();
-
-
-  if(
-    !ready
-  ){
-
-    return;
-  }
-
-
   const keepRealtimeSpeechMoving =
     realtimeSpeechIsActive();
 
@@ -6690,11 +6730,30 @@ async function startLipSync(
   );
 
 
+  activateOriginalFullSync();
+
+
   if(
     keepRealtimeSpeechMoving
   ){
 
     startRealtimeSpeechFallback();
+  }
+
+
+  const ready =
+    await ensureLipAudioContext();
+
+
+  if(
+    !ready
+  ){
+
+    lipSyncStatus.textContent =
+      "⚠️ Audioanalyse nicht verfügbar · sichere Full-Sync-Sprachbewegung bleibt aktiv.";
+
+
+    return;
   }
 
   try{
@@ -6765,16 +6824,14 @@ async function startLipSync(
       true;
 
 
-    originalFullSyncController
-      ?.setActive(true);
+    activateOriginalFullSync();
 
 
     lipAnimationLastAt =
       performance.now();
 
 
-    lipSyncStatus.textContent =
-      "✨ Original Full Sync bewegt Pam’s Holo zusammenhängend zur Stimme.";
+    showOriginalFullSyncSpeakingStatus();
 
 
     requestLipSyncFrame();
@@ -6795,8 +6852,11 @@ async function startLipSync(
     );
 
 
+    activateOriginalFullSync();
+
+
     lipSyncStatus.textContent =
-      "✨ Original Full Sync konnte nicht gestartet werden.";
+      "⚠️ Audioanalyse ausgefallen · sichere Full-Sync-Sprachbewegung bleibt aktiv.";
   }
 }
 
@@ -12348,8 +12408,7 @@ async function startLiveConversation(){
             );
 
 
-            lipSyncStatus.textContent =
-              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
+            showOriginalFullSyncSpeakingStatus();
           }
 
 
@@ -12447,8 +12506,7 @@ async function startLiveConversation(){
             );
 
 
-            lipSyncStatus.textContent =
-              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
+            showOriginalFullSyncSpeakingStatus();
           }
 
 
@@ -12460,8 +12518,7 @@ async function startLiveConversation(){
             startRealtimeSpeechFallback();
 
 
-            lipSyncStatus.textContent =
-              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
+            showOriginalFullSyncSpeakingStatus();
           }
 
 

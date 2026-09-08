@@ -6,7 +6,7 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-08-original-full-sync-1",
+    version:"2026-09-08-original-full-sync-2-visible",
 
     speech:{
       maximumOpen:0.62,
@@ -66,26 +66,27 @@
       enabled:true,
       identityScope:"pam-sol",
       bodyBreathCycleMs:4700,
-      bodyBreathLift:0.0022,
-      bodyBreathScale:0.0028,
-      bodySpeechLift:0.0012,
-      bodySway:0.0016,
-      bodyRotateDegrees:0.10,
-      headSway:0.0022,
-      headNod:0.0015,
-      headTiltRadians:0.0024,
+      bodyBreathLift:0.0060,
+      bodyBreathScale:0.0072,
+      bodySpeechLift:0.0038,
+      bodySway:0.0065,
+      bodyRotateDegrees:0.38,
+      headSway:0.0090,
+      headNod:0.0058,
+      headTiltRadians:0.0085,
       browLift:0.12,
       eyeNarrow:0.08,
       cheekLift:0.10,
       mouthAsymmetry:0.035,
       hairFollow:0.78,
-      hairSway:0.0030,
-      hairLift:0.0015,
-      hairRotateDegrees:0.16,
+      hairSway:0.0130,
+      hairLift:0.0055,
+      hairRotateDegrees:0.62,
       motionResponseMs:90,
-      hairResponseMs:170,
-      bodyOverlayOpacity:0.36,
-      hairOverlayOpacity:0.52,
+      hairResponseMs:190,
+      bodyOverlayOpacity:0.64,
+      hairOverlayOpacity:0.76,
+      speechActivityFloor:0.38,
       idleActivity:0.035
     }
   };
