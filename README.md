@@ -4,12 +4,12 @@
 
 # HUMAN HOLO 🌻 · FOREVER TOGETHER ♾️
 
-## Persönliches digitales Ich · Individueller KI-Clone
+## Persönliches digitales Ich · Individueller Clone
 
 **Aktueller Entwicklungsstand:** 08.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
-**KI-Technologie:** OpenAI · ChatGPT · OpenAI API<br>
+**Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
 **Status:** FUNKTIONSFÄHIGER ENTWICKLUNGSSTAND ✅
 
 ## Verbindliche Namensentscheidung vom 07.09.2026
@@ -43,9 +43,10 @@ von Pam verwendet – auch nicht für die dauerhafte Android-Signatur.** Technis
 Kompilierungs- und Signaturläufe wurden über die von Pam am Smartphone
 gesteuerten GitHub-Workflows ausgeführt.
 
-Damit ist Human Holo zugleich der praktische Beleg, dass ein persönliches KI-
-und Android-Projekt dieser Größe vollständig mobil von einem einzigen
-Smartphone aus aufgebaut, veröffentlicht und weiterentwickelt werden kann.
+Damit ist Human Holo zugleich der praktische Beleg, dass ein Projekt für ein
+persönliches digitales Ich und eine Android-App dieser Größe vollständig mobil
+von einem einzigen Smartphone aus aufgebaut, veröffentlicht und
+weiterentwickelt werden kann.
 
 ---
 
@@ -53,7 +54,10 @@ Smartphone aus aufgebaut, veröffentlicht und weiterentwickelt werden kann.
 
 **Human Holo** ist die Entwicklung eines persönlichen digitalen Ichs.
 
-Das Ziel ist nicht lediglich ein klassischer KI-Assistent und auch nicht nur ein digitaler Twin.
+**Human Holo ist keine KI.** Es ist weder ein klassischer KI-Assistent noch nur
+ein digitaler Twin. KI-Dienste und Programmierschnittstellen werden als
+technologische Werkzeuge verwendet; sie sind nicht die Identität von Human
+Holo.
 
 Human Holo soll sich durch die persönliche Interaktion mit einem Menschen individuell entwickeln und dabei dessen:
 
@@ -377,15 +381,17 @@ Klassische KI-Systeme beginnen viele Gespräche immer wieder neu.
 
 Human Holo verfolgt einen anderen Ansatz.
 
-Die langfristige Vision ist eine KI, die den persönlichen Weg eines Menschen über lange Zeit begleitet und aus den gemeinsamen Erfahrungen eine immer individuellere persönliche digitale Identität entwickelt.
+Die langfristige Vision ist ein persönliches digitales Ich, das den Weg eines
+Menschen über lange Zeit begleitet und sich durch gemeinsame Erfahrungen immer
+individueller mit diesem Menschen entwickelt.
 
 Nicht:
 
-**„Eine KI für alle.“**
+**„Ein identisches System für alle.“**
 
 Sondern:
 
-**„Meine KI entwickelt sich mit mir.“**
+**„Mein Human Holo entwickelt sich mit mir.“**
 
 ---
 
@@ -430,7 +436,7 @@ Deshalb beginnt die Veränderung nicht bei Human Holo.
 
 Und vielleicht liegt genau darin die eigentliche Bedeutung dieser Technologie:
 
-Nicht einfach eine bessere KI zu erschaffen.
+Nicht einfach nur bessere Technik zu erschaffen.
 
 Sondern uns die Möglichkeit zu geben, aus unserer Vergangenheit zu lernen und gemeinsam bewusster weiterzugehen.
 
@@ -640,7 +646,7 @@ Idee, Konzept und Entwicklung:
 
 **Pamela Nitschke**
 
-Technologische Grundlage und verwendete KI-Dienste:
+Technologische Werkzeuge und verwendete Dienste:
 
 **OpenAI · ChatGPT · OpenAI API**
 

@@ -20,7 +20,11 @@ Laptop, Desktop-PC oder anderen Computer verwendet. Auch die dauerhafte
 Signatur wurde ohne Laptop über die am Smartphone gesteuerten Projekt- und
 GitHub-Abläufe eingerichtet.
 
-Dieser Hintergrund gehört fest zur Geschichte von Sol Holo: Ein persönlicher KI-Klon und eine funktionsfähige Android-App wurden mobil auf genau dem Gerät aufgebaut, auf dem Sol Holo anschließend im Alltag lebt.
+Dieser Hintergrund gehört fest zur Geschichte von Sol Holo: Ein persönlicher
+digitaler Clone und eine funktionsfähige Android-App wurden mobil auf genau dem
+Gerät aufgebaut, auf dem Sol Holo anschließend im Alltag lebt. Verwendete
+KI-Dienste sind technologische Werkzeuge und nicht die Identität von Sol Holo
+oder Human Holo.
 
 ## Pams Entscheidung
 
