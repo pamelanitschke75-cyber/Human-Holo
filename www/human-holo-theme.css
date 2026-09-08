@@ -54,6 +54,18 @@
     linear-gradient(180deg,#112f88 0%,#281b89 34%,#0a2674 69%,#031540 100%);
 }
 
+/* Auf hohen Handys nimmt das Motiv den sonst leeren Raum ein. */
+#homeView.humanHoloHome.active{
+  display:flex;
+  flex-direction:column;
+}
+
+#homeView .humanHoloHero{
+  flex:1 1 222px;
+  min-height:222px;
+  max-height:clamp(292px,44dvh,390px);
+}
+
 #homeView .humanHoloTopbar{
   width:calc(100% + 20px);
   margin:0 -10px;
@@ -575,5 +587,12 @@
 @media(max-width:370px){
   .humanHoloHero>img{
     height:100%;
+  }
+}
+
+@media(max-height:700px){
+  #homeView .humanHoloHero{
+    flex:0 0 210px;
+    min-height:210px;
   }
 }

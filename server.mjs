@@ -4378,6 +4378,20 @@ function calendarPreviewAnswer(identity, parsed) {
     "Sag zum Beispiel „Ja, eintragen“ oder „Sol, bitte trag ein“. Wenn etwas nicht stimmt, nenne den Termin bitte noch einmal.";
 }
 
+function calendarDraftForClient(parsed) {
+  const title = String(parsed?.summary || "").trim();
+  const start = String(parsed?.start || "").trim();
+  const end = String(parsed?.end || "").trim();
+  if (!title || !start || !end) return null;
+  return {
+    title: title.slice(0, 240),
+    description: String(parsed?.description || "").trim().slice(0, 2000),
+    start,
+    end,
+    allDay: parsed?.allDay === true
+  };
+}
+
 async function commitCalendarAction(
   parsed,
   originalMessage,
@@ -4441,6 +4455,8 @@ async function commitCalendarAction(
         handled: true,
         success: false,
         needsGoogleAuth: true,
+        nativeFallbackAvailable: true,
+        calendarDraft: calendarDraftForClient(parsed),
         answer:
           `${identity.displayName}, der Termin ist noch nicht gespeichert. Dein Google Kalender muss zuerst mit ${instanceNameForIdentity(identity)} verbunden werden.`
       };
@@ -4448,6 +4464,8 @@ async function commitCalendarAction(
     return {
       handled: true,
       success: false,
+      nativeFallbackAvailable: true,
+      calendarDraft: calendarDraftForClient(parsed),
       answer:
         `${identity.displayName}, der Kalendereintrag wurde nicht gespeichert. Google Calendar hat den Vorgang nicht bestätigt.`
     };
@@ -4628,6 +4646,8 @@ async function handleCalendarWriteRequest(
         handled: true,
         success: false,
         needsTrustedAppSession: true,
+        nativeFallbackAvailable: true,
+        calendarDraft: calendarDraftForClient(parsed),
         answer:
           `${identity.displayName}, dein ausdrücklicher Kalenderauftrag gilt bereits als Freigabe. ` +
           "Bitte bestätige nur einmal die sichere App-Sitzung; danach trage ich genau diesen Termin ein."
@@ -4657,6 +4677,8 @@ async function handleCalendarWriteRequest(
       handled: true,
       success: false,
       needsTrustedAppSession: true,
+      nativeFallbackAvailable: true,
+      calendarDraft: calendarDraftForClient(pending.parsed),
       answer:
         `${identity.displayName}, der vorbereitete Termin wurde noch nicht gespeichert. ` +
         "Bitte bestätige einmal die sichere App-Sitzung; danach kann ich genau diesen Termin eintragen."
@@ -4758,6 +4780,9 @@ app.post(
       }
 
       return res.json({
+        answer:
+          calendarResult?.answer ||
+          "Der Kalenderauftrag wurde geprüft.",
         calendar:
           calendarResult,
         conversationId:
@@ -9988,6 +10013,15 @@ app.post("/sol", async (req, res) => {
 
           htmlLink:
             calendarResult.htmlLink ||
+            null,
+
+          nativeFallbackAvailable:
+            Boolean(
+              calendarResult.nativeFallbackAvailable
+            ),
+
+          calendarDraft:
+            calendarResult.calendarDraft ||
             null
         },
         persisted:

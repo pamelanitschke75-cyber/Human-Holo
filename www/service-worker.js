@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-210-branding";
+const CACHE_VERSION = "human-holo-211-companion-actions";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

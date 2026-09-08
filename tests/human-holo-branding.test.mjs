@@ -37,7 +37,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=57/u);
+  assert.match(html, /sol-holo-ui\.js\?v=58/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -55,9 +55,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
   assert.match(css, /#homeView\.humanHoloHome\{/u);
   assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
-  assert.match(html, /human-holo-theme\.css\?v=3/u);
+  assert.match(html, /human-holo-theme\.css\?v=4/u);
   assert.ok(
-    html.indexOf("human-holo-theme.css?v=3") >
+    html.indexOf("human-holo-theme.css?v=4") >
       html.indexOf("sol-holo-backup.css?v=2")
   );
   assert.match(ui, /<img src="human-holo-home-hero\.png"/u);

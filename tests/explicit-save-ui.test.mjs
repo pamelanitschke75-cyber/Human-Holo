@@ -157,11 +157,12 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=57/u);
+  assert.match(html, /sol-holo-ui\.js\?v=58/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {
   const source = [
+    functionSource("stripHoloInvocation", "noteSecurityWarning"),
     functionSource("cleanExplicitSaveContent", "explicitListTitle"),
     functionSource("googleMapsDestinationFromMessage", "explicitSaveRequestFromMessage"),
     "return googleMapsDestinationFromMessage;"

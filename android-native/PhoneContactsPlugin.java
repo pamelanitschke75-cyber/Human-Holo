@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +15,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
+import android.provider.AlarmClock;
+import android.provider.CalendarContract;
 import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
@@ -69,6 +72,7 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_SHARED_NOTE_LENGTH = 3200;
     private static final int MAX_SHARED_NOTE_TITLE_LENGTH = 160;
     private static final int MAX_MAPS_DESTINATION_LENGTH = 500;
+    private static final int MAX_ALARM_LABEL_LENGTH = 160;
     private static final int MAX_SMS_LENGTH = 5000;
     private static final int MAX_WHATSAPP_MESSAGE_LENGTH = 5000;
     private static final int MAX_RECIPIENT_NAME_LENGTH = 160;
@@ -533,6 +537,26 @@ public class PhoneContactsPlugin extends Plugin {
         return null;
     }
 
+    private boolean openSamsungNotesWithClipboard(
+        Activity activity,
+        String title,
+        String text
+    ) {
+        ClipboardManager clipboard = (ClipboardManager) getContext()
+            .getSystemService(Context.CLIPBOARD_SERVICE);
+        Intent launchIntent = activity
+            .getPackageManager()
+            .getLaunchIntentForPackage(SAMSUNG_NOTES_PACKAGE);
+        if (clipboard == null || launchIntent == null) {
+            return false;
+        }
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(title.isEmpty() ? "Human Holo" : title, text)
+        );
+        activity.startActivity(launchIntent);
+        return true;
+    }
+
     @PluginMethod
     public void getSamsungNotesStatus(PluginCall call) {
         SamsungNoteLaunch launch = samsungNoteLaunch(
@@ -543,8 +567,13 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("available", samsungNotesAvailable());
         result.put("packageName", SAMSUNG_NOTES_PACKAGE);
         result.put("directWriteSupported", false);
-        result.put("draftHandoffSupported", launch != null);
-        result.put("handoffMode", launch == null ? "" : launch.mode);
+        boolean available = samsungNotesAvailable();
+        result.put("draftHandoffSupported", launch != null || available);
+        result.put("clipboardFallbackSupported", available);
+        result.put(
+            "handoffMode",
+            launch == null ? (available ? "clipboard" : "") : launch.mode
+        );
         result.put("pamHoloConfirmationRequired", false);
         result.put("reviewAndSaveInSamsungNotesRequired", true);
         result.put("textTransport", "android.intent.extra.TEXT");
@@ -679,6 +708,152 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getAlarmClockStatus(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("supported", true);
+        result.put("setAlarmSupported", true);
+        result.put("showAlarmsSupported", true);
+        result.put("runtimePermissionRequired", false);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openAlarmClock(PluginCall call) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Die Uhr-App konnte gerade nicht geöffnet werden.",
+                "ALARM_CLOCK_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        try {
+            activity.startActivity(new Intent(AlarmClock.ACTION_SHOW_ALARMS));
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("action", "show");
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Auf diesem Handy wurde keine passende Uhr-App gefunden.",
+                "ALARM_CLOCK_OPEN_FAILED",
+                error
+            );
+        }
+    }
+
+    @PluginMethod
+    public void setAlarm(PluginCall call) {
+        Integer hour = call.getInt("hour");
+        Integer minute = call.getInt("minute");
+        String label = call.getString("label", "Human Holo").trim();
+        boolean skipUi = Boolean.TRUE.equals(call.getBoolean("skipUi", true));
+        if (
+            hour == null ||
+            minute == null ||
+            hour < 0 ||
+            hour > 23 ||
+            minute < 0 ||
+            minute > 59
+        ) {
+            call.reject("Die Weckzeit ist ungültig.", "ALARM_TIME_INVALID");
+            return;
+        }
+        if (label.length() > MAX_ALARM_LABEL_LENGTH) {
+            label = label.substring(0, MAX_ALARM_LABEL_LENGTH).trim();
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Der Wecker konnte gerade nicht gestellt werden.",
+                "ALARM_CLOCK_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        Intent intent = new Intent(AlarmClock.ACTION_SET_ALARM)
+            .putExtra(AlarmClock.EXTRA_HOUR, hour)
+            .putExtra(AlarmClock.EXTRA_MINUTES, minute)
+            .putExtra(AlarmClock.EXTRA_MESSAGE, label)
+            .putExtra(AlarmClock.EXTRA_SKIP_UI, skipUi);
+        try {
+            activity.startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("action", "set");
+            result.put("hour", hour);
+            result.put("minute", minute);
+            result.put("label", label);
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Der Wecker konnte in der Uhr-App nicht gestellt werden.",
+                "ALARM_CLOCK_SET_FAILED",
+                error
+            );
+        }
+    }
+
+    @PluginMethod
+    public void openCalendarEvent(PluginCall call) {
+        String title = call.getString("title", "Termin").trim();
+        String description = call.getString("description", "").trim();
+        Long startValue = numericLong(call, "startMillis");
+        Long endValue = numericLong(call, "endMillis");
+        boolean allDay = Boolean.TRUE.equals(call.getBoolean("allDay", false));
+        if (
+            startValue == null ||
+            endValue == null ||
+            startValue <= 0L ||
+            endValue <= startValue
+        ) {
+            call.reject("Die Kalenderzeit ist ungültig.", "CALENDAR_TIME_INVALID");
+            return;
+        }
+
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Die Kalender-App konnte gerade nicht geöffnet werden.",
+                "CALENDAR_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_INSERT)
+            .setData(CalendarContract.Events.CONTENT_URI)
+            .putExtra(CalendarContract.Events.TITLE, title.isEmpty() ? "Termin" : title)
+            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startValue)
+            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endValue)
+            .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, allDay);
+        if (!description.isEmpty()) {
+            intent.putExtra(CalendarContract.Events.DESCRIPTION, description);
+        }
+
+        try {
+            activity.startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("saved", false);
+            result.put("reviewAndSaveRequired", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Auf diesem Handy wurde keine passende Kalender-App gefunden.",
+                "CALENDAR_OPEN_FAILED",
+                error
+            );
+        }
+    }
+
+    private Long numericLong(PluginCall call, String key) {
+        Object value = call.getData().opt(key);
+        return value instanceof Number ? ((Number) value).longValue() : null;
+    }
+
+    @PluginMethod
     public void prepareSamsungNote(PluginCall call) {
         String text = call.getString("text", "").trim();
         String title = call.getString("title", "").trim();
@@ -714,6 +889,24 @@ public class PhoneContactsPlugin extends Plugin {
 
         SamsungNoteLaunch launch = samsungNoteLaunch(title, text);
         if (launch == null) {
+            try {
+                if (openSamsungNotesWithClipboard(activity, title, text)) {
+                    JSObject result = new JSObject();
+                    result.put("opened", true);
+                    result.put("saved", false);
+                    result.put("textPrepared", true);
+                    result.put("packageName", SAMSUNG_NOTES_PACKAGE);
+                    result.put("handoffMode", "clipboard");
+                    result.put("contentTransferred", false);
+                    result.put("clipboardPrepared", true);
+                    result.put("pasteRequired", true);
+                    result.put("reviewAndSaveInSamsungNotesRequired", true);
+                    call.resolve(result);
+                    return;
+                }
+            } catch (ActivityNotFoundException | SecurityException ignored) {
+                // Die eindeutige Fehlermeldung folgt direkt darunter.
+            }
             call.reject(
                 "Diese Samsung-Notes-Version nimmt gerade keinen Notizentwurf an.",
                 "SAMSUNG_NOTES_DRAFT_UNAVAILABLE"
@@ -734,6 +927,24 @@ public class PhoneContactsPlugin extends Plugin {
             result.put("contentTransferred", true);
             call.resolve(result);
         } catch (ActivityNotFoundException | SecurityException error) {
+            try {
+                if (openSamsungNotesWithClipboard(activity, title, text)) {
+                    JSObject result = new JSObject();
+                    result.put("opened", true);
+                    result.put("saved", false);
+                    result.put("textPrepared", true);
+                    result.put("packageName", SAMSUNG_NOTES_PACKAGE);
+                    result.put("handoffMode", "clipboard");
+                    result.put("contentTransferred", false);
+                    result.put("clipboardPrepared", true);
+                    result.put("pasteRequired", true);
+                    result.put("reviewAndSaveInSamsungNotesRequired", true);
+                    call.resolve(result);
+                    return;
+                }
+            } catch (ActivityNotFoundException | SecurityException fallbackError) {
+                error.addSuppressed(fallbackError);
+            }
             call.reject(
                 "Samsung Notes konnte die Notiz gerade nicht übernehmen.",
                 "SAMSUNG_NOTES_SHARE_FAILED",

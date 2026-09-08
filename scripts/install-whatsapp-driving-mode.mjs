@@ -53,6 +53,7 @@ mkdirSync(resXmlTarget, { recursive: true });
 
 for (const fileName of [
   "HealthConnectPlugin.java",
+  "GalaxyWatchBridgePlugin.java",
   "HealthPrivacyActivity.java",
   "HeyHoSolPlugin.java",
   "HeyHoSolService.java",
@@ -201,6 +202,18 @@ if (!mainActivity.includes("registerPlugin(HealthConnectPlugin.class)")) {
   );
 }
 
+if (!mainActivity.includes("registerPlugin(GalaxyWatchBridgePlugin.class)")) {
+  const registrationMarker = "        registerPlugin(HealthConnectPlugin.class);";
+  if (!mainActivity.includes(registrationMarker)) {
+    throw new Error("Health-Plugin-Registrierung in MainActivity nicht gefunden.");
+  }
+
+  mainActivity = mainActivity.replace(
+    registrationMarker,
+    registrationMarker + "\n        registerPlugin(GalaxyWatchBridgePlugin.class);"
+  );
+}
+
 if (!mainActivity.includes("handleSharedNoteIntent(this, getIntent())")) {
   const createMarker = "        super.onCreate(savedInstanceState);\n    }";
   if (!mainActivity.includes(createMarker)) {
@@ -265,6 +278,7 @@ for (const permission of [
   '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
   '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
   '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+  '<uses-permission android:name="com.android.alarm.permission.SET_ALARM" />',
   '<uses-permission android:name="android.permission.READ_CONTACTS" />',
   '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
@@ -378,6 +392,19 @@ if (!manifest.includes('android:name="com.samsung.android.app.notes"')) {
   manifest = manifest.replace(
     queriesEnd,
     '        <package android:name="com.samsung.android.app.notes" />\n' +
+      queriesEnd
+  );
+}
+
+if (!manifest.includes('android:name="com.samsung.android.app.watchmanager"')) {
+  const queriesEnd = "    </queries>";
+  if (!manifest.includes(queriesEnd)) {
+    throw new Error("Queries-Tag für Galaxy Wearable nicht gefunden.");
+  }
+
+  manifest = manifest.replace(
+    queriesEnd,
+    '        <package android:name="com.samsung.android.app.watchmanager" />\n' +
       queriesEnd
   );
 }
@@ -527,5 +554,5 @@ if (!manifest.includes(".HealthPrivacyActivity")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
 );

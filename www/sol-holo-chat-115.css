@@ -8,7 +8,7 @@
 
 :root{
   --sol-viewport-height:100dvh;
-  --sol-composer-side-button:36px;
+  --sol-composer-side-button:32px;
 }
 
 html,
@@ -29,7 +29,7 @@ body{
   overflow:hidden;
 }
 
-/* Header, maximal grosses Antwortsfeld, kompakter Composer. */
+/* Header, maximal grosses Antwortsfeld, kleine getrennte Medienbuttons oberhalb. */
 #app:not(.voice-mode) #chatView.active{
   grid-template-rows:
     auto
@@ -84,15 +84,17 @@ body{
   position:relative;
   display:grid;
   grid-template-columns:
-    var(--sol-composer-side-button)
     minmax(0,1fr)
-    var(--sol-composer-side-button);
+    var(--sol-composer-side-button)
+    clamp(54px,18vw,92px)
+    var(--sol-composer-side-button)
+    minmax(0,1fr);
   grid-template-areas:
-    "composer composer composer"
-    "camera . microphone";
-  grid-template-rows:auto var(--sol-composer-side-button);
+    ". camera . microphone ."
+    "composer composer composer composer composer";
+  grid-template-rows:var(--sol-composer-side-button) auto;
   align-items:center;
-  gap:6px 8px;
+  gap:6px 0;
 }
 
 #app:not(.voice-mode) #chatView #messageWrap{
@@ -177,7 +179,7 @@ body{
       rgba(7,20,45,.86)
     );
   color:#eee9ff;
-  font-size:16px;
+  font-size:14px;
   line-height:1;
   box-shadow:
     0 0 13px rgba(91,73,225,.13),
@@ -186,12 +188,12 @@ body{
 
 #app:not(.voice-mode) #chatView #imageButton{
   grid-area:camera;
-  justify-self:start;
+  justify-self:center;
 }
 
 #app:not(.voice-mode) #chatView #liveButton{
   grid-area:microphone;
-  justify-self:end;
+  justify-self:center;
 }
 
 /* Nur fuer Screenreader; keine zusaetzliche sichtbare Statuszeile. */
@@ -261,7 +263,7 @@ body.sol-composer-focused #app:not(.voice-mode) #chatView.active{
 
 @media(max-width:360px){
   :root{
-    --sol-composer-side-button:34px;
+    --sol-composer-side-button:30px;
   }
 
   #app:not(.voice-mode) #chatView #messageInput{

@@ -343,10 +343,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     '<button id="googleMapsRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">⌖</span>' +
       '<span class="rowText">' +
-        '<span class="rowTitle">Google Maps</span>' +
-        '<span class="rowMeta">Ziel per Text oder Sprache an die Navigation übergeben</span>' +
+        '<span class="rowTitle">Routenplaner · Google Maps</span>' +
+        '<span class="rowMeta">Route per Text oder Sprache direkt starten</span>' +
       '</span>' +
       '<span id="googleMapsStatus" class="serviceStatus setup">Wird geprüft …</span>' +
+    '</button>' +
+    '<button id="alarmClockRow" class="serviceRow" type="button">' +
+      '<span class="rowIcon">⏰</span>' +
+      '<span class="rowText">' +
+        '<span class="rowTitle">Wecker &amp; Uhr</span>' +
+        '<span class="rowMeta">Wecker per Text oder Sprache stellen und öffnen</span>' +
+      '</span>' +
+      '<span id="alarmClockStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>' +
     '<button id="liveWeatherRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">☀</span>' +
@@ -379,6 +387,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const phoneContactsRow = document.getElementById("phoneContactsRow");
   phoneContactsRow.insertAdjacentHTML(
     "afterend",
+    '<button id="galaxyWatchRow" class="serviceRow" type="button">' +
+      '<span class="rowIcon">⌚</span>' +
+      '<span class="rowText">' +
+        '<span class="rowTitle">Galaxy Watch 8</span>' +
+        '<span class="rowMeta">Private Hinweise für Wecker, Route, Kalender und Notizen</span>' +
+      '</span>' +
+      '<span id="galaxyWatchStatus" class="serviceStatus setup">Wird geprüft …</span>' +
+    '</button>' +
     '<button id="samsungGalleryRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">▣</span>' +
       '<span class="rowText">' +
@@ -653,6 +669,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   };
   let phoneActionRunning = false;
   let phoneListenersRegistered = false;
+  let galaxyWatchStatus = {
+    supported: false,
+    galaxyWearableInstalled: false,
+    notificationsGranted: false,
+    relayReady: false
+  };
   let noteImportRunning = false;
   let noteListenerRegistered = false;
   let personalNotes = [];
@@ -1121,6 +1143,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       .trim();
   }
 
+  function stripHoloInvocation(value) {
+    return String(value || "")
+      .trim()
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|holo))\s*[,;:!.-]?\s*/i,
+        ""
+      )
+      .trim();
+  }
+
   function noteSecurityWarning(text) {
     const cleanText = String(text || "");
     const namedSecret = /\b(?:passwort|password|pin|tan|api[\s_-]?key|secret|token|authenticator|banking|kreditkart(?:e|en)?|cvv|iban)\b/i;
@@ -1205,8 +1237,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function personalRecallQueryFromMessage(value) {
-    const text = normalizeNoteSearchText(value)
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/u, "")
+    const text = normalizeNoteSearchText(stripHoloInvocation(value))
       .replace(/[?!.,;:]+$/u, "")
       .trim();
     if (!text) return "";
@@ -1247,14 +1278,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function googleMapsDestinationFromMessage(value) {
-    const cleanMessage = String(value || "")
-      .trim()
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
-      .trim();
+    const cleanMessage = stripHoloInvocation(value);
     if (!cleanMessage) return null;
 
     if (
-      /^(?:bitte\s+)?(?:öffne|oeffne|starte)\s+(?:bitte\s+)?(?:google\s+)?maps[.!?]*$/i.test(
+      /^(?:bitte\s+)?(?:öffne|oeffne|starte|zeige)\s+(?:bitte\s+)?(?:(?:den|meinen)\s+)?(?:(?:google\s+)?maps|routenplaner|navigation)[.!?]*$/i.test(
         cleanMessage
       )
     ) {
@@ -1263,7 +1291,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const patterns = [
       /^(?:bitte\s+)?(?:navigier(?:e)?|bring(?:e)?|führ(?:e)?|fuehr(?:e)?|fahr(?:e)?|route)\s+(?:mich\s+)?(?:bitte\s+)?(?:zu(?:m|r)?|nach)\s+(.+?)[.!?]*$/i,
-      /^(?:bitte\s+)?(?:öffne|oeffne|starte)\s+(?:bitte\s+)?(?:google\s+)?maps\s+(?:mit\s+(?:dem\s+)?ziel|zu(?:m|r)?|nach)\s+(.+?)[.!?]*$/i,
+      /^(?:bitte\s+)?(?:öffne|oeffne|starte)\s+(?:bitte\s+)?(?:(?:den|meinen)\s+)?(?:(?:google\s+)?maps|routenplaner|navigation)\s+(?:mit\s+(?:dem\s+)?ziel|zu(?:m|r)?|nach)\s+(.+?)[.!?]*$/i,
+      /^(?:bitte\s+)?(?:plan(?:e)?|berechne)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?route\s+(?:zu(?:m|r)?|nach)\s+(.+?)[.!?]*$/i,
       /^(?:bitte\s+)?(?:zeig(?:e)?\s+mir\s+(?:den\s+)?weg|wie\s+komme\s+ich)\s+(?:am\s+besten\s+)?(?:zu(?:m|r)?|nach)\s+(.+?)[.!?]*$/i
     ];
 
@@ -1277,11 +1306,58 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return null;
   }
 
+  function alarmClockRequestFromMessage(value) {
+    const cleanMessage = stripHoloInvocation(value);
+    if (!cleanMessage) return null;
+
+    if (
+      /^(?:bitte\s+)?(?:öffne|oeffne|starte|zeige)\s+(?:mir\s+)?(?:bitte\s+)?(?:(?:den|meinen|die|meine)\s+)?(?:wecker|alarme?|uhr(?:en)?-?app)[.!?]*$/i.test(cleanMessage) ||
+      /^(?:bitte\s+)?(?:meine\s+)?(?:wecker|alarme?)\s+(?:öffnen|oeffnen|zeigen)[.!?]*$/i.test(cleanMessage)
+    ) {
+      return { action: "open" };
+    }
+
+    const isAlarmRequest =
+      /\b(?:wecker|alarm)\b/i.test(cleanMessage) ||
+      /\bweck(?:e)?\s+mich\b/i.test(cleanMessage);
+    const isSetRequest =
+      /\b(?:stell(?:e)?|setz(?:e)?|mach(?:e)?|weck(?:e)?)\b/i.test(cleanMessage);
+    if (!isAlarmRequest || !isSetRequest) return null;
+
+    const timeMatch = cleanMessage.match(
+      /\b(?:um|auf|für|fuer|gegen)\s*(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(?:uhr)?\b/i
+    ) || cleanMessage.match(
+      /\b(\d{1,2})\s*uhr(?:\s*(\d{1,2}))?\b/i
+    );
+    if (!timeMatch) return null;
+
+    const hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2] || 0);
+    if (
+      !Number.isInteger(hour) ||
+      !Number.isInteger(minute) ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
+      return null;
+    }
+
+    const labelMatch = cleanMessage.match(
+      /\b(?:mit\s+(?:dem\s+)?(?:namen|text)|namens)\s+(.+?)[.!?]*$/i
+    );
+    const label = cleanExplicitSaveContent(labelMatch?.[1] || "Human Holo");
+    return {
+      action: "set",
+      hour,
+      minute,
+      label: label || "Human Holo"
+    };
+  }
+
   function explicitSaveRequestFromMessage(message) {
-    const cleanMessage = String(message || "")
-      .trim()
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
-      .trim();
+    const cleanMessage = stripHoloInvocation(message);
 
     if (
       !cleanMessage ||
@@ -1687,6 +1763,76 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
   }
 
+  function updatePersonalNote(query, text) {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer: "Die feste Holo-ID ist nicht verfügbar. Es wurde nichts geändert."
+      };
+    }
+    const cleanText = String(text || "").trim();
+    if (!cleanText) {
+      return { success: false, answer: "Der neue Notiztext ist leer." };
+    }
+    const securityWarning = noteSecurityWarning(cleanText);
+    if (securityWarning) {
+      return { success: false, securityBlocked: true, answer: securityWarning };
+    }
+    const matches = findPersonalNotes(query);
+    if (matches.length !== 1) {
+      return {
+        success: false,
+        ambiguous: matches.length > 1,
+        answer: matches.length
+          ? "Ich habe mehrere passende Notizen gefunden. Bitte nenne den Titel genauer."
+          : `Ich finde keine Notiz zu „${String(query || "").trim()}“.`
+      };
+    }
+    const current = matches[0];
+    const automaticTitle = current.title === noteTitleFromText(current.text);
+    const updated = normalizeStoredNote({
+      ...current,
+      title: automaticTitle ? noteTitleFromText(cleanText) : current.title,
+      text: cleanText,
+      updatedAt: Date.now()
+    });
+    const remaining = personalNotes.filter((note) => note.id !== current.id);
+    if (!storePersonalNotes([updated, ...remaining])) {
+      return { success: false, answer: "Die Notiz konnte gerade nicht geändert werden." };
+    }
+    renderPersonalNotes();
+    showToast("Notiz geändert ✅️");
+    return { success: true, note: updated, answer: `Notiz geändert: ${updated.title}` };
+  }
+
+  function deletePersonalNote(query) {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer: "Die feste Holo-ID ist nicht verfügbar. Es wurde nichts gelöscht."
+      };
+    }
+    const matches = findPersonalNotes(query);
+    if (matches.length !== 1) {
+      return {
+        success: false,
+        ambiguous: matches.length > 1,
+        answer: matches.length
+          ? "Ich habe mehrere passende Notizen gefunden. Bitte nenne den Titel genauer."
+          : `Ich finde keine Notiz zu „${String(query || "").trim()}“.`
+      };
+    }
+    const note = matches[0];
+    if (!storePersonalNotes(personalNotes.filter((entry) => entry.id !== note.id))) {
+      return { success: false, answer: "Die Notiz konnte gerade nicht gelöscht werden." };
+    }
+    renderPersonalNotes();
+    showToast("Notiz gelöscht");
+    return { success: true, deleted: true, answer: `Notiz gelöscht: ${note.title}` };
+  }
+
   function personalNoteListAnswer(query = "") {
     const matches = query
       ? findPersonalNotes(query)
@@ -1784,7 +1930,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         title,
         text: cleanText
       });
-      if (!result?.opened || result?.contentTransferred !== true) {
+      if (
+        !result?.opened ||
+        (result?.contentTransferred !== true && result?.clipboardPrepared !== true)
+      ) {
         return {
           success: false,
           answer:
@@ -1801,9 +1950,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         saved: false,
         title,
         handoffMode: String(result?.handoffMode || ""),
-        answer:
-          `Samsung Notes ist mit diesem Entwurf geöffnet: „${preview}“. ` +
-          "Bitte dort noch speichern."
+        clipboardPrepared: Boolean(result?.clipboardPrepared),
+        answer: result?.clipboardPrepared
+          ? `Samsung Notes ist geöffnet und der Entwurf „${preview}“ ist kopiert. ` +
+            "Füge ihn dort ein und tippe auf Speichern."
+          : `Samsung Notes ist mit diesem Entwurf geöffnet: „${preview}“. ` +
+            "Bitte dort noch speichern."
       };
     } catch (error) {
       console.error("Samsung-Notes-Übergabe:", error);
@@ -1828,6 +1980,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
 
       const handoffResult = await prepareSamsungNote(text);
+      void notifyGalaxyWatchSummary("note");
       return {
         ...handoffResult,
         success: true,
@@ -1840,15 +1993,24 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     if (name === "search_personal_notes") {
-      return openSamsungNotesForReview("ansehen oder durchsuchen");
+      const query = String(args?.query || "").trim();
+      showView("notes");
+      notesSearchInput.value = query;
+      renderPersonalNotes(query);
+      return {
+        success: true,
+        opened: true,
+        notes: query ? findPersonalNotes(query) : personalNotes,
+        answer: personalNoteListAnswer(query)
+      };
     }
 
     if (name === "update_personal_note") {
-      return openSamsungNotesForReview("selbst suchen und bearbeiten");
+      return updatePersonalNote(args?.query, args?.text);
     }
 
     if (name === "delete_personal_note") {
-      return openSamsungNotesForReview("selbst suchen und löschen");
+      return deletePersonalNote(args?.query);
     }
 
     return { success: false, answer: "Unbekannte Samsung-Notes-Funktion." };
@@ -2506,6 +2668,192 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return window.Capacitor?.Plugins?.PhoneContacts || null;
   }
 
+  function getGalaxyWatchBridgePlugin() {
+    return window.Capacitor?.Plugins?.GalaxyWatchBridge || null;
+  }
+
+  async function loadAlarmClockStatus() {
+    const statusElement = document.getElementById("alarmClockStatus");
+    if (!statusElement) return;
+    statusElement.classList.remove("connected", "setup");
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.getAlarmClockStatus !== "function") {
+      statusElement.textContent = "App-Update nötig";
+      statusElement.classList.add("setup");
+      return;
+    }
+    try {
+      const status = await plugin.getAlarmClockStatus();
+      statusElement.textContent = status?.supported ? "Bereit" : "Nicht verfügbar";
+      statusElement.classList.add(status?.supported ? "connected" : "setup");
+    } catch (error) {
+      console.error("Wecker-Status:", error);
+      statusElement.textContent = "Prüfung fehlgeschlagen";
+      statusElement.classList.add("setup");
+    }
+  }
+
+  async function openAlarmClockForRequest(request = { action: "open" }) {
+    const plugin = getPhoneContactsPlugin();
+    if (!plugin) {
+      return {
+        success: false,
+        opened: false,
+        answer: "Der Android-Wecker ist nur in der Human-Holo-App verfügbar."
+      };
+    }
+
+    try {
+      const isSet = request?.action === "set";
+      const result = isSet
+        ? await plugin.setAlarm({
+            hour: request.hour,
+            minute: request.minute,
+            label: request.label || "Human Holo",
+            skipUi: true
+          })
+        : await plugin.openAlarmClock();
+      if (!result?.opened) {
+        throw new Error("Die Uhr-App hat das Öffnen nicht bestätigt.");
+      }
+
+      const answer = isSet
+        ? `Dein Wecker ist auf ${String(request.hour).padStart(2, "0")}:${String(request.minute).padStart(2, "0")} Uhr gestellt.`
+        : "Deine Wecker sind geöffnet.";
+      showToast(answer);
+      if (isSet) void notifyGalaxyWatchSummary("alarm");
+      return { success: true, opened: true, answer };
+    } catch (error) {
+      console.error("Android-Wecker:", error);
+      return {
+        success: false,
+        opened: false,
+        answer: String(
+          error?.message || "Der Android-Wecker konnte gerade nicht geöffnet werden."
+        )
+      };
+    }
+  }
+
+  function renderGalaxyWatchStatus(nextStatus) {
+    const statusElement = document.getElementById("galaxyWatchStatus");
+    if (!statusElement) return;
+    galaxyWatchStatus = {
+      supported: Boolean(nextStatus?.supported),
+      galaxyWearableInstalled: Boolean(nextStatus?.galaxyWearableInstalled),
+      notificationsGranted: Boolean(nextStatus?.notificationsGranted),
+      relayReady: Boolean(nextStatus?.relayReady)
+    };
+    statusElement.classList.remove("connected", "setup");
+    if (!galaxyWatchStatus.supported) {
+      statusElement.textContent = "Nur Android";
+      statusElement.classList.add("setup");
+    } else if (!galaxyWatchStatus.notificationsGranted) {
+      statusElement.textContent = "Freigabe nötig";
+      statusElement.classList.add("setup");
+    } else if (galaxyWatchStatus.galaxyWearableInstalled) {
+      statusElement.textContent = "Hinweise bereit";
+      statusElement.classList.add("connected");
+    } else {
+      statusElement.textContent = "Wearable-App fehlt";
+      statusElement.classList.add("setup");
+    }
+  }
+
+  async function loadGalaxyWatchStatus() {
+    const plugin = getGalaxyWatchBridgePlugin();
+    if (typeof plugin?.getStatus !== "function") {
+      renderGalaxyWatchStatus({ supported: false });
+      return;
+    }
+    try {
+      renderGalaxyWatchStatus(await plugin.getStatus());
+    } catch (error) {
+      console.error("Galaxy-Watch-Status:", error);
+      renderGalaxyWatchStatus({ supported: true });
+    }
+  }
+
+  async function notifyGalaxyWatchSummary(kind = "test") {
+    const plugin = getGalaxyWatchBridgePlugin();
+    if (typeof plugin?.sendPrivateSummary !== "function") return false;
+    try {
+      const result = await plugin.sendPrivateSummary({ kind });
+      return Boolean(result?.sent);
+    } catch (error) {
+      if (error?.code !== "WATCH_NOTIFICATION_PERMISSION_REQUIRED") {
+        console.error("Galaxy-Watch-Hinweis:", error);
+      }
+      return false;
+    }
+  }
+
+  window.notifySolHoloGalaxyWatch = notifyGalaxyWatchSummary;
+
+  async function setupGalaxyWatchBridge() {
+    const plugin = getGalaxyWatchBridgePlugin();
+    if (!plugin) {
+      showToast("Die Galaxy-Watch-Verknüpfung ist erst nach dem App-Update verfügbar.");
+      return;
+    }
+    try {
+      let status = await plugin.getStatus();
+      if (!status?.notificationsGranted) {
+        status = await plugin.requestNotificationAccess();
+      }
+      renderGalaxyWatchStatus(status);
+      if (!status?.notificationsGranted) {
+        showToast("Bitte erlaube Human Holo Benachrichtigungen für die Watch.");
+        return;
+      }
+      await plugin.sendPrivateSummary({ kind: "test" });
+      showToast("Privater Test-Hinweis gesendet. Aktiviere Human Holo jetzt in Galaxy Wearable.");
+      if (status?.galaxyWearableInstalled) {
+        await plugin.openGalaxyWearable();
+      }
+    } catch (error) {
+      console.error("Galaxy Watch einrichten:", error);
+      showToast(String(error?.message || "Die Galaxy Watch konnte gerade nicht eingerichtet werden."));
+    } finally {
+      void loadGalaxyWatchStatus();
+    }
+  }
+
+  window.openSolHoloCalendarDraft = async (calendarResult) => {
+    const draft = calendarResult?.calendarDraft;
+    if (calendarResult?.success || !draft) return calendarResult;
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.openCalendarEvent !== "function") return calendarResult;
+
+    const startMillis = Date.parse(String(draft.start || ""));
+    const endMillis = Date.parse(String(draft.end || ""));
+    if (!Number.isFinite(startMillis) || !Number.isFinite(endMillis)) {
+      return calendarResult;
+    }
+
+    try {
+      const opened = await plugin.openCalendarEvent({
+        title: String(draft.title || "Termin"),
+        description: String(draft.description || ""),
+        startMillis,
+        endMillis,
+        allDay: Boolean(draft.allDay)
+      });
+      if (!opened?.opened) return calendarResult;
+      void notifyGalaxyWatchSummary("calendar");
+      return {
+        ...calendarResult,
+        draftOpened: true,
+        answer:
+          `Die Kalender-App ist mit „${String(draft.title || "Termin")}“ fertig ausgefüllt. ` +
+          "Tippe dort nur noch auf Speichern."
+      };
+    } catch (error) {
+      console.error("Android-Kalenderentwurf:", error);
+      return calendarResult;
+    }
+  };
+
   async function renderGoogleMapsStatus() {
     const statusElement = document.getElementById("googleMapsStatus");
     if (!statusElement) return;
@@ -2577,9 +2925,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
 
       const answer = cleanDestination
-        ? `Google Maps ist geöffnet. Ziel: ${cleanDestination}`
-        : "Google Maps ist geöffnet.";
+        ? `Der Routenplaner ist geöffnet. Ziel: ${cleanDestination}`
+        : "Der Routenplaner ist geöffnet.";
       showToast(answer);
+      if (cleanDestination) void notifyGalaxyWatchSummary("navigation");
       return {
         success: true,
         opened: true,
@@ -2802,7 +3151,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function serviceDialRequestFromMessage(message) {
     const cleanMessage = String(message || "")
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
+      .trim()
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|holo))\s*[,;:!.-]?\s*/i,
+        ""
+      )
       .trim();
     if (isSafetyTriageQuestion(cleanMessage)) return null;
 
@@ -3138,6 +3491,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
         const automaticSend = Boolean(args?.explicit_whatsapp_command);
         let handoff;
+        window.markSolHoloConversationForExternalReturn?.("whatsapp");
         try {
           handoff = await plugin.prepareWhatsApp({
             number: contact.number,
@@ -3148,6 +3502,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             explicitOwnerCommand: automaticSend
           });
         } catch (error) {
+          window.cancelSolHoloConversationExternalReturn?.("whatsapp");
           if (error?.code !== "WHATSAPP_AUTO_SEND_ACCESS_REQUIRED") {
             throw error;
           }
@@ -3779,7 +4134,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.executeSolHoloHealthTool = executeHealthTool;
 
   function samsungNoteTextFromNaturalRequest(message) {
-    const cleanMessage = String(message || "").trim();
+    const cleanMessage = stripHoloInvocation(message);
     const patterns = [
       /^(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?[.!?]*$/i,
       /^(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i
@@ -3799,10 +4154,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function samsungNoteInsertionFromNaturalRequest(message) {
-    const cleanMessage = String(message || "")
-      .trim()
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
-      .trim();
+    const cleanMessage = stripHoloInvocation(message);
     const match = cleanMessage.match(
       /^(?:bitte\s+)?(?:setz(?:e)?|schreib(?:e)?|pack(?:e)?|füg(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+unter\s+(.+?)(?:\s+hinzu)?(?:\s+(?:in|bei|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen))?[.!?]*$/i
     );
@@ -3843,6 +4195,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.extractSolHoloExplicitSaveRequest = explicitSaveRequestFromMessage;
   window.extractSolHoloGoogleMapsDestination =
     googleMapsDestinationFromMessage;
+  window.extractSolHoloAlarmClockRequest =
+    alarmClockRequestFromMessage;
   window.isSolHoloCalendarWriteRequest =
     calendarWriteDestinationFromMessage;
   window.isSolHoloLiveWeatherRequest =
@@ -3854,9 +4208,21 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.handleSolHoloLocalAction = async (message) => {
     const cleanMessage = String(message || "").trim();
-    const noteMessage = cleanMessage
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
-      .trim();
+    const noteMessage = stripHoloInvocation(cleanMessage);
+
+    const alarmRequest = alarmClockRequestFromMessage(noteMessage);
+    if (alarmRequest) {
+      const result = await openAlarmClockForRequest(alarmRequest);
+      return {
+        handled: true,
+        status: result?.opened
+          ? alarmRequest.action === "set"
+            ? "Wecker an Android übergeben."
+            : "Android-Wecker geöffnet."
+          : "Android-Wecker wurde nicht geöffnet.",
+        answer: result.answer
+      };
+    }
 
     const mapsDestination = googleMapsDestinationFromMessage(noteMessage);
     if (mapsDestination !== null) {
@@ -4179,9 +4545,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.handleSolHoloRealtimeNoteTranscript = async (message) => {
     const cleanMessage = String(message || "").trim();
-    const noteMessage = cleanMessage
-      .replace(/^(?:(?:hey\s+)?sol)\s*[,;:!.-]?\s*/i, "")
-      .trim();
+    const noteMessage = stripHoloInvocation(cleanMessage);
+    if (alarmClockRequestFromMessage(noteMessage)) {
+      return window.handleSolHoloLocalAction(cleanMessage);
+    }
     if (
       calendarWriteDestinationFromMessage(noteMessage) ||
       liveWeatherRequestFromMessage(noteMessage) ||
@@ -4697,6 +5064,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     if (actionButton.dataset.noteAction === "delete") {
+      const confirmed = window.confirm(
+        `Notiz „${note.title}“ wirklich löschen?`
+      );
+      if (!confirmed) {
+        return;
+      }
       await executeNotesTool("delete_personal_note", { query: note.id });
       return;
     }
@@ -4748,6 +5121,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     void loadPhoneStatus();
     void loadHealthStatus();
     void renderGoogleMapsStatus();
+    void loadAlarmClockStatus();
+    void loadGalaxyWatchStatus();
     void loadLiveWeatherStatus();
     renderSamsungNotesStatus();
   });
@@ -4792,8 +5167,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             "Die sichere S23-Sitzung wurde noch nicht bestätigt."
           )
         );
+        return;
       }
-      return;
+      if (googleConnected) {
+        showToast("Google-Konto und Kalender sind verbunden ✅️");
+        return;
+      }
     }
 
     let authUrl = "";
@@ -4951,6 +5330,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     () => void openGoogleMapsForRequest("")
   );
 
+  document.getElementById("alarmClockRow")?.addEventListener(
+    "click",
+    () => void openAlarmClockForRequest({ action: "open" })
+  );
+
+  document.getElementById("galaxyWatchRow")?.addEventListener(
+    "click",
+    () => void setupGalaxyWatchBridge()
+  );
+
   document.getElementById("liveWeatherRow")?.addEventListener(
     "click",
     () => void askSol("Wie ist das Wetter?")
@@ -4966,7 +5355,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       : "Den WhatsApp-Fahrmodus richtest du direkt über seine Zeile ein.";
     showToast(
       "Jeder Dienst wird einzeln freigegeben. " + whatsappText +
-      " Google-Konto, Telefon, Health und SmartThings richtest du über ihre Zeile ein. " +
+      " Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
       "Samsung Galerie öffnet die Bildauswahl; Samsung Notes wird für Notizen direkt geöffnet."
     );
   });
@@ -4999,7 +5388,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       void loadPhoneStatus();
       void loadHealthStatus();
       void loadSmartThingsStatus();
+      void loadGalaxyWatchStatus();
       void consumeSharedNoteImport();
+      window.setTimeout(
+        () => void window.resumeSolHoloConversationAfterExternalReturn?.("whatsapp"),
+        350
+      );
     }
   });
 
@@ -5009,7 +5403,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     void loadPhoneStatus();
     void loadHealthStatus();
     void loadSmartThingsStatus();
+    void loadGalaxyWatchStatus();
     void consumeSharedNoteImport();
+    window.setTimeout(
+      () => void window.resumeSolHoloConversationAfterExternalReturn?.("whatsapp"),
+      350
+    );
   });
 
   window.addEventListener("solholoidentitychange", () => {
@@ -5060,6 +5459,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   void loadWakeStatus(true);
   void loadPhoneStatus();
   void renderGoogleMapsStatus();
+  void loadAlarmClockStatus();
+  void loadGalaxyWatchStatus();
   void loadLiveWeatherStatus();
   renderSamsungNotesStatus();
   void registerSharedNoteListener();

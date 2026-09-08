@@ -1576,9 +1576,9 @@ MOBIL
 </style>
 <link rel="stylesheet" href="./sol-holo-ui.css?v=45">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
-<link rel="stylesheet" href="./sol-holo-chat-115.css?v=1">
+<link rel="stylesheet" href="./sol-holo-chat-115.css?v=2">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
-<link rel="stylesheet" href="./human-holo-theme.css?v=3">
+<link rel="stylesheet" href="./human-holo-theme.css?v=4">
 </head>
 
 <body>
@@ -2950,6 +2950,15 @@ let dc = null;
 let liveConnectionAttempt =
   0;
 let microphoneStream =
+  null;
+
+let externalConversationReturn = {
+  action:"",
+  markedAt:0,
+  shouldResume:false
+};
+
+let externalConversationResumePromise =
   null;
 
 let realtimeMemoryToken =
@@ -8054,17 +8063,19 @@ async function sendMessage(
     }
 
 
-    if(
-      (
-        data?.calendar
-          ?.needsTrustedAppSession ||
-        data?.gmail
-          ?.needsTrustedAppSession
-      ) &&
-      typeof window.SolHoloTrustedSession
-        ?.ensure ===
-        "function"
-    ){
+    try{
+
+      if(
+        (
+          data?.calendar
+            ?.needsTrustedAppSession ||
+          data?.gmail
+            ?.needsTrustedAppSession
+        ) &&
+        typeof window.SolHoloTrustedSession
+          ?.ensure ===
+          "function"
+      ){
 
       chatStatus.textContent =
         "Sichere S23-Sitzung wird bestätigt …";
@@ -8136,6 +8147,61 @@ async function sendMessage(
 
 
         data = retryData;
+      }
+      }
+    }catch(
+      personalActionRetryError
+    ){
+
+      if(
+        !data?.calendar?.calendarDraft
+      ){
+
+        throw personalActionRetryError;
+      }
+
+
+      console.error(
+        "Google-Kalenderwiederholung:",
+        personalActionRetryError?.code ||
+          personalActionRetryError?.name ||
+          "Fehler"
+      );
+    }
+
+
+    if(
+      data?.calendar?.handled
+    ){
+
+      if(
+        typeof window.openSolHoloCalendarDraft ===
+          "function"
+      ){
+
+        data.calendar =
+          await window.openSolHoloCalendarDraft(
+            data.calendar
+          );
+      }
+
+
+      if(
+        data.calendar?.answer
+      ){
+
+        data.answer =
+          data.calendar.answer;
+      }
+
+
+      if(
+        data.calendar?.success
+      ){
+
+        void window.notifySolHoloGalaxyWatch?.(
+          "calendar"
+        );
       }
     }
 
@@ -8988,13 +9054,15 @@ async function sendLiveTranscriptToMemory(
         data.calendar;
 
 
-      if(
-        calendarResult
-          ?.needsTrustedAppSession &&
-        typeof window.SolHoloTrustedSession
-          ?.ensure ===
-          "function"
-      ){
+      try{
+
+        if(
+          calendarResult
+            ?.needsTrustedAppSession &&
+          typeof window.SolHoloTrustedSession
+            ?.ensure ===
+            "function"
+        ){
 
         chatStatus.textContent =
           "Sichere App-Sitzung wird einmal bestätigt …";
@@ -9050,6 +9118,47 @@ async function sendLiveTranscriptToMemory(
             retryData?.calendar ||
             calendarResult;
         }
+        }
+      }catch(
+        calendarRetryError
+      ){
+
+        if(
+          !calendarResult?.calendarDraft
+        ){
+
+          throw calendarRetryError;
+        }
+
+
+        console.error(
+          "Realtime-Kalenderwiederholung:",
+          calendarRetryError?.code ||
+            calendarRetryError?.name ||
+            "Fehler"
+        );
+      }
+
+
+      if(
+        typeof window.openSolHoloCalendarDraft ===
+          "function"
+      ){
+
+        calendarResult =
+          await window.openSolHoloCalendarDraft(
+            calendarResult
+          );
+      }
+
+
+      if(
+        calendarResult?.success
+      ){
+
+        void window.notifySolHoloGalaxyWatch?.(
+          "calendar"
+        );
       }
 
 
@@ -9061,9 +9170,13 @@ async function sendLiveTranscriptToMemory(
         fallback:
           "Der Kalenderauftrag wurde geprüft.",
         successStatus:
-          "Google Calendar hat den Eintrag bestätigt.",
+          calendarResult?.draftOpened
+            ? "Kalenderentwurf auf dem S23 geöffnet."
+            : "Google Calendar hat den Eintrag bestätigt.",
         failureStatus:
-          "Google Calendar hat keinen Eintrag bestätigt."
+          calendarResult?.draftOpened
+            ? "Kalenderentwurf auf dem S23 geöffnet."
+            : "Google Calendar hat keinen Eintrag bestätigt."
       });
 
 
@@ -9371,7 +9484,9 @@ LIVE STOP
 ==========================================================
 */
 
-function stopLiveConversation(){
+function stopLiveConversation({
+  resumeWake = true
+} = {}){
 
   liveConnectionAttempt +=
     1;
@@ -9462,12 +9577,173 @@ stopLipSync();
 
 
   if(
+    resumeWake &&
     typeof window.resumeHeyHoSolAfterConversation === "function"
   ){
 
     void window.resumeHeyHoSolAfterConversation();
   }
 }
+
+
+window.markSolHoloConversationForExternalReturn =
+  action => {
+
+    if(
+      !document.body.classList.contains(
+        "voice-open"
+      )
+    ){
+
+      return false;
+    }
+
+
+    externalConversationReturn = {
+      action:
+        String(action || "external"),
+      markedAt:
+        Date.now(),
+      shouldResume:
+        true
+    };
+
+
+    return true;
+  };
+
+
+window.cancelSolHoloConversationExternalReturn =
+  action => {
+
+    if(
+      !action ||
+      externalConversationReturn.action ===
+        String(action)
+    ){
+
+      externalConversationReturn = {
+        action:"",
+        markedAt:0,
+        shouldResume:false
+      };
+    }
+  };
+
+
+window.resumeSolHoloConversationAfterExternalReturn =
+  action => {
+
+    if(
+      externalConversationResumePromise
+    ){
+
+      return externalConversationResumePromise;
+    }
+
+
+    externalConversationResumePromise =
+      (async () => {
+
+        const expectedAction =
+          String(action || "");
+
+
+        if(
+          !externalConversationReturn.shouldResume ||
+          (
+            expectedAction &&
+            externalConversationReturn.action !==
+              expectedAction
+          ) ||
+          Date.now() -
+            externalConversationReturn.markedAt >
+            3 * 60 * 1000 ||
+          document.visibilityState !==
+            "visible" ||
+          !document.body.classList.contains(
+            "voice-open"
+          )
+        ){
+
+          return false;
+        }
+
+
+        const microphoneReady =
+          Boolean(
+            microphoneStream
+              ?.getAudioTracks()
+              ?.some(
+                track =>
+                  track.readyState ===
+                    "live"
+              )
+          );
+
+
+        const connectionReady =
+          pc?.connectionState ===
+            "connected" &&
+          dc?.readyState ===
+            "open" &&
+          microphoneReady;
+
+
+        externalConversationReturn = {
+          action:"",
+          markedAt:0,
+          shouldResume:false
+        };
+
+
+        if(
+          connectionReady
+        ){
+
+          setLiveStatus(
+            "🌻 Ich höre dir wieder zu ..."
+          );
+
+          return true;
+        }
+
+
+        setLiveStatus(
+          "Pam’s Holo setzt unser Gespräch nach WhatsApp fort ..."
+        );
+
+
+        stopLiveConversation({
+          resumeWake:false
+        });
+
+
+        if(
+          typeof window.pauseHeyHoSolForConversation ===
+            "function"
+        ){
+
+          await window.pauseHeyHoSolForConversation();
+        }
+
+
+        await startLiveConversation();
+
+
+        return true;
+      })()
+        .finally(
+          () => {
+
+            externalConversationResumePromise =
+              null;
+          }
+        );
+
+
+    return externalConversationResumePromise;
+  };
 
 
 /*
@@ -10888,7 +11164,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=57"></script>
+<script src="./sol-holo-ui.js?v=58"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=2"></script>

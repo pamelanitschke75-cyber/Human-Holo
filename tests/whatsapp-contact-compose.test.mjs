@@ -314,6 +314,21 @@ test("Text- und Sprachchat kennen dasselbe lokale WhatsApp-Werkzeug", () => {
   assert.match(ui, /automatisch gesendet/u);
 });
 
+test("das laufende Holo-Gespräch wird nach WhatsApp automatisch fortgesetzt", () => {
+  const handoff = sourceBetween(
+    ui,
+    'if (actionName === "prepare_whatsapp")',
+    'return { success: false, answer: "Unbekannte Telefonfunktion." }'
+  );
+  assert.match(handoff, /markSolHoloConversationForExternalReturn/u);
+  assert.match(handoff, /cancelSolHoloConversationExternalReturn/u);
+  assert.match(html, /window\.resumeSolHoloConversationAfterExternalReturn/u);
+  assert.match(html, /externalConversationReturn\.shouldResume/u);
+  assert.match(html, /await startLiveConversation\(\)/u);
+  assert.match(ui, /visibilitychange[\s\S]*?resumeSolHoloConversationAfterExternalReturn/u);
+  assert.match(ui, /focus[\s\S]*?resumeSolHoloConversationAfterExternalReturn/u);
+});
+
 test("technisch bestätigter WhatsApp-Versand wird Sol verbindlich übergeben", () => {
   assert.match(android, /event\.put\("message", message/u);
   assert.match(android, /event\.put\("executedBy", "Pam’s Holo"\)/u);
