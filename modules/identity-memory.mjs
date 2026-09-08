@@ -14,6 +14,25 @@ export const MEMORY_DECISION = Object.freeze({
   PERSIST: "persist"
 });
 
+/**
+ * Unveraenderlicher Human-Holo-Schutzvertrag fuer persoenliche Erinnerungen.
+ *
+ * Produkt-, Design-, Namens-, Funktions-, Server- und Datenbankupdates duerfen
+ * diesen Vertrag nicht abschwaechen. Korrekturen werden als neuere Fakten
+ * ergaenzt und alte Aussagen nur aus dem normalen Abruf genommen; der
+ * gespeicherte Verlauf bleibt erhalten. Jede Human-Holo-Identitaet besitzt
+ * ihren eigenen Owner-Speicher.
+ */
+export const MEMORY_PERSISTENCE_CONTRACT = Object.freeze({
+  alwaysOn: true,
+  updateSafe: true,
+  additiveChangesOnly: true,
+  correctionsPreserveHistory: true,
+  ownerConfirmedRemovalOnly: true,
+  isolatedPerOwner: true,
+  newIdentityStartsEmpty: true
+});
+
 const IDENTITY_QUESTION = "Spricht gerade Pam oder Steffi?";
 
 const DEFAULT_IDENTITY_DEFINITIONS = Object.freeze([

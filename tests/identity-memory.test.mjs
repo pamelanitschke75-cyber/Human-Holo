@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  MEMORY_PERSISTENCE_CONTRACT,
   MEMORY_DECISION,
+  createIdentityRegistry,
   evaluateIdentityMemoryWrite,
   extractExplicitMemoryRequest,
   getLegacyOwnerScope,
@@ -63,6 +65,60 @@ test("Legacy-Owner-ID pam-sol-001 wird sicher auf pam-sol abgebildet", () => {
   assert.deepEqual(
     getLegacyOwnerScope("pam-sol-001"),
     ["pam-sol", "pam-sol-001"]
+  );
+});
+
+test("Always-on-Vertrag bleibt updatefest, ownergebunden und verlustfrei", () => {
+  assert.deepEqual(MEMORY_PERSISTENCE_CONTRACT, {
+    alwaysOn: true,
+    updateSafe: true,
+    additiveChangesOnly: true,
+    correctionsPreserveHistory: true,
+    ownerConfirmedRemovalOnly: true,
+    isolatedPerOwner: true,
+    newIdentityStartsEmpty: true
+  });
+});
+
+test("künftige Human-Holo-Nutzer erhalten getrennte eigene Identitäten", () => {
+  const registry = createIdentityRegistry([
+    {
+      speakerId: "person-a",
+      displayName: "Person A",
+      canonicalOwnerId: "human-holo-person-a"
+    },
+    {
+      speakerId: "person-b",
+      displayName: "Person B",
+      canonicalOwnerId: "human-holo-person-b"
+    }
+  ]);
+
+  assert.deepEqual(
+    resolveMemoryIdentity(
+      {
+        selectedSpeakerId: "person-a",
+        ownerId: "human-holo-person-a"
+      },
+      registry
+    ),
+    {
+      kind: "resolved",
+      speakerId: "person-a",
+      displayName: "Person A",
+      ownerId: "human-holo-person-a"
+    }
+  );
+
+  assert.equal(
+    resolveMemoryIdentity(
+      {
+        selectedSpeakerId: "person-a",
+        ownerId: "human-holo-person-b"
+      },
+      registry
+    ).kind,
+    MEMORY_DECISION.IDENTITY_CONFLICT
   );
 });
 
