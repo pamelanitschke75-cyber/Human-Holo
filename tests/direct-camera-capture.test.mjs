@@ -9,6 +9,27 @@ const html = readFileSync(
   ),
   "utf8"
 );
+const ui = readFileSync(
+  new URL(
+    "../www/sol-holo-ui.js",
+    import.meta.url
+  ),
+  "utf8"
+);
+const theme = readFileSync(
+  new URL(
+    "../www/human-holo-theme.css",
+    import.meta.url
+  ),
+  "utf8"
+);
+const coreCss = readFileSync(
+  new URL(
+    "../www/sol-holo-ui.css",
+    import.meta.url
+  ),
+  "utf8"
+);
 
 const elementBlock = id =>
   html.match(
@@ -89,6 +110,43 @@ test(
     assert.match(
       html,
       /mediaLibraryButton\.addEventListener\([\s\S]*?drawer\.classList\.remove\([\s\S]*?"open"[\s\S]*?mediaLibraryInput\.click\(\)/u
+    );
+  }
+);
+
+
+test(
+  "Startseite bietet Sofortkamera und Galerie getrennt an, ohne Kamera oder Mikrofon zu verschieben",
+  () => {
+
+    assert.match(
+      ui,
+      /id="homeCameraButton"[\s\S]*?aria-label="Sofort ein Foto aufnehmen"/u
+    );
+
+    assert.match(
+      ui,
+      /id="homeGalleryButton"[\s\S]*?aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen"/u
+    );
+
+    assert.match(
+      ui,
+      /homeCameraButton"\)\.addEventListener\("click", \(\) => \{[\s\S]*?showView\("chat"\);[\s\S]*?imageButton"\)\?\.click\(\)/u
+    );
+
+    assert.match(
+      ui,
+      /homeGalleryButton"\)\.addEventListener\("click", \(\) => \{[\s\S]*?showView\("chat"\);[\s\S]*?mediaLibraryButton"\)\?\.click\(\)/u
+    );
+
+    assert.match(
+      theme,
+      /#homeView \.humanHoloGalleryButton\{[\s\S]*?flex:0 0 38px/u
+    );
+
+    assert.match(
+      coreCss,
+      /\.humanHoloComposer\{[\s\S]*?grid-template-columns:52px minmax\(0,1fr\) 52px/u
     );
   }
 );

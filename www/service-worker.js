@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-211-companion-actions";
+const CACHE_VERSION = "human-holo-213-gallery-layout-memory";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

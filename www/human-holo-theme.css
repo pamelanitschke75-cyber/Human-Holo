@@ -46,6 +46,10 @@
 }
 
 /* Startseite: dieselbe helle Human-Holo-Glasoptik wie in allen Unterbereichen. */
+#app[data-active-view="home"]{
+  padding-bottom:0;
+}
+
 #homeView.humanHoloHome{
   background:
     radial-gradient(circle at 10% 7%,rgba(173,91,255,.44),transparent 27%),
@@ -161,6 +165,45 @@
   -webkit-backdrop-filter:blur(21px) saturate(1.34);
 }
 
+#homeView .humanHoloMessageField{
+  padding-left:7px;
+}
+
+#homeView .humanHoloGalleryButton{
+  display:grid;
+  place-items:center;
+  flex:0 0 38px;
+  width:38px;
+  height:38px;
+  margin-right:8px;
+  padding:0;
+  border:1px solid rgba(218,232,255,.7);
+  border-radius:50%;
+  color:#fff;
+  background:
+    radial-gradient(circle at 30% 18%,rgba(255,255,255,.26),transparent 36%),
+    linear-gradient(145deg,rgba(145,91,237,.62),rgba(42,127,210,.57));
+  box-shadow:
+    0 0 9px rgba(72,221,255,.42),
+    0 0 17px rgba(165,79,255,.35),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  cursor:pointer;
+}
+
+#homeView .humanHoloGalleryButton svg{
+  width:22px;
+  height:22px;
+  fill:none;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width:1.8;
+}
+
+#homeView .humanHoloGalleryButton:active{
+  transform:scale(.96);
+}
+
 #app[data-active-view="home"] #bottomNav{
   border:1px solid transparent;
   background:
@@ -232,6 +275,7 @@
 /* Helle Holo-Glaskarten wie auf der neuen Startseite. */
 :is(#memoryView,#servicesView,#profileView,#settingsView,#notesView)
   :is(.glassCard,.actionRow,.serviceRow,.settingsGroup,.profileStatus,.noteCard),
+#memoryView #manageMemoriesButton,
 #bottomNav{
   border:1px solid transparent;
   background:

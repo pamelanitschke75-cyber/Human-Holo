@@ -129,6 +129,7 @@ test("Galaxy Watch erhält nur fest definierte, inhaltsarme Hinweise", () => {
 });
 
 test("Startseite füllt hohen Handybildschirmen ohne großen Leerblock", () => {
+  assert.match(css, /#app\[data-active-view="home"\]\{[\s\S]*?padding-bottom:0/u);
   assert.match(css, /#homeView\.humanHoloHome\.active\{[\s\S]*?display:flex/u);
   assert.match(css, /#homeView \.humanHoloHero\{[\s\S]*?flex:1 1 222px/u);
 });

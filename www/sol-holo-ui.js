@@ -201,10 +201,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     <form id="homeComposer" class="humanHoloComposer">
       <button id="homeCameraButton" class="humanHoloComposerButton" type="button"
-        aria-label="Kamera oder Galerie öffnen">
+        aria-label="Sofort ein Foto aufnehmen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l1.5-2h5L16 7h4v12H4Z"/><circle cx="12" cy="13" r="4"/></svg>
       </button>
       <div class="humanHoloMessageField">
+        <button id="homeGalleryButton" class="humanHoloGalleryButton" type="button"
+          aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m5 18 5-5 3.5 3.5 2.5-2.5 3 3"/></svg>
+        </button>
         <label class="srOnly" for="homeMessageInput">Nachricht an Pam’s Holo</label>
         <input id="homeMessageInput" type="text" autocomplete="off"
           placeholder="Sag oder schreib mir, wobei ich helfen kann … ♡">
@@ -907,6 +911,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       notesFooter.textContent = identity
         ? `Bleibt getrennt in ${instanceName} auf diesem Handy.`
         : "Die feste Holo-ID ist nicht verfügbar.";
+    }
+
+    const manageMemoriesButton = document.getElementById("manageMemoriesButton");
+    if (manageMemoriesButton) {
+      const arrow = document.createElement("span");
+      arrow.setAttribute("aria-hidden", "true");
+      arrow.textContent = "→";
+      manageMemoriesButton.replaceChildren(
+        "Erinnerungen mit Human Holo ansehen ",
+        arrow
+      );
     }
 
     noteTextInput.placeholder = identity
@@ -5103,6 +5118,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("homeCameraButton").addEventListener("click", () => {
     showView("chat");
     document.getElementById("imageButton")?.click();
+  });
+
+  document.getElementById("homeGalleryButton").addEventListener("click", () => {
+    showView("chat");
+    document.getElementById("mediaLibraryButton")?.click();
   });
 
   document.getElementById("homeOrbButton").addEventListener("click", () => {

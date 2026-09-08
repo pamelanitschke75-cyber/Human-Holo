@@ -37,7 +37,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=58/u);
+  assert.match(html, /sol-holo-ui\.js\?v=60/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -55,9 +55,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
   assert.match(css, /#homeView\.humanHoloHome\{/u);
   assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
-  assert.match(html, /human-holo-theme\.css\?v=4/u);
+  assert.match(html, /human-holo-theme\.css\?v=6/u);
   assert.ok(
-    html.indexOf("human-holo-theme.css?v=4") >
+    html.indexOf("human-holo-theme.css?v=6") >
       html.indexOf("sol-holo-backup.css?v=2")
   );
   assert.match(ui, /<img src="human-holo-home-hero\.png"/u);
@@ -66,6 +66,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(theme, /#homeView \.humanHoloAreaCard\{[\s\S]*backdrop-filter:blur\(21px\) saturate\(1\.34\)/u);
   assert.match(theme, /#homeView \.humanHoloMessageField,[\s\S]*#homeView \.humanHoloComposerButton\{/u);
   assert.match(theme, /#app\[data-active-view="home"\] #bottomNav\{/u);
+  assert.match(theme, /#app\[data-active-view="home"\]\{[\s\S]*?padding-bottom:0/u);
+  assert.match(ui, /manageMemoriesButton\.replaceChildren\([\s\S]*?"Erinnerungen mit Human Holo ansehen "/u);
+  assert.match(theme, /#memoryView #manageMemoriesButton,[\s\S]*?#bottomNav\{/u);
   assert.match(html, /function humanHoloVisibleText\(value\)/u);
   assert.match(ui, /function applyHumanHoloVisibleNaming\(root = document\)/u);
   assert.match(ui, /new MutationObserver/u);
