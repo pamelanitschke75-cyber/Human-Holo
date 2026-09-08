@@ -381,6 +381,11 @@ bestätigte Langzeiterinnerungen. Der Modus bleibt durch Vorschau und
 „LIVE AN HOLO“ sichtbar und endet beim Ausschalten, beim Gesprächsende oder
 sobald die App nicht mehr im Vordergrund ist.
 
+Beim einzelnen Sofortfoto öffnet Human Holo die Rückkamera erst nach Pams Tipp
+auf das Kamerasymbol. Nach der Aufnahme wird das Foto lokal als Vorschau gezeigt.
+Abbrechen oder Entfernen überträgt nichts; erst der getrennte Senden-Tipp gibt
+das Foto einmalig zur Bildanalyse frei.
+
 ---
 
 16. KALENDER, KONTAKTE UND STANDORT

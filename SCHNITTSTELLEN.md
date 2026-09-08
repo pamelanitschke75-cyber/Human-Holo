@@ -29,8 +29,8 @@ Nr.| Schnittstelle| Technik| Aufgabe
 02| Spracheingabe| Mikrofon / Android Audio| Pam spricht mit Sol
 03| Spracherkennung| Speech-to-Text| Pams Sprache wird in Text umgewandelt
 04| Sprachausgabe| Text-to-Speech| Sol spricht mit Pam
-05| Kamera| Android WebView / MediaDevices| Pam kann Human Holo ausdrücklich gestartete aktuelle Live-Bilder zeigen; sichtbare Vorschau, kein Hintergrundbetrieb
-06| Fotos| Android Photo Picker| Pam gibt Sol ausgewählte Bilder
+05| Kamera| Android Capture + WebView / MediaDevices| Das Chat-Kamerasymbol öffnet sofort die Rückkamera für ein einzelnes Vorschaufoto; im Sprachmodus kann Pam getrennt davon Live-Bilder ausdrücklich starten
+06| Fotos| Android Photo Picker| Pam wählt vorhandene Fotos oder Videos getrennt über das Menü aus
 07| Dateien| Storage Access Framework| Pam gibt Sol ausgewählte Dateien
 08| Teilen an Sol| Android Sharesheet| Inhalte anderer Apps werden an Sol übergeben
 09| Touch / Bedienung| Android UI| Pam steuert Sol über Display und Bedienelemente

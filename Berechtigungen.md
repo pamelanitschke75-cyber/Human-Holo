@@ -93,11 +93,19 @@ Während er aktiv ist, zeigt die App dauerhaft eine Kameravorschau und den Hinwe
 werden die Kameraspuren sofort beendet. Das Mikrofon der Kamera wird dafür nicht
 zusätzlich geöffnet.
 
+Das kleine Kamerasymbol im Chat ist davon getrennt: Ein Tipp öffnet sofort die
+Rückkamera des Smartphones für genau eine neue Aufnahme. Das aufgenommene Foto
+wird zunächst nur als Vorschau in Human Holo angezeigt und erst mit Pams
+anschließendem Tipp auf Senden an die Bildanalyse übertragen.
+
 ---
 
 Fotos und Dateien
 
 Wo technisch möglich, soll Sol Holo nicht pauschal Zugriff auf den gesamten Foto- oder Dateibestand verlangen.
+
+Bereits vorhandene Fotos und Videos bleiben über „Foto oder Video auswählen“ im
+Menü erreichbar. Diese Auswahl öffnet nicht automatisch die Kamera.
 
 Pam wählt gezielt aus:
 

@@ -419,7 +419,8 @@ SCHREIBEN
   opacity:.45;
 }
 
-#imageInput{
+#imageInput,
+#mediaLibraryInput{
   display:none;
 }
 
@@ -1931,12 +1932,19 @@ Du kannst noch etwas dazu schreiben oder es direkt senden.
 <button
   id="imageButton"
   type="button"
-  aria-label="Foto oder Video auswählen">
+  aria-label="Sofort ein Foto aufnehmen">
 📷
 </button>
 
 <input
   id="imageInput"
+  type="file"
+  accept="image/*"
+  capture="environment"
+>
+
+<input
+  id="mediaLibraryInput"
   type="file"
   accept="image/*,video/*"
 >
@@ -2221,6 +2229,13 @@ Mehr
 </button>
 
 <button
+  id="mediaLibraryButton"
+  class="drawerButton"
+  type="button">
+🖼️ Foto oder Video auswählen
+</button>
+
+<button
   id="closeMenuButton"
   class="drawerButton"
   type="button">
@@ -2378,6 +2393,11 @@ const sendButton =
 
 const memoryButton =
   document.getElementById("memoryButton");
+
+const mediaLibraryButton =
+  document.getElementById(
+    "mediaLibraryButton"
+  );
 
 const liveButton =
   document.getElementById("liveButton");
@@ -2668,6 +2688,11 @@ const imageButton =
 
 const imageInput =
   document.getElementById("imageInput");
+
+const mediaLibraryInput =
+  document.getElementById(
+    "mediaLibraryInput"
+  );
 
 const imagePreviewPanel =
   document.getElementById("imagePreviewPanel");
@@ -4014,7 +4039,7 @@ function exitVoiceMode(){
 
 /*
 ==========================================================
-BILD AUSWÄHLEN
+ FOTO AUFNEHMEN / MEDIEN AUSWÄHLEN
 ==========================================================
 */
 
@@ -4023,6 +4048,20 @@ imageButton.addEventListener(
   () => {
 
     imageInput.click();
+  }
+);
+
+
+mediaLibraryButton.addEventListener(
+  "click",
+  () => {
+
+    drawer.classList.remove(
+      "open"
+    );
+
+
+    mediaLibraryInput.click();
   }
 );
 
@@ -4197,12 +4236,15 @@ async function resizeImageFile(
 }
 
 
-imageInput.addEventListener(
-  "change",
-  async () => {
+async function handleMediaInputChange(
+  event
+){
+
+    const sourceInput =
+      event.currentTarget;
 
     const file =
-      imageInput.files?.[0];
+      sourceInput?.files?.[0];
 
 
     if(
@@ -4263,7 +4305,7 @@ imageInput.addEventListener(
         "Bitte wähle ein unterstütztes Foto oder Video aus.";
 
 
-      imageInput.value =
+      sourceInput.value =
         "";
 
 
@@ -4448,10 +4490,21 @@ imageInput.addEventListener(
         false;
 
 
-      imageInput.value =
+      sourceInput.value =
         "";
     }
-  }
+}
+
+
+imageInput.addEventListener(
+  "change",
+  handleMediaInputChange
+);
+
+
+mediaLibraryInput.addEventListener(
+  "change",
+  handleMediaInputChange
 );
 
 
@@ -4558,6 +4611,10 @@ function clearSelectedImage(){
 
 
   imageInput.value =
+    "";
+
+
+  mediaLibraryInput.value =
     "";
 }
 
