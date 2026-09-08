@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { runInNewContext, Script } from "node:vm";
 
 import {
   createHumanHoloVoiceProfileStore,
@@ -137,5 +138,31 @@ test("Server aktiviert die erstellte Voice-ID ohne rohe Audiodatei zu speichern"
   assert.doesNotMatch(
     server,
     /writeFile|createWriteStream|audio_sample_path/u
+  );
+});
+
+test("Voice-Setup liefert syntaktisch ausführbares Browser-JavaScript", () => {
+  const server = readFileSync(
+    new URL("../server.mjs", import.meta.url),
+    "utf8"
+  );
+  const routeStart = server.indexOf('app.get(\n  "/voice-setup"');
+  const templateStart = server.indexOf("`", server.indexOf("res.send(", routeStart));
+  const templateEnd = server.indexOf("\n    `);", templateStart);
+
+  assert.notEqual(routeStart, -1);
+  assert.notEqual(templateStart, -1);
+  assert.notEqual(templateEnd, -1);
+
+  const page = runInNewContext(
+    server.slice(templateStart, templateEnd + 6)
+  );
+  const browserScript = page.match(/<script>([\s\S]*?)<\/script>/u)?.[1];
+
+  assert.ok(browserScript);
+  assert.doesNotThrow(() => new Script(browserScript));
+  assert.match(
+    page,
+    /Bitte diese Datei unten einmal auswählen\./u
   );
 });

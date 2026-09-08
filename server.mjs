@@ -5179,7 +5179,9 @@ Consent hochladen
 
 <div
   id="consentStatus"
-  class="status">
+  class="status"
+  role="status"
+  aria-live="polite">
 Noch keine Consent-ID vorhanden.
 </div>
 
@@ -5216,7 +5218,8 @@ Stimmprobe
 </label>
 
 <p>
-Vorhandene Datei: <strong>Pam's Stimme vom 19.08.2026.m4a</strong>
+Vorbereitete Stimmprobe: <strong>Pam's Stimme vom 19.08.2026.m4a</strong><br>
+Bitte diese Datei unten einmal auswählen.
 </p>
 
 <input
@@ -5233,7 +5236,9 @@ Eigene Stimme erstellen
 
 <div
   id="voiceStatus"
-  class="status">
+  class="status"
+  role="status"
+  aria-live="polite">
 Noch keine Voice-ID vorhanden.
 </div>
 
@@ -5383,7 +5388,7 @@ consentButton.addEventListener(
         "status success";
 
       consentStatus.textContent =
-        "✅ Consent erstellt.\n\nConsent-ID:\n" +
+        "✅ Consent erstellt.\\n\\nConsent-ID:\\n" +
         data.id;
 
     } catch(error) {
@@ -5496,13 +5501,13 @@ voiceButton.addEventListener(
           "status success";
 
         voiceStatus.textContent =
-          "✅ Pams eigene Stimme wurde erstellt und automatisch für Human Holo aktiviert.\n\nBeim nächsten Gespräch spricht Human Holo mit Pams Stimme.";
+          "✅ Pams eigene Stimme wurde erstellt und automatisch für Human Holo aktiviert.\\n\\nBeim nächsten Gespräch spricht Human Holo mit Pams Stimme.";
       } else {
         voiceStatus.className =
           "status warning";
 
         voiceStatus.textContent =
-          "⚠️ Pams Stimme wurde bei OpenAI erstellt, aber die automatische Aktivierung konnte noch nicht gespeichert werden. Bitte nicht erneut erstellen.\n\nVOICE-ID:\n" +
+          "⚠️ Pams Stimme wurde bei OpenAI erstellt, aber die automatische Aktivierung konnte noch nicht gespeichert werden. Bitte nicht erneut erstellen.\\n\\nVOICE-ID:\\n" +
           data.id;
       }
 
