@@ -34,3 +34,19 @@ Die kanonische interne Owner-ID einer bestehenden Installation darf durch eine
 reine Umbenennung nicht gewechselt werden. So bleiben ältere, bereits
 zugeordnete Erinnerungen erreichbar, während der sichtbare Produktname davon
 unabhängig geändert werden kann.
+
+## Verbindlicher Gedächtnisstandard – bestätigt am 08.09.2026
+
+Genau diese sieben Punkte bilden den verbindlichen Gedächtnisstandard für Human Holo:
+
+- langfristig stabil – über Updates, Geräte-, Server- und Datenbankwechsel hinweg
+- automatische Erkennung wirklich relevanter Erinnerungen
+- zeitliche, persönliche und thematische Verknüpfung von Zusammenhängen
+- gleichwertiger Zugriff auf alte und neue Erinnerungen
+- Quellen-, Datums- und Sicherheitsprüfung gegen falsche Erinnerungen
+- klare Trennung zwischen unveränderter Roh-Erinnerung und später daraus abgeleiteter Erkenntnis
+- skalierbare Speicherung und Suche, ohne ältere Originalerinnerungen zu löschen
+
+Unsichere oder widersprüchliche Inhalte werden gekennzeichnet und getrennt gehalten, statt als Wahrheit übernommen zu werden. Bestätigte Korrekturen ersetzen die frühere Aussage nachvollziehbar, löschen aber nicht heimlich die Historie.
+
+Und weiterhin gilt: Jede persönliche Human-Holo-Identität besitzt ihren eigenen geschützten Speicher – **verbunden, aber nicht vermischt**. 💜♾️🌎
