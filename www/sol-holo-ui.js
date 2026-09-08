@@ -334,8 +334,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     '<button id="alarmClockRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">⏰</span>' +
       '<span class="rowText">' +
-        '<span class="rowTitle">Wecker &amp; Uhr</span>' +
-        '<span class="rowMeta">Wecker per Text oder Sprache stellen und öffnen</span>' +
+        '<span class="rowTitle">Handy-Wecker · Samsung Uhr</span>' +
+        '<span class="rowMeta">Per Text oder Sprache direkt auf dem Handy stellen</span>' +
       '</span>' +
       '<span id="alarmClockStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>' +
@@ -1300,33 +1300,138 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return null;
   }
 
+  function germanAlarmHourValue(value) {
+    const normalized = normalizeNoteSearchText(value)
+      .replace(/[\s-]+/g, "");
+    const hourWords = {
+      null: 0,
+      mitternacht: 0,
+      ein: 1,
+      eins: 1,
+      zwei: 2,
+      drei: 3,
+      vier: 4,
+      funf: 5,
+      sechs: 6,
+      sieben: 7,
+      acht: 8,
+      neun: 9,
+      zehn: 10,
+      elf: 11,
+      zwolf: 12,
+      dreizehn: 13,
+      vierzehn: 14,
+      funfzehn: 15,
+      sechzehn: 16,
+      siebzehn: 17,
+      achtzehn: 18,
+      neunzehn: 19,
+      zwanzig: 20,
+      einundzwanzig: 21,
+      zweiundzwanzig: 22,
+      dreiundzwanzig: 23
+    };
+    if (/^\d{1,2}$/u.test(normalized)) {
+      return Number(normalized);
+    }
+    return Object.prototype.hasOwnProperty.call(hourWords, normalized)
+      ? hourWords[normalized]
+      : null;
+  }
+
+  function alarmClockTimeFromMessage(value) {
+    const cleanMessage = normalizeNoteSearchText(value);
+    const hourWordPattern =
+      "dreiundzwanzig|zweiundzwanzig|einundzwanzig|neunzehn|achtzehn|" +
+      "siebzehn|sechzehn|funfzehn|vierzehn|dreizehn|zwolf|elf|zehn|" +
+      "neun|acht|sieben|sechs|funf|vier|drei|zwei|eins|ein|" +
+      "mitternacht|null|\\d{1,2}";
+    const spokenHour = new RegExp(`(${hourWordPattern})`, "u");
+    const halfMatch = cleanMessage.match(
+      new RegExp(`\\bhalb\\s+${spokenHour.source}(?:\\s+uhr)?\\b`, "u")
+    );
+    if (halfMatch) {
+      const nextHour = germanAlarmHourValue(halfMatch[1]);
+      if (Number.isInteger(nextHour) && nextHour >= 1 && nextHour <= 24) {
+        return { hour: (nextHour + 23) % 24, minute: 30 };
+      }
+    }
+
+    const quarterMatch = cleanMessage.match(
+      new RegExp(
+        `\\bviertel\\s+(nach|vor)\\s+${spokenHour.source}(?:\\s+uhr)?\\b`,
+        "u"
+      )
+    );
+    if (quarterMatch) {
+      const referencedHour = germanAlarmHourValue(quarterMatch[2]);
+      if (
+        Number.isInteger(referencedHour) &&
+        referencedHour >= 0 &&
+        referencedHour <= 23
+      ) {
+        return quarterMatch[1] === "vor"
+          ? { hour: (referencedHour + 23) % 24, minute: 45 }
+          : { hour: referencedHour, minute: 15 };
+      }
+    }
+
+    const numericMatch = cleanMessage.match(
+      /\b(?:um|auf|fur|gegen)\s*(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(?:uhr)?\b/u
+    ) || cleanMessage.match(
+      /\b(\d{1,2})\s*uhr(?:\s*(\d{1,2}))?\b/u
+    ) || cleanMessage.match(
+      /\b(\d{1,2})\s*[:.]\s*(\d{2})\b/u
+    );
+    if (numericMatch) {
+      const hour = Number(numericMatch[1]);
+      const minute = Number(numericMatch[2] || 0);
+      return { hour, minute };
+    }
+
+    const wordMatch = cleanMessage.match(
+      new RegExp(
+        `\\b(?:um|auf|fur|gegen)\\s+${spokenHour.source}(?:\\s+uhr)?\\b`,
+        "u"
+      )
+    ) || cleanMessage.match(
+      new RegExp(`\\b${spokenHour.source}\\s+uhr\\b`, "u")
+    );
+    if (!wordMatch) return null;
+    return {
+      hour: germanAlarmHourValue(wordMatch[1]),
+      minute: 0
+    };
+  }
+
   function alarmClockRequestFromMessage(value) {
     const cleanMessage = stripHoloInvocation(value);
     if (!cleanMessage) return null;
+    const normalizedMessage = normalizeNoteSearchText(cleanMessage);
 
     if (
       /^(?:bitte\s+)?(?:öffne|oeffne|starte|zeige)\s+(?:mir\s+)?(?:bitte\s+)?(?:(?:den|meinen|die|meine)\s+)?(?:wecker|alarme?|uhr(?:en)?-?app)[.!?]*$/i.test(cleanMessage) ||
-      /^(?:bitte\s+)?(?:meine\s+)?(?:wecker|alarme?)\s+(?:öffnen|oeffnen|zeigen)[.!?]*$/i.test(cleanMessage)
+      /^(?:bitte\s+)?(?:meine\s+)?(?:wecker|alarme?)\s+(?:öffnen|oeffnen|zeigen)[.!?]*$/i.test(cleanMessage) ||
+      (
+        /\b(?:wecker|alarme?|uhr(?:en)?-?app)\b/u.test(normalizedMessage) &&
+        /\b(?:offn(?:est|en|et|e)?|zeig(?:en|st|t|e)?|start(?:est|en|et|e)?)\b/u.test(normalizedMessage) &&
+        !alarmClockTimeFromMessage(cleanMessage)
+      )
     ) {
       return { action: "open" };
     }
 
     const isAlarmRequest =
-      /\b(?:wecker|alarm)\b/i.test(cleanMessage) ||
-      /\bweck(?:e)?\s+mich\b/i.test(cleanMessage);
+      /\b(?:wecker|alarme?)\b/u.test(normalizedMessage) ||
+      /\b(?:weck(?:e|en)?(?:\s+(?:mich|uns))?|geweckt)\b/u.test(normalizedMessage);
     const isSetRequest =
-      /\b(?:stell(?:e)?|setz(?:e)?|mach(?:e)?|weck(?:e)?)\b/i.test(cleanMessage);
+      /\b(?:stell(?:en|st|t|e)?|setz(?:en|t|e)?|mach(?:en|st|t|e)?|weck(?:en|st|t|e)?|geweckt)\b/u.test(normalizedMessage) ||
+      /\b(?:brauch(?:en|st|t|e)|mocht(?:est|en|et|e)|will|wollen|hatte\s+gern)\b/u.test(normalizedMessage);
     if (!isAlarmRequest || !isSetRequest) return null;
 
-    const timeMatch = cleanMessage.match(
-      /\b(?:um|auf|für|fuer|gegen)\s*(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(?:uhr)?\b/i
-    ) || cleanMessage.match(
-      /\b(\d{1,2})\s*uhr(?:\s*(\d{1,2}))?\b/i
-    );
-    if (!timeMatch) return null;
-
-    const hour = Number(timeMatch[1]);
-    const minute = Number(timeMatch[2] || 0);
+    const time = alarmClockTimeFromMessage(cleanMessage);
+    if (!time) return null;
+    const { hour, minute } = time;
     if (
       !Number.isInteger(hour) ||
       !Number.isInteger(minute) ||
@@ -2712,8 +2817,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
 
       const answer = isSet
-        ? `Dein Wecker ist auf ${String(request.hour).padStart(2, "0")}:${String(request.minute).padStart(2, "0")} Uhr gestellt.`
-        : "Deine Wecker sind geöffnet.";
+        ? `Dein Wecker auf dem Handy ist auf ${String(request.hour).padStart(2, "0")}:${String(request.minute).padStart(2, "0")} Uhr gestellt.`
+        : "Deine Wecker auf dem Handy sind geöffnet.";
       showToast(answer);
       if (isSet) void notifyGalaxyWatchSummary("alarm");
       return { success: true, opened: true, answer };
@@ -4211,9 +4316,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         handled: true,
         status: result?.opened
           ? alarmRequest.action === "set"
-            ? "Wecker an Android übergeben."
-            : "Android-Wecker geöffnet."
-          : "Android-Wecker wurde nicht geöffnet.",
+            ? "Wecker an die Uhr-App des Handys übergeben."
+            : "Handy-Wecker geöffnet."
+          : "Handy-Wecker wurde nicht geöffnet.",
         answer: result.answer
       };
     }

@@ -40,9 +40,10 @@ function sourceBetween(source, startMarker, endMarker) {
 }
 
 const alarmParser = new Function(
+  `${sourceBetween(ui, "function normalizeNoteSearchText", "function stripHoloInvocation")}\n` +
   `${sourceBetween(ui, "function stripHoloInvocation", "function noteSecurityWarning")}\n` +
   `${sourceBetween(ui, "function cleanExplicitSaveContent", "function explicitListTitle")}\n` +
-  `${sourceBetween(ui, "function alarmClockRequestFromMessage", "function explicitSaveRequestFromMessage")}\n` +
+  `${sourceBetween(ui, "function germanAlarmHourValue", "function explicitSaveRequestFromMessage")}\n` +
   "return alarmClockRequestFromMessage;"
 )();
 
@@ -62,12 +63,37 @@ test("Hey Pam stellt und öffnet den Android-Wecker", () => {
     alarmParser("Pam, weck mich morgen um 06:30 Uhr"),
     { action: "set", hour: 6, minute: 30, label: "Human Holo" }
   );
+  assert.deepEqual(
+    alarmParser("Kannst du mir bitte morgen um sieben Uhr einen Wecker stellen?"),
+    { action: "set", hour: 7, minute: 0, label: "Human Holo" }
+  );
+  assert.deepEqual(
+    alarmParser("Ich möchte morgen um halb acht geweckt werden."),
+    { action: "set", hour: 7, minute: 30, label: "Human Holo" }
+  );
+  assert.deepEqual(
+    alarmParser("Bitte wecke mich um Viertel vor acht."),
+    { action: "set", hour: 7, minute: 45, label: "Human Holo" }
+  );
+  assert.deepEqual(
+    alarmParser("Ich brauche um neun einen Alarm."),
+    { action: "set", hour: 9, minute: 0, label: "Human Holo" }
+  );
+  assert.deepEqual(
+    alarmParser("Kannst du bitte meinen Wecker öffnen?"),
+    { action: "open" }
+  );
   assert.deepEqual(alarmParser("Öffne meinen Wecker"), { action: "open" });
   assert.equal(alarmParser("Stell einen Wecker auf 28 Uhr"), null);
+  assert.equal(alarmParser("Erzähl mir etwas über Wecker um 7 Uhr"), null);
   assert.match(phonePlugin, /AlarmClock\.ACTION_SET_ALARM/u);
   assert.match(phonePlugin, /AlarmClock\.ACTION_SHOW_ALARMS/u);
   assert.match(installer, /com\.android\.alarm\.permission\.SET_ALARM/u);
   assert.match(ui, /id="alarmClockRow"/u);
+  assert.match(ui, /Handy-Wecker · Samsung Uhr/u);
+  assert.match(ui, /Dein Wecker auf dem Handy ist auf/u);
+  assert.match(html, /LOKALES_WECKERERGEBNIS/u);
+  assert.match(server, /lokale Weckerweg sei nicht\nbestätigt/u);
 });
 
 test("Routenplaner versteht natürliche Ziele", () => {

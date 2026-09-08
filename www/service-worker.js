@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-214-chat-gallery-home-grid";
+const CACHE_VERSION = "human-holo-215-natural-alarm-access";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

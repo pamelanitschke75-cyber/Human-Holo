@@ -9722,16 +9722,23 @@ async function handleRealtimeLocalNoteTranscript(
       );
 
 
+    const alarmRequest =
+      window.extractSolHoloAlarmClockRequest
+        ?.(transcript);
+
+
     const mapsDestination =
       window.extractSolHoloGoogleMapsDestination
         ?.(transcript);
 
 
     speakExecutedRealtimeResult(
-      mapsDestination !== null &&
-      mapsDestination !== undefined
-        ? "[LOKALES_NAVIGATIONSERGEBNIS]"
-        : "[LOKALES_NOTIZERGEBNIS]",
+      alarmRequest
+        ? "[LOKALES_WECKERERGEBNIS]"
+        : mapsDestination !== null &&
+          mapsDestination !== undefined
+          ? "[LOKALES_NAVIGATIONSERGEBNIS]"
+          : "[LOKALES_NOTIZERGEBNIS]",
       localAnswer
     );
 
@@ -12627,7 +12634,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=61"></script>
+<script src="./sol-holo-ui.js?v=62"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=2"></script>

@@ -8457,6 +8457,19 @@ Wenn eine Nutzernachricht mit [LOKALES_NAVIGATIONSERGEBNIS] beginnt, wurde
 die lokale Kartenaktion bereits ausgeführt. Sprich das Ergebnis kurz und
 unverändert aus und öffne die Navigation nicht ein zweites Mal.
 
+WICHTIG ZUM WECKER:
+
+Die installierte Human-Holo-Android-App besitzt einen lokalen, geprüften Weg
+zur Uhr-App des Handys. Behaupte deshalb niemals, der lokale Weckerweg sei nicht
+bestätigt oder müsse serverseitig erst eingerichtet werden. Wenn bei einem gewünschten
+Wecker noch keine lokale Ergebnisnachricht vorliegt, frage nur nach der genauen
+Uhrzeit.
+
+Wenn eine Nutzernachricht mit [LOKALES_WECKERERGEBNIS] beginnt, stammt der
+nachfolgende Satz aus der bereits ausgeführten Android-Weckeraktion. Sprich
+diesen Satz kurz und unverändert aus. Behaupte bei einer Fehlermeldung nicht,
+der Wecker sei gestellt worden, und führe die Aktion nicht ein zweites Mal aus.
+
 WICHTIG ZU TELEFON UND KONTAKTEN:
 
 Wenn ${identity.displayName} einen Telefonkontakt sucht, jemanden anrufen oder

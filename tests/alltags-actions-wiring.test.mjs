@@ -41,7 +41,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-214-chat-gallery-home-grid/u);
+  assert.match(serviceWorker, /human-holo-215-natural-alarm-access/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
