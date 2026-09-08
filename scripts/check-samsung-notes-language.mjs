@@ -2,6 +2,13 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const uiSource = fs.readFileSync("www/sol-holo-ui.js", "utf8");
+const invocationStart = uiSource.indexOf(
+  "function stripHoloInvocation"
+);
+const invocationEnd = uiSource.indexOf(
+  "\n\n  function noteSecurityWarning",
+  invocationStart
+);
 const functionStart = uiSource.indexOf(
   "function samsungNoteTextFromNaturalRequest"
 );
@@ -10,14 +17,20 @@ const functionEnd = uiSource.indexOf(
   functionStart
 );
 
-if (functionStart < 0 || functionEnd < 0) {
+if (
+  invocationStart < 0 ||
+  invocationEnd < 0 ||
+  functionStart < 0 ||
+  functionEnd < 0
+) {
   throw new Error("Samsung-Notes-Spracherkennung wurde nicht gefunden.");
 }
 
 const context = {};
 vm.createContext(context);
 vm.runInContext(
-  `${uiSource.slice(functionStart, functionEnd)}\n` +
+  `${uiSource.slice(invocationStart, invocationEnd)}\n` +
+    `${uiSource.slice(functionStart, functionEnd)}\n` +
     "this.extractSamsungNote = samsungNoteTextFromNaturalRequest;",
   context
 );
