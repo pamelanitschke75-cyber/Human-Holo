@@ -1,0 +1,71 @@
+# Human Holo – Original Full Sync
+
+Stand: 08.09.2026  
+Status: Technisch integriert – praktischer Test auf Pams Samsung Galaxy S23
+noch offen
+
+## Verbindliche Bezeichnung und Ziel
+
+Die verbindliche Bezeichnung lautet **Original Full Sync**.
+
+Es handelt sich nicht nur um Lip-Sync. Der gesamte im Clone-Bild sichtbare
+Mensch soll sich als eine zusammenhängende Person bewegen:
+
+- Lippen und Mundformen passend zu den tatsächlichen Sprachlauten,
+- Kiefer, Wangen und weitere Gesichtszonen,
+- Augen, Lider und Brauen,
+- Kopf und kleine natürliche Haltungsbewegungen,
+- Haare mit natürlichem Nachlauf zur Kopfbewegung,
+- Schultern und der sichtbare Körper.
+
+Die Bewegungen dürfen nicht wie voneinander getrennte Effekte aussehen. Sie
+müssen zeitlich und räumlich zusammenpassen und sich am persönlichen
+Bewegungsprofil des Originals orientieren.
+
+## Gilt für jedes gewählte Clone-Bild
+
+Original Full Sync ist nicht an das derzeitige Bild gebunden. Wenn Pam das
+Clone-Bild wechselt, wird das neue Bild auf dem Gerät erneut analysiert. Die
+Geometrie für Gesicht, Haarbereich, Kopf, Schultern und sichtbaren Körper wird
+neu aufgebaut. Das persönliche Bewegungsprofil bleibt davon getrennt
+erhalten.
+
+Eine unsichere Bildzuordnung wird nicht erfunden. In diesem Fall bleibt nur
+die sicher begrenzte Bewegung aktiv; die Mundposition kann weiterhin manuell
+festgelegt werden.
+
+## Technische Integrationsstufe
+
+Die neue Zusatzschicht verbindet:
+
+1. die tatsächliche Realtime-Sprachausgabe,
+2. die lokale Laut- und Visem-Erkennung,
+3. das persönliche Bewegungsprofil,
+4. die lokale Gesichtsgeometrie des jeweils gewählten Bildes,
+5. weich begrenzte Bewegungen für Gesicht, Kopf, Haare und sichtbaren Körper.
+
+Der Haarbereich reagiert mit einem eigenen, langsameren Nachlauf. Schultern
+und Körper erhalten eine ruhige Atem- und Haltungsbewegung. Die
+Gesichtsbewegung bleibt weiterhin an die Sprachlaute gekoppelt.
+
+Die Originalbilder und privaten Referenzvideos werden durch diese
+Bewegungsschicht weder hochgeladen noch im öffentlichen Repository
+gespeichert. Im Repository stehen ausschließlich Programmcode und
+abgeleitete Bewegungsparameter.
+
+## Bestehende Funktionen bleiben erhalten
+
+Original Full Sync ist eine getrennte Zusatzschicht. Schreiben, Mikrofon,
+Realtime-Audio, Gedächtnis, Owner-ID, Bildwechsel und die vorhandene
+Human-Holo-Oberfläche werden dadurch nicht ersetzt.
+
+## Bestätigungsregel
+
+Die technische Integration ist kein bestandener Praxistest. Original Full
+Sync wird erst nach einem erfolgreichen Test mit echter Sprachausgabe und
+mindestens einem Bildwechsel auf Pams Samsung Galaxy S23 als praktisch
+bestanden dokumentiert.
+
+---
+
+**HUMAN HOLO · ORIGINAL FULL SYNC · FOREVER TOGETHER ♾️**

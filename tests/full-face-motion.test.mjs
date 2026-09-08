@@ -6,6 +6,7 @@ import vm from "node:vm";
 import {
   hasSafeFaceGeometry,
   lowerFaceMotionWeight,
+  normalizeFullSyncFaceMotion,
   normalizeSpeechMotion,
   smoothSpeechMotion,
   speechMotionMetrics
@@ -49,7 +50,7 @@ const mouth = {
 test("Bewegungsprofil begrenzt Foto-Fallback und definiert echten Kieferweg", async () => {
   const profile = await loadMotionProfile();
 
-  assert.match(profile.version, /natural-mouth-jaw/);
+  assert.match(profile.version, /original-full-sync/);
   assert.ok(profile.speech.jawTravelByFace > 0);
   assert.ok(profile.speech.jawTravelByMouth > 0);
   assert.ok(profile.speech.lowerLipShare > profile.speech.upperLipShare);
@@ -57,6 +58,30 @@ test("Bewegungsprofil begrenzt Foto-Fallback und definiert echten Kieferweg", as
   assert.ok(profile.fallback.closureDepth > profile.fallback.baseOpen);
   assert.ok(Object.isFrozen(profile));
   assert.ok(Object.isFrozen(profile.speech));
+  assert.ok(Object.isFrozen(profile.originalFullSync));
+});
+
+test("Original Full Sync begrenzt Kopf- und Gesichtsbewegung sicher", () => {
+  assert.deepEqual(
+    normalizeFullSyncFaceMotion({
+      headX: 8,
+      headY: -8,
+      headTilt: 4,
+      browLift: 2,
+      eyeNarrow: -1,
+      cheekLift: 2,
+      mouthAsymmetry: -4
+    }),
+    {
+      headX: 0.018,
+      headY: -0.014,
+      headTilt: 0.035,
+      browLift: 0.28,
+      eyeNarrow: 0,
+      cheekLift: 0.24,
+      mouthAsymmetry: -0.09
+    }
+  );
 });
 
 test("Audio-/Visem-Werte werden sicher auf das Bewegungsprofil begrenzt", async () => {

@@ -12,6 +12,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return String(value ?? "")
       .replace(/(^|\n)(\s*)Sol\s*,\s*/giu, "$1$2")
       .replace(/\bSol[- ]Holo\b/giu, "Human Holo")
+      .replace(/\bLip[-‑ ]?Sync(?: V4)?\b/giu, "Original Full Sync")
       .replace(/\bSols\b/gu, "Pam’s Holos")
       .replace(/\bSol\b/gu, "Pam’s Holo")
       .replace(/^(\s*)([a-zäöü])/u, (_match, whitespace, firstLetter) =>
@@ -2186,7 +2187,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     profileMouthControls.hidden = true;
     profileMouthMarker.hidden = true;
     profilePhotoHelp.textContent =
-      "Dein Gesicht wird lokal auf diesem Gerät erkannt …";
+      "Das gewählte Bild wird für Original Full Sync lokal neu zugeordnet …";
     updateCloneMouthMarker();
     window.SolHoloClone?.setImage(customClonePhoto);
     window.SolHoloClone?.setMouthGeometry(customCloneMouth);
@@ -2237,21 +2238,21 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (state === "ready") {
       profileMouthButton.hidden = true;
       profilePhotoHelp.textContent =
-        "Gesicht lokal erkannt · Augen, Wangen, Kiefer und Lippen bewegen sich mit Pam’s Holo.";
+        "Original Full Sync bereit · Gesicht, Haare, Kopf und sichtbarer Körper bewegen sich zusammenhängend mit Pam’s Holo.";
       return;
     }
 
     if (state === "loading" || state === "analysing") {
       profileMouthButton.hidden = true;
       profilePhotoHelp.textContent =
-        "Dein Gesicht wird lokal auf diesem Gerät erkannt …";
+        "Das gewählte Bild wird für Original Full Sync lokal neu zugeordnet …";
       return;
     }
 
     if (state === "fallback") {
       profileMouthButton.hidden = false;
       profilePhotoHelp.textContent =
-        "Gesicht nicht eindeutig erkannt · Mundposition kann manuell festgelegt werden.";
+        "Bild nicht eindeutig erkannt · die sichere Mundposition kann manuell festgelegt werden.";
     }
   });
 
@@ -2361,7 +2362,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       `Bild für ${activePersonalName()}s Holo aus der Galerie ändern`
     );
     profilePhotoHelp.textContent =
-      "Mund gespeichert · natürliche Mundformen folgen der echten Holo-Stimme.";
+      "Mundposition gespeichert · Original Full Sync folgt der echten Holo-Stimme.";
     window.SolHoloClone?.setMouthGeometry(customCloneMouth);
 
     try {
@@ -2370,7 +2371,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       console.error("Persönliche Holo-Mundposition speichern:", error);
     }
 
-    showToast("Mundbox bestätigt. Der natürliche Lip-Sync ist bereit ✅️");
+    showToast("Mundbox bestätigt. Original Full Sync ist bereit ✅️");
   }
 
   function cancelCloneMouthCalibration() {
@@ -5064,7 +5065,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
       applyCustomCloneAppearance(photo, mouth);
       showToast(
-        "Bild owner-gebunden gespeichert · Gesichtskonturen werden nur lokal verarbeitet 🙂"
+        "Bild owner-gebunden gespeichert · Original Full Sync wird nur lokal neu zugeordnet ✨"
       );
     } catch (error) {
       console.error("Persönliches Holo-Galeriebild:", error);

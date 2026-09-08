@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-215-natural-alarm-access";
+const CACHE_VERSION = "human-holo-216-original-full-sync";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

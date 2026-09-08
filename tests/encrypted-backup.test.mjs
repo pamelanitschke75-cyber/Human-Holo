@@ -96,9 +96,9 @@ test("AES-GCM-Sicherung lässt sich nur unverändert mit dem Passwort öffnen", 
   );
 
   const tampered = JSON.parse(encrypted);
-  const last = tampered.ciphertextBase64.at(-1);
+  const first = tampered.ciphertextBase64.at(0);
   tampered.ciphertextBase64 =
-    tampered.ciphertextBase64.slice(0, -1) + (last === "A" ? "B" : "A");
+    (first === "A" ? "B" : "A") + tampered.ciphertextBase64.slice(1);
   await assert.rejects(
     decryptBackup(JSON.stringify(tampered), password, webcrypto),
     /Passwort falsch oder Sicherungsdatei verändert/u

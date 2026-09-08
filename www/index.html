@@ -793,6 +793,22 @@ HOLO
 #solCloneWrap{
   position:relative;
 
+  --ofs-body-x:0px;
+  --ofs-body-y:0px;
+  --ofs-body-rotate:0deg;
+  --ofs-body-scale-x:1;
+  --ofs-body-scale-y:1;
+  --ofs-torso-x:0px;
+  --ofs-torso-y:0px;
+  --ofs-torso-rotate:0deg;
+  --ofs-torso-scale-x:1;
+  --ofs-torso-scale-y:1;
+  --ofs-hair-x:0px;
+  --ofs-hair-y:0px;
+  --ofs-hair-rotate:0deg;
+  --ofs-body-opacity:0;
+  --ofs-hair-opacity:0;
+
   display:inline-block;
 
   height:72%;
@@ -801,9 +817,24 @@ HOLO
   margin-bottom:28px;
 
   transform-origin:center bottom;
+  transform:
+    translate3d(
+      var(--ofs-body-x),
+      var(--ofs-body-y),
+      0
+    )
+    rotate(var(--ofs-body-rotate))
+    scale(
+      var(--ofs-body-scale-x),
+      var(--ofs-body-scale-y)
+    );
+  will-change:transform;
 }
 
 #solImage{
+  position:relative;
+  z-index:1;
+
   display:block;
 
   height:100%;
@@ -842,6 +873,83 @@ HOLO
       rgba(0,0,0,.90) 78%,
       transparent 100%
     );
+}
+
+.originalFullSyncLayer{
+  position:absolute;
+  inset:0;
+
+  display:block;
+
+  width:100%;
+  height:100%;
+  max-width:100%;
+
+  object-fit:contain;
+  object-position:center bottom;
+
+  opacity:0;
+  pointer-events:none;
+  user-select:none;
+
+  transition:opacity 160ms ease-out;
+  backface-visibility:hidden;
+  will-change:transform,opacity;
+
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 78% 98% at 50% 46%,
+      #000 0%,
+      #000 68%,
+      rgba(0,0,0,.90) 78%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 78% 98% at 50% 46%,
+      #000 0%,
+      #000 68%,
+      rgba(0,0,0,.90) 78%,
+      transparent 100%
+    );
+}
+
+.originalFullSyncBody{
+  z-index:3;
+  transform-origin:50% 100%;
+  transform:
+    translate3d(
+      var(--ofs-torso-x),
+      var(--ofs-torso-y),
+      0
+    )
+    rotate(var(--ofs-torso-rotate))
+    scale(
+      var(--ofs-torso-scale-x),
+      var(--ofs-torso-scale-y)
+    );
+}
+
+.originalFullSyncHair{
+  z-index:7;
+  transform-origin:50% 28%;
+  transform:
+    translate3d(
+      var(--ofs-hair-x),
+      var(--ofs-hair-y),
+      0
+    )
+    rotate(var(--ofs-hair-rotate));
+}
+
+#solCloneWrap.original-full-sync-active.original-full-sync-geometry-ready
+  .originalFullSyncBody{
+  opacity:var(--ofs-body-opacity);
+}
+
+#solCloneWrap.original-full-sync-active.original-full-sync-geometry-ready
+  .originalFullSyncHair{
+  opacity:var(--ofs-hair-opacity);
 }
 
 #holoBase{
@@ -1012,9 +1120,8 @@ LIP SYNC
 }
 
 #solCloneWrap.sol-speaking{
-  animation:
-    solSpeakingPresence
-    1.9s ease-in-out infinite;
+  /* Original Full Sync steuert die Gesamtbewegung framegenau zur Stimme. */
+  animation:none;
 }
 
 @keyframes solSpeakingPresence{
@@ -2287,7 +2394,7 @@ Schreiben bereit.
 </div>
 
 <div id="lipSyncStatus">
-👄 Lip-Sync V4 bereit.
+✨ Original Full Sync bereit.
 </div>
 
 </aside>
@@ -2300,6 +2407,7 @@ Schreiben bereit.
 
 
 <script src="./sol-motion-profile.js"></script>
+<script src="./original-full-sync.js?v=1"></script>
 <script src="./media-tools.js"></script>
 <script>
 
@@ -3101,6 +3209,19 @@ const SOL_FALLBACK_MOTION =
   SOL_MOTION_PROFILE.fallback ||
   {};
 
+const SOL_ORIGINAL_FULL_SYNC_MOTION =
+  SOL_MOTION_PROFILE.originalFullSync ||
+  {};
+
+const originalFullSyncController =
+  window.SolHoloOriginalFullSync
+    ?.createController?.({
+      wrapper:solCloneWrap,
+      image:solImage,
+      profile:SOL_ORIGINAL_FULL_SYNC_MOTION
+    }) ||
+  null;
+
 
 function applyLipSyncFace(
   nextFace
@@ -3150,6 +3271,9 @@ window.SolHoloClone = {
       String(source || "").trim();
 
     if(cleanSource){
+      originalFullSyncController
+        ?.setGeometry(null);
+
       fullFaceRigRequested =
         FULL_FACE_RIG_ENABLED;
 
@@ -3194,6 +3318,9 @@ window.SolHoloClone = {
   },
 
   reset(){
+    originalFullSyncController
+      ?.setGeometry(null);
+
     fullFaceRigRequested =
       FULL_FACE_RIG_ENABLED;
 
@@ -3461,6 +3588,10 @@ function startRealtimeSpeechFallback(){
 
   realtimeOutputBufferPlaying =
     true;
+
+
+  originalFullSyncController
+    ?.setActive(true);
 
 
   realtimeAssistantSpeechUntil =
@@ -3737,7 +3868,7 @@ function reportFullFaceRigStatus(
   ){
 
     lipSyncStatus.textContent =
-      "🙂 Gesichtskonturen lokal erkannt · keine Personenidentifikation.";
+      "✨ Original Full Sync: Bildbereiche lokal erkannt · keine Personenidentifikation.";
 
   }else if(
     state ===
@@ -3745,7 +3876,7 @@ function reportFullFaceRigStatus(
   ){
 
     lipSyncStatus.textContent =
-      "🙂 Gesichtskonturen werden nur auf diesem Gerät analysiert …";
+      "✨ Original Full Sync ordnet das gewählte Bild nur auf diesem Gerät neu zu …";
 
   }else if(
     state ===
@@ -3753,7 +3884,7 @@ function reportFullFaceRigStatus(
   ){
 
     lipSyncStatus.textContent =
-      "👄 Gesicht nicht eindeutig erkannt · dezenter Lip-Sync bleibt aktiv.";
+      "✨ Bild nicht eindeutig erkannt · sichere reduzierte Bewegung bleibt aktiv.";
   }
 
 
@@ -3901,6 +4032,11 @@ async function analyseFullFaceImage(){
     fullFaceRigReady
   ){
 
+    originalFullSyncController
+      ?.setGeometry(
+        rig.getFullSyncGeometry?.()
+      );
+
     const detectedMouth =
       rig.getMouthGeometry?.();
 
@@ -3920,6 +4056,9 @@ async function analyseFullFaceImage(){
       "none";
 
   }else{
+
+    originalFullSyncController
+      ?.setGeometry(null);
 
     updateMouthGeometry();
   }
@@ -3942,6 +4081,10 @@ function disableFullFaceRig(){
 
 
   fullFaceRig?.disable();
+
+
+  originalFullSyncController
+    ?.setGeometry(null);
 
 
   faceCanvas.style.display =
@@ -4719,7 +4862,7 @@ async function ensureLipAudioContext(){
     ){
 
       lipSyncStatus.textContent =
-        "👄 Audio-Lip-Sync wird von diesem Browser nicht unterstützt.";
+        "✨ Original Full Sync: Audioanalyse wird von diesem Browser nicht unterstützt.";
 
 
       return false;
@@ -5137,17 +5280,20 @@ function updateMouthGeometry(){
   }
 
 
-  const imageRect =
-    solImage.getBoundingClientRect();
+  // Original Full Sync transformiert den gesamten sichtbaren Clone. Fuer die
+  // lokale Mundbox gelten deshalb die unverformten Layout-Masse; andernfalls
+  // wuerde sich die Canvas-Geometrie durch ihre eigene Bewegung aufschaukeln.
+  const imageWidth =
+    solImage.offsetWidth;
 
 
-  const wrapperRect =
-    solCloneWrap.getBoundingClientRect();
+  const imageHeight =
+    solImage.offsetHeight;
 
 
   if(
-    imageRect.width <= 0 ||
-    imageRect.height <= 0 ||
+    imageWidth <= 0 ||
+    imageHeight <= 0 ||
     solImage.naturalWidth <= 0 ||
     solImage.naturalHeight <= 0
   ){
@@ -5163,34 +5309,32 @@ function updateMouthGeometry(){
 
 
   const imageLeft =
-    imageRect.left -
-    wrapperRect.left;
+    solImage.offsetLeft;
 
 
   const imageTop =
-    imageRect.top -
-    wrapperRect.top;
+    solImage.offsetTop;
 
 
   const mouthWidth =
-    imageRect.width *
+    imageWidth *
     LIP_SYNC_FACE.width;
 
 
   const mouthHeight =
-    imageRect.height *
+    imageHeight *
     LIP_SYNC_FACE.height;
 
 
   const centerX =
     imageLeft +
-    imageRect.width *
+    imageWidth *
     LIP_SYNC_FACE.x;
 
 
   const centerY =
     imageTop +
-    imageRect.height *
+    imageHeight *
     LIP_SYNC_FACE.y;
 
 
@@ -5296,19 +5440,19 @@ function updateMouthGeometry(){
 
   const naturalScaleX =
     solImage.naturalWidth /
-    imageRect.width;
+    imageWidth;
 
 
   const naturalScaleY =
     solImage.naturalHeight /
-    imageRect.height;
+    imageHeight;
 
 
   lipMouthCanvasGeometry = {
     width:canvasWidth,
     height:canvasHeight,
-    imageDisplayWidth:imageRect.width,
-    imageDisplayHeight:imageRect.height,
+    imageDisplayWidth:imageWidth,
+    imageDisplayHeight:imageHeight,
     seamY:canvasHeight * 0.42,
     mouthWidth,
     mouthHeight,
@@ -6376,6 +6520,24 @@ function animateLipSync(
     );
 
 
+  const originalFullSyncFrame =
+    originalFullSyncController
+      ?.update({
+        timestamp,
+        speaking:
+          realtimeSpeechActive ||
+          audioSignalActive,
+        rms,
+        low,
+        middle,
+        high,
+        openness:currentMouthOpen,
+        wideness:currentMouthWide,
+        roundness:currentMouthRound
+      }) ||
+    null;
+
+
   if(
     currentMouthOpen >
     0.035
@@ -6402,6 +6564,9 @@ function animateLipSync(
         openness:currentMouthOpen,
         wideness:currentMouthWide,
         roundness:currentMouthRound,
+        fullSync:
+          originalFullSyncFrame?.face ||
+          null,
         timestamp
       }
     );
@@ -6473,7 +6638,7 @@ async function attachHeadAudioVisemes(
 
 
     lipSyncStatus.textContent =
-      "👄 Echte Sprachlaute steuern Pam’s Holos natürliche Mundbewegung.";
+      "✨ Echte Sprachlaute steuern Pam’s Holos Original Full Sync.";
 
 
     return true;
@@ -6600,12 +6765,16 @@ async function startLipSync(
       true;
 
 
+    originalFullSyncController
+      ?.setActive(true);
+
+
     lipAnimationLastAt =
       performance.now();
 
 
     lipSyncStatus.textContent =
-      "👄 Der Mund von Pam’s Holo folgt der Stimme.";
+      "✨ Original Full Sync bewegt Pam’s Holo zusammenhängend zur Stimme.";
 
 
     requestLipSyncFrame();
@@ -6627,7 +6796,7 @@ async function startLipSync(
 
 
     lipSyncStatus.textContent =
-      "👄 Lip-Sync konnte nicht gestartet werden.";
+      "✨ Original Full Sync konnte nicht gestartet werden.";
   }
 }
 
@@ -6657,6 +6826,10 @@ function stopLipSync(
 
   lipSyncRunning =
     false;
+
+
+  originalFullSyncController
+    ?.setActive(false);
 
 
   lipAnimationLastAt =
@@ -6761,7 +6934,7 @@ function stopLipSync(
   ){
 
     lipSyncStatus.textContent =
-      "👄 Lip-Sync V4 zur Stimme bereit.";
+      "✨ Original Full Sync zur Stimme bereit.";
   }
 }
 
@@ -7118,6 +7291,10 @@ function humanHoloVisibleText(value){
     .replace(
       /\bSol[- ]Holo\b/giu,
       "Human Holo"
+    )
+    .replace(
+      /\bLip[-‑ ]?Sync(?: V4)?\b/giu,
+      "Original Full Sync"
     )
     .replace(
       /\bSols\b/gu,
@@ -12172,7 +12349,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Pam’s Holo spricht · Mundbewegung aktiv.";
+              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
           }
 
 
@@ -12271,7 +12448,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Pam’s Holo spricht · natürliche Bewegung aktiv.";
+              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
           }
 
 
@@ -12284,7 +12461,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Pam’s Holo spricht · Mundbewegung aktiv.";
+              "✨ Pam’s Holo spricht · Original Full Sync aktiv.";
           }
 
 
@@ -12302,7 +12479,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Lip-Sync V4 zur Stimme bereit.";
+              "✨ Original Full Sync zur Stimme bereit.";
           }
 
 
@@ -12322,7 +12499,7 @@ async function startLiveConversation(){
 
 
             lipSyncStatus.textContent =
-              "👄 Lip-Sync V4 zur Stimme bereit.";
+              "✨ Original Full Sync zur Stimme bereit.";
           }
 
 

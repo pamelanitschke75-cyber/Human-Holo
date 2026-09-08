@@ -38,6 +38,28 @@ const NEUTRAL_MOTION = Object.freeze({
   roundness: 0
 });
 
+const NEUTRAL_FULL_SYNC_FACE = Object.freeze({
+  headX: 0,
+  headY: 0,
+  headTilt: 0,
+  browLift: 0,
+  eyeNarrow: 0,
+  cheekLift: 0,
+  mouthAsymmetry: 0
+});
+
+export function normalizeFullSyncFaceMotion(motion) {
+  return {
+    headX: clamp(motion?.headX, -0.018, 0.018),
+    headY: clamp(motion?.headY, -0.014, 0.014),
+    headTilt: clamp(motion?.headTilt, -0.035, 0.035),
+    browLift: clamp(motion?.browLift, 0, 0.28),
+    eyeNarrow: clamp(motion?.eyeNarrow, 0, 0.22),
+    cheekLift: clamp(motion?.cheekLift, 0, 0.24),
+    mouthAsymmetry: clamp(motion?.mouthAsymmetry, -0.09, 0.09)
+  };
+}
+
 export function normalizeSpeechMotion(
   motion,
   speechProfile = SPEECH_MOTION
@@ -646,18 +668,23 @@ class FullFaceRig {
   resize() {
     if (!this.gl || !this.image.complete) return;
 
-    const imageRect = this.image.getBoundingClientRect();
-    const wrapperRect = this.wrapper.getBoundingClientRect();
-    if (imageRect.width <= 0 || imageRect.height <= 0) return;
+    // Layout-Masse statt getBoundingClientRect: Der gesamte Clone wird vom
+    // Original Full Sync leicht transformiert. Transformierte Bildschirmmasse
+    // duerfen die Canvas-Geometrie nicht in jedem Frame erneut vergroessern.
+    const imageWidth = this.image.offsetWidth;
+    const imageHeight = this.image.offsetHeight;
+    const imageLeft = this.image.offsetLeft;
+    const imageTop = this.image.offsetTop;
+    if (imageWidth <= 0 || imageHeight <= 0) return;
 
     const pixelRatio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
-    const renderWidth = Math.max(1, Math.round(imageRect.width * pixelRatio));
-    const renderHeight = Math.max(1, Math.round(imageRect.height * pixelRatio));
+    const renderWidth = Math.max(1, Math.round(imageWidth * pixelRatio));
+    const renderHeight = Math.max(1, Math.round(imageHeight * pixelRatio));
 
-    this.canvas.style.left = `${imageRect.left - wrapperRect.left}px`;
-    this.canvas.style.top = `${imageRect.top - wrapperRect.top}px`;
-    this.canvas.style.width = `${imageRect.width}px`;
-    this.canvas.style.height = `${imageRect.height}px`;
+    this.canvas.style.left = `${imageLeft}px`;
+    this.canvas.style.top = `${imageTop}px`;
+    this.canvas.style.width = `${imageWidth}px`;
+    this.canvas.style.height = `${imageHeight}px`;
 
     if (
       this.canvas.width !== renderWidth ||
@@ -678,6 +705,17 @@ class FullFaceRig {
       y: clamp(mouth.centerY, 0.08, 0.92),
       width: clamp(mouth.width * 1.06, 0.06, 0.32),
       height: clamp(mouth.height * 1.45, 0.035, 0.18)
+    };
+  }
+
+  getFullSyncGeometry() {
+    if (!this.faceBounds || !this.mouthBounds) return null;
+
+    return {
+      face: { ...this.faceBounds },
+      mouth: { ...this.mouthBounds },
+      leftEye: this.leftEyeBounds ? { ...this.leftEyeBounds } : null,
+      rightEye: this.rightEyeBounds ? { ...this.rightEyeBounds } : null
     };
   }
 
@@ -740,7 +778,91 @@ class FullFaceRig {
     }
   }
 
-  applyMotion({ openness, wideness, roundness }, timestamp) {
+  applyOriginalFullSync(faceMotion) {
+    const motion = normalizeFullSyncFaceMotion(faceMotion);
+    const face = this.faceBounds;
+    const mouth = this.mouthBounds;
+
+    const averageEyeHeight =
+      (this.leftEyeBounds.height + this.rightEyeBounds.height) / 2;
+    const browTravel = averageEyeHeight * motion.browLift;
+
+    for (const index of [
+      ...this.leftBrowIndices,
+      ...this.rightBrowIndices
+    ]) {
+      this.movePoint(index, 0, -browTravel);
+    }
+
+    for (const [loop, bounds] of [
+      [this.leftEyeLoop, this.leftEyeBounds],
+      [this.rightEyeLoop, this.rightEyeBounds]
+    ]) {
+      for (const index of loop) {
+        const currentY = this.destinationCoordinates[index * 2 + 1];
+        this.destinationCoordinates[index * 2 + 1] +=
+          (bounds.centerY - currentY) * motion.eyeNarrow;
+      }
+    }
+
+    if (motion.cheekLift > 0) {
+      for (
+        let index = 0;
+        index < Math.min(468, this.sourcePoints.length);
+        index += 1
+      ) {
+        if (this.lipIndexSet.has(index)) continue;
+        const sourceX = this.sourceCoordinates[index * 2];
+        const sourceY = this.sourceCoordinates[index * 2 + 1];
+        const normalX = (sourceX - mouth.centerX) / (face.width * 0.42);
+        const normalY = (sourceY - mouth.centerY) / (face.height * 0.20);
+        const cheekBand = Math.exp(
+          -(normalX * normalX * 0.85 + normalY * normalY * 1.65)
+        );
+        const sideWeight = clamp(Math.abs(normalX), 0.18, 1);
+        this.movePoint(
+          index,
+          Math.sign(normalX) * face.width * 0.0018 *
+            motion.cheekLift * cheekBand * sideWeight,
+          -face.height * 0.010 * motion.cheekLift * cheekBand
+        );
+      }
+    }
+
+    if (Math.abs(motion.mouthAsymmetry) > 0.0001) {
+      for (const index of this.lipIndices) {
+        const sourceX = this.sourceCoordinates[index * 2];
+        const side = clamp(
+          (sourceX - mouth.centerX) / Math.max(0.0001, mouth.width * 0.5),
+          -1,
+          1
+        );
+        this.movePoint(
+          index,
+          0,
+          -mouth.height * 0.22 * motion.mouthAsymmetry * side
+        );
+      }
+    }
+
+    const cosine = Math.cos(motion.headTilt);
+    const sine = Math.sin(motion.headTilt);
+    const actualPointCount = Math.min(478, this.sourcePoints.length);
+
+    for (let index = 0; index < actualPointCount; index += 1) {
+      const offset = index * 2;
+      const x = this.destinationCoordinates[offset];
+      const y = this.destinationCoordinates[offset + 1];
+      const relativeX = x - face.centerX;
+      const relativeY = y - face.centerY;
+      this.destinationCoordinates[offset] =
+        face.centerX + relativeX * cosine - relativeY * sine + motion.headX;
+      this.destinationCoordinates[offset + 1] =
+        face.centerY + relativeX * sine + relativeY * cosine + motion.headY;
+    }
+  }
+
+  applyMotion({ openness, wideness, roundness, fullSync }, timestamp) {
     this.destinationCoordinates.set(this.sourceCoordinates);
 
     const mouth = this.mouthBounds;
@@ -880,6 +1002,10 @@ class FullFaceRig {
       this.movePoint(index, microX * influence, microY * influence);
     }
 
+    this.applyOriginalFullSync(
+      fullSync || NEUTRAL_FULL_SYNC_FACE
+    );
+
     this.updateVirtualPoints();
   }
 
@@ -955,7 +1081,13 @@ class FullFaceRig {
     this.lastMotionAt = timestamp;
 
     this.resize();
-    this.applyMotion(this.motionState, timestamp);
+    this.applyMotion(
+      {
+        ...this.motionState,
+        fullSync: normalizeFullSyncFaceMotion(motion?.fullSync)
+      },
+      timestamp
+    );
     this.updateVertexBuffer();
 
     const gl = this.gl;

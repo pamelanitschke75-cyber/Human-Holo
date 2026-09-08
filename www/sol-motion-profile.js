@@ -6,7 +6,7 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-02-natural-mouth-jaw-2",
+    version:"2026-09-08-original-full-sync-1",
 
     speech:{
       maximumOpen:0.62,
@@ -55,6 +55,38 @@
       minimumDurationMs:170,
       maximumDurationMs:215,
       closureAmount:0.62
+    },
+
+    /*
+      Persoenlicher Bewegungsstil fuer den gesamten sichtbaren Clone.
+      Die Werte bleiben bildunabhaengig; bei jedem neuen Clone-Bild werden
+      Gesicht, Haarbereich und sichtbarer Koerper lokal neu zugeordnet.
+    */
+    originalFullSync:{
+      enabled:true,
+      identityScope:"pam-sol",
+      bodyBreathCycleMs:4700,
+      bodyBreathLift:0.0022,
+      bodyBreathScale:0.0028,
+      bodySpeechLift:0.0012,
+      bodySway:0.0016,
+      bodyRotateDegrees:0.10,
+      headSway:0.0022,
+      headNod:0.0015,
+      headTiltRadians:0.0024,
+      browLift:0.12,
+      eyeNarrow:0.08,
+      cheekLift:0.10,
+      mouthAsymmetry:0.035,
+      hairFollow:0.78,
+      hairSway:0.0030,
+      hairLift:0.0015,
+      hairRotateDegrees:0.16,
+      motionResponseMs:90,
+      hairResponseMs:170,
+      bodyOverlayOpacity:0.36,
+      hairOverlayOpacity:0.52,
+      idleActivity:0.035
     }
   };
 

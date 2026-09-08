@@ -20,7 +20,7 @@ export const EXCLUDED_BACKUP_CATEGORIES = Object.freeze([
   "Android- und Signierschlüssel",
   "Passwörter, Tokens und Sitzungen",
   "Stimmprofile und Sprecher-Embeddings",
-  "Fotos, Gesichtsdaten und Lip-Sync-Geometrie",
+  "Fotos, Gesichtsdaten und Original-Full-Sync-Geometrie",
   "nicht eindeutig zugeordnete Quarantänedaten"
 ]);
 

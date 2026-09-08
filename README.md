@@ -555,11 +555,25 @@ Eine persönliche, autorisierte eigene Stimme soll später die aktuell verwendet
 
 ---
 
-## 👄 Lip-Sync
+## ✨ Original Full Sync
 
-Lip-Sync bleibt ein eigener Entwicklungsbereich.
+Die verbindliche Bezeichnung lautet **Original Full Sync** – nicht nur
+Lip-Sync.
 
-Die visuelle Mundbewegung soll langfristig möglichst natürlich mit der tatsächlichen Sprachausgabe synchronisiert werden.
+Gesicht, Augen, Lippen, Kiefer, Haare, Kopf, Schultern und der sichtbare Körper
+sollen sich als eine zusammenhängende Person und synchron zur tatsächlichen
+Sprachausgabe bewegen. Die Bewegungen orientieren sich am persönlichen
+Bewegungsprofil des Originals.
+
+Original Full Sync ist nicht an das aktuelle Clone-Bild gebunden. Jedes neu
+gewählte Bild wird lokal neu analysiert und erhält eine eigene sichere
+Geometriezuordnung.
+
+Die technische Zusatzschicht ist integriert. Als praktisch bestanden wird sie
+erst nach Pams Test mit echter Sprachausgabe und einem Bildwechsel auf dem
+Samsung Galaxy S23 dokumentiert.
+
+Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-09-2026.md)
 
 ---
 
