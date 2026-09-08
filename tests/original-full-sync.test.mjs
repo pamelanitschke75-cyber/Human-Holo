@@ -272,7 +272,7 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
   );
   assert.match(
     startFunction,
-    /if\([\s\S]*?!ready[\s\S]*?Full-Sync-Sprachbewegung bleibt aktiv/u
+    /if\([\s\S]*?!ready[\s\S]*?receiverReady[\s\S]*?requestLipSyncFrame\(\)[\s\S]*?Android-Sprachpegel steuert Original Full Sync direkt/u
   );
   assert.match(deltaFunction, /activateOriginalFullSync\(\)/u);
   assert.match(html, /sol-motion-profile\.js\?v=2/u);

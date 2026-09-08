@@ -570,11 +570,13 @@ gewählte Bild wird lokal neu analysiert und erhält eine eigene sichere
 Geometriezuordnung.
 
 Build #242 war trotz erfolgreicher technischer Erstellung auf Pams Samsung
-Galaxy S23 sichtbar unverändert und ist deshalb als praktischer Fehlversuch
-dokumentiert. Die Korrekturstufe beseitigt die gefundenen Subpixelwerte und
-den stillen Android-Abschaltpfad. Als praktisch bestanden wird Original Full
-Sync weiterhin erst nach Pams Test mit echter Sprachausgabe und einem
-Bildwechsel auf dem Samsung Galaxy S23 dokumentiert.
+Galaxy S23 sichtbar unverändert. Build #243 zeigte erstmals Gesamt- und
+Gesichtsbewegung, aber noch keine zur hörbaren Stimme passende Mundbewegung.
+Beide Praxisstände sind deshalb als nicht bestanden dokumentiert. Die nächste
+Korrekturstufe verbindet den empfangenen WebRTC-Sprachpegel direkt mit dem
+Mund-Rig. Als praktisch bestanden wird Original Full Sync weiterhin erst nach
+Pams Test mit echter Sprachausgabe und einem Bildwechsel auf dem Samsung Galaxy
+S23 dokumentiert.
 
 Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-09-2026.md)
 

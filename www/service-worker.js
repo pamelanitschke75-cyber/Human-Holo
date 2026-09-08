@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-217-original-full-sync-visible";
+const CACHE_VERSION = "human-holo-218-full-sync-remote-audio";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

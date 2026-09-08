@@ -40,6 +40,7 @@ on:
       - "www/sol-holo-logo.png"
       - "www/human-holo-logo.png"
       - "www/sol-motion-profile.js"
+      - "www/remote-audio-level.js"
       - "www/sol-holo-ui.css"
       - "www/sol-holo-wow.css"
       - "www/sol-holo-chat-115.css"

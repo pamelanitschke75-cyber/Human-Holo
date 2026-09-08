@@ -1,8 +1,8 @@
 # Human Holo – Original Full Sync
 
 Stand: 08.09.2026  
-Status: Build #242 im Praxistest nicht bestanden – korrigierter S23-Test noch
-offen
+Status: Build #243 im Praxistest teilweise sichtbar, aber wegen fehlender
+Mundbewegung nicht bestanden – korrigierter S23-Test noch offen
 
 ## Ehrlicher Praxisstand
 
@@ -29,6 +29,22 @@ Startfehler.
 
 Diese Korrekturen gelten erst dann als praktisch bestanden, wenn Pam sie mit
 echter Sprachausgabe und einem Bildwechsel auf ihrem S23 bestätigt.
+
+### Praxistest Build #243
+
+Pams Bildschirmaufnahme vom Samsung Galaxy S23 bestätigt erstmals eine
+sichtbare Veränderung: Gesamtbewegung und Gesichtsaktivität laufen. Während
+der hörbaren Sprachausgabe bleibt der Mund jedoch praktisch geschlossen. Build
+#243 ist deshalb ein echter Fortschritt gegenüber #242, aber ausdrücklich noch
+kein bestandener Original-Full-Sync-Stand.
+
+Die Eingrenzung aus der Aufnahme: Der Renderweg für Gesicht und Gesamtbewegung
+ist aktiv, erhält auf Android aber keinen verwendbaren Pegel aus der bisherigen
+Web-Audio-Verbindung. Die nächste Korrekturstufe liest den Pegel deshalb direkt
+aus dem empfangenden WebRTC-Kanal; Synchronisationsquelle und
+Receiver-Statistik dienen als zwei getrennte lokale Wege. Zusätzlich wird der
+Web-Audio-Kontext unmittelbar in Pams Tipp auf den Sprachknopf entsperrt. Es
+werden dabei weder Sprachaufnahmen gespeichert noch übertragen.
 
 ## Verbindliche Bezeichnung und Ziel
 

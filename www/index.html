@@ -2407,6 +2407,7 @@ Schreiben bereit.
 
 
 <script src="./sol-motion-profile.js?v=2"></script>
+<script src="./remote-audio-level.js?v=1"></script>
 <script src="./original-full-sync.js?v=2"></script>
 <script src="./media-tools.js"></script>
 <script>
@@ -3505,6 +3506,10 @@ let realtimeAssistantSpeechUntil = 0;
 let realtimeAssistantSpeechStartedAt = 0;
 let realtimeOutputBufferPlaying = false;
 let lastLipAudioSignalAt = 0;
+const lipRemoteAudioTracker =
+  window.SolHoloRemoteAudioLevel
+    ?.createTracker?.() ||
+  null;
 let lipMouthCanvasGeometry = null;
 let lipMouthRenderLayer =
   document.createElement("canvas");
@@ -4947,7 +4952,8 @@ async function ensureLipAudioContext(){
   }
 
 
-  return true;
+  return lipAudioContext.state ===
+    "running";
 }
 
 
@@ -6261,6 +6267,17 @@ function animateLipSync(
     );
 
 
+  const remoteAudio =
+    lipRemoteAudioTracker
+      ?.sample(timestamp) ||
+    {
+      active:false,
+      level:0,
+      rawLevel:0,
+      source:"none"
+    };
+
+
   if(
     !lipSyncRunning &&
     !realtimeSpeechActive &&
@@ -6380,7 +6397,7 @@ function animateLipSync(
     );
 
 
-  const rawOpen =
+  const analyserRawOpen =
     clamp(
       (
         rms -
@@ -6390,6 +6407,26 @@ function animateLipSync(
 
       0,
       0.82
+    );
+
+
+  const receiverRawOpen =
+    clamp(
+      remoteAudio.level *
+        (
+          SOL_SPEECH_MOTION.maximumOpen ||
+          0.60
+        ) *
+        1.16,
+      0,
+      0.82
+    );
+
+
+  const rawOpen =
+    Math.max(
+      analyserRawOpen,
+      receiverRawOpen
     );
 
 
@@ -6427,8 +6464,8 @@ function animateLipSync(
     );
 
 
-  const audioSignalActive =
-    rawOpen > 0.070 ||
+  const analyserSignalActive =
+    analyserRawOpen > 0.070 ||
     Math.max(
       low,
       middle,
@@ -6436,8 +6473,18 @@ function animateLipSync(
     ) > 0.100;
 
 
+  const receiverSignalActive =
+    remoteAudio.active &&
+    receiverRawOpen > 0.020;
+
+
+  const audioSignalActive =
+    analyserSignalActive ||
+    receiverSignalActive;
+
+
   if(
-    audioSignalActive
+    analyserSignalActive
   ){
 
     lastLipAudioSignalAt =
@@ -6446,16 +6493,19 @@ function animateLipSync(
 
 
   const useRealtimeFallback =
-    realtimeSpeechActive &&
+    receiverSignalActive ||
     (
-      !lastLipAudioSignalAt ||
-      timestamp -
-        lastLipAudioSignalAt >
-        120
+      realtimeSpeechActive &&
+      (
+        !lastLipAudioSignalAt ||
+        timestamp -
+          lastLipAudioSignalAt >
+          120
+      )
     );
 
 
-  const fallbackShape =
+  let fallbackShape =
     useRealtimeFallback
       ?
       realtimeFallbackMouthShape(
@@ -6463,6 +6513,34 @@ function animateLipSync(
       )
       :
       null;
+
+
+  if(
+    fallbackShape &&
+    receiverSignalActive
+  ){
+
+    const receiverShapeWeight =
+      0.25 +
+      remoteAudio.level *
+        0.75;
+
+
+    fallbackShape = {
+      open:
+        Math.max(
+          receiverRawOpen,
+          fallbackShape.open *
+            receiverShapeWeight
+        ),
+      wide:
+        fallbackShape.wide *
+        receiverShapeWeight,
+      round:
+        fallbackShape.round *
+        receiverShapeWeight
+    };
+  }
 
 
   const targetOpen =
@@ -6710,7 +6788,8 @@ async function attachHeadAudioVisemes(
 }
 
 async function startLipSync(
-  stream
+  stream,
+  receiver = null
 ){
 
   if(
@@ -6728,6 +6807,10 @@ async function startLipSync(
   stopLipSync(
     false
   );
+
+
+  lipRemoteAudioTracker
+    ?.setReceiver(receiver);
 
 
   activateOriginalFullSync();
@@ -6749,8 +6832,21 @@ async function startLipSync(
     !ready
   ){
 
+    lipSyncRunning =
+      Boolean(
+        lipRemoteAudioTracker
+          ?.receiverReady
+      );
+
+
+    lipAnimationLastAt =
+      performance.now();
+
+
+    requestLipSyncFrame();
+
     lipSyncStatus.textContent =
-      "⚠️ Audioanalyse nicht verfügbar · sichere Full-Sync-Sprachbewegung bleibt aktiv.";
+      "✨ Android-Sprachpegel steuert Original Full Sync direkt.";
 
 
     return;
@@ -6855,8 +6951,22 @@ async function startLipSync(
     activateOriginalFullSync();
 
 
+    lipSyncRunning =
+      Boolean(
+        lipRemoteAudioTracker
+          ?.receiverReady
+      );
+
+
+    lipAnimationLastAt =
+      performance.now();
+
+
+    requestLipSyncFrame();
+
+
     lipSyncStatus.textContent =
-      "⚠️ Audioanalyse ausgefallen · sichere Full-Sync-Sprachbewegung bleibt aktiv.";
+      "✨ WebRTC-Sprachpegel steuert Original Full Sync direkt.";
   }
 }
 
@@ -6886,6 +6996,10 @@ function stopLipSync(
 
   lipSyncRunning =
     false;
+
+
+  lipRemoteAudioTracker
+    ?.reset();
 
 
   originalFullSyncController
@@ -12176,7 +12290,16 @@ async function startLiveConversation(){
         }
 
         const stream =
-          event.streams?.[0];
+          event.streams?.[0] ||
+          (
+            event.track
+              ?
+              new MediaStream([
+                event.track
+              ])
+              :
+              null
+          );
 
 
         if(
@@ -12206,7 +12329,8 @@ async function startLiveConversation(){
 
 
         startLipSync(
-          stream
+          stream,
+          event.receiver
         );
       };
 
@@ -12775,6 +12899,12 @@ MIKRO → VOLLBILD
 liveButton.addEventListener(
   "click",
   async () => {
+
+    /*
+      Android WebView erlaubt Web-Audio nur direkt in der Tipp-Geste. Der
+      Kontext muss deshalb vor jedem anderen await entsperrt werden.
+    */
+    void ensureLipAudioContext();
 
     if(
       typeof window.pauseHeyHoSolForConversation === "function"
