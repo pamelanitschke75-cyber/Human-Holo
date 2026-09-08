@@ -212,10 +212,33 @@ test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest
   assert.match(backup, /humanHoloMemoryImportList/u);
   assert.match(backup, /SolHoloTrustedSession\?\.ensure/u);
   assert.match(backup, /\/memory\/import-confirmed/u);
+  assert.match(
+    backup,
+    /batchConfirmation:\s*true[\s\S]*?selectedSpeakerId:\s*identity\.speakerId[\s\S]*?ownerId:\s*identity\.ownerId/u
+  );
   assert.match(ui, /Immer aktiv · updatefest/u);
   assert.match(ui, /Vollzeitgedächtnis ist immer aktiv/u);
   assert.match(
     ui,
     /bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten/u
+  );
+});
+
+test("signierte Bestands-App darf ihre Identität sicher aus der Sitzung ableiten", () => {
+  const trustedIdentityGate = server.slice(
+    server.indexOf("function requireTrustedOwnerIdentity"),
+    server.indexOf("OPENCLAW –", server.indexOf("function requireTrustedOwnerIdentity"))
+  );
+
+  assert.match(trustedIdentityGate, /trustedAppSessions[\s\S]*?validateRequest/u);
+  assert.match(trustedIdentityGate, /personalHoloProfile\([\s\S]*?trustedSession\.ownerId/u);
+  assert.match(
+    trustedIdentityGate,
+    /resolveMemoryIdentity\(\{[\s\S]*?selectedSpeakerId:[\s\S]*?trustedProfile\.speakerId[\s\S]*?ownerId:[\s\S]*?trustedSession\.ownerId/u
+  );
+  assert.match(trustedIdentityGate, /TRUSTED_SESSION_OWNER_UNKNOWN/u);
+  assert.match(
+    trustedIdentityGate,
+    /trustedSession\.ownerId\s*!==[\s\S]*?identity\.ownerId/u
   );
 });
