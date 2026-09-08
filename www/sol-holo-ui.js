@@ -846,7 +846,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Eure Text- und Sprachgespräche werden Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben auch bei App- und Designupdates erhalten; eine andere Person kann sie niemals laden.`
+        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Eure Text- und Sprachgespräche werden Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
     }
 

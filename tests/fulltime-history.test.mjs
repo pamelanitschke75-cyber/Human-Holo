@@ -19,6 +19,10 @@ const backup = fs.readFileSync(
   new URL("../www/sol-holo-backup.mjs", import.meta.url),
   "utf8"
 );
+const identityStore = fs.readFileSync(
+  new URL("../modules/identity-memory-store.mjs", import.meta.url),
+  "utf8"
+);
 
 function routeBlock(path, nextPath) {
   const start = server.indexOf(path);
@@ -48,6 +52,17 @@ test("Vollzeitgedächtnis bleibt additiv und idempotent", () => {
     server,
     /DROP TABLE\s+sol_fulltime_memory|TRUNCATE\s+sol_fulltime_memory/u
   );
+});
+
+test("geschützte Erinnerungen werden durch Updates niemals destruktiv migriert", () => {
+  const protectedMemorySources = `${server}\n${identityStore}`;
+
+  assert.doesNotMatch(
+    protectedMemorySources,
+    /(?:DROP\s+TABLE(?:\s+IF\s+EXISTS)?|TRUNCATE(?:\s+TABLE)?|DELETE\s+FROM)\s+(?:sol_fulltime_memory|sol_identity_memory|sol_identity_memory_supersession)\b/iu
+  );
+  assert.match(identityStore, /SET recall_status = 'blocked'/u);
+  assert.match(identityStore, /sol_identity_memory_supersession/u);
 });
 
 test("Text und Sol-Antwort werden Wort für Wort ownergebunden gespeichert", () => {
@@ -199,5 +214,8 @@ test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest
   assert.match(backup, /\/memory\/import-confirmed/u);
   assert.match(ui, /Immer aktiv · updatefest/u);
   assert.match(ui, /Vollzeitgedächtnis ist immer aktiv/u);
-  assert.match(ui, /auch bei App- und Designupdates erhalten/u);
+  assert.match(
+    ui,
+    /bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten/u
+  );
 });
