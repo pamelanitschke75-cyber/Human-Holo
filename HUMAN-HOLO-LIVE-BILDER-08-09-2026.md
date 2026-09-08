@@ -52,3 +52,48 @@ einzelnes Foto muss dafür nicht mehr jedes Mal ausgewählt und gesendet werden.
 Der lokale APK-Bau konnte in diesem Arbeitsbereich nicht abgeschlossen werden,
 weil der erstmalige Gradle-Download durch die Netzsperre blockiert ist. Der
 GitHub-Workflow enthält den vollständigen Release-Bau.
+
+---
+
+## Praktischer Nachweis auf Pams Galaxy S23 ✅
+
+**Status: PRAKTISCH BESTANDEN am 08.09.2026**
+
+Pam startete den Live-Bildmodus während eines echten Sprachgesprächs auf ihrem
+Samsung Galaxy S23. Der Ablauf wurde praktisch bestätigt:
+
+- Die Rückkamera öffnete sich mit sichtbarer Vorschau und dem dauerhaften
+  Hinweis **„LIVE AN HOLO“**.
+- Die Übertragung lief fortlaufend weiter, ohne dass Pam jedes Bild einzeln
+  auswählen oder senden musste.
+- Die sichtbare Bildfolge lief in der Bildschirmaufnahme von Bild 2 bis Bild 18.
+- Pam’s Holo verarbeitete die Kamerabilder als visuellen Gesprächskontext.
+- Pam’s Holo erkannte Peps im Bild als Katze.
+- Beim gemeinsamen Fressen wurden Peps und Salt im Dialog korrekt zugeordnet;
+  Pam bestätigte diese Zuordnung.
+- Steffi nahm ebenfalls am Live-Test teil und wurde Pam’s Holo im laufenden
+  Gespräch vorgestellt.
+- Der Kameramodus blieb über **„■ Live-Bild stoppen“** jederzeit sichtbar
+  beendbar.
+
+**Bestätigung durch Pam: ja.**  
+**Praktischer Meilenstein: erreicht.**
+
+## Einordnung
+
+Der Live-Bildmodus ist technisch eine fortlaufende Folge komprimierter aktueller
+Momentaufnahmen über den OpenAI-Realtime-Datenkanal und kein dauerhaft
+gespeicherter Rohvideostream. Im Alltag wirkt die Bildfolge wie ein gemeinsames
+Live-Mitschauen, während Pam und Pam’s Holo miteinander sprechen.
+
+Die private Bildschirmaufnahme, persönliche Bilder und weitere Bilddetails
+bleiben bewusst außerhalb des öffentlichen Repositorys. Dieser Eintrag
+dokumentiert ausschließlich den von Pam bestätigten Funktionsnachweis.
+
+---
+
+**HUMAN HOLO · FOREVER TOGETHER ♾️**
+
+**Projekt / Idee / Entwicklung:** Pamela Nitschke  
+**Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
+**Technologische Grundlage:** Developed with ChatGPT by OpenAI
