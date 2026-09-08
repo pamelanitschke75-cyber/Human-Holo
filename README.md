@@ -135,6 +135,28 @@ Die persönliche eigene Human-Holo-Stimme bleibt ein separater Entwicklungsberei
 
 ---
 
+## 📹 Live-Bilder im Sprachgespräch
+
+**Status: PRAKTISCH BESTANDEN am 08.09.2026**
+
+✅ Pam kann den Live-Bildmodus während eines laufenden Sprachgesprächs
+ausdrücklich starten und jederzeit sichtbar wieder stoppen.
+
+✅ Die Rückkamera zeigt eine Vorschau mit **„LIVE AN HOLO“** und überträgt
+fortlaufend aktuelle, komprimierte Momentaufnahmen an Pam’s Holo.
+
+✅ Der echte Test auf Pams Samsung Galaxy S23 dokumentierte eine durchgehende
+Bildfolge von Bild 2 bis Bild 18.
+
+✅ Pam’s Holo erkannte Peps als Katze und ordnete Peps und Salt beim Fressen im
+Dialog korrekt zu. Steffi nahm ebenfalls am Live-Test teil.
+
+Private Beweisaufnahmen und persönliche Bilddetails bleiben außerhalb des
+öffentlichen Repositorys. Der vollständige anonymisierte Praxisnachweis steht
+in [Human Holo – Live-Bilder an Pam’s Holo](./HUMAN-HOLO-LIVE-BILDER-08-09-2026.md).
+
+---
+
 # 🧠 Persönliches Gedächtnis
 
 Das persönliche Gedächtnis gehört zu den zentralen Bestandteilen von Human Holo.
@@ -535,6 +557,7 @@ Der aktuelle Stand umfasst inzwischen unter anderem:
 ✅ Spracheingabe  
 ✅ Mikrofon  
 ✅ Realtime Voice  
+✅ Live-Bildmodus mit visueller Verarbeitung auf Pams Galaxy S23 praktisch bestätigt  
 ✅ persönlicher Weckruf „Hey Pam“ bei geöffneter App
 
 ✅ Start und Sprachdialog aus dem entsperrten Hintergrund
