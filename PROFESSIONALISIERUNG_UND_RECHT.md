@@ -128,6 +128,28 @@ Diese Technologien werden nicht als Eigenentwicklung von Sol Holo beansprucht.
 
 ---
 
+### 4.4 Cartesia – inaktiver Voice-Pilot
+
+**Anbieter:** Cartesia AI, Inc.
+
+**Vorgesehener Dienst:** Instant Voice Cloning / Sonic Text-to-Speech API
+
+Cartesia ist als technisch abschaltbare Alternative für Pams eigene Stimme im
+Code vorbereitet. Der Dienst ist nicht aktiviert und hat im Rahmen dieses
+Piloten noch keine Stimmprobe erhalten.
+
+Vor einem Upload sind zusätzlich zu Pams Stimmeinwilligung mindestens ein
+nachweislich verarbeitetes Trainings-Opt-out, die belastbare Klärung der
+Nutzung des konkreten Kontos aus Deutschland sowie die Prüfung der dann
+aktuellen Preise, Bedingungen und Datenschutzangaben erforderlich. Die
+öffentlichen Bedingungen und die technische Eignung werden getrennt bewertet.
+
+Die Nennung und technische Vorbereitung begründen keine Partnerschaft,
+Unterstützung, Zertifizierung, Beteiligung oder Mitinhaberschaft durch
+Cartesia.
+
+---
+
 ## 5. Grundsatz zur Anzahl externer Anbieter
 
 Die technische Architektur von Sol Holo soll möglichst übersichtlich bleiben.
@@ -137,6 +159,9 @@ Der derzeitige Kern besteht aus:
 - OpenAI – KI/API
 - Render Services, Inc. – Backend-Hosting
 - Itseez3D / Avatar SDK / MetaPerson – Avatar-/Darstellungstechnologie
+
+Cartesia gehört erst dann zum aktiven Datenfluss, wenn sämtliche dokumentierten
+Sicherheitsbedingungen erfüllt sind und Pam die konkrete Hörprobe freigibt.
 
 Zusätzliche Anbieter werden nur eingebunden, wenn eine benötigte Funktion mit der bestehenden Struktur technisch, rechtlich oder wirtschaftlich nicht sinnvoll umgesetzt werden kann.
 
@@ -254,14 +279,16 @@ Eine entsprechende rechtliche oder technische Bewertung müsste gegebenenfalls g
 
 Geheime Zugangsdaten werden nicht absichtlich im öffentlich ausgelieferten Frontend gespeichert.
 
-Insbesondere soll der OpenAI-API-Key nicht als Klartext gespeichert werden in:
+Insbesondere sollen OpenAI-, Cartesia- oder andere API-Schlüssel nicht als
+Klartext gespeichert werden in:
 
 - `index.html`
 - clientseitigem JavaScript
 - öffentlich zugänglichen GitHub-Dateien
 - öffentlich abrufbarer Dokumentation
 
-Der OpenAI-API-Key wird im derzeitigen Aufbau serverseitig als Environment Variable verarbeitet.
+API-Schlüssel werden im derzeitigen Aufbau ausschließlich serverseitig als
+Environment Variables verarbeitet.
 
 Die öffentliche Anwendung kommuniziert mit dem eigenen Sol-Holo-Backend.
 
@@ -358,7 +385,10 @@ Jeder eingesetzte Anbieter muss hinsichtlich seiner eigenen Anforderungen gesond
 
 ## 14. Alternative Voice-Technologien
 
-Falls OpenAI für den vorgesehenen Anwendungsfall keine geeignete Custom-Voice-Lösung bereitstellen kann oder der erforderliche Zugang nicht verfügbar ist, kann ein spezialisierter externer Voice-Dienst geprüft werden.
+Da der verwendeten OpenAI-Organisation der Custom-Voice-Endpunkt am
+08.09.2026 den Zugang verweigerte, wird Cartesia als spezialisierter externer
+Voice-Dienst technisch geprüft. Diese Auswahl ist noch keine Freigabe zur
+Datenübertragung oder produktiven Nutzung.
 
 Ein zusätzlicher Anbieter wird jedoch nicht allein deshalb integriert, weil Voice Cloning technisch möglich ist.
 
@@ -687,13 +717,13 @@ Consent-Aufnahme:                               ✅ VORBEREITET
 
 OpenAI-Custom-Voice-Zugang:                     ⏳ ZUGANG ZU KLÄREN
 
-alternativer Voice-Anbieter:                    ⏳ NICHT AUSGEWÄHLT
+alternativer Voice-Anbieter:                    🧪 CARTESIA-PILOT, INAKTIV
 
-Voice-Modell:                                   ⏳ OFFEN
+Voice-Modell:                                   🧪 SONIC-3.6 VORBEREITET
 
-Voice-ID:                                       ⏳ OFFEN
+Voice-ID:                                       ⏳ NICHT ERSTELLT
 
-Integration eigene Stimme:                      ⏳ OFFEN
+Integration eigene Stimme:                      🧪 CODE GETESTET, NICHT AKTIVIERT
 
 End-to-End-Test mit eigener Stimme:             ⏳ OFFEN
 

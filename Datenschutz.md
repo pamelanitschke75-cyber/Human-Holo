@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.1
-Stand: 06.09.2026
+Version: 1.2
+Stand: 08.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -514,6 +514,27 @@ Speicherung| Speichert der externe Dienst Daten?
 Kontrolle| Wie kann die Verbindung beendet werden?
 
 Diese Angaben werden ergänzt, sobald konkrete externe Dienste implementiert werden.
+
+### Cartesia-Voice-Pilot – derzeit inaktiv
+
+Punkt | Dokumentierter Stand am 08.09.2026
+--- | ---
+Dienst | Cartesia AI, Inc.; optionaler externer Voice-Cloning- und TTS-Pilot
+Zweck | Privates Stimmmodell aus Pams eigener Aufnahme und spätere Umwandlung einzelner Human-Holo-Antworttexte in Audio
+Daten | Bei bewusster Einrichtung: ausgewählte Stimmprobe; bei späterer Aktivierung: jeweiliger Antworttext
+Rückgabe | Private Voice-ID beim Erstellen; WAV-Audio bei der Sprachausgabe
+Human-Holo-Speicherung | Keine rohe Stimmaufnahme; nur Voice-ID, Anzeigename sowie Vorschau- und Freigabestatus
+Anbieter-Verarbeitung | Die öffentlichen Cartesia-Bedingungen erlauben grundsätzlich Modellverbesserung mit Ein- und Ausgaben, solange ein beantragtes Opt-out noch nicht verarbeitet wurde
+Region | Die öffentliche Cartesia-Datenschutzseite bezeichnet den Dienst derzeit als für Nutzer in den USA ausgelegt; Nutzung aus Deutschland ist vor Upload gesondert zu klären
+Kontrolle | Serverseitiger Schlüssel, ownerfeste Bindung, privater Clone, verarbeitetes Trainings-Opt-out und bestätigte deutsche Kontonutzung als Pflichtschalter, separater Hörtest, ausdrückliche Aktivierung und jederzeitige Deaktivierung
+Aktueller Datenfluss | Gesperrt; es wurde durch diesen Pilot noch keine Stimmprobe an Cartesia übertragen
+
+Die Kennzeichnung `private` schützt nach der technischen API-Dokumentation den
+Zugriff auf das Stimmmodell. Sie ist nicht gleichbedeutend mit einem
+Trainings-Opt-out oder einer abschließenden datenschutzrechtlichen Bewertung.
+
+Technische Details und offene Voraussetzungen stehen in
+`HUMAN-HOLO-CARTESIA-HOERTEST-08-09-2026.md`.
 
 ---
 

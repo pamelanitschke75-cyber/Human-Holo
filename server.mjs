@@ -3,6 +3,7 @@ import cors from "cors";
 import OpenAI from "openai";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Readable } from "node:stream";
 import pg from "pg";
 import { google } from "googleapis";
 import {
@@ -73,6 +74,16 @@ import {
   pamVoiceIdFromEnvironment,
   resolveHumanHoloRealtimeVoice
 } from "./modules/human-holo-voice.mjs";
+import {
+  CARTESIA_API_VERSION,
+  CARTESIA_PREVIEW_TEXT,
+  HumanHoloSpeechProviderError,
+  createCartesiaVoiceClient,
+  createHumanHoloExternalVoiceStore,
+  normalizeCartesiaCloneAudio,
+  normalizeHumanHoloSpeechText,
+  resolveHumanHoloSpeechOutput
+} from "./modules/human-holo-speech.mjs";
 
 const app = express();
 
@@ -134,6 +145,11 @@ const identityMemoryStore =
 
 const humanHoloVoiceProfiles =
   createHumanHoloVoiceProfileStore({
+    database: db
+  });
+
+const humanHoloExternalVoiceProfiles =
+  createHumanHoloExternalVoiceStore({
     database: db
   });
 
@@ -347,6 +363,12 @@ bestätigter Ausführungsweg vorliegt.
 const REALTIME_MEMORY_TOKEN_TTL_MS =
   2 * 60 * 60 * 1000;
 
+const REALTIME_SPEECH_WINDOW_MS =
+  60 * 60 * 1000;
+
+const REALTIME_SPEECH_CHARACTER_LIMIT =
+  18000;
+
 const realtimeMemorySessions =
   new Map();
 
@@ -406,6 +428,10 @@ function createRealtimeMemoryToken({
       speakerId,
       ownerId,
       conversationId,
+      speechWindowStartedAt:
+        Date.now(),
+      speechCharacters:
+        0,
       expiresAt:
         Date.now() +
         REALTIME_MEMORY_TOKEN_TTL_MS
@@ -467,6 +493,64 @@ function validateRealtimeMemoryToken(
     ownerId: session.ownerId,
     conversationId: session.conversationId,
     expiresAt: session.expiresAt
+  };
+}
+
+function consumeRealtimeSpeechBudget(
+  token,
+  characterCount
+) {
+  const tokenSession =
+    validateRealtimeMemoryToken(token);
+
+  if (!tokenSession) {
+    return null;
+  }
+
+  const cleanToken =
+    String(token || "").trim();
+  const session =
+    realtimeMemorySessions.get(cleanToken);
+  const now = Date.now();
+
+  if (
+    !session.speechWindowStartedAt ||
+    now - session.speechWindowStartedAt >=
+      REALTIME_SPEECH_WINDOW_MS
+  ) {
+    session.speechWindowStartedAt = now;
+    session.speechCharacters = 0;
+  }
+
+  const nextCharacterCount =
+    session.speechCharacters +
+    Math.max(0, Number(characterCount) || 0);
+
+  if (
+    nextCharacterCount >
+    REALTIME_SPEECH_CHARACTER_LIMIT
+  ) {
+    return {
+      ...tokenSession,
+      allowed: false,
+      remainingCharacters:
+        Math.max(
+          0,
+          REALTIME_SPEECH_CHARACTER_LIMIT -
+            session.speechCharacters
+        )
+    };
+  }
+
+  session.speechCharacters =
+    nextCharacterCount;
+
+  return {
+    ...tokenSession,
+    allowed: true,
+    remainingCharacters:
+      REALTIME_SPEECH_CHARACTER_LIMIT -
+      session.speechCharacters
   };
 }
 
@@ -1002,6 +1086,49 @@ const OPENAI_VOICE_API_KEY =
     ""
   ).trim();
 
+const CARTESIA_API_KEY =
+  String(
+    process.env.CARTESIA_API_KEY ||
+    ""
+  ).trim();
+
+const CARTESIA_VERSION =
+  String(
+    process.env.CARTESIA_API_VERSION ||
+    CARTESIA_API_VERSION
+  ).trim();
+
+const cartesiaVoiceClient =
+  CARTESIA_API_KEY
+    ? createCartesiaVoiceClient({
+        apiKey: CARTESIA_API_KEY,
+        apiVersion: CARTESIA_VERSION
+      })
+    : null;
+
+const CARTESIA_TRAINING_OPT_OUT_PROCESSED =
+  String(
+    process.env.CARTESIA_TRAINING_OPT_OUT_PROCESSED ||
+    ""
+  )
+    .trim()
+    .toLowerCase() === "true";
+
+const CARTESIA_GERMANY_USE_CONFIRMED =
+  String(
+    process.env.CARTESIA_GERMANY_USE_CONFIRMED ||
+    ""
+  )
+    .trim()
+    .toLowerCase() === "true";
+
+const cartesiaVoicePilotReady =
+  Boolean(
+    cartesiaVoiceClient &&
+    CARTESIA_TRAINING_OPT_OUT_PROCESSED &&
+    CARTESIA_GERMANY_USE_CONFIRMED
+  );
+
 async function resolveRealtimeVoiceForIdentity(
   identity,
   requestedVoice
@@ -1041,6 +1168,48 @@ async function resolveRealtimeVoiceForIdentity(
     storedVoiceId,
     environment:
       process.env
+  });
+}
+
+async function resolveSpeechOutputForIdentity(
+  identity,
+  requestedVoice
+) {
+  const openAIVoice =
+    await resolveRealtimeVoiceForIdentity(
+      identity,
+      requestedVoice
+    );
+  let cartesiaProfile = null;
+
+  if (
+    identity.ownerId === "pam-sol" &&
+    identity.speakerId === "pam" &&
+    cartesiaVoicePilotReady
+  ) {
+    try {
+      cartesiaProfile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile({
+            approvedOnly: true
+          });
+    } catch (error) {
+      console.error(
+        "Cartesia-Stimmprofil konnte nicht geladen werden:",
+        error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+    }
+  }
+
+  return resolveHumanHoloSpeechOutput({
+    ownerId: identity.ownerId,
+    speakerId: identity.speakerId,
+    openAIVoice,
+    cartesiaProfile,
+    cartesiaConfigured:
+      cartesiaVoicePilotReady
   });
 }
 
@@ -1227,6 +1396,7 @@ async function initializeMemory() {
   await identityMemoryStore.initialize();
   await trustedAppSessions.initialize();
   await humanHoloVoiceProfiles.initialize();
+  await humanHoloExternalVoiceProfiles.initialize();
 
   console.log("Sol-Holo-Memory ist bereit.");
   console.log("Bestätigtes Sol-Holo-Gedächtnis ist bereit.");
@@ -1247,6 +1417,20 @@ async function initializeMemory() {
     OPENAI_VOICE_API_KEY
       ? "OpenAI-Voice-Setup ist serverseitig bereit."
       : "OpenAI-API-Key für Voice-Setup fehlt noch."
+  );
+
+  const pamCartesiaProfile =
+    await humanHoloExternalVoiceProfiles
+      .getPamCartesiaProfile({
+        approvedOnly: true
+      });
+
+  console.log(
+    cartesiaVoicePilotReady
+      ? pamCartesiaProfile
+        ? "Pam-Stimme: Cartesia ist nach Hörtest freigegeben."
+        : "Cartesia-Stimmtest ist serverseitig vorbereitet."
+      : "Cartesia bleibt inaktiv, bis API-Key, verarbeitetes Trainings-Opt-out und deutsche Kontonutzung bestätigt sind."
   );
 
   console.log(
@@ -4988,6 +5172,100 @@ function normalizeAudioMimeType(
   return "audio/mp4";
 }
 
+function cartesiaSetupUnavailable(res) {
+  return res.status(503).json({
+    error:
+      !cartesiaVoiceClient
+        ? "CARTESIA_API_KEY ist in Render noch nicht eingerichtet."
+        : !CARTESIA_TRAINING_OPT_OUT_PROCESSED
+          ? "Cartesia bleibt gesperrt, bis das Trainings-Opt-out nachweislich verarbeitet wurde."
+          : "Cartesia bleibt gesperrt, bis die Nutzung dieses Kontos aus Deutschland mit Cartesia geklärt wurde."
+  });
+}
+
+function respondSpeechProviderError(
+  res,
+  error,
+  fallbackMessage
+) {
+  const providerError =
+    error instanceof HumanHoloSpeechProviderError;
+  const status = providerError
+    ? error.providerStatus === 401 ||
+      error.providerStatus === 403
+      ? 502
+      : error.status
+    : error instanceof TypeError
+      ? 400
+      : 500;
+
+  return res.status(status).json({
+    error:
+      providerError ||
+      error instanceof TypeError
+        ? error.message
+        : fallbackMessage
+  });
+}
+
+async function sendCartesiaSpeechAudio({
+  res,
+  voiceId,
+  text,
+  onReady = null
+}) {
+  const response =
+    await cartesiaVoiceClient.synthesize({
+      voiceId,
+      text
+    });
+
+  if (!response.body) {
+    throw new HumanHoloSpeechProviderError(
+      "Cartesia hat keine Audiodaten zurückgegeben."
+    );
+  }
+
+  if (typeof onReady === "function") {
+    await onReady();
+  }
+
+  res.status(200).set({
+    "Content-Type":
+      response.headers.get("content-type") ||
+      "audio/wav",
+    "Cache-Control":
+      "no-store, max-age=0",
+    Pragma:
+      "no-cache",
+    "X-Content-Type-Options":
+      "nosniff"
+  });
+
+  const audioStream =
+    Readable.fromWeb(response.body);
+
+  audioStream.on(
+    "error",
+    (error) => {
+      console.error(
+        "Cartesia-Audiostream:",
+        error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+
+      if (!res.headersSent) {
+        res.status(502).end();
+      } else {
+        res.destroy(error);
+      }
+    }
+  );
+
+  audioStream.pipe(res);
+}
+
 /*
   ==========================================================
   VOICE-SETUP-SEITE
@@ -5049,6 +5327,7 @@ label{
 }
 
 input,
+textarea,
 button{
   width:100%;
   padding:13px;
@@ -5057,6 +5336,72 @@ button{
   background:#160b20;
   color:white;
   font-size:16px;
+}
+
+textarea{
+  min-height:96px;
+  resize:vertical;
+  font-family:inherit;
+  line-height:1.45;
+}
+
+input[type="checkbox"]{
+  width:22px;
+  min-width:22px;
+  height:22px;
+  margin:2px 0 0;
+}
+
+.check{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  color:#eee;
+  line-height:1.45;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.actions button{
+  min-height:52px;
+}
+
+button.secondary{
+  background:#25132f;
+}
+
+audio{
+  width:100%;
+  margin-top:14px;
+}
+
+details{
+  margin-top:22px;
+}
+
+summary{
+  cursor:pointer;
+  color:#d3a6ff;
+  font-size:18px;
+  font-weight:bold;
+  line-height:1.4;
+}
+
+.note{
+  padding:12px;
+  border-left:3px solid #45e5a2;
+  background:#160b20;
+  line-height:1.5;
+}
+
+@media(max-width:520px){
+  .actions{
+    grid-template-columns:1fr;
+  }
 }
 
 button{
@@ -5095,8 +5440,10 @@ button:disabled{
 </h1>
 
 <p>
-Deine vorhandenen Aufnahmen werden einmalig an OpenAI gesendet.
-Human Holo speichert hier keine Kopie der Audiodateien.
+Beim neuen Cartesia-Hörtest entscheidest du nach dem Anhören, ob Human
+Holo diese Stimme verwenden darf. Dieser Weg wird niemals allein durch
+das Erstellen aktiviert. Der bisherige OpenAI-Weg bleibt darunter
+unverändert erhalten.
 </p>
 
 <div class="box">
@@ -5122,8 +5469,150 @@ Voice-Setup-Passwort
   border-top:1px solid #49225f;
 ">
 
+<section aria-labelledby="cartesiaTitle">
+
+<h2 id="cartesiaTitle">
+1. Alternative jetzt testen: Cartesia
+</h2>
+
+<p class="note">
+Human Holo überträgt die Stimmprobe an Cartesia, um dort ein privat
+zugängliches Stimmmodell zu erstellen, und speichert selbst keine Kopie der
+Audiodatei. Cartesias öffentliche Bedingungen erlauben jedoch eine
+Modellverbesserung mit Ein- und Ausgaben, bis ein Trainings-Opt-out verarbeitet
+ist. Außerdem bezeichnet die öffentliche Datenschutzseite den Dienst derzeit
+als für US-Nutzer ausgelegt. Deshalb bleibt der Upload trotz API-Key gesperrt,
+bis Opt-out und Nutzung aus Deutschland geklärt sind. Während einer späteren
+Aktivierung werden Human Holos jeweilige Antworttexte bei Cartesia in Sprache
+umgewandelt. Die Anbieter-Kosten laufen über dein Cartesia-Konto.
+</p>
+
+<label for="cartesiaName">
+Name der Stimme
+</label>
+
+<input
+  id="cartesiaName"
+  value="Human Holo – Pam"
+>
+
+<label for="cartesiaFile">
+Pams Stimmprobe
+</label>
+
+<p>
+M4A wird auf diesem Gerät nur im Arbeitsspeicher in WAV umgewandelt,
+falls Cartesia das Dateiformat nicht direkt annimmt.
+</p>
+
+<input
+  id="cartesiaFile"
+  type="file"
+  accept="audio/*"
+>
+
+<label class="check" for="cartesiaConsent">
+  <input
+    id="cartesiaConsent"
+    type="checkbox"
+  >
+  <span>
+    Ich bin Eigentümerin dieser Stimme und stimme zu, dass diese
+    Stimmprobe an Cartesia übertragen und dort als privates
+    synthetisches Stimmmodell für Human Holo verarbeitet wird.
+  </span>
+</label>
+
+<div class="actions">
+  <button
+    id="cartesiaStatusButton"
+    class="secondary"
+    type="button">
+    Status prüfen
+  </button>
+
+  <button
+    id="cartesiaCreateButton"
+    type="button">
+    Hörtest vorbereiten
+  </button>
+</div>
+
+<label for="cartesiaPreviewText">
+Fester Text der Hörprobe
+</label>
+
+<textarea
+  id="cartesiaPreviewText"
+  readonly>Hallo Pam. Ich bin Human Holo und spreche jetzt mit deiner eigenen Stimme.</textarea>
+
+<button
+  id="cartesiaPreviewButton"
+  class="secondary"
+  type="button"
+  disabled>
+  Pams Stimme anhören
+</button>
+
+<audio
+  id="cartesiaPreviewAudio"
+  controls
+  preload="none"
+  hidden></audio>
+
+<label class="check" for="cartesiaApproval">
+  <input
+    id="cartesiaApproval"
+    type="checkbox"
+    disabled
+  >
+  <span>
+    Ich habe genau diese Hörprobe angehört und gebe diese Stimme für
+    Pams nächste Human-Holo-Gespräche frei.
+  </span>
+</label>
+
+<div class="actions">
+  <button
+    id="cartesiaActivateButton"
+    type="button"
+    disabled>
+    Nach Hörfreigabe aktivieren
+  </button>
+
+  <button
+    id="cartesiaDeactivateButton"
+    class="secondary"
+    type="button"
+    disabled>
+    Cartesia deaktivieren
+  </button>
+</div>
+
+<div
+  id="cartesiaStatus"
+  class="status"
+  role="status"
+  aria-live="polite">
+Noch kein Status geprüft. Ohne Hörfreigabe bleibt die bisherige
+OpenAI-Stimme aktiv.
+</div>
+
+</section>
+
+<hr style="
+  margin:28px 0;
+  border:none;
+  border-top:1px solid #49225f;
+">
+
+<details>
+<summary>
+Bisheriger OpenAI-Weg – derzeit nur bei API-Freigabe nutzbar
+</summary>
+
 <h2>
-1. Voice Consent
+OpenAI 1. Voice Consent
 </h2>
 
 <p>
@@ -5192,7 +5681,7 @@ Noch keine Consent-ID vorhanden.
 ">
 
 <h2>
-2. Persönliche Stimme
+OpenAI 2. Persönliche Stimme
 </h2>
 
 <label for="voiceName">
@@ -5241,6 +5730,8 @@ Eigene Stimme erstellen
   aria-live="polite">
 Noch keine Voice-ID vorhanden.
 </div>
+
+</details>
 
 </div>
 
@@ -5302,6 +5793,802 @@ const voiceStatus =
   document.getElementById(
     "voiceStatus"
   );
+
+const cartesiaName =
+  document.getElementById(
+    "cartesiaName"
+  );
+
+const cartesiaFile =
+  document.getElementById(
+    "cartesiaFile"
+  );
+
+const cartesiaConsent =
+  document.getElementById(
+    "cartesiaConsent"
+  );
+
+const cartesiaStatusButton =
+  document.getElementById(
+    "cartesiaStatusButton"
+  );
+
+const cartesiaCreateButton =
+  document.getElementById(
+    "cartesiaCreateButton"
+  );
+
+const cartesiaPreviewText =
+  document.getElementById(
+    "cartesiaPreviewText"
+  );
+
+const cartesiaPreviewButton =
+  document.getElementById(
+    "cartesiaPreviewButton"
+  );
+
+const cartesiaPreviewAudio =
+  document.getElementById(
+    "cartesiaPreviewAudio"
+  );
+
+const cartesiaApproval =
+  document.getElementById(
+    "cartesiaApproval"
+  );
+
+const cartesiaActivateButton =
+  document.getElementById(
+    "cartesiaActivateButton"
+  );
+
+const cartesiaDeactivateButton =
+  document.getElementById(
+    "cartesiaDeactivateButton"
+  );
+
+const cartesiaStatus =
+  document.getElementById(
+    "cartesiaStatus"
+  );
+
+let cartesiaConfigured =
+  null;
+
+let cartesiaProfileExists =
+  false;
+
+let cartesiaProfileApproved =
+  false;
+
+let cartesiaPreviewHeard =
+  false;
+
+let cartesiaPreviewUrl =
+  "";
+
+function setCartesiaStatus(
+  message,
+  kind = ""
+) {
+  cartesiaStatus.className =
+    "status" +
+    (kind ? " " + kind : "");
+  cartesiaStatus.textContent =
+    message;
+}
+
+function updateCartesiaControls() {
+  cartesiaCreateButton.disabled =
+    cartesiaConfigured === false ||
+    cartesiaProfileExists;
+
+  cartesiaPreviewButton.disabled =
+    cartesiaConfigured !== true ||
+    !cartesiaProfileExists;
+
+  cartesiaApproval.disabled =
+    !cartesiaPreviewHeard ||
+    cartesiaProfileApproved;
+
+  cartesiaActivateButton.disabled =
+    !cartesiaPreviewHeard ||
+    !cartesiaApproval.checked ||
+    cartesiaProfileApproved;
+
+  cartesiaDeactivateButton.disabled =
+    !cartesiaProfileApproved;
+}
+
+function requireVoiceSetupSecret() {
+  const secret =
+    secretInput.value.trim();
+
+  if (!secret) {
+    setCartesiaStatus(
+      "Bitte zuerst dein Voice-Setup-Passwort eingeben.",
+      "warning"
+    );
+  }
+
+  return secret;
+}
+
+async function responseErrorMessage(
+  response,
+  fallback
+) {
+  try {
+    const data =
+      await response.json();
+    return data?.error || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeAscii(
+  view,
+  offset,
+  text
+) {
+  for (
+    let index = 0;
+    index < text.length;
+    index += 1
+  ) {
+    view.setUint8(
+      offset + index,
+      text.charCodeAt(index)
+    );
+  }
+}
+
+function audioBufferToMonoWav(
+  audioBuffer
+) {
+  const frameCount =
+    audioBuffer.length;
+  const channelCount =
+    audioBuffer.numberOfChannels;
+  const bytesPerSample =
+    2;
+  const dataLength =
+    frameCount * bytesPerSample;
+  const output =
+    new ArrayBuffer(44 + dataLength);
+  const view =
+    new DataView(output);
+  const channels = [];
+
+  for (
+    let channel = 0;
+    channel < channelCount;
+    channel += 1
+  ) {
+    channels.push(
+      audioBuffer.getChannelData(channel)
+    );
+  }
+
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, audioBuffer.sampleRate, true);
+  view.setUint32(
+    28,
+    audioBuffer.sampleRate * bytesPerSample,
+    true
+  );
+  view.setUint16(32, bytesPerSample, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, dataLength, true);
+
+  let offset = 44;
+  for (
+    let frame = 0;
+    frame < frameCount;
+    frame += 1
+  ) {
+    let sample = 0;
+
+    for (
+      let channel = 0;
+      channel < channelCount;
+      channel += 1
+    ) {
+      sample += channels[channel][frame];
+    }
+
+    sample =
+      Math.max(
+        -1,
+        Math.min(1, sample / channelCount)
+      );
+
+    view.setInt16(
+      offset,
+      sample < 0
+        ? sample * 32768
+        : sample * 32767,
+      true
+    );
+    offset += bytesPerSample;
+  }
+
+  return new Blob(
+    [output],
+    { type: "audio/wav" }
+  );
+}
+
+async function prepareCartesiaAudioFile(
+  file
+) {
+  if (
+    /\\.(flac|mp3|mpeg|mpga|oga|ogg|wav|webm)$/iu
+      .test(file.name)
+  ) {
+    return file;
+  }
+
+  const AudioContextClass =
+    window.AudioContext ||
+    window.webkitAudioContext;
+
+  if (!AudioContextClass) {
+    throw new Error(
+      "Dieses Gerät kann die M4A-Datei nicht sicher in WAV umwandeln."
+    );
+  }
+
+  const context =
+    new AudioContextClass();
+
+  try {
+    const sourceBytes =
+      await file.arrayBuffer();
+    const decoded =
+      await context.decodeAudioData(
+        sourceBytes.slice(0)
+      );
+    const wav =
+      audioBufferToMonoWav(decoded);
+    const baseName =
+      String(file.name || "pam-stimme")
+        .replace(/\\.[^.]+$/u, "") ||
+      "pam-stimme";
+
+    return new File(
+      [wav],
+      baseName + ".wav",
+      {
+        type: "audio/wav",
+        lastModified: Date.now()
+      }
+    );
+  } catch {
+    throw new Error(
+      "Die ausgewählte Aufnahme konnte auf diesem Gerät nicht in WAV umgewandelt werden."
+    );
+  } finally {
+    try {
+      await context.close();
+    } catch {}
+  }
+}
+
+function applyCartesiaState(
+  state
+) {
+  cartesiaConfigured =
+    state?.configured === true;
+  cartesiaProfileExists =
+    state?.exists === true;
+  cartesiaProfileApproved =
+    state?.approved === true;
+
+  if (cartesiaProfileApproved) {
+    cartesiaApproval.checked =
+      false;
+  }
+
+  updateCartesiaControls();
+}
+
+cartesiaStatusButton.addEventListener(
+  "click",
+  async () => {
+    const secret =
+      requireVoiceSetupSecret();
+
+    if (!secret) {
+      return;
+    }
+
+    cartesiaStatusButton.disabled =
+      true;
+    setCartesiaStatus(
+      "Cartesia-Status wird geprüft ..."
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/voice/setup/status",
+          {
+            cache: "no-store",
+            headers: {
+              "X-Voice-Setup-Secret":
+                secret
+            }
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          await responseErrorMessage(
+            response,
+            "Status konnte nicht geprüft werden."
+          )
+        );
+      }
+
+      const data =
+        await response.json();
+      const state =
+        data?.cartesia || {};
+
+      applyCartesiaState({
+        configured:
+          data?.cartesiaPilotReady,
+        exists:
+          state.exists,
+        approved:
+          state.approved
+      });
+
+      if (!data?.cartesiaPilotReady) {
+        const requirements =
+          data?.cartesiaRequirements || {};
+        const missing = [];
+
+        if (!requirements.apiKey) {
+          missing.push(
+            "CARTESIA_API_KEY in Render"
+          );
+        }
+
+        if (!requirements.trainingOptOutProcessed) {
+          missing.push(
+            "verarbeitetes Cartesia-Trainings-Opt-out"
+          );
+        }
+
+        if (!requirements.germanyUseConfirmed) {
+          missing.push(
+            "bestätigte Nutzung des Kontos aus Deutschland"
+          );
+        }
+
+        setCartesiaStatus(
+          "Cartesia bleibt zum Schutz von Pams Stimme gesperrt. Noch offen: " +
+            missing.join(", ") +
+            ".",
+          "warning"
+        );
+      } else if (state.approved) {
+        setCartesiaStatus(
+          "✅ Pams Cartesia-Stimme ist freigegeben und gilt für das nächste Gespräch.",
+          "success"
+        );
+      } else if (state.exists) {
+        setCartesiaStatus(
+          "Der Hörtest ist vorbereitet. Bitte die Stimme hier noch einmal vollständig anhören und nur bei Gefallen aktivieren."
+        );
+      } else {
+        setCartesiaStatus(
+          "Cartesia ist bereit. Noch wurde keine Stimme erstellt."
+        );
+      }
+    } catch (error) {
+      setCartesiaStatus(
+        "Fehler: " +
+          (error?.message || "Unbekannter Fehler."),
+        "warning"
+      );
+    } finally {
+      cartesiaStatusButton.disabled =
+        false;
+      updateCartesiaControls();
+    }
+  }
+);
+
+cartesiaCreateButton.addEventListener(
+  "click",
+  async () => {
+    const secret =
+      requireVoiceSetupSecret();
+    const file =
+      cartesiaFile.files?.[0];
+
+    if (!secret) {
+      return;
+    }
+
+    if (!file) {
+      setCartesiaStatus(
+        "Bitte Pams Stimmprobe auswählen.",
+        "warning"
+      );
+      return;
+    }
+
+    if (!cartesiaConsent.checked) {
+      setCartesiaStatus(
+        "Bitte die Cartesia-Einwilligung bewusst bestätigen.",
+        "warning"
+      );
+      return;
+    }
+
+    cartesiaCreateButton.disabled =
+      true;
+    setCartesiaStatus(
+      "Die Aufnahme wird im Arbeitsspeicher vorbereitet. Noch ist nichts aktiviert ..."
+    );
+
+    try {
+      const preparedFile =
+        await prepareCartesiaAudioFile(file);
+
+      if (
+        preparedFile.size >
+        10 * 1024 * 1024
+      ) {
+        throw new Error(
+          "Die vorbereitete Audiodatei ist größer als 10 MB."
+        );
+      }
+
+      const params =
+        new URLSearchParams({
+          name:
+            cartesiaName.value.trim() ||
+            "Human Holo – Pam",
+          filename:
+            preparedFile.name,
+          mime:
+            preparedFile.type ||
+            "application/octet-stream"
+        });
+      const response =
+        await fetch(
+          "/voice/setup/cartesia/create?" +
+          params.toString(),
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                preparedFile.type ||
+                "application/octet-stream",
+              "X-Voice-Setup-Secret":
+                secret,
+              "X-Pam-Voice-Consent":
+                "confirmed"
+            },
+            body: preparedFile
+          }
+        );
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        if (
+          response.status === 409 &&
+          data?.cartesia?.exists
+        ) {
+          applyCartesiaState({
+            configured: true,
+            exists: true,
+            approved:
+              data.cartesia.approved
+          });
+        }
+
+        throw new Error(
+          data?.error ||
+          "Der Hörtest konnte nicht vorbereitet werden."
+        );
+      }
+
+      applyCartesiaState({
+        configured: true,
+        exists: true,
+        approved: false
+      });
+      setCartesiaStatus(
+        "✅ Der private Hörtest ist vorbereitet, aber noch nicht aktiviert. Bitte jetzt Pams Stimme anhören.",
+        "success"
+      );
+    } catch (error) {
+      setCartesiaStatus(
+        "Fehler: " +
+          (error?.message || "Unbekannter Fehler."),
+        "warning"
+      );
+    } finally {
+      updateCartesiaControls();
+    }
+  }
+);
+
+cartesiaPreviewButton.addEventListener(
+  "click",
+  async () => {
+    const secret =
+      requireVoiceSetupSecret();
+
+    if (!secret) {
+      return;
+    }
+
+    cartesiaPreviewButton.disabled =
+      true;
+    cartesiaPreviewHeard =
+      false;
+    cartesiaApproval.checked =
+      false;
+    updateCartesiaControls();
+    setCartesiaStatus(
+      "Hörprobe wird erzeugt ..."
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/voice/setup/cartesia/preview",
+          {
+            method: "POST",
+            cache: "no-store",
+            headers: {
+              "Content-Type":
+                "application/json",
+              "X-Voice-Setup-Secret":
+                secret
+            },
+            body: JSON.stringify({
+              text:
+                cartesiaPreviewText.value
+            })
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          await responseErrorMessage(
+            response,
+            "Die Hörprobe konnte nicht erzeugt werden."
+          )
+        );
+      }
+
+      const audioBlob =
+        await response.blob();
+
+      if (cartesiaPreviewUrl) {
+        URL.revokeObjectURL(
+          cartesiaPreviewUrl
+        );
+      }
+
+      cartesiaPreviewUrl =
+        URL.createObjectURL(audioBlob);
+      cartesiaPreviewAudio.src =
+        cartesiaPreviewUrl;
+      cartesiaPreviewAudio.hidden =
+        false;
+      setCartesiaStatus(
+        "Die Hörprobe ist bereit. Bitte vollständig anhören; erst danach wird die Freigabe auswählbar."
+      );
+
+      try {
+        await cartesiaPreviewAudio.play();
+      } catch {
+        setCartesiaStatus(
+          "Die Hörprobe ist bereit. Bitte auf Wiedergabe drücken und vollständig anhören."
+        );
+      }
+    } catch (error) {
+      setCartesiaStatus(
+        "Fehler: " +
+          (error?.message || "Unbekannter Fehler."),
+        "warning"
+      );
+    } finally {
+      updateCartesiaControls();
+    }
+  }
+);
+
+cartesiaPreviewAudio.addEventListener(
+  "ended",
+  () => {
+    cartesiaPreviewHeard =
+      true;
+    setCartesiaStatus(
+      "✅ Hörprobe vollständig abgespielt. Wenn sie für dich passt, kannst du die Freigabe ankreuzen.",
+      "success"
+    );
+    updateCartesiaControls();
+  }
+);
+
+cartesiaApproval.addEventListener(
+  "change",
+  updateCartesiaControls
+);
+
+cartesiaActivateButton.addEventListener(
+  "click",
+  async () => {
+    const secret =
+      requireVoiceSetupSecret();
+
+    if (
+      !secret ||
+      !cartesiaPreviewHeard ||
+      !cartesiaApproval.checked
+    ) {
+      return;
+    }
+
+    cartesiaActivateButton.disabled =
+      true;
+    setCartesiaStatus(
+      "Pams Hörfreigabe wird gespeichert ..."
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/voice/setup/cartesia/activate",
+          {
+            method: "POST",
+            cache: "no-store",
+            headers: {
+              "Content-Type":
+                "application/json",
+              "X-Voice-Setup-Secret":
+                secret
+            },
+            body: JSON.stringify({
+              approved: true
+            })
+          }
+        );
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+          "Die Stimme konnte nicht aktiviert werden."
+        );
+      }
+
+      cartesiaProfileApproved =
+        data?.activated === true;
+      cartesiaApproval.checked =
+        false;
+      setCartesiaStatus(
+        "✅ Von Pam freigegeben. Pams eigene Stimme gilt ab dem nächsten neuen Gespräch.",
+        "success"
+      );
+    } catch (error) {
+      setCartesiaStatus(
+        "Fehler: " +
+          (error?.message || "Unbekannter Fehler."),
+        "warning"
+      );
+    } finally {
+      updateCartesiaControls();
+    }
+  }
+);
+
+cartesiaDeactivateButton.addEventListener(
+  "click",
+  async () => {
+    const secret =
+      requireVoiceSetupSecret();
+
+    if (!secret) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Cartesia für Pams nächste Gespräche wirklich deaktivieren? Die bisherige OpenAI-Stimme wird dann wieder verwendet."
+      )
+    ) {
+      return;
+    }
+
+    cartesiaDeactivateButton.disabled =
+      true;
+    setCartesiaStatus(
+      "Cartesia wird deaktiviert ..."
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/voice/setup/cartesia/deactivate",
+          {
+            method: "POST",
+            cache: "no-store",
+            headers: {
+              "Content-Type":
+                "application/json",
+              "X-Voice-Setup-Secret":
+                secret
+            },
+            body: JSON.stringify({
+              deactivate: true
+            })
+          }
+        );
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+          "Cartesia konnte nicht deaktiviert werden."
+        );
+      }
+
+      cartesiaProfileApproved =
+        false;
+      cartesiaPreviewHeard =
+        false;
+      cartesiaApproval.checked =
+        false;
+      setCartesiaStatus(
+        "Cartesia ist deaktiviert. Beim nächsten Gespräch greift wieder der OpenAI-Stimmweg.",
+        "success"
+      );
+    } catch (error) {
+      setCartesiaStatus(
+        "Fehler: " +
+          (error?.message || "Unbekannter Fehler."),
+        "warning"
+      );
+    } finally {
+      updateCartesiaControls();
+    }
+  }
+);
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+    if (cartesiaPreviewUrl) {
+      URL.revokeObjectURL(
+        cartesiaPreviewUrl
+      );
+    }
+  }
+);
 
 consentButton.addEventListener(
   "click",
@@ -5907,6 +7194,493 @@ app.post(
         error:
           "Die persönliche Stimme konnte nicht verarbeitet werden."
       });
+    }
+  }
+);
+
+/*
+  ==========================================================
+  CARTESIA-HÖRTEST – ERST HÖREN, DANN AKTIVIEREN
+  ==========================================================
+*/
+
+app.get(
+  "/voice/setup/status",
+
+  checkVoiceSetupSecret,
+
+  async (_req, res) => {
+    try {
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile();
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          openaiConfigured:
+            Boolean(OPENAI_VOICE_API_KEY),
+          cartesiaConfigured:
+            Boolean(cartesiaVoiceClient),
+          cartesiaPilotReady:
+            cartesiaVoicePilotReady,
+          cartesiaRequirements: {
+            apiKey:
+              Boolean(cartesiaVoiceClient),
+            trainingOptOutProcessed:
+              CARTESIA_TRAINING_OPT_OUT_PROCESSED,
+            germanyUseConfirmed:
+              CARTESIA_GERMANY_USE_CONFIRMED
+          },
+          cartesia: {
+            exists:
+              Boolean(profile),
+            voiceName:
+              profile?.voiceName || "",
+            previewed:
+              Boolean(profile?.previewedAt),
+            approved:
+              Boolean(profile?.approvedAt)
+          }
+        });
+    } catch (error) {
+      console.error(
+        "Voice-Setup-Status:",
+        error?.code || error?.name || "Fehler"
+      );
+
+      return res.status(500).json({
+        error:
+          "Der Voice-Setup-Status konnte nicht geladen werden."
+      });
+    }
+  }
+);
+
+app.post(
+  "/voice/setup/cartesia/create",
+
+  checkVoiceSetupSecret,
+
+  express.raw({
+    type: () => true,
+    limit: "10mb"
+  }),
+
+  async (req, res) => {
+    try {
+      if (!cartesiaVoicePilotReady) {
+        return cartesiaSetupUnavailable(res);
+      }
+
+      if (
+        String(
+          req.headers["x-pam-voice-consent"] || ""
+        ).trim() !== "confirmed"
+      ) {
+        return res.status(400).json({
+          error:
+            "Pams ausdrückliche Cartesia-Einwilligung fehlt."
+        });
+      }
+
+      if (
+        !Buffer.isBuffer(req.body) ||
+        req.body.length === 0
+      ) {
+        return res.status(400).json({
+          error:
+            "Keine Stimmprobe erhalten."
+        });
+      }
+
+      const existingProfile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile();
+
+      if (existingProfile) {
+        return res.status(409).json({
+          error:
+            existingProfile.approvedAt
+              ? "Für Pam ist bereits eine freigegebene Cartesia-Stimme vorhanden. Es wurde keine weitere Kopie erstellt."
+              : "Für Pam ist bereits ein Cartesia-Hörtest vorbereitet. Bitte zuerst diese Stimme anhören; es wurde keine weitere Kopie erstellt.",
+          cartesia: {
+            exists: true,
+            previewed:
+              Boolean(existingProfile.previewedAt),
+            approved:
+              Boolean(existingProfile.approvedAt)
+          }
+        });
+      }
+
+      const filename =
+        String(
+          req.query.filename ||
+          "pam-stimme.wav"
+        ).trim();
+      const upload =
+        normalizeCartesiaCloneAudio(
+          filename,
+          req.query.mime
+        );
+
+      if (!upload) {
+        return res.status(400).json({
+          error:
+            "Für Cartesia muss die Datei als FLAC, MP3, MPEG, OGG, WAV oder WebM bereitgestellt werden."
+        });
+      }
+
+      const createdVoice =
+        await cartesiaVoiceClient
+          .createPrivateClone({
+            audio: req.body,
+            filename: upload.filename,
+            mimeType: upload.mimeType,
+            voiceName:
+              req.query.name ||
+              "Human Holo – Pam"
+          });
+
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .savePamCartesiaProfile({
+            voiceId: createdVoice.id,
+            voiceName: createdVoice.name
+          });
+
+      console.log(
+        "Cartesia-Hörtest für Pam erstellt; noch nicht aktiviert."
+      );
+
+      return res
+        .status(201)
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          created: true,
+          activated: false,
+          voiceName: profile.voiceName,
+          previewText:
+            CARTESIA_PREVIEW_TEXT
+        });
+    } catch (error) {
+      console.error(
+        "Cartesia-Stimmerstellung:",
+        error?.providerStatus ||
+          error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+
+      return respondSpeechProviderError(
+        res,
+        error,
+        "Der Cartesia-Hörtest konnte nicht vorbereitet werden."
+      );
+    }
+  }
+);
+
+app.post(
+  "/voice/setup/cartesia/preview",
+
+  checkVoiceSetupSecret,
+
+  async (req, res) => {
+    try {
+      if (!cartesiaVoicePilotReady) {
+        return cartesiaSetupUnavailable(res);
+      }
+
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile();
+
+      if (!profile) {
+        return res.status(404).json({
+          error:
+            "Es ist noch kein Cartesia-Hörtest für Pam vorbereitet."
+        });
+      }
+
+      const previewText =
+        CARTESIA_PREVIEW_TEXT;
+
+      await sendCartesiaSpeechAudio({
+        res,
+        voiceId: profile.voiceId,
+        text: previewText,
+        onReady: async () => {
+          const previewed =
+            await humanHoloExternalVoiceProfiles
+              .markPamCartesiaPreviewed({
+                voiceId: profile.voiceId
+              });
+
+          if (!previewed) {
+            throw new Error(
+              "Cartesia-Vorschau konnte nicht bestätigt werden."
+            );
+          }
+        }
+      });
+    } catch (error) {
+      console.error(
+        "Cartesia-Hörprobe:",
+        error?.providerStatus ||
+          error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+
+      if (res.headersSent) {
+        return;
+      }
+
+      return respondSpeechProviderError(
+        res,
+        error,
+        "Die Hörprobe konnte nicht erzeugt werden."
+      );
+    }
+  }
+);
+
+app.post(
+  "/voice/setup/cartesia/activate",
+
+  checkVoiceSetupSecret,
+
+  async (req, res) => {
+    try {
+      if (!cartesiaVoicePilotReady) {
+        return cartesiaSetupUnavailable(res);
+      }
+
+      if (req.body?.approved !== true) {
+        return res.status(400).json({
+          error:
+            "Die Aktivierung braucht Pams ausdrückliche Hörfreigabe."
+        });
+      }
+
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile();
+
+      if (!profile) {
+        return res.status(404).json({
+          error:
+            "Es ist noch kein Cartesia-Hörtest vorhanden."
+        });
+      }
+
+      if (!profile.previewedAt) {
+        return res.status(409).json({
+          error:
+            "Bitte Pams Stimme zuerst anhören. Vorher wird sie nicht aktiviert."
+        });
+      }
+
+      const approved =
+        await humanHoloExternalVoiceProfiles
+          .approvePamCartesiaProfile({
+            voiceId: profile.voiceId
+          });
+
+      if (!approved) {
+        throw new Error(
+          "Cartesia-Stimme konnte nicht aktiviert werden."
+        );
+      }
+
+      console.log(
+        "Pam hat die Cartesia-Hörprobe freigegeben; Aktivierung gilt ab dem nächsten Gespräch."
+      );
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          activated: true,
+          provider: "cartesia",
+          appliesFrom:
+            "next_conversation"
+        });
+    } catch (error) {
+      console.error(
+        "Cartesia-Aktivierung:",
+        error?.code || error?.name || "Fehler"
+      );
+
+      return respondSpeechProviderError(
+        res,
+        error,
+        "Pams Stimme konnte nicht aktiviert werden."
+      );
+    }
+  }
+);
+
+app.post(
+  "/voice/setup/cartesia/deactivate",
+
+  checkVoiceSetupSecret,
+
+  async (req, res) => {
+    try {
+      if (req.body?.deactivate !== true) {
+        return res.status(400).json({
+          error:
+            "Die Deaktivierung muss ausdrücklich bestätigt werden."
+        });
+      }
+
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .deactivatePamCartesiaProfile();
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          deactivated: true,
+          existed:
+            Boolean(profile),
+          fallback:
+            "openai"
+        });
+    } catch (error) {
+      console.error(
+        "Cartesia-Deaktivierung:",
+        error?.code || error?.name || "Fehler"
+      );
+
+      return res.status(500).json({
+        error:
+          "Pams Cartesia-Stimme konnte nicht deaktiviert werden."
+      });
+    }
+  }
+);
+
+app.post(
+  "/voice/speak",
+
+  async (req, res) => {
+    try {
+      if (!cartesiaVoicePilotReady) {
+        return res.status(503).json({
+          error:
+            "Die persönliche Stimme ist gerade nicht verfügbar."
+        });
+      }
+
+      const authorization =
+        String(
+          req.headers.authorization || ""
+        );
+      const token =
+        authorization.startsWith("Bearer ")
+          ? authorization.slice(7).trim()
+          : "";
+      const tokenSession =
+        validateRealtimeMemoryToken(token);
+
+      if (
+        !tokenSession ||
+        tokenSession.ownerId !== "pam-sol" ||
+        tokenSession.speakerId !== "pam"
+      ) {
+        return res.status(401).json({
+          error:
+            "Persönliche Sprachausgabe nicht autorisiert."
+        });
+      }
+
+      const text =
+        normalizeHumanHoloSpeechText(
+          req.body?.text,
+          1600
+        );
+
+      if (!text) {
+        return res.status(400).json({
+          error:
+            "Der zu sprechende Text ist ungültig."
+        });
+      }
+
+      const profile =
+        await humanHoloExternalVoiceProfiles
+          .getPamCartesiaProfile({
+            approvedOnly: true
+          });
+
+      if (!profile) {
+        return res.status(409).json({
+          error:
+            "Pams persönliche Stimme ist noch nicht freigegeben."
+        });
+      }
+
+      const budget =
+        consumeRealtimeSpeechBudget(
+          token,
+          text.length
+        );
+
+      if (!budget?.allowed) {
+        return res
+          .status(429)
+          .set({
+            "Retry-After": "3600"
+          })
+          .json({
+            error:
+              "Das Sicherheitslimit für diese Sprachsitzung ist erreicht. Bitte später ein neues Gespräch starten."
+          });
+      }
+
+      res.set(
+        "X-Human-Holo-Speech-Characters-Remaining",
+        String(budget.remainingCharacters)
+      );
+
+      await sendCartesiaSpeechAudio({
+        res,
+        voiceId: profile.voiceId,
+        text
+      });
+    } catch (error) {
+      console.error(
+        "Persönliche Sprachausgabe:",
+        error?.providerStatus ||
+          error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+
+      if (res.headersSent) {
+        return;
+      }
+
+      return respondSpeechProviderError(
+        res,
+        error,
+        "Pams persönliche Stimme ist gerade nicht verfügbar."
+      );
     }
   }
 );
@@ -8141,7 +9915,7 @@ app.post("/realtime/token", async (req, res) => {
     }
 
     const solHoloVoice =
-      await resolveRealtimeVoiceForIdentity(
+      await resolveSpeechOutputForIdentity(
         identity,
         req.body?.voice
       );
@@ -8473,6 +10247,11 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
         model:
           "gpt-realtime-2.1",
+
+        output_modalities:
+          solHoloVoice.external
+            ? ["text"]
+            : ["audio"],
 
         instructions:
           realtimeInstructions,
@@ -8963,10 +10742,16 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
             }
           },
 
-          output: {
-            voice:
-              solHoloVoice.apiVoice
-          }
+          ...(
+            solHoloVoice.external
+              ? {}
+              : {
+                  output: {
+                    voice:
+                      solHoloVoice.apiVoice
+                  }
+                }
+          )
         }
       }
     };
@@ -9061,6 +10846,12 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
       sol_voice_custom:
         solHoloVoice.isCustom,
+
+      speech_provider:
+        solHoloVoice.provider,
+
+      external_speech:
+        solHoloVoice.external,
 
       sol_memory_token:
         memorySearchToken,

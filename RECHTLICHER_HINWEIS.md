@@ -51,11 +51,14 @@ Sol Holo verwendet oder verwendete im Entwicklungsverlauf externe Technologien, 
 - PostgreSQL / `pg`
 - Capacitor
 - MediaPipe
+- Cartesia AI als optionaler, derzeit inaktiver Voice-Pilot
 - weitere Open-Source- oder Drittanbieter-Bibliotheken aus `package.json` und `package-lock.json`
 
 Die Nennung solcher Namen beschreibt ausschließlich die technische Nutzung oder Kompatibilität.
 
-Sie begründet keine Partnerschaft, Unterstützung, Zertifizierung, Beteiligung oder Mitinhaberschaft durch Google, Samsung, GitHub, Render, Google LLC, OpenAI oder andere Rechteinhaber bzw. Anbieter.
+Sie begründet keine Partnerschaft, Unterstützung, Zertifizierung, Beteiligung
+oder Mitinhaberschaft durch Google, Samsung, GitHub, Render, Google LLC,
+OpenAI, Cartesia oder andere Rechteinhaber bzw. Anbieter.
 
 Alle Marken, Produktnamen, Logos und sonstigen Kennzeichen bleiben Eigentum ihrer jeweiligen Rechteinhaber.
 

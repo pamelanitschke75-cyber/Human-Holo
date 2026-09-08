@@ -489,6 +489,13 @@ Die technische Grundlage für Sprachkommunikation funktioniert.
 
 Eine persönliche, autorisierte eigene Stimme soll später die aktuell verwendete Standardstimme ersetzen.
 
+Der OpenAI-Custom-Voice-Endpunkt ist für das verwendete API-Projekt derzeit
+nicht freigegeben. Ein abschaltbarer Cartesia-Hörtest ist deshalb technisch
+vorbereitet, bleibt aber bis zur Klärung von Trainings-Opt-out und Nutzung aus
+Deutschland vollständig gesperrt. Er wird erst nach Pams eigener Hörfreigabe
+aktiv. Der dokumentierte Stand steht in
+[Human Holo – Cartesia-Hörtest](./HUMAN-HOLO-CARTESIA-HOERTEST-08-09-2026.md).
+
 ---
 
 ## 👄 Lip-Sync

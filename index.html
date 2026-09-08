@@ -1993,6 +1993,24 @@ let microphoneStream =
 let realtimeMemoryToken =
   "";
 
+let realtimeSpeechProvider =
+  "openai";
+
+let externalSpeechQueue =
+  Promise.resolve();
+
+let externalSpeechGeneration =
+  0;
+
+let externalSpeechSource =
+  null;
+
+let externalSpeechGain =
+  null;
+
+const handledExternalSpeechResponses =
+  new Set();
+
 const handledRealtimeMemoryToolCalls =
   new Set();
 
@@ -3325,6 +3343,228 @@ function stopLipSync(
 }
 
 
+function cancelExternalSpeechPlayback(
+  resetQueue = false
+){
+
+  if(
+    resetQueue
+  ){
+
+    externalSpeechGeneration +=
+      1;
+
+
+    externalSpeechQueue =
+      Promise.resolve();
+
+
+    handledExternalSpeechResponses.clear();
+  }
+
+
+  const source =
+    externalSpeechSource;
+
+
+  externalSpeechSource =
+    null;
+
+
+  externalSpeechGain =
+    null;
+
+
+  if(
+    source
+  ){
+
+    try{
+      source.stop();
+    }catch{}
+
+
+    try{
+      source.disconnect();
+    }catch{}
+  }
+}
+
+
+async function playExternalSpeechAudio(
+  encodedAudio,
+  generation
+){
+
+  const ready =
+    await ensureLipAudioContext();
+
+
+  if(
+    !ready ||
+    generation !== externalSpeechGeneration
+  ){
+
+    return false;
+  }
+
+
+  const audioBuffer =
+    await lipAudioContext.decodeAudioData(
+      encodedAudio.slice(0)
+    );
+
+
+  if(
+    generation !== externalSpeechGeneration
+  ){
+
+    return false;
+  }
+
+
+  cancelExternalSpeechPlayback();
+
+
+  stopLipSync(
+    false
+  );
+
+
+  const source =
+    lipAudioContext.createBufferSource();
+
+
+  source.buffer =
+    audioBuffer;
+
+
+  lipSourceNode =
+    source;
+
+
+  externalSpeechSource =
+    source;
+
+
+  lipAnalyser =
+    lipAudioContext.createAnalyser();
+
+
+  lipAnalyser.fftSize =
+    1024;
+
+
+  lipAnalyser.smoothingTimeConstant =
+    0.62;
+
+
+  lipTimeData =
+    new Uint8Array(
+      lipAnalyser.fftSize
+    );
+
+
+  lipFrequencyData =
+    new Uint8Array(
+      lipAnalyser.frequencyBinCount
+    );
+
+
+  lipSilentGain =
+    lipAudioContext.createGain();
+
+
+  lipSilentGain.gain.value =
+    solVolume;
+
+
+  externalSpeechGain =
+    lipSilentGain;
+
+
+  source.connect(
+    lipAnalyser
+  );
+
+
+  lipAnalyser.connect(
+    lipSilentGain
+  );
+
+
+  lipSilentGain.connect(
+    lipAudioContext.destination
+  );
+
+
+  updateMouthGeometry();
+
+
+  lipSyncRunning =
+    true;
+
+
+  lipSyncStatus.textContent =
+    "👄 Lip-Sync aktiv.";
+
+
+  animateLipSync();
+
+
+  await routeSolAudioToSpeaker();
+
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      source.addEventListener(
+        "ended",
+        () => {
+
+          if(
+            externalSpeechSource ===
+            source
+          ){
+
+            externalSpeechSource =
+              null;
+
+
+            externalSpeechGain =
+              null;
+
+
+            stopLipSync(
+              false
+            );
+          }
+
+
+          resolve(true);
+        },
+        { once:true }
+      );
+
+
+      try{
+
+        source.start();
+
+      }catch(
+        error
+      ){
+
+        reject(error);
+      }
+    }
+  );
+}
+
+
 solImage.addEventListener(
   "load",
   () => {
@@ -3415,6 +3655,15 @@ function setSolVolume(
 
   realtimeAudio.volume =
     solVolume;
+
+
+  if(
+    externalSpeechGain
+  ){
+
+    externalSpeechGain.gain.value =
+      solVolume;
+  }
 
 
   volumeMute.classList.remove(
@@ -4294,6 +4543,14 @@ async function openFilteredMicrophone(){
 
 function stopLiveConversation(){
 
+  cancelExternalSpeechPlayback(
+    true
+  );
+
+
+  realtimeSpeechProvider =
+    "openai";
+
   realtimeMemoryToken =
     "";
 
@@ -4546,6 +4803,308 @@ function saveRealtimeAssistantTranscript(
 }
 
 
+function extractRealtimeAssistantText(
+  realtimeEvent
+){
+
+  if(
+    realtimeEvent?.type ===
+    "response.output_text.done"
+  ){
+
+    return String(
+      realtimeEvent.text ||
+      realtimeEvent.transcript ||
+      ""
+    ).trim();
+  }
+
+
+  if(
+    realtimeEvent?.type !==
+    "response.done"
+  ){
+
+    return "";
+  }
+
+
+  if(
+    realtimeEvent.response?.status &&
+    realtimeEvent.response.status !==
+      "completed"
+  ){
+
+    return "";
+  }
+
+
+  const parts = [];
+  const output =
+    Array.isArray(
+      realtimeEvent.response?.output
+    )
+      ? realtimeEvent.response.output
+      : [];
+
+
+  for(
+    const item of output
+  ){
+
+    if(
+      item?.type !== "message" ||
+      item?.role !== "assistant"
+    ){
+
+      continue;
+    }
+
+
+    const content =
+      Array.isArray(item.content)
+        ? item.content
+        : [];
+
+
+    for(
+      const part of content
+    ){
+
+      const text =
+        String(
+          part?.text ||
+          part?.transcript ||
+          ""
+        ).trim();
+
+
+      if(
+        text
+      ){
+
+        parts.push(text);
+      }
+    }
+  }
+
+
+  return parts.join(" ").trim();
+}
+
+
+function externalSpeechResponseKey(
+  realtimeEvent,
+  text
+){
+
+  const responseId =
+    String(
+      realtimeEvent?.response_id ||
+      realtimeEvent?.response?.id ||
+      realtimeEvent?.item_id ||
+      ""
+    ).trim();
+
+
+  return responseId
+    ? "response:" + responseId
+    : "text:" + text;
+}
+
+
+function queueExternalSpeech(
+  realtimeEvent
+){
+
+  if(
+    realtimeSpeechProvider !==
+    "cartesia"
+  ){
+
+    return;
+  }
+
+
+  const text =
+    extractRealtimeAssistantText(
+      realtimeEvent
+    );
+
+
+  if(
+    !text
+  ){
+
+    return;
+  }
+
+
+  const responseKey =
+    externalSpeechResponseKey(
+      realtimeEvent,
+      text
+    );
+
+
+  if(
+    handledExternalSpeechResponses.has(
+      responseKey
+    )
+  ){
+
+    return;
+  }
+
+
+  handledExternalSpeechResponses.add(
+    responseKey
+  );
+
+
+  saveRealtimeAssistantTranscript({
+    transcript:text
+  });
+
+
+  const generation =
+    externalSpeechGeneration;
+
+
+  const sessionToken =
+    realtimeMemoryToken;
+
+
+  externalSpeechQueue =
+    externalSpeechQueue
+      .then(
+        async () => {
+
+          if(
+            generation !== externalSpeechGeneration ||
+            !sessionToken ||
+            sessionToken !== realtimeMemoryToken
+          ){
+
+            return;
+          }
+
+
+          setLiveStatus(
+            "🌻 Pams Stimme wird vorbereitet ..."
+          );
+
+
+          const response =
+            await fetch(
+              `${BACKEND_URL}/voice/speak`,
+              {
+                method:"POST",
+                cache:"no-store",
+                headers:{
+                  "Content-Type":"application/json",
+                  "Authorization":`Bearer ${sessionToken}`
+                },
+                body:JSON.stringify({
+                  text
+                })
+              }
+            );
+
+
+          if(
+            !response.ok
+          ){
+
+            let message =
+              "Pams Stimme konnte gerade nicht erzeugt werden.";
+
+
+            try{
+              const data =
+                await response.json();
+              message =
+                data?.error ||
+                message;
+            }catch{}
+
+
+            throw new Error(message);
+          }
+
+
+          const encodedAudio =
+            await response.arrayBuffer();
+
+
+          if(
+            encodedAudio.byteLength === 0
+          ){
+
+            throw new Error(
+              "Pams Stimme hat keine Audiodaten geliefert."
+            );
+          }
+
+
+          if(
+            generation !== externalSpeechGeneration ||
+            sessionToken !== realtimeMemoryToken
+          ){
+
+            return;
+          }
+
+
+          setLiveStatus(
+            "🌻 Sol spricht mit Pams Stimme ..."
+          );
+
+
+          await playExternalSpeechAudio(
+            encodedAudio,
+            generation
+          );
+
+
+          if(
+            generation === externalSpeechGeneration &&
+            sessionToken === realtimeMemoryToken
+          ){
+
+            setLiveStatus(
+              "🌻 Ich höre dir zu ..."
+            );
+          }
+        }
+      )
+      .catch(
+        error => {
+
+          console.error(
+            "Persönliche Stimme:",
+            error?.message ||
+            error
+          );
+
+
+          cancelExternalSpeechPlayback();
+
+
+          if(
+            generation === externalSpeechGeneration &&
+            sessionToken === realtimeMemoryToken
+          ){
+
+            setLiveStatus(
+              "Pams Stimme ist gerade nicht verfügbar. Das Gespräch bleibt verbunden."
+            );
+          }
+        }
+      );
+}
+
+
 async function startLiveConversation(){
 
   if(
@@ -4626,6 +5185,13 @@ async function startLiveConversation(){
         tokenData?.sol_memory_token ||
         ""
       ).trim();
+
+
+    realtimeSpeechProvider =
+      tokenData?.external_speech === true &&
+      tokenData?.speech_provider === "cartesia"
+        ? "cartesia"
+        : "openai";
 
 
     if(
@@ -4794,6 +5360,14 @@ async function startLiveConversation(){
           }
 
 
+          if(
+            realtimeSpeechProvider === "cartesia" &&
+            realtimeEvent.type === "response.done"
+          ){
+            queueExternalSpeech(realtimeEvent);
+          }
+
+
 
 
           if(
@@ -4857,8 +5431,11 @@ async function startLiveConversation(){
           if(
             realtimeEvent.type ===
             "response.output_audio.done" ||
-            realtimeEvent.type ===
-            "response.done"
+            (
+              realtimeSpeechProvider !== "cartesia" &&
+              realtimeEvent.type ===
+              "response.done"
+            )
           ){
 
             setLiveStatus(

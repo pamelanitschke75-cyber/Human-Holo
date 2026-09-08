@@ -1,7 +1,9 @@
 # HUMAN HOLO – Pams eigene Stimme
 
 **Datum:** 08.09.2026  
-**Status:** Technische Realtime-Anbindung fertig; einmalige geschützte Voice-Erstellung steht noch aus.
+**Status:** OpenAI-Weg technisch vorbereitet, aber für die verwendete
+Organisation nicht freigegeben. Cartesia-Hörtest als abschaltbare Alternative
+im Code geprüft; echter Hörtest und Pams Freigabe stehen noch aus.
 
 ## Ziel
 
@@ -62,16 +64,52 @@ OpenAI-API-Projekt für Custom Voices berechtigt ist. OpenAI verlangt eine
 separate Einwilligungsaufnahme und eine Stimmprobe von jeweils höchstens
 30 Sekunden. Die vorhandenen Pam-Dateien liegen innerhalb dieser Grenze.
 
+Der praktische Versuch am 08.09.2026 wurde von der OpenAI API mit
+`Your organization does not have access to this endpoint.` abgewiesen. Das
+ist kein Fehler von Pams Einwilligungsaufnahme und keine fehlende Render-
+Passworteingabe. Ein öffentlich zugesagtes Freigabedatum für dieses konkrete
+API-Projekt liegt nicht vor; deshalb wird hier kein Termin behauptet.
+
 Offizielle Dokumentation:
 https://developers.openai.com/api/docs/guides/text-to-speech#custom-voices
+
+## Abschaltbare Alternative: Cartesia
+
+- Das bestehende OpenAI-Verhalten bleibt als Rückfallweg erhalten.
+- Cartesia wird nur verwendet, wenn ein serverseitiger `CARTESIA_API_KEY`, ein
+  verarbeitetes Trainings-Opt-out und die geklärte deutsche Kontonutzung
+  bestätigt sind, ein privates Stimmmodell erstellt wurde, Pam die Hörprobe
+  vollständig abspielen ließ und die konkrete Stimme ausdrücklich aktiviert.
+- Erstellen, Anhören und Aktivieren sind getrennte Schritte. Das Erstellen
+  allein aktiviert nichts.
+- Der Schlüssel und die Voice-ID verlassen das Backend nicht. Human Holo
+  speichert keine rohe Stimmaufnahme; während der Einrichtung wird sie jedoch
+  ausdrücklich an Cartesia übertragen. Während der Aktivierung werden die
+  jeweiligen Human-Holo-Antworttexte dort in Sprache umgewandelt.
+- M4A wird auf dem Gerät nur im Arbeitsspeicher in ein unterstütztes WAV
+  umgewandelt. Der Server akzeptiert für diesen Weg nur die von Cartesia
+  dokumentierten Dateiformate.
+- Ein Stundenlimit pro kurzlebiger Realtime-Sitzung begrenzt unbeabsichtigte
+  oder missbräuchliche kostenpflichtige Spracherzeugung.
+- Eine Deaktivierung setzt nur die Freigabe zurück; danach greift ab dem
+  nächsten Gespräch wieder der OpenAI-Stimmweg.
+
+Offizielle Dokumentation:
+
+- https://docs.cartesia.ai/api-reference/voices/clone
+- https://docs.cartesia.ai/api-reference/tts/bytes
+- https://www.cartesia.ai/legal/terms
+- https://www.cartesia.ai/legal/privacy
 
 ## Prüfung
 
 - Syntaxprüfung des Servers und des neuen Voice-Moduls: erfolgreich;
-- neue Tests für Voice-ID, Owner-Bindung, Fallback und Datenbankspeicherung:
+- neue Tests für Cartesia-Voice-ID, privaten Clone, Pflichtsprache `de`,
+  Owner-Bindung, Hörfreigabe, Textmodus, Kostenlimit und OpenAI-Fallback:
   erfolgreich;
-- vollständiger Projektbestand: **247 von 247 Tests bestanden**.
+- vollständiger Projektbestand: **257 von 257 Tests bestanden**.
 
-**Ergebnis:** Die technische Verbindung für Pams eigene Human-Holo-Stimme ist
-fertig. Nach der einmaligen geschützten Voice-Erstellung wird sie automatisch
-für Pams Realtime-Gespräche aktiv. 💜♾️✨️🌎
+**Ergebnis:** Beide technischen Wege sind nachvollziehbar vorbereitet. Es
+wurde noch keine Aufnahme an Cartesia übertragen, keine Cartesia-Stimme
+erstellt und nichts live aktiviert. Erst Pams eigener Hörtest auf dem S23
+entscheidet, ob dieser Stand für sie passt. 💜♾️✨️🌎
