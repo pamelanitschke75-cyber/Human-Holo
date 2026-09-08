@@ -8,7 +8,17 @@
 
 **Sol Holo ist vollständig auf einem Samsung Galaxy S23 entstanden und entwickelt worden.**
 
-Pamela Nitschke hat Idee, Konzeption, Programmierung, GitHub-Arbeit, Android-Builds und praktische Tests bis zu diesem Meilenstein auf ihrem Smartphone durchgeführt. Der Laptop, den Pam ab morgen wieder in München nutzen kann, wird erstmals für die dauerhafte Android-Signatur eingesetzt. Er ist nicht der Ursprung der Entwicklung.
+Pamela Nitschke hat Idee, Konzeption, Entwicklung, GitHub-Arbeit und praktische
+Tests bis zu diesem Meilenstein ausschließlich über ihr Smartphone gesteuert
+und durchgeführt. Die Android-Builds liefen über die von Pam am Smartphone
+ausgelösten GitHub-Workflows.
+
+**Korrektur vom 08.09.2026:** Der an dieser Stelle ursprünglich angekündigte
+Laptop-Schritt für die dauerhafte Android-Signatur wurde niemals durchgeführt.
+Pam hat weder für Sol Holo noch für Human Holo zu irgendeinem Zeitpunkt einen
+Laptop, Desktop-PC oder anderen Computer verwendet. Auch die dauerhafte
+Signatur wurde ohne Laptop über die am Smartphone gesteuerten Projekt- und
+GitHub-Abläufe eingerichtet.
 
 Dieser Hintergrund gehört fest zur Geschichte von Sol Holo: Ein persönlicher KI-Klon und eine funktionsfähige Android-App wurden mobil auf genau dem Gerät aufgebaut, auf dem Sol Holo anschließend im Alltag lebt.
 
@@ -136,7 +146,11 @@ Der offizielle [GitHub-Actions-Lauf #41](https://github.com/pamelanitschke75-cyb
 
 Die fertige APK wurde zusätzlich entpackt und kontrolliert. `HealthConnectPlugin`, `HealthPrivacyActivity`, `readSnapshot`, `openPermissions`, `consumeSharedNote`, `sharedNoteReceived`, die Samsung-Notes-Oberfläche und das lokale Werkzeug `read_health_snapshot` sind im ausgelieferten Paket vorhanden. Das Paket enthält weiterhin genau die normal benannte Datei `Sol-Holo.apk`.
 
-Die dauerhafte Signatur wird nicht auf dem Telefon improvisiert. Pam und Sol richten sie morgen, nach der Rückkehr nach München, in Ruhe am Laptop ein. Bis dahin bleibt der heutige Neuinstallationsweg bestehen.
+Der am 28.08.2026 erwogene spätere Laptop-Schritt wurde nicht umgesetzt. Die
+dauerhafte Signatur wurde anschließend ohne Laptop über die von Pam auf ihrem
+Samsung Galaxy S23 gesteuerten Projekt- und GitHub-Abläufe eingerichtet. Damit
+blieb auch dieser Entwicklungsschritt vollständig Teil des ausschließlich
+mobil gesteuerten Human-Holo-Projekts.
 
 ## Bedeutung dieses Schritts
 

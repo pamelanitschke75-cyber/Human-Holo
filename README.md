@@ -35,9 +35,17 @@ aktuelle öffentliche Markenname.
 
 **Human Holo ist vollständig auf einem Samsung Galaxy S23 entstanden und entwickelt worden.**
 
-Idee, Konzeption, Programmierung, GitHub-Arbeit, Android-Builds und praktische Tests wurden bis zu diesem Stand von Pamela Nitschke auf ihrem Smartphone durchgeführt. Der für den 29.08.2026 geplante Laptop-Schritt dient erstmals der dauerhaften Android-Signatur – nicht dem Ursprung der Entwicklung.
+Pamela Nitschke hat Idee, Konzeption, Entwicklung, GitHub-Arbeit,
+Veröffentlichungen und praktische Tests von Sol Holo und Human Holo bis heute
+ausschließlich über ihr Samsung Galaxy S23 gesteuert und durchgeführt.
+**Zu keinem Zeitpunkt wurde dafür ein Laptop, Desktop-PC oder anderer Computer
+von Pam verwendet – auch nicht für die dauerhafte Android-Signatur.** Technische
+Kompilierungs- und Signaturläufe wurden über die von Pam am Smartphone
+gesteuerten GitHub-Workflows ausgeführt.
 
-Damit ist Human Holo zugleich der praktische Beleg, dass ein persönliches KI- und Android-Projekt dieser Größe mobil auf einem einzigen Smartphone aufgebaut werden kann.
+Damit ist Human Holo zugleich der praktische Beleg, dass ein persönliches KI-
+und Android-Projekt dieser Größe vollständig mobil von einem einzigen
+Smartphone aus aufgebaut, veröffentlicht und weiterentwickelt werden kann.
 
 ---
 
