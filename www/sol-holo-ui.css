@@ -2773,24 +2773,24 @@ body.voice-open #onboardingScreen{
   position:relative;
   z-index:4;
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:7px;
-  margin-top:24px;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
 }
 
 .humanHoloAreaCard{
   --area-color:#80c9ff;
-  display:flex;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
   align-items:center;
-  justify-content:flex-start;
-  flex-direction:column;
+  column-gap:10px;
   min-width:0;
-  min-height:78px;
-  padding:7px 2px 6px;
+  min-height:68px;
+  padding:8px 12px;
   border:1px solid rgba(210,231,255,.68);
   border-radius:20px;
   color:#fff;
-  text-align:center;
+  text-align:left;
   background:
     radial-gradient(circle at 35% 18%,rgba(255,255,255,.21),transparent 30%),
     linear-gradient(145deg,rgba(119,144,242,.3),rgba(40,29,124,.37));
@@ -2820,7 +2820,7 @@ body.voice-open #onboardingScreen{
   place-items:center;
   width:42px;
   height:42px;
-  margin-bottom:2px;
+  margin:0;
   color:var(--area-color);
   filter:drop-shadow(0 0 6px currentColor);
 }
@@ -2838,9 +2838,9 @@ body.voice-open #onboardingScreen{
 .humanHoloAreaCard>span:last-child{
   display:block;
   overflow-wrap:anywhere;
-  font-size:clamp(8.5px,2.65vw,11px);
-  font-weight:520;
-  line-height:1.05;
+  font-size:clamp(12px,3.5vw,15px);
+  font-weight:620;
+  line-height:1.12;
   text-shadow:0 1px 5px rgba(0,0,30,.8);
 }
 
@@ -2964,8 +2964,8 @@ body.voice-open #onboardingScreen{
 }
 
 @media(max-width:360px){
-  .humanHoloAreaGrid{gap:5px}
-  .humanHoloAreaCard{min-height:74px;border-radius:17px}
+  .humanHoloAreaGrid{gap:6px;margin-top:8px}
+  .humanHoloAreaCard{grid-template-columns:40px minmax(0,1fr);column-gap:7px;min-height:64px;padding:7px 9px;border-radius:17px}
   .humanHoloAreaIcon{width:38px;height:38px}
   .humanHoloAreaIcon svg{width:31px;height:31px}
   .humanHoloComposer{grid-template-columns:48px minmax(0,1fr) 48px;gap:6px}
@@ -2978,9 +2978,11 @@ body.voice-open #onboardingScreen{
   .humanHoloBrandInfinity{display:none}
   .humanHoloWelcomeTitle{font-size:24px}
   .humanHoloHero{height:210px}
-  .humanHoloAreaCard{min-height:70px}
+  .humanHoloAreaGrid{gap:6px;margin-top:7px}
+  .humanHoloAreaCard{grid-template-columns:37px minmax(0,1fr);column-gap:6px;min-height:58px;padding:5px 8px}
   .humanHoloAreaIcon{width:35px;height:35px}
   .humanHoloAreaIcon svg{width:29px;height:29px}
+  .humanHoloAreaCard>span:last-child{font-size:clamp(10.5px,3.2vw,13px)}
   .humanHoloHomeFooter{min-height:26px;margin-top:8px;padding-bottom:5px}
 }
 

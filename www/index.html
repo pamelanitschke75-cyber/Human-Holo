@@ -1774,9 +1774,9 @@ MOBIL
 </style>
 <link rel="stylesheet" href="./sol-holo-ui.css?v=45">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
-<link rel="stylesheet" href="./sol-holo-chat-115.css?v=2">
+<link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
-<link rel="stylesheet" href="./human-holo-theme.css?v=6">
+<link rel="stylesheet" href="./human-holo-theme.css?v=7">
 </head>
 
 <body>
@@ -1948,6 +1948,13 @@ Du kannst noch etwas dazu schreiben oder es direkt senden.
   type="file"
   accept="image/*,video/*"
 >
+
+<button
+  id="chatGalleryButton"
+  type="button"
+  aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen">
+🖼️
+</button>
 
 <div id="liveStatus" role="status" aria-live="polite"></div>
 
@@ -2397,6 +2404,11 @@ const memoryButton =
 const mediaLibraryButton =
   document.getElementById(
     "mediaLibraryButton"
+  );
+
+const chatGalleryButton =
+  document.getElementById(
+    "chatGalleryButton"
   );
 
 const liveButton =
@@ -4052,17 +4064,26 @@ imageButton.addEventListener(
 );
 
 
+function openMediaLibrary(){
+
+  drawer.classList.remove(
+    "open"
+  );
+
+
+  mediaLibraryInput.click();
+}
+
+
 mediaLibraryButton.addEventListener(
   "click",
-  () => {
-
-    drawer.classList.remove(
-      "open"
-    );
+  openMediaLibrary
+);
 
 
-    mediaLibraryInput.click();
-  }
+chatGalleryButton.addEventListener(
+  "click",
+  openMediaLibrary
 );
 
 
@@ -12606,7 +12627,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=60"></script>
+<script src="./sol-holo-ui.js?v=61"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=2"></script>

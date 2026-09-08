@@ -30,6 +30,13 @@ const coreCss = readFileSync(
   ),
   "utf8"
 );
+const chatCss = readFileSync(
+  new URL(
+    "../www/sol-holo-chat-115.css",
+    import.meta.url
+  ),
+  "utf8"
+);
 
 const elementBlock = id =>
   html.match(
@@ -86,7 +93,7 @@ test(
 
 
 test(
-  "vorhandene Fotos und Videos bleiben getrennt im Menü auswählbar",
+  "vorhandene Fotos und Videos bleiben im Menü und direkt im Chat auswählbar",
   () => {
 
     assert.match(
@@ -109,44 +116,61 @@ test(
 
     assert.match(
       html,
-      /mediaLibraryButton\.addEventListener\([\s\S]*?drawer\.classList\.remove\([\s\S]*?"open"[\s\S]*?mediaLibraryInput\.click\(\)/u
+      /function openMediaLibrary\(\)\{[\s\S]*?drawer\.classList\.remove\([\s\S]*?"open"[\s\S]*?mediaLibraryInput\.click\(\)/u
+    );
+
+    assert.match(
+      html,
+      /mediaLibraryButton\.addEventListener\([\s\S]*?"click"[\s\S]*?openMediaLibrary[\s\S]*?\)/u
+    );
+
+    assert.match(
+      html,
+      /chatGalleryButton\.addEventListener\([\s\S]*?"click"[\s\S]*?openMediaLibrary[\s\S]*?\)/u
     );
   }
 );
 
 
 test(
-  "Startseite bietet Sofortkamera und Galerie getrennt an, ohne Kamera oder Mikrofon zu verschieben",
+  "Galerie sitzt im Chat genau zwischen Kamera und Mikrofon und nicht auf der Startseite",
   () => {
+    const homeMarkup = ui.match(
+      /humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u
+    )?.[1] || "";
 
     assert.match(
-      ui,
-      /id="homeCameraButton"[\s\S]*?aria-label="Sofort ein Foto aufnehmen"/u
+      html,
+      /id="chatGalleryButton"[\s\S]*?aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen"/u
+    );
+
+    assert.equal(
+      (html.match(/id="chatGalleryButton"/gu) || []).length,
+      1
     );
 
     assert.match(
-      ui,
-      /id="homeGalleryButton"[\s\S]*?aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen"/u
+      chatCss,
+      /grid-template-areas:[\s\S]*?"\. camera gallery microphone \."[\s\S]*?"composer composer composer composer composer"/u
     );
 
-    assert.match(
-      ui,
-      /homeCameraButton"\)\.addEventListener\("click", \(\) => \{[\s\S]*?showView\("chat"\);[\s\S]*?imageButton"\)\?\.click\(\)/u
-    );
+    assert.match(chatCss, /#imageButton\{[\s\S]*?grid-area:camera/u);
+    assert.match(chatCss, /#chatGalleryButton\{[\s\S]*?grid-area:gallery/u);
+    assert.match(chatCss, /#liveButton\{[\s\S]*?grid-area:microphone/u);
 
-    assert.match(
-      ui,
-      /homeGalleryButton"\)\.addEventListener\("click", \(\) => \{[\s\S]*?showView\("chat"\);[\s\S]*?mediaLibraryButton"\)\?\.click\(\)/u
-    );
-
-    assert.match(
-      theme,
-      /#homeView \.humanHoloGalleryButton\{[\s\S]*?flex:0 0 38px/u
+    assert.doesNotMatch(
+      homeMarkup,
+      /id="homeComposer"|id="homeCameraButton"|id="homeGalleryButton"|id="homeMicButton"/u
     );
 
     assert.match(
       coreCss,
-      /\.humanHoloComposer\{[\s\S]*?grid-template-columns:52px minmax\(0,1fr\) 52px/u
+      /\.humanHoloAreaGrid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u
+    );
+
+    assert.match(
+      theme,
+      /#homeView \.humanHoloAreaGrid\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u
     );
   }
 );

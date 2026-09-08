@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-213-gallery-layout-memory";
+const CACHE_VERSION = "human-holo-214-chat-gallery-home-grid";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

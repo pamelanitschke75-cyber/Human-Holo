@@ -199,27 +199,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </button>
     </div>
 
-    <form id="homeComposer" class="humanHoloComposer">
-      <button id="homeCameraButton" class="humanHoloComposerButton" type="button"
-        aria-label="Sofort ein Foto aufnehmen">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l1.5-2h5L16 7h4v12H4Z"/><circle cx="12" cy="13" r="4"/></svg>
-      </button>
-      <div class="humanHoloMessageField">
-        <button id="homeGalleryButton" class="humanHoloGalleryButton" type="button"
-          aria-label="Vorhandenes Foto oder Video aus der Galerie auswählen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m5 18 5-5 3.5 3.5 2.5-2.5 3 3"/></svg>
-        </button>
-        <label class="srOnly" for="homeMessageInput">Nachricht an Pam’s Holo</label>
-        <input id="homeMessageInput" type="text" autocomplete="off"
-          placeholder="Sag oder schreib mir, wobei ich helfen kann … ♡">
-        <button id="homeSendButton" class="srOnly" type="submit">Nachricht senden</button>
-      </div>
-      <button id="homeMicButton" class="humanHoloComposerButton" type="button"
-        aria-label="Sprachgespräch starten">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7"/></svg>
-      </button>
-    </form>
-
     <footer class="humanHoloHomeFooter">
       <span class="humanHoloFooterInfinity" aria-hidden="true">∞</span>
       <span id="todayCardMeta" class="srOnly">Dein Überblick</span>
@@ -5032,16 +5011,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     showToast("Das HUMAN-HOLO-Bild ist wieder aktiv.");
   });
 
-  document.getElementById("homeComposer").addEventListener("submit", (event) => {
-    event.preventDefault();
-    const homeInput = document.getElementById("homeMessageInput");
-    const text = homeInput.value.trim();
-    if (text) {
-      homeInput.value = "";
-      void askSol(text);
-    }
-  });
-
   noteComposer.addEventListener("submit", (event) => {
     event.preventDefault();
     const result = createPersonalNote(noteTextInput.value, {
@@ -5109,20 +5078,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   document.getElementById("notesVoiceButton").addEventListener("click", () => {
     void startSolVoice();
-  });
-
-  document.getElementById("homeMicButton").addEventListener("click", () => {
-    void startSolVoice();
-  });
-
-  document.getElementById("homeCameraButton").addEventListener("click", () => {
-    showView("chat");
-    document.getElementById("imageButton")?.click();
-  });
-
-  document.getElementById("homeGalleryButton").addEventListener("click", () => {
-    showView("chat");
-    document.getElementById("mediaLibraryButton")?.click();
   });
 
   document.getElementById("homeOrbButton").addEventListener("click", () => {

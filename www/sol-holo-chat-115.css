@@ -90,7 +90,7 @@ body{
     var(--sol-composer-side-button)
     minmax(0,1fr);
   grid-template-areas:
-    ". camera . microphone ."
+    ". camera gallery microphone ."
     "composer composer composer composer composer";
   grid-template-rows:var(--sol-composer-side-button) auto;
   align-items:center;
@@ -163,11 +163,15 @@ body{
 }
 
 #app:not(.voice-mode) #chatView #imageButton,
+#app:not(.voice-mode) #chatView #chatGalleryButton,
 #app:not(.voice-mode) #chatView #liveButton{
+  display:grid;
+  place-items:center;
   width:var(--sol-composer-side-button);
   height:var(--sol-composer-side-button);
   min-height:var(--sol-composer-side-button);
   margin:0;
+  padding:0;
   align-self:center;
   justify-self:center;
   border:1px solid rgba(152,103,244,.30);
@@ -181,6 +185,7 @@ body{
   color:#eee9ff;
   font-size:14px;
   line-height:1;
+  cursor:pointer;
   box-shadow:
     0 0 13px rgba(91,73,225,.13),
     inset 0 1px 0 rgba(255,255,255,.08);
@@ -188,6 +193,11 @@ body{
 
 #app:not(.voice-mode) #chatView #imageButton{
   grid-area:camera;
+  justify-self:center;
+}
+
+#app:not(.voice-mode) #chatView #chatGalleryButton{
+  grid-area:gallery;
   justify-self:center;
 }
 

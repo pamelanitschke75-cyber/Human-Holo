@@ -43,7 +43,7 @@ test("Build #115 bewahrt die entfernte Punkte- und Spruchzeile", () => {
 });
 
 test("Build #115 bietet ein automatisch wachsendes Schreibfeld", () => {
-  assert.match(html, /sol-holo-chat-115\.css\?v=2/u);
+  assert.match(html, /sol-holo-chat-115\.css\?v=3/u);
   assert.match(html, /id="messageInput"[\s\S]*?rows="1"/u);
   assert.match(html, /autocapitalize="sentences"/u);
   assert.match(html, /spellcheck="true"/u);
@@ -57,14 +57,19 @@ test("Build #115 bietet ein automatisch wachsendes Schreibfeld", () => {
   );
 });
 
-test("Chat setzt Kamera und Mikrofon klein, getrennt und oberhalb des Schreibfelds", () => {
+test("Chat setzt Kamera, Galerie und Mikrofon klein und oberhalb des Schreibfelds", () => {
   assert.match(
     css,
-    /grid-template-areas:[\s\S]*?"\. camera \. microphone \."[\s\S]*?"composer composer composer composer composer"/u
+    /grid-template-areas:[\s\S]*?"\. camera gallery microphone \."[\s\S]*?"composer composer composer composer composer"/u
   );
   assert.match(css, /--sol-composer-side-button:32px/u);
   assert.match(css, /#imageButton\{[\s\S]*?grid-area:camera/u);
+  assert.match(css, /#chatGalleryButton\{[\s\S]*?grid-area:gallery/u);
   assert.match(css, /#liveButton\{[\s\S]*?grid-area:microphone/u);
+  assert.match(
+    html,
+    /id="imageButton"[\s\S]*?id="chatGalleryButton"[\s\S]*?id="liveButton"/u
+  );
   assert.match(
     css,
     /#speakerIdentityChooser\[hidden\][\s\S]*?display:none!important/u

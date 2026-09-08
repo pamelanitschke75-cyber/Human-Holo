@@ -29,6 +29,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   const css = readText("www/sol-holo-ui.css");
   const theme = readText("www/human-holo-theme.css");
   const appLock = readText("www/app-lock-bootstrap.mjs");
+  const renderedHome = ui.match(
+    /humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u
+  )?.[1] ?? "";
 
   assert.match(html, /<title>Human Holo<\/title>/u);
   assert.match(html, /human-holo-logo\.png/u);
@@ -37,7 +40,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=60/u);
+  assert.match(html, /sol-holo-ui\.js\?v=61/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -51,20 +54,23 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /class="humanHoloWelcomeTitle">Hallo Pam♡<\/h2>/u);
   assert.match(ui, /homeTitle\.textContent = displayName \? `Hallo \$\{displayName\}♡` : "Hallo♡"/u);
   assert.doesNotMatch(`${html}\n${ui}`, /pamUnicorn--home/u);
-  assert.match(ui, /id="homeCameraButton"/u);
-  assert.match(ui, /document\.getElementById\("imageButton"\)\?\.click\(\)/u);
+  assert.doesNotMatch(
+    renderedHome,
+    /id="homeComposer"|id="homeCameraButton"|id="homeGalleryButton"|id="homeMicButton"/u
+  );
   assert.match(css, /#homeView\.humanHoloHome\{/u);
-  assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
-  assert.match(html, /human-holo-theme\.css\?v=6/u);
+  assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(html, /human-holo-theme\.css\?v=7/u);
   assert.ok(
-    html.indexOf("human-holo-theme.css?v=6") >
+    html.indexOf("human-holo-theme.css?v=7") >
       html.indexOf("sol-holo-backup.css?v=2")
   );
   assert.match(ui, /<img src="human-holo-home-hero\.png"/u);
   assert.match(theme, /\.humanHoloHero>img\{[\s\S]*height:100%[\s\S]*object-fit:cover/u);
   assert.match(theme, /transform:translate\(-50%,-50%\)/u);
+  assert.match(theme, /#homeView \.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
   assert.match(theme, /#homeView \.humanHoloAreaCard\{[\s\S]*backdrop-filter:blur\(21px\) saturate\(1\.34\)/u);
-  assert.match(theme, /#homeView \.humanHoloMessageField,[\s\S]*#homeView \.humanHoloComposerButton\{/u);
+  assert.match(theme, /#homeView \.humanHoloAreaCard\{[\s\S]*grid-template-columns:44px minmax\(0,1fr\)/u);
   assert.match(theme, /#app\[data-active-view="home"\] #bottomNav\{/u);
   assert.match(theme, /#app\[data-active-view="home"\]\{[\s\S]*?padding-bottom:0/u);
   assert.match(ui, /manageMemoriesButton\.replaceChildren\([\s\S]*?"Erinnerungen mit Human Holo ansehen "/u);
