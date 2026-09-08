@@ -274,6 +274,7 @@ manifest = manifest.replace(
 );
 
 for (const permission of [
+  '<uses-permission android:name="android.permission.CAMERA" />',
   '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
   '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
   '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
@@ -332,6 +333,25 @@ for (const permission of [
       manifestMarker + "\n    " + permission
     );
   }
+}
+
+if (!manifest.includes('android:name="android.hardware.camera.any"')) {
+  const applicationMarker = "    <application";
+  if (!manifest.includes(applicationMarker)) {
+    throw new Error("Application-Tag für die optionale Kamera nicht gefunden.");
+  }
+
+  const optionalCameraFeature = [
+    "    <uses-feature",
+    '        android:name="android.hardware.camera.any"',
+    '        android:required="false" />',
+    ""
+  ].join("\n");
+
+  manifest = manifest.replace(
+    applicationMarker,
+    optionalCameraFeature + "\n" + applicationMarker
+  );
 }
 
 if (!manifest.includes("android.intent.action.TTS_SERVICE")) {
@@ -554,5 +574,5 @@ if (!manifest.includes(".HealthPrivacyActivity")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
 );

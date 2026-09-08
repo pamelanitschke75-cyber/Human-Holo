@@ -1157,6 +1157,188 @@ VOLLBILD-SPRACHMODUS
   text-align:center;
 }
 
+#liveCameraButton{
+  display:none;
+
+  position:absolute;
+
+  z-index:226;
+
+  right:16px;
+  bottom:
+    calc(82px + env(safe-area-inset-bottom));
+
+  min-width:132px;
+  min-height:46px;
+
+  padding:10px 14px;
+
+  border-radius:23px;
+
+  border:
+    1px solid rgba(111,224,255,.72);
+
+  background:
+    rgba(8,11,28,.86);
+
+  color:white;
+
+  font-size:14px;
+  font-weight:700;
+
+  cursor:pointer;
+
+  backdrop-filter:
+    blur(12px);
+
+  box-shadow:
+    0 0 18px rgba(67,200,255,.20);
+}
+
+#liveCameraButton.active{
+  border-color:#ff7189;
+  background:
+    rgba(61,7,24,.90);
+  box-shadow:
+    0 0 20px rgba(255,64,104,.28);
+}
+
+#liveCameraButton:disabled{
+  opacity:.55;
+}
+
+#liveCameraPanel{
+  position:absolute;
+
+  z-index:224;
+
+  top:
+    calc(92px + env(safe-area-inset-top));
+
+  right:14px;
+
+  width:
+    min(43vw,220px);
+
+  overflow:hidden;
+
+  border:
+    1px solid rgba(111,224,255,.72);
+
+  border-radius:20px;
+
+  background:#03040b;
+
+  box-shadow:
+    0 0 26px rgba(67,200,255,.22),
+    0 0 42px rgba(139,69,255,.18);
+}
+
+#liveCameraPanel[hidden]{
+  display:none!important;
+}
+
+#liveCameraPreview{
+  display:block;
+
+  width:100%;
+  aspect-ratio:3/4;
+
+  object-fit:cover;
+
+  background:#000;
+}
+
+#liveCameraPanel.user-facing #liveCameraPreview{
+  transform:scaleX(-1);
+}
+
+#liveCameraBadge{
+  position:absolute;
+
+  top:9px;
+  left:9px;
+
+  padding:5px 8px;
+
+  border-radius:14px;
+
+  background:
+    rgba(5,3,12,.82);
+
+  color:white;
+
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.05em;
+}
+
+#liveCameraBadge::before{
+  content:"";
+
+  display:inline-block;
+
+  width:7px;
+  height:7px;
+
+  margin-right:5px;
+
+  border-radius:50%;
+
+  background:#ff496a;
+
+  box-shadow:
+    0 0 9px rgba(255,73,106,.92);
+}
+
+#switchLiveCameraButton{
+  position:absolute;
+
+  right:9px;
+  bottom:9px;
+
+  min-width:44px;
+  min-height:44px;
+
+  padding:8px 10px;
+
+  border:
+    1px solid rgba(190,139,255,.72);
+
+  border-radius:22px;
+
+  background:
+    rgba(7,4,18,.84);
+
+  color:white;
+
+  font-size:18px;
+
+  cursor:pointer;
+}
+
+#liveCameraStatus{
+  position:absolute;
+
+  left:9px;
+  right:60px;
+  bottom:9px;
+
+  min-height:28px;
+
+  padding:6px 8px;
+
+  border-radius:14px;
+
+  background:
+    rgba(5,3,12,.82);
+
+  color:#e8e4f3;
+
+  font-size:10px;
+  line-height:1.25;
+}
+
 #app.voice-mode{
   position:fixed;
 
@@ -1277,8 +1459,23 @@ VOLLBILD-SPRACHMODUS
 
 #app.voice-mode #voiceExitButton,
 #app.voice-mode #voiceModeTitle,
-#app.voice-mode #voiceStatus{
+#app.voice-mode #voiceStatus,
+#app.voice-mode #liveCameraButton{
   display:block;
+}
+
+@media(max-width:360px){
+  #liveCameraPanel{
+    width:min(40vw,170px);
+  }
+
+  #liveCameraButton{
+    right:10px;
+    min-width:120px;
+    padding-left:11px;
+    padding-right:11px;
+    font-size:13px;
+  }
 }
 
 /*
@@ -1810,6 +2007,49 @@ Pam’s Holo verbindet sich ...
 </div>
 
 
+<button
+  id="liveCameraButton"
+  type="button"
+  aria-pressed="false"
+  aria-controls="liveCameraPanel">
+📷 Live-Bild starten
+</button>
+
+
+<div
+  id="liveCameraPanel"
+  aria-label="Aktuelle Kameravorschau für Pam’s Holo"
+  hidden>
+
+<video
+  id="liveCameraPreview"
+  autoplay
+  muted
+  playsinline
+  aria-label="Live-Kameravorschau">
+</video>
+
+<div id="liveCameraBadge">
+LIVE AN HOLO
+</div>
+
+<div
+  id="liveCameraStatus"
+  role="status"
+  aria-live="polite">
+Rückkamera wird vorbereitet …
+</div>
+
+<button
+  id="switchLiveCameraButton"
+  type="button"
+  aria-label="Zwischen Front- und Rückkamera wechseln">
+↻
+</button>
+
+</div>
+
+
 <div id="statusCard">
 
 <div class="stageCardTitle">
@@ -2147,6 +2387,23 @@ const liveStatus =
 
 const voiceStatus =
   document.getElementById("voiceStatus");
+
+const liveCameraButton =
+  document.getElementById("liveCameraButton");
+
+const liveCameraPanel =
+  document.getElementById("liveCameraPanel");
+
+const liveCameraPreview =
+  document.getElementById("liveCameraPreview");
+
+const liveCameraStatus =
+  document.getElementById("liveCameraStatus");
+
+const switchLiveCameraButton =
+  document.getElementById(
+    "switchLiveCameraButton"
+  );
 
 
 /*
@@ -2951,6 +3208,39 @@ let liveConnectionAttempt =
   0;
 let microphoneStream =
   null;
+
+const LIVE_CAMERA_FRAME_INTERVAL_MS =
+  6000;
+
+const LIVE_CAMERA_MAX_EDGE_PX =
+  768;
+
+const LIVE_CAMERA_MAX_DATA_URL_CHARS =
+  180000;
+
+let liveCameraStream =
+  null;
+
+let liveCameraTimer =
+  null;
+
+let liveCameraFacingMode =
+  "environment";
+
+let liveCameraFrameSequence =
+  0;
+
+let liveCameraLastSentAt =
+  0;
+
+let liveCameraAnnouncedChannel =
+  null;
+
+let liveCameraStarting =
+  false;
+
+let liveCameraGeneration =
+  0;
 
 let externalConversationReturn = {
   action:"",
@@ -9390,6 +9680,12 @@ async function handleRealtimeUserTranscript(
   fulltimeEventId = ""
 ){
 
+  await sendCurrentLiveCameraFrame({
+    force:true,
+    reason:"voice_turn"
+  });
+
+
   const localHandled =
     await handleRealtimeLocalNoteTranscript(
       transcript
@@ -9413,6 +9709,1075 @@ async function handleRealtimeUserTranscript(
     requestRealtimeResponse();
   }
 }
+
+
+/*
+==========================================================
+LIVE-KAMERA → REALTIME-BILDER
+==========================================================
+*/
+
+function liveCameraIsActive(){
+
+  return Boolean(
+    liveCameraStream
+      ?.getVideoTracks()
+      ?.some(
+        track =>
+          track.readyState ===
+            "live"
+      )
+  );
+}
+
+
+function liveCameraFacingLabel(){
+
+  return liveCameraFacingMode ===
+    "user"
+    ? "Frontkamera"
+    : "Rückkamera";
+}
+
+
+function renderLiveCameraUi(
+  active,
+  status = ""
+){
+
+  const isActive =
+    active === true;
+
+
+  liveCameraPanel.hidden =
+    !isActive &&
+    !liveCameraStarting;
+
+
+  liveCameraPanel.classList.toggle(
+    "user-facing",
+    liveCameraFacingMode ===
+      "user"
+  );
+
+
+  liveCameraButton.classList.toggle(
+    "active",
+    isActive
+  );
+
+
+  liveCameraButton.setAttribute(
+    "aria-pressed",
+    isActive
+      ? "true"
+      : "false"
+  );
+
+
+  liveCameraButton.textContent =
+    liveCameraStarting
+      ? "📷 Kamera startet …"
+      : isActive
+        ? "■ Live-Bild stoppen"
+        : "📷 Live-Bild starten";
+
+
+  liveCameraButton.disabled =
+    liveCameraStarting;
+
+
+  switchLiveCameraButton.disabled =
+    liveCameraStarting;
+
+
+  if(
+    status
+  ){
+
+    liveCameraStatus.textContent =
+      status;
+
+  }else if(
+    isActive
+  ){
+
+    liveCameraStatus.textContent =
+      `${liveCameraFacingLabel()} · Bilder werden nur während dieses Live-Modus gesendet.`;
+  }
+}
+
+
+function sendLiveCameraMarker(
+  channel,
+  marker
+){
+
+  if(
+    !channel ||
+    channel.readyState !==
+      "open"
+  ){
+
+    return false;
+  }
+
+
+  try{
+
+    channel.send(
+      JSON.stringify({
+        type:
+          "conversation.item.create",
+        item:{
+          type:
+            "message",
+          role:
+            "user",
+          content:[{
+            type:
+              "input_text",
+            text:
+              marker
+          }]
+        }
+      })
+    );
+
+
+    return true;
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Live-Kamera-Markierung:",
+      error
+    );
+
+
+    return false;
+  }
+}
+
+
+function announceLiveCameraToRealtime(
+  channel = dc
+){
+
+  if(
+    !liveCameraIsActive() ||
+    !channel ||
+    channel.readyState !==
+      "open" ||
+    liveCameraAnnouncedChannel ===
+      channel
+  ){
+
+    return false;
+  }
+
+
+  const announced =
+    sendLiveCameraMarker(
+      channel,
+      "[LIVE_KAMERA_START] Pam hat die Live-Kamera jetzt ausdrücklich eingeschaltet. Die folgenden Bilder sind zeitlich geordnete aktuelle Kamerablicke. Nutze jeweils das neueste Bild als visuellen Kontext für Pams nächsten gesprochenen Beitrag. Antworte nicht allein wegen eines Kamerabildes und behandle die Einzelbilder nicht als lückenloses Video."
+    );
+
+
+  if(
+    announced
+  ){
+
+    liveCameraAnnouncedChannel =
+      channel;
+  }
+
+
+  return announced;
+}
+
+
+function captureCurrentLiveCameraImage(
+  maximumDataUrlLength =
+    LIVE_CAMERA_MAX_DATA_URL_CHARS
+){
+
+  if(
+    !liveCameraIsActive() ||
+    liveCameraPreview.readyState <
+      HTMLMediaElement.HAVE_CURRENT_DATA ||
+    !liveCameraPreview.videoWidth ||
+    !liveCameraPreview.videoHeight
+  ){
+
+    return "";
+  }
+
+
+  const sourceWidth =
+    liveCameraPreview.videoWidth;
+
+  const sourceHeight =
+    liveCameraPreview.videoHeight;
+
+  const scale =
+    Math.min(
+      1,
+      LIVE_CAMERA_MAX_EDGE_PX /
+        Math.max(
+          sourceWidth,
+          sourceHeight
+        )
+    );
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+  let targetWidth =
+    Math.max(
+      1,
+      Math.round(
+        sourceWidth *
+        scale
+      )
+    );
+
+  let targetHeight =
+    Math.max(
+      1,
+      Math.round(
+        sourceHeight *
+        scale
+      )
+    );
+
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        alpha:false,
+        desynchronized:true
+      }
+    );
+
+
+  if(
+    !context
+  ){
+
+    return "";
+  }
+
+
+  let latestDataUrl =
+    "";
+
+
+  for(
+    let sizeAttempt = 0;
+    sizeAttempt < 4;
+    sizeAttempt += 1
+  ){
+
+    canvas.width =
+      targetWidth;
+
+    canvas.height =
+      targetHeight;
+
+
+    context.drawImage(
+      liveCameraPreview,
+      0,
+      0,
+      targetWidth,
+      targetHeight
+    );
+
+
+    for(
+      const quality of [
+        0.72,
+        0.60,
+        0.48
+      ]
+    ){
+
+      latestDataUrl =
+        canvas.toDataURL(
+          "image/jpeg",
+          quality
+        );
+
+
+      if(
+        latestDataUrl.length <=
+          maximumDataUrlLength
+      ){
+
+        return latestDataUrl;
+      }
+    }
+
+
+    targetWidth =
+      Math.max(
+        160,
+        Math.round(
+          targetWidth *
+          0.78
+        )
+      );
+
+    targetHeight =
+      Math.max(
+        160,
+        Math.round(
+          targetHeight *
+          0.78
+        )
+      );
+  }
+
+
+  return latestDataUrl.length <=
+    maximumDataUrlLength
+    ? latestDataUrl
+    : "";
+}
+
+
+async function sendCurrentLiveCameraFrame({
+  force = false,
+  reason = "interval"
+} = {}){
+
+  if(
+    !liveCameraIsActive() ||
+    !dc ||
+    dc.readyState !==
+      "open"
+  ){
+
+    return false;
+  }
+
+
+  const now =
+    Date.now();
+
+
+  if(
+    !force &&
+    now -
+      liveCameraLastSentAt <
+      LIVE_CAMERA_FRAME_INTERVAL_MS -
+        250
+  ){
+
+    return false;
+  }
+
+
+  if(
+    !force &&
+    Number(dc.bufferedAmount || 0) >
+      750000
+  ){
+
+    return false;
+  }
+
+
+  const negotiatedMessageSize =
+    Number(
+      pc?.sctp?.maxMessageSize ||
+      0
+    );
+
+  const maximumDataUrlLength =
+    negotiatedMessageSize >
+      0
+      ? Math.min(
+          LIVE_CAMERA_MAX_DATA_URL_CHARS,
+          Math.max(
+            4000,
+            negotiatedMessageSize -
+              8000
+          )
+        )
+      : LIVE_CAMERA_MAX_DATA_URL_CHARS;
+
+  const imageDataUrl =
+    captureCurrentLiveCameraImage(
+      maximumDataUrlLength
+    );
+
+
+  if(
+    !imageDataUrl
+  ){
+
+    return false;
+  }
+
+
+  announceLiveCameraToRealtime(
+    dc
+  );
+
+
+  const sequence =
+    liveCameraFrameSequence +
+    1;
+
+  const frameText =
+    reason ===
+      "voice_turn"
+      ? `[LIVE_KAMERABILD ${sequence}] Dieses aktuelle Bild gehört als visueller Kontext zu Pams unmittelbar vorausgehendem gesprochenen Beitrag. Beantworte den Sprachbeitrag mithilfe dieses Bildes. Das Bild allein verlangt keine zusätzliche Antwort.`
+      : `[LIVE_KAMERABILD ${sequence}] Aktueller Kamerablick aus dem von Pam ausdrücklich gestarteten Live-Modus. Nutze ihn als visuellen Kontext für den nächsten gesprochenen Beitrag. Antworte jetzt nicht allein auf dieses Bild.`;
+
+
+  try{
+
+    dc.send(
+      JSON.stringify({
+        type:
+          "conversation.item.create",
+        item:{
+          type:
+            "message",
+          role:
+            "user",
+          content:[
+            {
+              type:
+                "input_text",
+              text:
+                frameText
+            },
+            {
+              type:
+                "input_image",
+              image_url:
+                imageDataUrl
+            }
+          ]
+        }
+      })
+    );
+
+
+    liveCameraFrameSequence =
+      sequence;
+
+    liveCameraLastSentAt =
+      now;
+
+
+    liveCameraStatus.textContent =
+      `${liveCameraFacingLabel()} · aktuelles Bild ${sequence} an Pam’s Holo gesendet.`;
+
+
+    return true;
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Live-Kamerabild:",
+      error
+    );
+
+
+    liveCameraStatus.textContent =
+      "Das aktuelle Bild konnte gerade nicht gesendet werden.";
+
+
+    return false;
+  }
+}
+
+
+function waitForLiveCameraPreview(
+  generation
+){
+
+  if(
+    liveCameraPreview.readyState >=
+      HTMLMediaElement.HAVE_METADATA
+  ){
+
+    return Promise.resolve();
+  }
+
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      let settled =
+        false;
+
+
+      const finish =
+        error => {
+
+          if(
+            settled
+          ){
+
+            return;
+          }
+
+
+          settled =
+            true;
+
+
+          window.clearTimeout(
+            timeout
+          );
+
+
+          liveCameraPreview.removeEventListener(
+            "loadedmetadata",
+            onReady
+          );
+
+
+          liveCameraPreview.removeEventListener(
+            "error",
+            onError
+          );
+
+
+          if(
+            error
+          ){
+
+            reject(
+              error
+            );
+
+          }else{
+
+            resolve();
+          }
+        };
+
+
+      const onReady =
+        () =>
+          finish();
+
+      const onError =
+        () =>
+          finish(
+            new Error(
+              "Die Kameravorschau konnte nicht geöffnet werden."
+            )
+          );
+
+      const timeout =
+        window.setTimeout(
+          () => {
+
+            finish(
+              generation ===
+                liveCameraGeneration
+                ? new Error(
+                    "Die Kamera hat nicht rechtzeitig geantwortet."
+                  )
+                : null
+            );
+          },
+          6000
+        );
+
+
+      liveCameraPreview.addEventListener(
+        "loadedmetadata",
+        onReady,
+        {
+          once:true
+        }
+      );
+
+
+      liveCameraPreview.addEventListener(
+        "error",
+        onError,
+        {
+          once:true
+        }
+      );
+    }
+  );
+}
+
+
+async function requestLiveCameraStream(){
+
+  const requestedVideo = {
+    facingMode:{
+      ideal:
+        liveCameraFacingMode
+    },
+    width:{
+      ideal:1280,
+      max:1920
+    },
+    height:{
+      ideal:720,
+      max:1080
+    }
+  };
+
+
+  try{
+
+    return await navigator.mediaDevices
+      .getUserMedia({
+        video:
+          requestedVideo,
+        audio:false
+      });
+
+  }catch(
+    error
+  ){
+
+    if(
+      ![
+        "NotFoundError",
+        "OverconstrainedError"
+      ].includes(
+        String(
+          error?.name ||
+          ""
+        )
+      )
+    ){
+
+      throw error;
+    }
+
+
+    return navigator.mediaDevices
+      .getUserMedia({
+        video:true,
+        audio:false
+      });
+  }
+}
+
+
+async function startLiveCamera(){
+
+  if(
+    liveCameraStarting ||
+    liveCameraIsActive()
+  ){
+
+    return;
+  }
+
+
+  if(
+    !document.body.classList.contains(
+      "voice-open"
+    )
+  ){
+
+    setLiveStatus(
+      "Starte zuerst das Gespräch mit Pam’s Holo."
+    );
+
+
+    return;
+  }
+
+
+  if(
+    !navigator.mediaDevices
+      ?.getUserMedia
+  ){
+
+    setLiveStatus(
+      "Auf diesem Gerät ist kein Live-Kamerazugriff verfügbar."
+    );
+
+
+    return;
+  }
+
+
+  const generation =
+    ++liveCameraGeneration;
+
+
+  liveCameraStarting =
+    true;
+
+  liveCameraPanel.hidden =
+    false;
+
+  renderLiveCameraUi(
+    false,
+    `${liveCameraFacingLabel()} wird vorbereitet …`
+  );
+
+
+  try{
+
+    const stream =
+      await requestLiveCameraStream();
+
+
+    if(
+      generation !==
+        liveCameraGeneration ||
+      !document.body.classList.contains(
+        "voice-open"
+      )
+    ){
+
+      stream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+
+      return;
+    }
+
+
+    liveCameraStream =
+      stream;
+
+    liveCameraPreview.srcObject =
+      stream;
+
+
+    stream
+      .getVideoTracks()[0]
+      ?.addEventListener(
+        "ended",
+        () => {
+
+          if(
+            liveCameraStream ===
+              stream
+          ){
+
+            stopLiveCamera({
+              notifyModel:true
+            });
+          }
+        },
+        {
+          once:true
+        }
+      );
+
+
+    await waitForLiveCameraPreview(
+      generation
+    );
+
+
+    if(
+      generation !==
+        liveCameraGeneration
+    ){
+
+      return;
+    }
+
+
+    await liveCameraPreview.play();
+
+
+    if(
+      generation !==
+        liveCameraGeneration
+    ){
+
+      return;
+    }
+
+
+    liveCameraStarting =
+      false;
+
+    liveCameraFrameSequence =
+      0;
+
+    liveCameraLastSentAt =
+      0;
+
+    liveCameraAnnouncedChannel =
+      null;
+
+
+    renderLiveCameraUi(
+      true
+    );
+
+
+    announceLiveCameraToRealtime();
+
+
+    await sendCurrentLiveCameraFrame({
+      force:true,
+      reason:"start"
+    });
+
+
+    liveCameraTimer =
+      window.setInterval(
+        () => {
+
+          void sendCurrentLiveCameraFrame({
+            reason:"interval"
+          });
+        },
+        LIVE_CAMERA_FRAME_INTERVAL_MS
+      );
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Live-Kamera:",
+      error
+    );
+
+
+    stopLiveCamera({
+      notifyModel:false
+    });
+
+
+    const errorName =
+      String(
+        error?.name ||
+        ""
+      );
+
+
+    setLiveStatus(
+      errorName ===
+        "NotAllowedError"
+        ? "Kamerazugriff wurde nicht freigegeben. Das Gespräch läuft ohne Live-Bild weiter."
+        : "Die Live-Kamera konnte nicht gestartet werden. Das Gespräch läuft weiter."
+    );
+
+  }finally{
+
+    if(
+      generation ===
+        liveCameraGeneration
+    ){
+
+      liveCameraStarting =
+        false;
+
+
+      renderLiveCameraUi(
+        liveCameraIsActive()
+      );
+    }
+  }
+}
+
+
+function stopLiveCamera({
+  notifyModel = true
+} = {}){
+
+  const wasActive =
+    liveCameraIsActive() ||
+    liveCameraStarting;
+
+
+  liveCameraGeneration +=
+    1;
+
+  liveCameraStarting =
+    false;
+
+
+  if(
+    liveCameraTimer
+  ){
+
+    window.clearInterval(
+      liveCameraTimer
+    );
+
+
+    liveCameraTimer =
+      null;
+  }
+
+
+  if(
+    wasActive &&
+    notifyModel
+  ){
+
+    sendLiveCameraMarker(
+      dc,
+      "[LIVE_KAMERA_STOP] Pam hat die Live-Kamera ausgeschaltet. Verwende frühere Kamerabilder nicht mehr als aktuellen Blick."
+    );
+  }
+
+
+  if(
+    liveCameraStream
+  ){
+
+    liveCameraStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+
+    liveCameraStream =
+      null;
+  }
+
+
+  liveCameraPreview.pause();
+
+  liveCameraPreview.srcObject =
+    null;
+
+  liveCameraFrameSequence =
+    0;
+
+  liveCameraLastSentAt =
+    0;
+
+  liveCameraAnnouncedChannel =
+    null;
+
+
+  renderLiveCameraUi(
+    false
+  );
+}
+
+
+async function switchLiveCamera(){
+
+  if(
+    !liveCameraIsActive() ||
+    liveCameraStarting
+  ){
+
+    return;
+  }
+
+
+  liveCameraFacingMode =
+    liveCameraFacingMode ===
+      "environment"
+      ? "user"
+      : "environment";
+
+
+  stopLiveCamera({
+    notifyModel:false
+  });
+
+
+  await startLiveCamera();
+}
+
+
+liveCameraButton.addEventListener(
+  "click",
+  async () => {
+
+    if(
+      liveCameraIsActive() ||
+      liveCameraStarting
+    ){
+
+      stopLiveCamera({
+        notifyModel:true
+      });
+
+
+      setLiveStatus(
+        "Live-Bild beendet · ich höre dir weiter zu."
+      );
+
+
+      return;
+    }
+
+
+    await startLiveCamera();
+  }
+);
+
+
+switchLiveCameraButton.addEventListener(
+  "click",
+  () => {
+
+    void switchLiveCamera();
+  }
+);
+
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if(
+      document.visibilityState ===
+        "hidden" &&
+      (
+        liveCameraIsActive() ||
+        liveCameraStarting
+      )
+    ){
+
+      stopLiveCamera({
+        notifyModel:true
+      });
+    }
+  }
+);
+
+
+window.addEventListener(
+  "pagehide",
+  () => {
+
+    stopLiveCamera({
+      notifyModel:false
+    });
+  }
+);
 
 
 /*
@@ -9487,6 +10852,10 @@ LIVE STOP
 function stopLiveConversation({
   resumeWake = true
 } = {}){
+
+  stopLiveCamera({
+    notifyModel:false
+  });
 
   liveConnectionAttempt +=
     1;
@@ -10612,6 +11981,22 @@ async function startLiveConversation(){
         sendPendingWakePrompt(
           activeDataChannel
         );
+
+
+        if(
+          liveCameraIsActive()
+        ){
+
+          announceLiveCameraToRealtime(
+            activeDataChannel
+          );
+
+
+          void sendCurrentLiveCameraFrame({
+            force:true,
+            reason:"connection"
+          });
+        }
       }
     );
 

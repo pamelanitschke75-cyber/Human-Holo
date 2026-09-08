@@ -34,7 +34,7 @@ Berechtigungsmatrix
 
 Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 🎙️ Mikrofon| Mikrofon| Mit Sol sprechen| Bei Sprachfunktion| Texteingabe bleibt möglich
-📷 Kamera| Kamera| Sol etwas zeigen, Bilder/AR| Beim Start der Kamerafunktion| Keine Kamera
+📷 Kamera| Kamera| Human Holo einzelne Fotos oder aktuelle Live-Bilder zeigen / AR| Erst beim sichtbaren Start der Kamerafunktion| Keine Kamera; Schreiben und Sprechen bleiben möglich
 🖼️ Fotos| ausgewählte Bilder| Bilder an Sol übergeben| Bei Auswahl durch Pam| Kein Bildzugriff
 📁 Dateien| ausgewählte Dateien| Dokumente an Sol übergeben| Bei Auswahl durch Pam| Kein Dateizugriff
 🔔 Benachrichtigungen| Benachrichtigungen| Hinweise und Erinnerungen| Wenn Funktion aktiviert wird| Keine Sol-Mitteilungen
@@ -78,6 +78,7 @@ Kamera
 Die Kamera kann für:
 
 - Bilder
+- aktuelle Live-Bilder während eines laufenden Holo-Gesprächs
 - visuelle Analyse
 - AR
 - spätere Holo-Funktionen
@@ -85,6 +86,12 @@ Die Kamera kann für:
 verwendet werden.
 
 Sol Holo soll die Kamera nur verwenden, wenn eine entsprechende Funktion aktiv ist.
+
+Der Live-Bildmodus beginnt ausschließlich nach einem sichtbaren Tipp von Pam.
+Während er aktiv ist, zeigt die App dauerhaft eine Kameravorschau und den Hinweis
+„LIVE AN HOLO“. Beim Ausschalten, Beenden des Gesprächs oder Verlassen der App
+werden die Kameraspuren sofort beendet. Das Mikrofon der Kamera wird dafür nicht
+zusätzlich geöffnet.
 
 ---
 

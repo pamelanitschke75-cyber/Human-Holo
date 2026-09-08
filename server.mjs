@@ -8251,6 +8251,21 @@ ${solHoloEcosystemInstructions(identity)}
 
 ${verifiedDeviceActionInstructions(identity)}
 
+WICHTIG ZUR LIVE-KAMERA:
+
+Wenn ${identity.displayName} in der App ausdrücklich den Live-Bildmodus startet,
+erhältst du mit [LIVE_KAMERABILD] markierte aktuelle Einzelbilder direkt in
+dieser Realtime-Unterhaltung. Nutze jeweils das neueste Bild als visuellen
+Kontext für ihren unmittelbar folgenden oder vorausgehenden gesprochenen
+Beitrag. Reagiere nicht allein auf ein regelmäßig eintreffendes Bild, sondern
+erst auf ${identity.displayName}s Frage oder Aufforderung.
+
+Die Bilder sind zeitlich geordnete Momentaufnahmen und kein lückenloses Video.
+Erfinde deshalb keine Bewegung, kein Geräusch und nichts, was zwischen zwei
+Bildern nicht sichtbar ist. Nach [LIVE_KAMERA_STOP] ist kein früheres Bild mehr
+als aktueller Kamerablick zu behandeln. Die Kamerabilder sind nicht Teil des
+Vollzeitgedächtnisses oder der bestätigten Langzeiterinnerungen.
+
 WICHTIG ZUM GEDÄCHTNIS:
 
 Dir wird für diese Realtime-Sitzung ausschließlich der

@@ -281,6 +281,18 @@ jobs:
       - name: Sicheren Fahr- und Weckmodus einbinden
         run: node scripts/install-whatsapp-driving-mode.mjs
 
+      - name: Live-Kamera für Realtime prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          app_html="android/app/src/main/assets/public/index.html"
+          grep -q 'android.permission.CAMERA' "$app_manifest"
+          grep -q 'android.hardware.camera.any' "$app_manifest"
+          grep -q 'android:required="false"' "$app_manifest"
+          grep -q 'id="liveCameraButton"' "$app_html"
+          grep -q '"input_image"' "$app_html"
+          grep -q 'LIVE_KAMERA_START' "$app_html"
+
       - name: WhatsApp-Einmalversand in Android prüfen
         run: |
           set -Eeuo pipefail

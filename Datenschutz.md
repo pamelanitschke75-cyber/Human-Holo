@@ -370,6 +370,17 @@ dauerhaft Teil des digitalen Pam-Modells werden
 
 Sol soll nicht selbstständig davon ausgehen, dass jeder geöffnete Inhalt dauerhaft gespeichert werden soll.
 
+Im ausdrücklich gestarteten Live-Bildmodus erstellt die App in kurzen Abständen
+komprimierte Einzelbilder und übergibt sie als visuellen Kontext an die laufende
+OpenAI-Realtime-Unterhaltung. Es handelt sich nicht um eine ununterbrochene
+Videoübertragung. Unmittelbar vor einer gesprochenen Antwort wird ein aktuelles
+Bild ergänzt, damit Pam nicht jedes Foto einzeln auswählen muss.
+
+Human Holo übernimmt diese Live-Bilder weder in das Vollzeitgedächtnis noch in
+bestätigte Langzeiterinnerungen. Der Modus bleibt durch Vorschau und
+„LIVE AN HOLO“ sichtbar und endet beim Ausschalten, beim Gesprächsende oder
+sobald die App nicht mehr im Vordergrund ist.
+
 ---
 
 16. KALENDER, KONTAKTE UND STANDORT
