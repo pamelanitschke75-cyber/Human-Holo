@@ -412,7 +412,9 @@ async function importConfirmedMemoryBatch() {
         },
         body: JSON.stringify({
           memoryExport: state.memoryImport,
-          batchConfirmation: true
+          batchConfirmation: true,
+          selectedSpeakerId: identity.speakerId,
+          ownerId: identity.ownerId
         }),
         cache: "no-store"
       }

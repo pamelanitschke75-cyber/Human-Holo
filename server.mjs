@@ -2528,11 +2528,65 @@ function requireTrustedOwnerIdentity(
     return null;
   }
 
-  const identity =
-    resolveRequestIdentity(
-      req,
+  const suppliedSpeakerId =
+    String(
+      req.body?.selectedSpeakerId ??
+      ""
+    ).trim();
+
+  let identity;
+
+  if (suppliedSpeakerId) {
+    identity =
+      resolveRequestIdentity(
+        req,
+        res
+      );
+  } else {
+    /*
+      Bereits ausgelieferte, originalsignierte App-Versionen koennen bei
+      einem neuen geschuetzten Endpunkt noch keine Identitaetsfelder im Body
+      mitsenden. Die kryptografisch bestaetigte App-Sitzung darf in diesem
+      engen Fall ihre eigene Owner-Identitaet liefern. Fremde oder unbekannte
+      Owner werden weiterhin geschlossen abgewiesen.
+    */
+    const trustedProfile =
+      personalHoloProfile(
+        trustedSession.ownerId
+      );
+
+    identity =
+      trustedProfile
+        ? resolveMemoryIdentity({
+            selectedSpeakerId:
+              trustedProfile.speakerId,
+            ownerId:
+              trustedSession.ownerId
+          })
+        : null;
+
+    if (
+      !identity ||
+      identity.kind !== "resolved"
+    ) {
       res
-    );
+        .status(403)
+        .set({
+          "Cache-Control":
+            "no-store, max-age=0",
+          Pragma:
+            "no-cache"
+        })
+        .json({
+          error:
+            "TRUSTED_SESSION_OWNER_UNKNOWN",
+          persisted:
+            false
+        });
+
+      return null;
+    }
+  }
 
   if (!identity) {
     return null;
