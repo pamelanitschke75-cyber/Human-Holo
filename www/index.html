@@ -1116,7 +1116,11 @@ LIP SYNC
 }
 
 #mouthCanvas{
-  z-index:9;
+  z-index:10;
+
+  opacity:1;
+
+  visibility:visible;
 }
 
 #solCloneWrap.sol-speaking{
@@ -5968,6 +5972,10 @@ function renderNaturalMouth(
     lipTravel * 0.20;
 
 
+  const paintMouthInterior =
+    () => {
+
+
   context.save();
 
 
@@ -6115,6 +6123,9 @@ function renderNaturalMouth(
   }
 
 
+    };
+
+
   const effectWidth =
     Math.min(
       width * 0.86,
@@ -6254,6 +6265,11 @@ function renderNaturalMouth(
 
 
   context.restore();
+
+
+  // Erst nach der Lippenverschiebung zeichnen. Zuvor wurde die sichtbare
+  // Oeffnung von der danach kopierten Bildtextur wieder zugedeckt.
+  paintMouthInterior();
 
 
   context.globalCompositeOperation =

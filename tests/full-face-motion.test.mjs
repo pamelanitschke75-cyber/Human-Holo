@@ -241,3 +241,26 @@ test("Unsichere Foto-Landmarks fallen zur lokalen Mundbewegung zurueck", () => {
     false
   );
 });
+
+test("sichtbare Mundoeffnung wird zuletzt ueber die verschobene Bildtextur gelegt", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+  const renderStart = html.indexOf("function renderNaturalMouth(");
+  const renderEnd = html.indexOf("FREQUENZBAND", renderStart);
+  const renderSource = html.slice(renderStart, renderEnd);
+  const textureWarp = renderSource.indexOf("for(\n    let y = warpStart;");
+  const mouthInterior = renderSource.indexOf(
+    "paintMouthInterior();",
+    textureWarp
+  );
+  const edgeMask = renderSource.indexOf(
+    'context.globalCompositeOperation =\n    "destination-in";',
+    mouthInterior
+  );
+
+  assert.ok(textureWarp >= 0);
+  assert.ok(mouthInterior > textureWarp);
+  assert.ok(edgeMask > mouthInterior);
+});
