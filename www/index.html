@@ -3504,6 +3504,7 @@ let lipAudioContext = null;
 let lipSourceNode = null;
 let lipMediaElementSourceNode = null;
 let lipMediaElementGraphConnected = false;
+let lipMediaElementAnalyserNode = null;
 let lipPlaybackAudioGraphPromise = null;
 let lipAnalyser = null;
 let lipSilentGain = null;
@@ -4069,7 +4070,7 @@ async function ensureFullFaceRig(){
 
     fullFaceRigLoadPromise =
       import(
-        "./full-face-rig.mjs"
+        "./full-face-rig.mjs?v=4"
       )
         .then(
           module =>
@@ -6791,10 +6792,54 @@ function animateLipSync(
       null;
 
 
+  /*
+    Android kann einen sehr kleinen Receiver-Pegel als "gemessen" melden,
+    obwohl er fuer eine sichtbare Lippenoeffnung nicht ausreicht. Solange
+    ausschliesslich Holos OpenAI-Ausgabe spricht, bleibt deshalb eine
+    sprachrhythmische Mindestoeffnung aktiv. Ein guter echter Pegel hat
+    weiterhin Vorrang; bei schwachem oder fehlendem Pegel faellt der Mund
+    nicht mehr unbemerkt auf das geschlossene Foto zurueck.
+  */
+  const outputSpeechShape =
+    realtimeSpeechActive
+      ? realtimeFallbackMouthShape(
+          timestamp
+        )
+      : null;
+
+
+  const measuredOpenStrength =
+    Math.max(
+      analyserRawOpen,
+      receiverRawOpen
+    );
+
+
+  const outputSpeechOpenShare =
+    !outputSpeechShape
+      ? 0
+      : audioSignalActive
+        ? clamp(
+            0.72 -
+              measuredOpenStrength *
+                1.70,
+            0.24,
+            0.62
+          )
+        : speechSourceState.measuredSignal
+          ? 0.54
+          : 0.90;
+
+
   const targetOpen =
     clamp(
       Math.max(
         resolvedShape.open,
+        (
+          outputSpeechShape?.open ||
+          0
+        ) *
+          outputSpeechOpenShare,
         visibleKickShape
           ? Math.max(
               visibleKickShape.open,
@@ -6893,23 +6938,8 @@ function animateLipSync(
     );
 
 
-  const unmeasuredMouthShape =
-    realtimeSpeechActive &&
-    !audioSignalActive
-      ? realtimeFallbackMouthShape(
-          timestamp
-        )
-      : null;
-
-
   const mouthRenderBaseOpen =
-    Math.max(
-      currentMouthOpen,
-      (
-        unmeasuredMouthShape?.open ||
-        0
-      ) * 0.74
-    );
+    currentMouthOpen;
 
 
   // Kleine echte Pegelbewegungen bleiben zeitlich unveraendert, werden aber
@@ -6937,9 +6967,9 @@ function animateLipSync(
       Math.max(
         currentMouthWide,
         (
-          unmeasuredMouthShape?.wide ||
+          outputSpeechShape?.wide ||
           0
-        ) * 0.46
+        ) * 0.38
       ),
       0,
       SOL_SPEECH_MOTION.wideMaximum ||
@@ -6952,9 +6982,9 @@ function animateLipSync(
       Math.max(
         currentMouthRound,
         (
-          unmeasuredMouthShape?.round ||
+          outputSpeechShape?.round ||
           0
-        ) * 0.46
+        ) * 0.38
       ),
       0,
       SOL_SPEECH_MOTION.roundMaximum ||
@@ -7006,12 +7036,12 @@ function animateLipSync(
 
     fullFaceRig?.render(
       {
-        // Die WebGL-Gesichtsebene bleibt fest verankert. Die sichtbare
-        // Lippen- und Kieferbewegung liegt ausschliesslich in der weich
-        // ausgeblendeten lokalen Mundebene und zieht nicht mehr die Wangen.
-        openness:0,
-        wideness:0,
-        roundness:0,
+        // Nur die erkannten Lippen duerfen sich mit dem lokalen Mund-Canvas
+        // auseinanderbewegen. Wangen, Kinn und Gesichtskontur bleiben fest.
+        openness:visibleMouthOpen,
+        wideness:visibleMouthWide,
+        roundness:visibleMouthRound,
+        localizedMouthOnly:true,
         fullSync:
           originalFullSyncFrame?.face
             ? {
@@ -7228,6 +7258,39 @@ async function startLipSync(
     );
 
 
+    /*
+      Der hoerbare Media-Element-Ausgang ist auf Android der verlaesslichste
+      Beleg fuer Holos tatsaechlich abgespielte Stimme. Er speist denselben
+      Analyser zusaetzlich zur WebRTC-Spur; der zweite Ausgang bleibt stumm
+      und verdoppelt die Wiedergabe daher nicht.
+    */
+    if(
+      playbackReady &&
+      lipMediaElementSourceNode
+    ){
+
+      try{
+
+        lipMediaElementSourceNode.connect(
+          lipAnalyser
+        );
+
+
+        lipMediaElementAnalyserNode =
+          lipAnalyser;
+
+      }catch(
+        error
+      ){
+
+        console.warn(
+          "Lip-Sync Wiedergabeanalyse:",
+          error
+        );
+      }
+    }
+
+
     lipAnalyser.connect(
       lipSilentGain
     );
@@ -7409,6 +7472,23 @@ function stopLipSync(
   if(
     lipAnalyser
   ){
+
+    if(
+      lipMediaElementSourceNode &&
+      lipMediaElementAnalyserNode ===
+        lipAnalyser
+    ){
+
+      try{
+        lipMediaElementSourceNode.disconnect(
+          lipAnalyser
+        );
+      }catch{}
+
+
+      lipMediaElementAnalyserNode =
+        null;
+    }
 
     try{
       lipAnalyser.disconnect();

@@ -247,6 +247,10 @@ test("sichtbare Mundoeffnung wird zuletzt ueber die verschobene Bildtextur geleg
     new URL("../www/index.html", import.meta.url),
     "utf8"
   );
+  const rig = await readFile(
+    new URL("../www/full-face-rig.mjs", import.meta.url),
+    "utf8"
+  );
   const renderStart = html.indexOf("function renderNaturalMouth(");
   const renderEnd = html.indexOf("FREQUENZBAND", renderStart);
   const renderSource = html.slice(renderStart, renderEnd);
@@ -267,6 +271,31 @@ test("sichtbare Mundoeffnung wird zuletzt ueber die verschobene Bildtextur geleg
   assert.match(renderSource, /open\s*-\s*0\.12/u);
   assert.match(
     html,
-    /fullFaceRig\?\.render\([\s\S]*?openness:0,[\s\S]*?cheekLift:0,[\s\S]*?mouthAsymmetry:0/u
+    /fullFaceRig\?\.render\([\s\S]*?openness:visibleMouthOpen,[\s\S]*?localizedMouthOnly:true,[\s\S]*?cheekLift:0,[\s\S]*?mouthAsymmetry:0/u
+  );
+  assert.match(
+    rig,
+    /if \(!localizedMouthOnly\) \{[\s\S]*?this\.faceOvalIndices/u
+  );
+  assert.match(html, /\.\/full-face-rig\.mjs\?v=4/u);
+});
+
+test("Holos hoerbarer Android-Ausgang speist die Mundanalyse und eine sichtbare Mindestoeffnung", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(
+    html,
+    /lipMediaElementSourceNode\.connect\(\s*lipAnalyser\s*\)/u
+  );
+  assert.match(
+    html,
+    /const outputSpeechShape\s*=\s*realtimeSpeechActive[\s\S]*?outputSpeechOpenShare/u
+  );
+  assert.match(
+    html,
+    /Math\.max\(\s*resolvedShape\.open,[\s\S]*?outputSpeechShape\?\.open[\s\S]*?outputSpeechOpenShare/u
   );
 });

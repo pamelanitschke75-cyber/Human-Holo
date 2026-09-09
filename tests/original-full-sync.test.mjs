@@ -311,4 +311,5 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
   assert.match(html, /sol-motion-profile\.js\?v=4/u);
   assert.match(html, /voice-motion-driver\.js\?v=1/u);
   assert.match(html, /original-full-sync\.js\?v=3/u);
+  assert.match(html, /full-face-rig\.mjs\?v=4/u);
 });

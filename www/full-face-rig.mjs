@@ -909,7 +909,16 @@ class FullFaceRig {
     }
   }
 
-  applyMotion({ openness, wideness, roundness, fullSync }, timestamp) {
+  applyMotion(
+    {
+      openness,
+      wideness,
+      roundness,
+      localizedMouthOnly,
+      fullSync
+    },
+    timestamp
+  ) {
     this.destinationCoordinates.set(this.sourceCoordinates);
 
     const mouth = this.mouthBounds;
@@ -963,59 +972,65 @@ class FullFaceRig {
       this.destinationCoordinates[index * 2 + 1] = destinationY;
     }
 
-    for (let index = 0; index < Math.min(468, this.sourcePoints.length); index += 1) {
-      if (
-        this.lipIndexSet.has(index) ||
-        this.leftEyeIndexSet.has(index) ||
-        this.rightEyeIndexSet.has(index) ||
-        this.faceOvalIndexSet.has(index)
+    if (!localizedMouthOnly) {
+      for (
+        let index = 0;
+        index < Math.min(468, this.sourcePoints.length);
+        index += 1
       ) {
-        continue;
+        if (
+          this.lipIndexSet.has(index) ||
+          this.leftEyeIndexSet.has(index) ||
+          this.rightEyeIndexSet.has(index) ||
+          this.faceOvalIndexSet.has(index)
+        ) {
+          continue;
+        }
+
+        const sourceX = this.sourceCoordinates[index * 2];
+        const sourceY = this.sourceCoordinates[index * 2 + 1];
+        const normalX = (sourceX - mouth.centerX) / (face.width * 0.27);
+        const normalY = (sourceY - mouth.centerY) / (face.height * 0.22);
+        const cheekInfluence = Math.exp(
+          -(normalX * normalX + normalY * normalY) * 1.55
+        );
+        const direction = Math.sign(sourceX - mouth.centerX);
+        const jawWeight = lowerFaceMotionWeight(
+          { x: sourceX, y: sourceY },
+          face,
+          mouth
+        );
+
+        this.movePoint(
+          index,
+          direction * verticalTravel * wide *
+            profileNumber(SPEECH_MOTION, "cheekShare", 0.030) *
+            cheekInfluence +
+            direction * jawTravel * jawWeight *
+              profileNumber(SPEECH_MOTION, "jawWidenShare", 0.10),
+          jawTravel * jawWeight -
+            verticalTravel * wide *
+              profileNumber(SPEECH_MOTION, "cheekLiftShare", 0.10) *
+              cheekInfluence
+        );
       }
 
-      const sourceX = this.sourceCoordinates[index * 2];
-      const sourceY = this.sourceCoordinates[index * 2 + 1];
-      const normalX = (sourceX - mouth.centerX) / (face.width * 0.27);
-      const normalY = (sourceY - mouth.centerY) / (face.height * 0.22);
-      const cheekInfluence = Math.exp(
-        -(normalX * normalX + normalY * normalY) * 1.55
-      );
-      const direction = Math.sign(sourceX - mouth.centerX);
-      const jawWeight = lowerFaceMotionWeight(
-        { x: sourceX, y: sourceY },
-        face,
-        mouth
-      );
-
-      this.movePoint(
-        index,
-        direction * verticalTravel * wide *
-          profileNumber(SPEECH_MOTION, "cheekShare", 0.030) *
-          cheekInfluence +
-          direction * jawTravel * jawWeight *
+      for (const index of this.faceOvalIndices) {
+        if (this.lipIndexSet.has(index)) continue;
+        const sourceX = this.sourceCoordinates[index * 2];
+        const sourceY = this.sourceCoordinates[index * 2 + 1];
+        const jawWeight = lowerFaceMotionWeight(
+          { x: sourceX, y: sourceY },
+          face,
+          mouth
+        );
+        this.movePoint(
+          index,
+          Math.sign(sourceX - mouth.centerX) * jawTravel * jawWeight *
             profileNumber(SPEECH_MOTION, "jawWidenShare", 0.10),
-        jawTravel * jawWeight -
-          verticalTravel * wide *
-            profileNumber(SPEECH_MOTION, "cheekLiftShare", 0.10) *
-            cheekInfluence
-      );
-    }
-
-    for (const index of this.faceOvalIndices) {
-      if (this.lipIndexSet.has(index)) continue;
-      const sourceX = this.sourceCoordinates[index * 2];
-      const sourceY = this.sourceCoordinates[index * 2 + 1];
-      const jawWeight = lowerFaceMotionWeight(
-        { x: sourceX, y: sourceY },
-        face,
-        mouth
-      );
-      this.movePoint(
-        index,
-        Math.sign(sourceX - mouth.centerX) * jawTravel * jawWeight *
-          profileNumber(SPEECH_MOTION, "jawWidenShare", 0.10),
-        jawTravel * jawWeight
-      );
+          jawTravel * jawWeight
+        );
+      }
     }
 
     const blink = this.blinkValue(timestamp);
@@ -1131,6 +1146,8 @@ class FullFaceRig {
     this.applyMotion(
       {
         ...this.motionState,
+        localizedMouthOnly:
+          motion?.localizedMouthOnly === true,
         fullSync: normalizeFullSyncFaceMotion(motion?.fullSync)
       },
       timestamp
