@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-260-visible-mouth-layer";
+const CACHE_VERSION = "human-holo-268-natural-mouth";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
