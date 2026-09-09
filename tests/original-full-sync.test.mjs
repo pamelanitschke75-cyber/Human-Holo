@@ -313,3 +313,32 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
   assert.match(html, /original-full-sync\.js\?v=3/u);
   assert.match(html, /full-face-rig\.mjs\?v=4/u);
 });
+
+test("OpenAI WebRTC Wiedergabe bleibt bis zum echten Audiopuffer-Ende mundaktiv", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+  const handlerStart = html.indexOf(
+    'realtimeEvent.type ===\n            "output_audio_buffer.started"'
+  );
+  const handlerEnd = html.indexOf(
+    'realtimeEvent.type ===\n            "error"',
+    handlerStart
+  );
+  const handler = html.slice(handlerStart, handlerEnd);
+
+  assert.ok(handlerStart >= 0);
+  assert.match(
+    handler,
+    /output_audio_buffer\.started[\s\S]*?startRealtimeSpeechFallback\(\s*true\s*\)/u
+  );
+  assert.match(
+    handler,
+    /output_audio_buffer\.stopped[\s\S]*?finishRealtimeSpeechFallback/u
+  );
+  assert.match(
+    handler,
+    /response\.done[\s\S]*?if\(\s*!realtimeOutputBufferPlaying\s*\)[\s\S]*?finishRealtimeSpeechFallback/u
+  );
+});

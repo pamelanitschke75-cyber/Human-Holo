@@ -242,7 +242,7 @@ test("Unsichere Foto-Landmarks fallen zur lokalen Mundbewegung zurueck", () => {
   );
 });
 
-test("sichtbare Mundoeffnung liegt getrennt hinter den bewegten Originallippen", async () => {
+test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschlossene Foto gezeichnet", async () => {
   const html = await readFile(
     new URL("../www/index.html", import.meta.url),
     "utf8"
@@ -267,25 +267,27 @@ test("sichtbare Mundoeffnung liegt getrennt hinter den bewegten Originallippen",
     "mouthCanvasContext.drawImage(",
     edgeMask
   );
-  const visibleCutout = renderSource.indexOf(
-    'mouthCanvasContext.globalCompositeOperation =\n    "destination-out";',
+  const visibleCavity = renderSource.indexOf(
+    "const visibleCavityGradient =",
     visibleTexture
   );
-  const visibleOpening = renderSource.indexOf(
-    'mouthOpening.style.display =\n    "block";',
-    visibleCutout
+  const visibleOpeningFill = renderSource.indexOf(
+    "mouthCanvasContext.fill();",
+    visibleCavity
   );
 
   assert.ok(textureWarp >= 0);
   assert.ok(mouthInterior > textureWarp);
   assert.ok(edgeMask > mouthInterior);
   assert.ok(visibleTexture > edgeMask);
-  assert.ok(visibleCutout > visibleTexture);
-  assert.ok(visibleOpening > visibleCutout);
+  assert.ok(visibleCavity > visibleTexture);
+  assert.ok(visibleOpeningFill > visibleCavity);
   assert.match(renderSource, /lipTravel\s*\*\s*3\.55/u);
   assert.match(renderSource, /mouthCanvasContext\.bezierCurveTo\(/u);
+  assert.doesNotMatch(renderSource, /destination-out/u);
+  assert.match(renderSource, /visibleToothGradient/u);
+  assert.match(renderSource, /visibleTongueOpacity/u);
   assert.match(html, /<div id="mouthOpening" aria-hidden="true"><\/div>/u);
-  assert.match(html, /#mouthOpening\{[\s\S]*?z-index:9/u);
   assert.match(html, /#mouthCanvas\{[\s\S]*?z-index:10/u);
   assert.match(renderSource, /featherMask/u);
   assert.match(renderSource, /open\s*-\s*0\.12/u);

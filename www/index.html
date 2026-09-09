@@ -3795,7 +3795,9 @@ function ensureVisibleRealtimeMouth(
 }
 
 
-function startRealtimeSpeechFallback(){
+function startRealtimeSpeechFallback(
+  outputBufferStarted = false
+){
 
   const now =
     performance.now();
@@ -3819,8 +3821,13 @@ function startRealtimeSpeechFallback(){
   }
 
 
-  realtimeOutputBufferPlaying =
-    true;
+  if(
+    outputBufferStarted
+  ){
+
+    realtimeOutputBufferPlaying =
+      true;
+  }
 
 
   activateOriginalFullSync();
@@ -6556,10 +6563,11 @@ function renderNaturalMouth(
   );
 
 
-  // In die bewegte Lippenstruktur wird zuletzt der echte Spalt geschnitten.
-  // Der getrennte Mundraum liegt direkt darunter; dadurch bleiben die
-  // Original-Lippen sichtbar, waehrend das geschlossene Foto nicht mehr durch
-  // die Oeffnung scheinen kann.
+  // Der sichtbare Mundraum wird zuletzt direkt auf dieselbe Canvas-Ebene wie
+  // die bewegten Originallippen gezeichnet. Android WebView hat die zuvor
+  // ausgeschnittene Transparenz stellenweise wieder mit der geschlossenen
+  // Gesichtsebene darunter zusammengesetzt. Eine abschliessende deckende
+  // Mundform kann dadurch nicht mehr hinter dem Foto verschwinden.
   mouthCanvasContext.setTransform(
     pixelRatio,
     0,
@@ -6571,7 +6579,7 @@ function renderNaturalMouth(
 
 
   mouthCanvasContext.globalCompositeOperation =
-    "destination-out";
+    "source-over";
 
 
   const openingLeft =
@@ -6660,7 +6668,147 @@ function renderNaturalMouth(
   mouthCanvasContext.closePath();
 
 
+  const visibleCavityGradient =
+    mouthCanvasContext.createLinearGradient(
+      0,
+      openingTop,
+      0,
+      openingBottom
+    );
+
+
+  visibleCavityGradient.addColorStop(
+    0,
+    "rgba(16,3,9,.99)"
+  );
+
+
+  visibleCavityGradient.addColorStop(
+    0.68,
+    "rgba(39,8,18,.99)"
+  );
+
+
+  visibleCavityGradient.addColorStop(
+    1,
+    "rgba(111,31,52,.94)"
+  );
+
+
+  mouthCanvasContext.save();
+
+
+  mouthCanvasContext.shadowColor =
+    "rgba(10,0,5,.72)";
+
+
+  mouthCanvasContext.shadowBlur =
+    Math.max(
+      0.55,
+      visibleCavityHeight * 0.075
+    );
+
+
+  mouthCanvasContext.fillStyle =
+    visibleCavityGradient;
+
+
   mouthCanvasContext.fill();
+
+
+  mouthCanvasContext.shadowBlur =
+    0;
+
+
+  mouthCanvasContext.clip();
+
+
+  if(
+    toothVisibility >
+      0.015
+  ){
+
+    const visibleToothGradient =
+      mouthCanvasContext.createLinearGradient(
+        0,
+        openingTop,
+        0,
+        cavityCenterY
+      );
+
+
+    visibleToothGradient.addColorStop(
+      0,
+      `rgba(246,236,227,${
+        clamp(
+          toothVisibility * 1.35,
+          0,
+          0.48
+        )
+      })`
+    );
+
+
+    visibleToothGradient.addColorStop(
+      1,
+      "rgba(220,200,192,0)"
+    );
+
+
+    mouthCanvasContext.fillStyle =
+      visibleToothGradient;
+
+
+    mouthCanvasContext.fillRect(
+      width / 2 -
+        visibleCavityWidth * 0.36,
+      openingTop,
+      visibleCavityWidth * 0.72,
+      visibleCavityHeight * 0.44
+    );
+  }
+
+
+  const visibleTongueOpacity =
+    clamp(
+      (
+        open -
+        0.08
+      ) * 0.58,
+      0,
+      0.24
+    );
+
+
+  if(
+    visibleTongueOpacity >
+      0.01
+  ){
+
+    mouthCanvasContext.fillStyle =
+      `rgba(145,42,67,${visibleTongueOpacity})`;
+
+
+    mouthCanvasContext.beginPath();
+
+
+    mouthCanvasContext.ellipse(
+      width / 2,
+      openingBottom -
+        visibleCavityHeight * 0.06,
+      visibleCavityWidth * 0.30,
+      visibleCavityHeight * 0.18,
+      0,
+      Math.PI,
+      Math.PI * 2
+    );
+
+
+    mouthCanvasContext.fill();
+  }
+
+
+  mouthCanvasContext.restore();
 
 
   mouthCanvasContext.globalCompositeOperation =
@@ -6677,67 +6825,14 @@ function renderNaturalMouth(
   );
 
 
-  /*
-    Android zeichnet die sichere Oeffnung zusaetzlich als eigene, oberste
-    DOM-Ebene. Sie liegt nur im erkannten Lippenspalt und ist damit nicht von
-    Canvas-Pufferung oder der geschlossenen Fototextur abhaengig.
-  */
-  mouthOpening.style.left =
-    `${
-      canvasLeft +
-      width / 2 -
-      visibleCavityWidth / 2
-    }px`;
-
-
-  mouthOpening.style.top =
-    `${
-      canvasTop +
-      cavityCenterY -
-      visibleCavityHeight / 2
-    }px`;
-
-
-  mouthOpening.style.width =
-    `${visibleCavityWidth}px`;
-
-
-  mouthOpening.style.height =
-    `${visibleCavityHeight}px`;
-
-
-  mouthOpening.style.setProperty(
-    "--mouth-teeth-opacity",
-    toothVisibility.toFixed(3)
-  );
-
-
-  mouthOpening.style.setProperty(
-    "--mouth-tongue-opacity",
-    clamp(
-      (
-        open -
-        0.06
-      ) * 0.72,
-      0,
-      0.28
-    ).toFixed(3)
-  );
+  // Die alte zusaetzliche DOM-Oeffnung bleibt aus. Nur eine gerenderte
+  // Mundebene verhindert Doppelkonturen und bleibt auf Android eindeutig.
+  mouthOpening.style.display =
+    "none";
 
 
   mouthOpening.style.opacity =
-    String(
-      clamp(
-        0.84 +
-          open * 0.24,
-        0.84,
-        1
-      )
-    );
-
-
-  mouthOpening.style.display =
-    "block";
+    "0";
 }
 
 
@@ -7512,6 +7607,10 @@ async function startLipSync(
     realtimeSpeechIsActive();
 
 
+  const keepRealtimeOutputBufferPlaying =
+    realtimeOutputBufferPlaying;
+
+
   stopLipSync(
     false
   );
@@ -7528,7 +7627,9 @@ async function startLipSync(
     keepRealtimeSpeechMoving
   ){
 
-    startRealtimeSpeechFallback();
+    startRealtimeSpeechFallback(
+      keepRealtimeOutputBufferPlaying
+    );
   }
 
 
@@ -13420,7 +13521,9 @@ async function startLiveConversation(){
             "output_audio_buffer.started"
           ){
 
-            startRealtimeSpeechFallback();
+            startRealtimeSpeechFallback(
+              true
+            );
 
 
             showOriginalFullSyncSpeakingStatus();
@@ -13452,7 +13555,19 @@ async function startLiveConversation(){
             "response.done"
           ){
 
-            finishRealtimeSpeechFallback();
+            /*
+              response.done bestaetigt bei WebRTC nur, dass OpenAI die
+              Antwort fertig gesendet hat. Die Ausgabe kann auf Android zu
+              diesem Zeitpunkt noch hoerbar im Wiedergabepuffer liegen.
+              Deshalb bleibt die Mundbewegung bis zum echten
+              output_audio_buffer.stopped aktiv.
+            */
+            if(
+              !realtimeOutputBufferPlaying
+            ){
+
+              finishRealtimeSpeechFallback();
+            }
 
 
             setLiveStatus(
