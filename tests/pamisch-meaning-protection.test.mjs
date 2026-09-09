@@ -23,6 +23,21 @@ test("Pamisch wird nicht ohne eindeutigen Beleg zu einer Drohung umgedeutet", ()
   );
 });
 
+test("bildhafte Alltagsbeschreibungen lösen keinen erfundenen Alarm aus", () => {
+  assert.match(
+    serverSource,
+    /„In der Küche sieht es[\s\S]*?als hätte eine Bombe eingeschlagen“[\s\S]*?Unordnung/u
+  );
+  assert.match(
+    serverSource,
+    /weder eine Bombenmeldung noch eine Drohung oder ein Notfall/u
+  );
+  assert.match(
+    serverSource,
+    /Ein einzelnes auffälliges Wort darf niemals losgelöst vom ganzen Satz/u
+  );
+});
+
 test("Zitate, Formulierungsaufträge und eigene Absichten bleiben getrennt", () => {
   assert.match(
     serverSource,
