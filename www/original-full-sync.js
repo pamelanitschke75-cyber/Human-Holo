@@ -388,6 +388,35 @@
       );
       hairLayer.style.clipPath =
         `ellipse(${hairRadiusX}% ${hairRadiusY}% at ${centerX}% ${hairCenterY}%)`;
+
+      /*
+        Die bewegte Haarebene darf nicht als zweites Gesicht ueber Stirn und
+        Wangen liegen. Eine weich auslaufende Ringmaske behaelt Haare und
+        Randbewegung, spart die zentrale Gesichtsflaeche aber aus. Dadurch
+        bleibt besonders der Uebergang am Haaransatz ruhig.
+      */
+      const faceCutoutRadiusX =
+        clamp(geometry.width * 0.54 * 100, 10, 28);
+      const faceCutoutRadiusY =
+        clamp(geometry.height * 0.52 * 100, 12, 34);
+      const faceCenterY = clamp(geometry.centerY * 100, 12, 72);
+      const hairOuterMask =
+        `radial-gradient(ellipse ${hairRadiusX}% ${hairRadiusY}% ` +
+        `at ${centerX}% ${hairCenterY}%, ` +
+        "#000 0%, #000 72%, rgba(0,0,0,.88) 84%, transparent 100%)";
+      const faceCutoutMask =
+        `radial-gradient(ellipse ${faceCutoutRadiusX}% ` +
+        `${faceCutoutRadiusY}% at ${centerX}% ${faceCenterY}%, ` +
+        "#000 0%, #000 68%, rgba(0,0,0,.92) 78%, transparent 100%)";
+      const featheredHairMask =
+        `${hairOuterMask}, ${faceCutoutMask}`;
+
+      hairLayer.style.webkitMaskImage = featheredHairMask;
+      hairLayer.style.maskImage = featheredHairMask;
+      hairLayer.style.webkitMaskComposite = "xor";
+      hairLayer.style.maskComposite = "exclude";
+      hairLayer.style.webkitMaskRepeat = "no-repeat";
+      hairLayer.style.maskRepeat = "no-repeat";
       reportState("geometry");
       return Boolean(detectedGeometry);
     }

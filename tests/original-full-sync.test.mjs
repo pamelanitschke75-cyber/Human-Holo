@@ -251,6 +251,38 @@ test("Bewegungscode speichert oder uebertraegt keine Bilddateien", async () => {
   assert.match(source, /setGeometry\(value\)/u);
 });
 
+test("Gesicht, Haaransatz und gesamter Holo-Verbund werden weich zusammengefuehrt", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+  const fullSync = await readFile(
+    new URL("../www/original-full-sync.js", import.meta.url),
+    "utf8"
+  );
+  const faceRig = await readFile(
+    new URL("../www/full-face-rig.mjs", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(
+    html,
+    /#solCloneWrap\{[\s\S]*?filter:blur\(\.42px\)/u
+  );
+  assert.match(
+    fullSync,
+    /faceCutoutMask[\s\S]*?webkitMaskComposite\s*=\s*"xor"[\s\S]*?maskComposite\s*=\s*"exclude"/u
+  );
+  assert.match(
+    faceRig,
+    /featherStart\s*=\s*0\.70[\s\S]*?applyFaceFeatherMask\(\)/u
+  );
+  assert.match(
+    faceRig,
+    /radial-gradient\(ellipse[\s\S]*?rgba\(0,0,0,\.56\)[\s\S]*?transparent 100%/u
+  );
+});
+
 test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren", async () => {
   const html = await readFile(
     new URL("../www/index.html", import.meta.url),
@@ -278,5 +310,5 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
   assert.match(html, /human-holo-ai-policy\.js\?v=1/u);
   assert.match(html, /sol-motion-profile\.js\?v=4/u);
   assert.match(html, /voice-motion-driver\.js\?v=1/u);
-  assert.match(html, /original-full-sync\.js\?v=2/u);
+  assert.match(html, /original-full-sync\.js\?v=3/u);
 });

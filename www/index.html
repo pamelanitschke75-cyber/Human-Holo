@@ -828,7 +828,13 @@ HOLO
       var(--ofs-body-scale-x),
       var(--ofs-body-scale-y)
     );
-  will-change:transform;
+
+  /* Einheitliche Schlussweichzeichnung ueber den fertig zusammengesetzten
+     Holo-Verbund. Dadurch besitzen Gesicht, Mund, Haare und Koerper dieselbe
+     Kantenschaerfe und ihre Ebenenuebergaenge fallen nicht mehr auf. */
+  filter:blur(.42px);
+
+  will-change:transform,filter;
 }
 
 #solImage{
@@ -1121,8 +1127,6 @@ LIP SYNC
   opacity:1;
 
   visibility:visible;
-
-  filter:blur(.32px);
 }
 
 #solCloneWrap.sol-speaking{
@@ -2416,7 +2420,7 @@ Schreiben bereit.
 <script src="./sol-motion-profile.js?v=4"></script>
 <script src="./remote-audio-level.js?v=1"></script>
 <script src="./voice-motion-driver.js?v=1"></script>
-<script src="./original-full-sync.js?v=2"></script>
+<script src="./original-full-sync.js?v=3"></script>
 <script src="./media-tools.js"></script>
 <script>
 

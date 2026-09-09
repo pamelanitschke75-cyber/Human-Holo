@@ -627,19 +627,66 @@ class FullFaceRig {
       this.sourceCoordinates[index * 2 + 1] = this.sourcePoints[index].y;
     }
 
-    for (const index of this.faceOvalIndices) {
-      this.alphaValues[index] = 0.08;
-    }
-
     this.indices = new Uint16Array(indices);
     this.faceBounds = boundsFor(this.sourcePoints, this.faceOvalIndices);
     this.mouthBounds = boundsFor(this.sourcePoints, this.lipIndices);
     this.leftEyeBounds = boundsFor(this.sourcePoints, this.leftEyeLoop);
     this.rightEyeBounds = boundsFor(this.sourcePoints, this.rightEyeLoop);
 
+    /*
+      Nicht nur die aeusserste Kontur, sondern ein breiter Ring des erkannten
+      Gesichts wird weich ausgeblendet. So koennen Stirn, Schlaefen und Kinn
+      innen leben, ohne dass sich ihre Kante gegen Haar oder Hintergrund
+      sichtbar verschiebt. Die Maske wird fuer jedes neue Bild neu berechnet.
+    */
+    const featherStart = 0.70;
+    const halfFaceWidth = Math.max(0.0001, this.faceBounds.width * 0.5);
+    const halfFaceHeight = Math.max(0.0001, this.faceBounds.height * 0.5);
+    for (let index = 0; index < this.sourcePoints.length; index += 1) {
+      const point = this.sourcePoints[index];
+      const normalizedX =
+        (point.x - this.faceBounds.centerX) / halfFaceWidth;
+      const normalizedY =
+        (point.y - this.faceBounds.centerY) / halfFaceHeight;
+      const radius = Math.hypot(normalizedX, normalizedY);
+      const linearFeather = clamp(
+        (1 - radius) / (1 - featherStart),
+        0,
+        1
+      );
+      const smoothFeather =
+        linearFeather * linearFeather * (3 - 2 * linearFeather);
+      this.alphaValues[index] = Math.min(
+        this.alphaValues[index],
+        smoothFeather
+      );
+    }
+
+    this.applyFaceFeatherMask();
+
     const gl = this.gl;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
+  }
+
+  applyFaceFeatherMask() {
+    const face = this.faceBounds;
+    if (!face) return;
+
+    const centerX = clamp(face.centerX * 100, 4, 96);
+    const centerY = clamp(face.centerY * 100, 4, 96);
+    const radiusX = clamp(face.width * 52, 7, 34);
+    const radiusY = clamp(face.height * 52, 9, 40);
+    const mask =
+      `radial-gradient(ellipse ${radiusX}% ${radiusY}% ` +
+      `at ${centerX}% ${centerY}%, ` +
+      "#000 0%, #000 68%, rgba(0,0,0,.96) 74%, " +
+      "rgba(0,0,0,.56) 87%, transparent 100%)";
+
+    this.canvas.style.webkitMaskImage = mask;
+    this.canvas.style.maskImage = mask;
+    this.canvas.style.webkitMaskRepeat = "no-repeat";
+    this.canvas.style.maskRepeat = "no-repeat";
   }
 
   uploadTexture() {
