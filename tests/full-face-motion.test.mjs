@@ -275,6 +275,10 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
     "mouthCanvasContext.fill();",
     visibleCavity
   );
+  const foregroundOpening = renderSource.indexOf(
+    'mouthOpening.style.display =\n    "block";',
+    visibleOpeningFill
+  );
 
   assert.ok(textureWarp >= 0);
   assert.ok(mouthInterior > textureWarp);
@@ -282,6 +286,7 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
   assert.ok(visibleTexture > edgeMask);
   assert.ok(visibleCavity > visibleTexture);
   assert.ok(visibleOpeningFill > visibleCavity);
+  assert.ok(foregroundOpening > visibleOpeningFill);
   assert.match(renderSource, /lipTravel\s*\*\s*3\.55/u);
   assert.match(renderSource, /mouthCanvasContext\.bezierCurveTo\(/u);
   assert.doesNotMatch(renderSource, /destination-out/u);
@@ -289,6 +294,12 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
   assert.match(renderSource, /visibleTongueOpacity/u);
   assert.match(html, /<div id="mouthOpening" aria-hidden="true"><\/div>/u);
   assert.match(html, /#mouthCanvas\{[\s\S]*?z-index:10/u);
+  assert.match(html, /#mouthOpening\{[\s\S]*?z-index:12/u);
+  assert.match(
+    renderSource,
+    /mouthOpening\.style\.left\s*=\s*`\$\{canvasLeft \+ openingLeft\}px`/u
+  );
+  assert.match(renderSource, /--mouth-teeth-opacity/u);
   assert.match(renderSource, /featherMask/u);
   assert.match(renderSource, /open\s*-\s*0\.12/u);
   assert.match(

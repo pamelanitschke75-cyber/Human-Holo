@@ -342,3 +342,24 @@ test("OpenAI WebRTC Wiedergabe bleibt bis zum echten Audiopuffer-Ende mundaktiv"
     /response\.done[\s\S]*?if\(\s*!realtimeOutputBufferPlaying\s*\)[\s\S]*?finishRealtimeSpeechFallback/u
   );
 });
+
+test("Holos eigener Lautsprecher darf die laufende Mundbewegung nicht als Mikrofoneingabe schliessen", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+  const inputStart = html.indexOf(
+    'realtimeEvent.type ===\n            "input_audio_buffer.speech_started"'
+  );
+  const inputEnd = html.indexOf(
+    'realtimeEvent.type ===\n            "input_audio_buffer.speech_stopped"',
+    inputStart
+  );
+  const handler = html.slice(inputStart, inputEnd);
+
+  assert.ok(inputStart >= 0);
+  assert.match(
+    handler,
+    /if\(\s*!realtimeSpeechIsActive\(\)\s*\)\{[\s\S]*?finishRealtimeSpeechFallback\(\s*true\s*\)/u
+  );
+});

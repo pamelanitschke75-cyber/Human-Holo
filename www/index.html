@@ -1134,7 +1134,10 @@ LIP SYNC
 
   display:none;
 
-  z-index:9;
+  /* Die sichtbare Oeffnung liegt bewusst ueber dem lokalen Lippen-Canvas.
+     So kann die geschlossene Fotoebene sie in Android WebView nicht mehr
+     verdecken. */
+  z-index:12;
 
   overflow:hidden;
 
@@ -1192,7 +1195,10 @@ LIP SYNC
 
   filter:blur(.20px);
 
-  will-change:left,top,width,height,opacity;
+  backface-visibility:hidden;
+  transform:translateZ(0);
+
+  will-change:left,top,width,height,opacity,transform;
 }
 
 #mouthOpening::before{
@@ -5916,6 +5922,14 @@ function clearNaturalMouth(){
   mouthOpening.style.opacity =
     "0";
 
+
+  mouthOpening.style.width =
+    "0px";
+
+
+  mouthOpening.style.height =
+    "0px";
+
   if(
     !mouthCanvasContext
   ){
@@ -6825,14 +6839,65 @@ function renderNaturalMouth(
   );
 
 
-  // Die alte zusaetzliche DOM-Oeffnung bleibt aus. Nur eine gerenderte
-  // Mundebene verhindert Doppelkonturen und bleibt auf Android eindeutig.
+  /*
+    Die Oeffnung wird als letzte, eigene Ebene ueber die bewegten
+    Originallippen gelegt. Der Canvas bewegt weiterhin die echte
+    Bildtextur; diese schmale Ebene zeigt ausschliesslich den Mundraum und
+    ein wenig Zaehne. Dadurch kann weder das Vollgesichts-Canvas noch die
+    geschlossene Fotoebene die Oeffnung auf Android wieder uebermalen.
+  */
+  mouthOpening.style.left =
+    `${canvasLeft + openingLeft}px`;
+
+
+  mouthOpening.style.top =
+    `${canvasTop + openingTop}px`;
+
+
+  mouthOpening.style.width =
+    `${visibleCavityWidth}px`;
+
+
+  mouthOpening.style.height =
+    `${visibleCavityHeight}px`;
+
+
+  mouthOpening.style.setProperty(
+    "--mouth-teeth-opacity",
+    String(
+      clamp(
+        toothVisibility * 1.55,
+        0,
+        0.58
+      )
+    )
+  );
+
+
+  mouthOpening.style.setProperty(
+    "--mouth-tongue-opacity",
+    String(
+      clamp(
+        visibleTongueOpacity,
+        0,
+        0.22
+      )
+    )
+  );
+
+
   mouthOpening.style.display =
-    "none";
+    "block";
 
 
   mouthOpening.style.opacity =
-    "0";
+    String(
+      clamp(
+        0.86 + open * 0.18,
+        0.86,
+        0.98
+      )
+    );
 }
 
 
@@ -13425,9 +13490,21 @@ async function startLiveConversation(){
             "input_audio_buffer.speech_started"
           ){
 
-            finishRealtimeSpeechFallback(
-              true
-            );
+            /*
+              Auf dem Handy kann Holos eigener Lautsprecher kurz wieder am
+              Mikrofon ankommen. Solange eine bestaetigte OpenAI-Ausgabe
+              laeuft, darf dieses Eingangssignal die Lippen nicht mehr
+              schliessen. Ist Holo still, bleibt Pams Sprache weiterhin nur
+              Eingabe und erzeugt keine Mundbewegung.
+            */
+            if(
+              !realtimeSpeechIsActive()
+            ){
+
+              finishRealtimeSpeechFallback(
+                true
+              );
+            }
 
 
             setLiveStatus(
