@@ -1,8 +1,8 @@
 # Human Holo – Original Full Sync
 
-Stand: 08.09.2026  
-Status: Build #243 im Praxistest teilweise sichtbar, aber wegen fehlender
-Mundbewegung nicht bestanden – korrigierter S23-Test noch offen
+Stand: 09.09.2026
+Status: Builds #242 bis #244 im Praxistest nicht bestanden – direkte Analyse
+des hörbaren OpenAI-Audioausgangs für den nächsten S23-Test integriert
 
 ## Ehrlicher Praxisstand
 
@@ -30,7 +30,7 @@ Startfehler.
 Diese Korrekturen gelten erst dann als praktisch bestanden, wenn Pam sie mit
 echter Sprachausgabe und einem Bildwechsel auf ihrem S23 bestätigt.
 
-### Praxistest Build #243
+### Praxistests Build #243 und #244
 
 Pams Bildschirmaufnahme vom Samsung Galaxy S23 bestätigt erstmals eine
 sichtbare Veränderung: Gesamtbewegung und Gesichtsaktivität laufen. Während
@@ -45,6 +45,62 @@ aus dem empfangenden WebRTC-Kanal; Synchronisationsquelle und
 Receiver-Statistik dienen als zwei getrennte lokale Wege. Zusätzlich wird der
 Web-Audio-Kontext unmittelbar in Pams Tipp auf den Sprachknopf entsperrt. Es
 werden dabei weder Sprachaufnahmen gespeichert noch übertragen.
+
+Build #244 enthielt diese WebRTC-Pegelbrücke, erzeugte in Pams anschließendem
+S23-Test jedoch weiterhin keine zufriedenstellende Mundbewegung. Eine spätere
+Aufnahme wurde von Pam ausdrücklich als ohne Veränderung bewertet. Damit ist
+auch Build #244 praktisch nicht bestanden.
+
+Die verbleibende technische Lücke lag wahrscheinlich darin, dass der
+WebRTC-Receiver auf Android nicht zuverlässig denselben Pegel meldete, der aus
+dem hörbaren Audioelement abgespielt wurde. Die nächste Korrektur analysiert
+deshalb direkt dieses Audioelement. Sein Web-Audio-Graph wird bereits in der
+Tippgeste gestartet und über Gesprächsstopps hinweg erhalten. Mund- und
+Kieferweg besitzen zusätzlich eine testbare sichtbare Mindestbewegung.
+
+## Verbindliche ChatGPT/OpenAI-Bindung
+
+Pamela Christina Nitschke hat am 09.09.2026 für ihr ownergebundenes Human Holo
+festgelegt: Alles, was in Human Holo oder für Human Holo technisch über
+ChatGPT/OpenAI möglich ist, wird ausschließlich über ChatGPT/OpenAI umgesetzt.
+
+Ein anderer Anbieter ist kein automatischer Ersatz. Eine Ausnahme darf nur
+geprüft werden, wenn eine notwendige Funktion nachweisbar nicht über
+ChatGPT/OpenAI möglich ist, die technische Unmöglichkeit dokumentiert wurde
+und Pam die konkrete Abweichung vorher ausdrücklich freigibt.
+
+Für Original Full Sync bedeutet das:
+
+- Die Sprachausgabe stammt aus OpenAI Realtime.
+- Der lokale Android-Darstellungsweg darf die OpenAI-Ausgabe in Bewegung
+  übersetzen; er ist kein zweiter KI-Anbieter.
+- Bild, Stimme oder Identität werden keinem fremden Avatar-Anbieter automatisch
+  übergeben.
+- Fehlt ein geeigneter OpenAI-Weg, bleibt der Funktionsstand offen, bis Pam über
+  eine dokumentierte Ausnahme entscheidet.
+
+Die [OpenAI-Dokumentation zur Videoerzeugung](https://developers.openai.com/api/docs/guides/video-generation)
+bestätigt, dass ein einzelnes Bild als Startreferenz für ein Video dienen kann.
+Der derzeitige Videos-API-Weg ist jedoch asynchron und damit keine dauerhafte
+Live-Schnittstelle für das Holo. Laut der
+[offiziellen OpenAI-Abkündigung](https://developers.openai.com/api/docs/deprecations)
+wird dieser Weg am 24.09.2026 ohne angegebenen Ersatz abgeschaltet. Er wird
+deshalb nicht als langfristige Live-Grundlage eingebaut.
+
+Die vollständige übergreifende Regel steht in
+[Human Holo – verbindliche ChatGPT/OpenAI-Projektregel](./CHATGPT-OPENAI-PROJEKTREGEL-09-09-2026.md).
+
+## Referenzziel aus einem einzelnen Bild
+
+Pam hat bestätigt, dass das von ihr bereitgestellte Referenzvideo zuvor durch
+ChatGPT/OpenAI aus nur einem Bild erzeugt wurde. Das zeigt das gewünschte
+qualitative Ziel: nicht nur ein bewegter Mund, sondern natürliche gemeinsame
+Bewegung von Gesicht, Haaren, Kopf und sichtbarem Körper.
+
+Das private Referenzvideo wird nicht in App oder Repository verteilt. Es dient
+nur zur Ableitung des Zielbilds und sicher begrenzter Bewegungsparameter. Die
+Herkunft des Beispiels beweist keine aktuell verfügbare Live-API; deshalb bleibt
+die Echtzeit-Integration ein eigener, ehrlich ausgewiesener Entwicklungsbereich.
 
 ## Verbindliche Bezeichnung und Ziel
 

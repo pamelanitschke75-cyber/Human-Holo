@@ -268,13 +268,14 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
 
   assert.match(
     startFunction,
-    /stopLipSync\([\s\S]*?activateOriginalFullSync\(\)[\s\S]*?await ensureLipAudioContext\(\)/u
+    /stopLipSync\([\s\S]*?activateOriginalFullSync\(\)[\s\S]*?await ensureLipPlaybackAudioGraph\(\)/u
   );
   assert.match(
     startFunction,
-    /if\([\s\S]*?!ready[\s\S]*?receiverReady[\s\S]*?requestLipSyncFrame\(\)[\s\S]*?Android-Sprachpegel steuert Original Full Sync direkt/u
+    /if\([\s\S]*?!audioContextReady[\s\S]*?receiverReady[\s\S]*?requestLipSyncFrame\(\)[\s\S]*?Sichere Sprachbewegung bleibt ohne Android-Audioanalyse aktiv/u
   );
   assert.match(deltaFunction, /activateOriginalFullSync\(\)/u);
-  assert.match(html, /sol-motion-profile\.js\?v=2/u);
+  assert.match(html, /human-holo-ai-policy\.js\?v=1/u);
+  assert.match(html, /sol-motion-profile\.js\?v=3/u);
   assert.match(html, /original-full-sync\.js\?v=2/u);
 });

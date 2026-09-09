@@ -39,6 +39,7 @@ on:
       - "www/media-tools.js"
       - "www/sol-holo-logo.png"
       - "www/human-holo-logo.png"
+      - "www/human-holo-ai-policy.js"
       - "www/sol-motion-profile.js"
       - "www/remote-audio-level.js"
       - "www/sol-holo-ui.css"

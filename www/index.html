@@ -2406,7 +2406,8 @@ Schreiben bereit.
 </audio>
 
 
-<script src="./sol-motion-profile.js?v=2"></script>
+<script src="./human-holo-ai-policy.js?v=1"></script>
+<script src="./sol-motion-profile.js?v=3"></script>
 <script src="./remote-audio-level.js?v=1"></script>
 <script src="./original-full-sync.js?v=2"></script>
 <script src="./media-tools.js"></script>
@@ -3490,6 +3491,9 @@ LIP SYNC ENGINE
 
 let lipAudioContext = null;
 let lipSourceNode = null;
+let lipMediaElementSourceNode = null;
+let lipMediaElementGraphConnected = false;
+let lipPlaybackAudioGraphPromise = null;
 let lipAnalyser = null;
 let lipSilentGain = null;
 let lipAnimationFrame = null;
@@ -3497,6 +3501,7 @@ let lipTimeData = null;
 let lipFrequencyData = null;
 let lipSyncRunning = false;
 let lipHeadAudioNode = null;
+let lipHeadAudioSourceNode = null;
 let lipHeadAudioReady = false;
 let lipHeadAudioInitPromise = null;
 let lipStreamGeneration = 0;
@@ -4957,6 +4962,156 @@ async function ensureLipAudioContext(){
 }
 
 
+function ensureLipAnalyserBuffers(){
+
+  if(
+    !lipAudioContext
+  ){
+
+    return false;
+  }
+
+
+  if(
+    !lipAnalyser
+  ){
+
+    lipAnalyser =
+      lipAudioContext
+        .createAnalyser();
+
+
+    lipAnalyser.fftSize =
+      1024;
+
+
+    lipAnalyser.smoothingTimeConstant =
+      0.54;
+  }
+
+
+  if(
+    !lipTimeData ||
+    lipTimeData.length !==
+      lipAnalyser.fftSize
+  ){
+
+    lipTimeData =
+      new Uint8Array(
+        lipAnalyser.fftSize
+      );
+  }
+
+
+  if(
+    !lipFrequencyData ||
+    lipFrequencyData.length !==
+      lipAnalyser.frequencyBinCount
+  ){
+
+    lipFrequencyData =
+      new Uint8Array(
+        lipAnalyser.frequencyBinCount
+      );
+  }
+
+
+  return true;
+}
+
+
+async function ensureLipPlaybackAudioGraph(){
+
+  if(
+    lipPlaybackAudioGraphPromise
+  ){
+
+    return lipPlaybackAudioGraphPromise;
+  }
+
+
+  lipPlaybackAudioGraphPromise =
+    (async () => {
+
+      const ready =
+        await ensureLipAudioContext();
+
+
+      if(
+        !ready ||
+        !ensureLipAnalyserBuffers()
+      ){
+
+        return false;
+      }
+
+
+      try{
+
+        if(
+          !lipMediaElementSourceNode
+        ){
+
+          lipMediaElementSourceNode =
+            lipAudioContext
+              .createMediaElementSource(
+                realtimeAudio
+              );
+        }
+
+
+        if(
+          !lipMediaElementGraphConnected
+        ){
+
+          lipMediaElementSourceNode.connect(
+            lipAnalyser
+          );
+
+
+          lipAnalyser.connect(
+            lipAudioContext.destination
+          );
+
+
+          lipMediaElementGraphConnected =
+            true;
+        }
+
+
+        lipSourceNode =
+          lipMediaElementSourceNode;
+
+
+        return true;
+
+      }catch(
+        error
+      ){
+
+        console.warn(
+          "Lip-Sync Audioausgang:",
+          error
+        );
+
+
+        return false;
+      }
+    })();
+
+
+  try{
+
+    return await lipPlaybackAudioGraphPromise;
+
+  }finally{
+
+    lipPlaybackAudioGraphPromise =
+      null;
+  }
+}
+
+
 function resetLipVisemeValues(){
 
   lipVisemeValues =
@@ -5718,12 +5873,12 @@ function renderNaturalMouth(
 
   const lipTravel =
     Math.min(
-      imageDisplayHeight * 0.0125,
-      lipBandHeight * 0.58
+      imageDisplayHeight * 0.024,
+      lipBandHeight * 1.08
     ) *
     Math.pow(
       open,
-      0.78
+      0.66
     );
 
 
@@ -5740,15 +5895,15 @@ function renderNaturalMouth(
 
   const cavityHeight =
     Math.max(
-      1.4,
-      1.1 +
-      lipTravel * 1.45
+      2.0,
+      1.6 +
+      lipTravel * 1.88
     );
 
 
   const cavityCenterY =
     seamY +
-    lipTravel * 0.24;
+    lipTravel * 0.20;
 
 
   context.save();
@@ -6767,6 +6922,10 @@ async function attachHeadAudioVisemes(
     );
 
 
+    lipHeadAudioSourceNode =
+      sourceNode;
+
+
     lipSyncStatus.textContent =
       "✨ Echte Sprachlaute steuern Pam’s Holos Original Full Sync.";
 
@@ -6824,12 +6983,18 @@ async function startLipSync(
   }
 
 
-  const ready =
-    await ensureLipAudioContext();
+  const playbackReady =
+    await ensureLipPlaybackAudioGraph();
+
+
+  const audioContextReady =
+    playbackReady ||
+    lipAudioContext?.state ===
+      "running";
 
 
   if(
-    !ready
+    !audioContextReady
   ){
 
     lipSyncRunning =
@@ -6846,7 +7011,7 @@ async function startLipSync(
     requestLipSyncFrame();
 
     lipSyncStatus.textContent =
-      "✨ Android-Sprachpegel steuert Original Full Sync direkt.";
+      "✨ Sichere Sprachbewegung bleibt ohne Android-Audioanalyse aktiv.";
 
 
     return;
@@ -6857,60 +7022,47 @@ async function startLipSync(
     const streamGeneration =
       ++lipStreamGeneration;
 
-    lipSourceNode =
-      lipAudioContext
-        .createMediaStreamSource(
-          stream
-        );
+    if(
+      !playbackReady
+    ){
+
+      lipSourceNode =
+        lipAudioContext
+          .createMediaStreamSource(
+            stream
+          );
 
 
-    lipAnalyser =
-      lipAudioContext
-        .createAnalyser();
+      ensureLipAnalyserBuffers();
 
 
-    lipAnalyser.fftSize =
-      1024;
+      lipAnalyser.smoothingTimeConstant =
+        0.62;
 
 
-    lipAnalyser.smoothingTimeConstant =
-      0.62;
+      lipSilentGain =
+        lipAudioContext
+          .createGain();
 
 
-    lipTimeData =
-      new Uint8Array(
-        lipAnalyser.fftSize
+      lipSilentGain.gain.value =
+        0;
+
+
+      lipSourceNode.connect(
+        lipAnalyser
       );
 
 
-    lipFrequencyData =
-      new Uint8Array(
-        lipAnalyser.frequencyBinCount
+      lipAnalyser.connect(
+        lipSilentGain
       );
 
 
-    lipSilentGain =
-      lipAudioContext
-        .createGain();
-
-
-    lipSilentGain.gain.value =
-      0;
-
-
-    lipSourceNode.connect(
-      lipAnalyser
-    );
-
-
-    lipAnalyser.connect(
-      lipSilentGain
-    );
-
-
-    lipSilentGain.connect(
-      lipAudioContext.destination
-    );
+      lipSilentGain.connect(
+        lipAudioContext.destination
+      );
+    }
 
 
     updateMouthGeometry();
@@ -6928,6 +7080,15 @@ async function startLipSync(
 
 
     showOriginalFullSyncSpeakingStatus();
+
+
+    if(
+      playbackReady
+    ){
+
+      lipSyncStatus.textContent =
+        "✨ Der hörbare Audioausgang steuert Mund und Kiefer direkt.";
+    }
 
 
     requestLipSyncFrame();
@@ -7024,18 +7185,45 @@ function stopLipSync(
   }
 
 
+  const keepMediaElementGraph =
+    Boolean(
+      lipMediaElementGraphConnected &&
+      lipMediaElementSourceNode &&
+      lipAnalyser
+    );
+
+
   if(
-    lipSourceNode
+    lipHeadAudioSourceNode &&
+    lipHeadAudioNode
+  ){
+
+    try{
+      lipHeadAudioSourceNode.disconnect(
+        lipHeadAudioNode
+      );
+    }catch{}
+
+
+    lipHeadAudioSourceNode =
+      null;
+  }
+
+
+  if(
+    lipSourceNode &&
+    lipSourceNode !==
+      lipMediaElementSourceNode
   ){
 
     try{
       lipSourceNode.disconnect();
     }catch{}
-
-
-    lipSourceNode =
-      null;
   }
+
+
+  lipSourceNode =
+    null;
 
 
   if(
@@ -7052,7 +7240,8 @@ function stopLipSync(
 
 
   if(
-    lipAnalyser
+    lipAnalyser &&
+    !keepMediaElementGraph
   ){
 
     try{
@@ -7079,12 +7268,17 @@ function stopLipSync(
   }
 
 
-  lipTimeData =
-    null;
+  if(
+    !keepMediaElementGraph
+  ){
+
+    lipTimeData =
+      null;
 
 
-  lipFrequencyData =
-    null;
+    lipFrequencyData =
+      null;
+  }
 
 
   currentMouthOpen = 0;
@@ -12123,7 +12317,7 @@ async function startLiveConversation(){
   }
 
 
-  await ensureLipAudioContext();
+  await ensureLipPlaybackAudioGraph();
 
 
   if(
@@ -12904,7 +13098,7 @@ liveButton.addEventListener(
       Android WebView erlaubt Web-Audio nur direkt in der Tipp-Geste. Der
       Kontext muss deshalb vor jedem anderen await entsperrt werden.
     */
-    void ensureLipAudioContext();
+    void ensureLipPlaybackAudioGraph();
 
     if(
       typeof window.pauseHeyHoSolForConversation === "function"
@@ -12998,7 +13192,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=62"></script>
+<script src="./sol-holo-ui.js?v=63"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=2"></script>

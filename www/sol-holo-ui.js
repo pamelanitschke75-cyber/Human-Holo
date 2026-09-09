@@ -468,6 +468,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
 
   const settingsSystemDetails = document.getElementById("settingsSystemDetails");
+  const aiProviderPolicy = window.HumanHoloAIProviderPolicy;
+  const aiProviderStatus = document.createElement("div");
+  aiProviderStatus.id = "aiProviderStatus";
+  aiProviderStatus.className = "settingsSystemStatus";
+  aiProviderStatus.textContent =
+    aiProviderPolicy?.openAIRequiredWheneverPossible &&
+    aiProviderPolicy?.provider === "openai"
+      ? "✦ Human Holo: ChatGPT/OpenAI zuerst und verbindlich · Ausnahme nur, wenn technisch unmöglich und von Pam freigegeben."
+      : "⚠️ ChatGPT/OpenAI-Bindung konnte nicht bestätigt werden.";
+  settingsSystemDetails.append(aiProviderStatus);
+
   ["chatStatus", "micStatus", "memoryStatus", "lipSyncStatus"].forEach((id) => {
     const status = document.getElementById(id);
     if (status) {

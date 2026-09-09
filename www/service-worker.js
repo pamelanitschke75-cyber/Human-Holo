@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-218-full-sync-remote-audio";
+const CACHE_VERSION = "human-holo-219-chatgpt-openai-only-full-sync";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

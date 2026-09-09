@@ -125,6 +125,30 @@ test("die App koppelt den echten Receiver an Mund und frühen Android-Unlock", a
   assert.match(html, /startLipSync\([\s\S]*?stream,[\s\S]*?event\.receiver/u);
   assert.match(
     html,
-    /liveButton\.addEventListener\([\s\S]*?void ensureLipAudioContext\(\)[\s\S]*?await window\.pauseHeyHoSolForConversation/u
+    /liveButton\.addEventListener\([\s\S]*?void ensureLipPlaybackAudioGraph\(\)[\s\S]*?await window\.pauseHeyHoSolForConversation/u
+  );
+});
+
+test("der hörbare Android-Audioausgang wird direkt und dauerhaft analysiert", async () => {
+  const html = await readFile(
+    new URL("../www/index.html", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(
+    html,
+    /createMediaElementSource\(\s*realtimeAudio\s*\)/u
+  );
+  assert.match(
+    html,
+    /lipMediaElementSourceNode\.connect\(\s*lipAnalyser\s*\)[\s\S]*?lipAnalyser\.connect\(\s*lipAudioContext\.destination\s*\)/u
+  );
+  assert.match(
+    html,
+    /if\(\s*lipPlaybackAudioGraphPromise\s*\)[\s\S]*?return lipPlaybackAudioGraphPromise[\s\S]*?finally[\s\S]*?lipPlaybackAudioGraphPromise\s*=\s*null/u
+  );
+  assert.match(
+    html,
+    /const keepMediaElementGraph[\s\S]*?lipSourceNode !==\s*lipMediaElementSourceNode[\s\S]*?!keepMediaElementGraph/u
   );
 });

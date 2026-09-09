@@ -121,6 +121,8 @@ test("Mundoeffnung bewegt Unterlippe und Kiefer, Stille bleibt neutral", async (
   assert.equal(silent.jawTravel, 0);
   assert.ok(spoken.verticalTravel > 0);
   assert.ok(spoken.jawTravel > 0);
+  assert.ok(spoken.verticalTravel * 650 >= 8);
+  assert.ok(spoken.jawTravel * 650 >= 4);
   assert.ok(spoken.lowerTravel > spoken.upperTravel);
   assert.ok(spoken.jawTravel / spoken.verticalTravel > 0.25);
   assert.ok(spoken.jawTravel / spoken.verticalTravel < 0.80);

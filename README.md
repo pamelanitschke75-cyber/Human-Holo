@@ -555,6 +555,28 @@ Eine persönliche, autorisierte eigene Stimme soll später die aktuell verwendet
 
 ---
 
+## ✦ Verbindliche ChatGPT/OpenAI-Projektregel
+
+Entscheidung von Pamela Christina Nitschke, ownergebunden an `pam-sol`:
+Alles, was in Human Holo oder für Human Holo technisch über ChatGPT/OpenAI
+möglich ist, wird ausschließlich über ChatGPT/OpenAI umgesetzt. Es gibt keinen
+automatischen Wechsel zu einem anderen Anbieter.
+
+Eine Ausnahme darf nur geprüft werden, wenn eine notwendige Funktion
+nachweisbar nicht über ChatGPT/OpenAI möglich ist. Die technische
+Unmöglichkeit muss dokumentiert sein und Pam muss jede Abweichung vorher
+ausdrücklich freigeben. Ohne diese Bedingungen bleibt die Funktion offen oder
+gesperrt.
+
+Das gilt besonders für Persönlichkeit, Gedächtnisassistenz, Stimme,
+Sprachverarbeitung, Bilder, Videos, Avatarbewegung und Original Full Sync.
+Lokaler Android- und Darstellungscode darf OpenAI-Ausgaben verbinden und
+anzeigen, ist aber kein eigener KI-Anbieter.
+
+Details: [Verbindliche ChatGPT/OpenAI-Projektregel](./CHATGPT-OPENAI-PROJEKTREGEL-09-09-2026.md)
+
+---
+
 ## ✨ Original Full Sync
 
 Die verbindliche Bezeichnung lautet **Original Full Sync** – nicht nur
@@ -572,11 +594,20 @@ Geometriezuordnung.
 Build #242 war trotz erfolgreicher technischer Erstellung auf Pams Samsung
 Galaxy S23 sichtbar unverändert. Build #243 zeigte erstmals Gesamt- und
 Gesichtsbewegung, aber noch keine zur hörbaren Stimme passende Mundbewegung.
-Beide Praxisstände sind deshalb als nicht bestanden dokumentiert. Die nächste
-Korrekturstufe verbindet den empfangenen WebRTC-Sprachpegel direkt mit dem
-Mund-Rig. Als praktisch bestanden wird Original Full Sync weiterhin erst nach
-Pams Test mit echter Sprachausgabe und einem Bildwechsel auf dem Samsung Galaxy
-S23 dokumentiert.
+Build #244 verband zusätzlich den WebRTC-Empfangspegel, erzeugte im Praxistest
+aber weiterhin keine zufriedenstellende Mundbewegung. Alle drei Praxisstände
+sind deshalb als nicht bestanden dokumentiert.
+
+Die nächste Korrekturstufe analysiert direkt das tatsächlich hörbare
+OpenAI-Audioelement in der Android-App, hält dessen Audiograph dauerhaft aktiv
+und verstärkt Mund- und Kieferweg innerhalb sicherer Grenzen. Als praktisch
+bestanden wird Original Full Sync weiterhin erst nach Pams Test mit echter
+Sprachausgabe und einem Bildwechsel auf dem Samsung Galaxy S23 dokumentiert.
+
+Pams Referenzvideo wurde nach ihrer Angabe zuvor durch ChatGPT/OpenAI aus nur
+einem Bild erzeugt. Diese Qualität mit natürlicher Mund-, Haar-, Körper- und
+Gesamtbewegung bleibt das Ziel. Human Holo bindet dafür keinen fremden
+Avatar-Anbieter automatisch ein.
 
 Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-09-2026.md)
 

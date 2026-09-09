@@ -6,42 +6,42 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-08-original-full-sync-2-visible",
+    version:"2026-09-08-original-full-sync-3-reference-visible",
 
     speech:{
-      maximumOpen:0.62,
+      maximumOpen:0.68,
       restingOpen:0.012,
       attackRetention:0.58,
       releaseRetention:0.80,
       wideMaximum:0.52,
       roundMaximum:0.50,
       upperLipShare:0.18,
-      lowerLipShare:0.72,
-      travelByFace:0.027,
-      travelByMouth:0.84,
+      lowerLipShare:0.78,
+      travelByFace:0.048,
+      travelByMouth:1.32,
       wideScale:0.24,
       roundScale:0.23,
       minimumMouthScale:0.88,
       maximumMouthScale:1.13,
-      jawTravelByFace:0.014,
-      jawTravelByMouth:0.46,
-      jawLipShare:0.66,
+      jawTravelByFace:0.026,
+      jawTravelByMouth:0.78,
+      jawLipShare:0.72,
       jawWidenShare:0.10,
       cheekShare:0.055,
       cheekLiftShare:0.10,
       cornerLiftShare:0.18,
-      rigAttackMs:34,
-      rigReleaseMs:86,
+      rigAttackMs:28,
+      rigReleaseMs:72,
       shapeAttackMs:48,
       shapeReleaseMs:96,
       neutralEpsilon:0.007
     },
 
     fallback:{
-      baseOpen:0.035,
-      minimumOpen:0.010,
-      maximumOpen:0.54,
-      closureDepth:0.44,
+      baseOpen:0.075,
+      minimumOpen:0.018,
+      maximumOpen:0.64,
+      closureDepth:0.50,
       syllableRate:0.0174,
       consonantRate:0.039,
       phraseRate:0.0055
@@ -86,7 +86,7 @@
       hairResponseMs:190,
       bodyOverlayOpacity:0.64,
       hairOverlayOpacity:0.76,
-      speechActivityFloor:0.38,
+      speechActivityFloor:0.46,
       idleActivity:0.035
     }
   };

@@ -73,6 +73,11 @@ import {
   pamVoiceIdFromEnvironment,
   resolveHumanHoloRealtimeVoice
 } from "./modules/human-holo-voice.mjs";
+import {
+  HUMAN_HOLO_AI_PROVIDER_POLICY,
+  assertHumanHoloAIProvider,
+  humanHoloAIProviderPolicyResponse
+} from "./modules/human-holo-ai-provider-policy.mjs";
 
 const app = express();
 
@@ -85,6 +90,10 @@ const __dirname = path.dirname(__filename);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+assertHumanHoloAIProvider(
+  HUMAN_HOLO_AI_PROVIDER_POLICY.provider
+);
 
 // Kurze Alltagsabfragen brauchen keine Reasoning-Ausgabe. Das nicht-reasoning
 // Modell ist für den Responses-Websuchweg schneller und verbraucht das kleine
@@ -1282,6 +1291,19 @@ app.get("/", (req, res) => {
   res.sendFile(
     path.join(__dirname, "index.html")
   );
+});
+
+app.get("/ai/provider-policy", (_req, res) => {
+  return res
+    .set({
+      "Cache-Control":
+        "no-store, max-age=0",
+      Pragma:
+        "no-cache"
+    })
+    .json(
+      humanHoloAIProviderPolicyResponse()
+    );
 });
 
 app.get("/weather/status", (_req, res) => {
