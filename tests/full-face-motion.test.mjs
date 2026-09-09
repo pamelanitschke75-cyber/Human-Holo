@@ -242,7 +242,7 @@ test("Unsichere Foto-Landmarks fallen zur lokalen Mundbewegung zurueck", () => {
   );
 });
 
-test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschlossene Foto gezeichnet", async () => {
+test("sichtbare Mundoeffnung bleibt auf Android unabhaengig von der Canvas-Verformung", async () => {
   const html = await readFile(
     new URL("../www/index.html", import.meta.url),
     "utf8"
@@ -254,6 +254,12 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
   const renderStart = html.indexOf("function renderNaturalMouth(");
   const renderEnd = html.indexOf("FREQUENZBAND", renderStart);
   const renderSource = html.slice(renderStart, renderEnd);
+  const openingStart = html.indexOf("function renderVisibleMouthOpening(");
+  const openingEnd = html.indexOf("function renderNaturalMouth(", openingStart);
+  const openingSource = html.slice(openingStart, openingEnd);
+  const geometryStart = html.indexOf("function updateMouthGeometry(");
+  const geometryEnd = html.indexOf("function clearNaturalMouth(", geometryStart);
+  const geometrySource = html.slice(geometryStart, geometryEnd);
   const textureWarp = renderSource.indexOf("for(\n    let y = warpStart;");
   const mouthInterior = renderSource.indexOf(
     "paintMouthInterior();",
@@ -276,8 +282,11 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
     visibleCavity
   );
   const foregroundOpening = renderSource.indexOf(
-    'mouthOpening.style.display =\n    "block";',
-    visibleOpeningFill
+    "renderVisibleMouthOpening("
+  );
+  const canvasAvailability = renderSource.indexOf(
+    "!mouthCanvasContext",
+    foregroundOpening
   );
 
   assert.ok(textureWarp >= 0);
@@ -286,7 +295,8 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
   assert.ok(visibleTexture > edgeMask);
   assert.ok(visibleCavity > visibleTexture);
   assert.ok(visibleOpeningFill > visibleCavity);
-  assert.ok(foregroundOpening > visibleOpeningFill);
+  assert.ok(foregroundOpening >= 0);
+  assert.ok(canvasAvailability > foregroundOpening);
   assert.match(renderSource, /lipTravel\s*\*\s*3\.55/u);
   assert.match(renderSource, /mouthCanvasContext\.bezierCurveTo\(/u);
   assert.doesNotMatch(renderSource, /destination-out/u);
@@ -296,10 +306,16 @@ test("sichtbare Mundoeffnung wird auf Android zuletzt direkt ueber das geschloss
   assert.match(html, /#mouthCanvas\{[\s\S]*?z-index:10/u);
   assert.match(html, /#mouthOpening\{[\s\S]*?z-index:12/u);
   assert.match(
-    renderSource,
-    /mouthOpening\.style\.left\s*=\s*`\$\{canvasLeft \+ openingLeft\}px`/u
+    openingSource,
+    /mouthOpening\.style\.left\s*=\s*`\$\{[\s\S]*?canvasLeft[\s\S]*?visibleCavityWidth/u
   );
-  assert.match(renderSource, /--mouth-teeth-opacity/u);
+  assert.match(openingSource, /--mouth-teeth-opacity/u);
+  assert.match(openingSource, /visibleCavityHeight[\s\S]*?0\.052/u);
+  assert.match(openingSource, /mouthOpening\.style\.display\s*=\s*"block"/u);
+  assert.doesNotMatch(geometrySource, /!mouthCanvasContext/u);
+  assert.doesNotMatch(geometrySource, /!lipMouthRenderContext/u);
+  assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?clip-path:/u);
+  assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?mask-image:/u);
   assert.match(renderSource, /featherMask/u);
   assert.match(renderSource, /open\s*-\s*0\.12/u);
   assert.match(
