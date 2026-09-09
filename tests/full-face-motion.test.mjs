@@ -297,7 +297,7 @@ test("sichtbare Mundoeffnung bleibt auf Android unabhaengig von der Canvas-Verfo
   assert.ok(visibleOpeningFill > visibleCavity);
   assert.ok(foregroundOpening >= 0);
   assert.ok(canvasAvailability > foregroundOpening);
-  assert.match(renderSource, /lipTravel\s*\*\s*3\.55/u);
+  assert.match(renderSource, /lipTravel\s*\*\s*2\.15/u);
   assert.match(renderSource, /mouthCanvasContext\.bezierCurveTo\(/u);
   assert.doesNotMatch(renderSource, /destination-out/u);
   assert.match(renderSource, /visibleToothGradient/u);
@@ -310,14 +310,26 @@ test("sichtbare Mundoeffnung bleibt auf Android unabhaengig von der Canvas-Verfo
     /mouthOpening\.style\.left\s*=\s*`\$\{[\s\S]*?canvasLeft[\s\S]*?visibleCavityWidth/u
   );
   assert.match(openingSource, /--mouth-teeth-opacity/u);
-  assert.match(openingSource, /visibleCavityHeight[\s\S]*?0\.052/u);
+  assert.match(openingSource, /visibleCavityHeight[\s\S]*?0\.023/u);
+  assert.match(openingSource, /imageDisplayHeight \* 0\.028/u);
+  assert.match(openingSource, /mouthHeight \* 0\.54/u);
+  assert.match(openingSource, /wide \* 0\.20[\s\S]*?round \* 0\.20/u);
+  assert.match(openingSource, /0\.42,[\s\S]*?0\.66/u);
   assert.match(openingSource, /mouthOpening\.style\.display\s*=\s*"block"/u);
   assert.doesNotMatch(geometrySource, /!mouthCanvasContext/u);
   assert.doesNotMatch(geometrySource, /!lipMouthRenderContext/u);
   assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?clip-path:/u);
   assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?mask-image:/u);
   assert.match(renderSource, /featherMask/u);
-  assert.match(renderSource, /open\s*-\s*0\.12/u);
+  assert.match(renderSource, /open\s*-\s*0\.20/u);
+  assert.match(
+    html,
+    /#mouthOpening\{[\s\S]*?rgba\(174,92,103,0\) 100%/u
+  );
+  assert.match(
+    html,
+    /#mouthOpening::before\{[\s\S]*?left:25%;[\s\S]*?height:27%/u
+  );
   assert.match(
     html,
     /fullFaceRig\?\.render\([\s\S]*?openness:visibleMouthOpen,[\s\S]*?localizedMouthOnly:true,[\s\S]*?cheekLift:0,[\s\S]*?mouthAsymmetry:0/u
@@ -346,5 +358,17 @@ test("Holos hoerbarer Android-Ausgang speist die Mundanalyse und eine sichtbare 
   assert.match(
     html,
     /Math\.max\(\s*resolvedShape\.open,[\s\S]*?outputSpeechShape\?\.open[\s\S]*?outputSpeechOpenShare/u
+  );
+  assert.match(
+    html,
+    /ensureVisibleRealtimeMouth\([\s\S]*?Math\.max\([\s\S]*?0\.16,[\s\S]*?\* 0\.24/u
+  );
+  assert.match(
+    html,
+    /visibleKickShape[\s\S]*?Math\.max\([\s\S]*?visibleKickShape\.open,[\s\S]*?0\.12/u
+  );
+  assert.match(
+    html,
+    /Math\.pow\([\s\S]*?mouthRenderBaseOpen,[\s\S]*?0\.82[\s\S]*?\* 0\.82/u
   );
 });
