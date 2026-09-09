@@ -1129,6 +1129,111 @@ LIP SYNC
   visibility:visible;
 }
 
+#mouthOpening{
+  position:absolute;
+
+  display:none;
+
+  z-index:9;
+
+  overflow:hidden;
+
+  pointer-events:none;
+
+  border-radius:50%;
+
+  clip-path:
+    polygon(
+      2% 50%,
+      15% 27%,
+      38% 12%,
+      50% 16%,
+      62% 12%,
+      85% 27%,
+      98% 50%,
+      84% 74%,
+      61% 89%,
+      50% 85%,
+      39% 89%,
+      16% 74%
+    );
+
+  opacity:0;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 56%,
+      rgba(14,2,8,.99) 0%,
+      rgba(35,7,17,.98) 68%,
+      rgba(102,30,48,.88) 100%
+    );
+
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.92),
+    inset 0 -1px 2px rgba(137,43,65,.42);
+
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse at center,
+      #000 0%,
+      #000 72%,
+      rgba(0,0,0,.88) 84%,
+      transparent 100%
+    );
+
+  mask-image:
+    radial-gradient(
+      ellipse at center,
+      #000 0%,
+      #000 72%,
+      rgba(0,0,0,.88) 84%,
+      transparent 100%
+    );
+
+  filter:blur(.20px);
+
+  will-change:left,top,width,height,opacity;
+}
+
+#mouthOpening::before{
+  content:"";
+
+  position:absolute;
+
+  left:14%;
+  right:14%;
+  top:2%;
+
+  height:43%;
+
+  border-radius:50% 50% 42% 42%;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247,238,229,var(--mouth-teeth-opacity,0)) 0%,
+      rgba(225,207,197,var(--mouth-teeth-opacity,0)) 64%,
+      transparent 100%
+    );
+}
+
+#mouthOpening::after{
+  content:"";
+
+  position:absolute;
+
+  left:20%;
+  right:20%;
+  bottom:-5%;
+
+  height:36%;
+
+  border-radius:50% 50% 38% 38%;
+
+  background:
+    rgba(139,43,66,var(--mouth-tongue-opacity,0));
+}
+
 #solCloneWrap.sol-speaking{
   /* Original Full Sync steuert die Gesamtbewegung framegenau zur Stimme. */
   animation:none;
@@ -2215,6 +2320,7 @@ Verbindung
 
 <canvas id="faceCanvas" aria-hidden="true"></canvas>
 <canvas id="mouthCanvas" aria-hidden="true"></canvas>
+<div id="mouthOpening" aria-hidden="true"></div>
 
 </div>
 
@@ -2871,6 +2977,9 @@ const faceCanvas =
 
 const mouthCanvas =
   document.getElementById("mouthCanvas");
+
+const mouthOpening =
+  document.getElementById("mouthOpening");
 
 const mouthCanvasContext =
   mouthCanvas.getContext(
@@ -4199,6 +4308,12 @@ async function analyseFullFaceImage(){
 
     mouthCanvas.style.display =
       "none";
+
+    mouthOpening.style.display =
+      "none";
+
+    mouthOpening.style.opacity =
+      "0";
 
   }else{
 
@@ -5590,6 +5705,12 @@ function updateMouthGeometry(){
     mouthCanvas.style.display =
       "none";
 
+    mouthOpening.style.display =
+      "none";
+
+    mouthOpening.style.opacity =
+      "0";
+
     return;
   }
 
@@ -5737,6 +5858,8 @@ function updateMouthGeometry(){
   lipMouthCanvasGeometry = {
     width:canvasWidth,
     height:canvasHeight,
+    canvasLeft,
+    canvasTop,
     imageDisplayWidth:imageWidth,
     imageDisplayHeight:imageHeight,
     seamY:canvasHeight * 0.42,
@@ -5778,6 +5901,13 @@ function updateMouthGeometry(){
 
 
 function clearNaturalMouth(){
+
+  mouthOpening.style.display =
+    "none";
+
+
+  mouthOpening.style.opacity =
+    "0";
 
   if(
     !mouthCanvasContext
@@ -5873,6 +6003,8 @@ function renderNaturalMouth(
     height,
     imageDisplayWidth,
     imageDisplayHeight,
+    canvasLeft,
+    canvasTop,
     seamY,
     mouthWidth,
     mouthHeight,
@@ -5976,6 +6108,35 @@ function renderNaturalMouth(
   const cavityCenterY =
     seamY +
     lipTravel * 0.20;
+
+
+  const visibleCavityHeight =
+    clamp(
+      imageDisplayHeight *
+        (
+          0.004 +
+          Math.pow(
+            open,
+            0.70
+          ) * 0.036
+        ),
+      3.2,
+      Math.max(
+        6,
+        mouthHeight * 0.92
+      )
+    );
+
+
+  const visibleCavityWidth =
+    effectiveMouthWidth *
+    clamp(
+      0.64 +
+        open * 0.12 -
+        round * 0.04,
+      0.60,
+      0.76
+    );
 
 
   const paintMouthInterior =
@@ -6395,36 +6556,188 @@ function renderNaturalMouth(
   );
 
 
+  // In die bewegte Lippenstruktur wird zuletzt der echte Spalt geschnitten.
+  // Der getrennte Mundraum liegt direkt darunter; dadurch bleiben die
+  // Original-Lippen sichtbar, waehrend das geschlossene Foto nicht mehr durch
+  // die Oeffnung scheinen kann.
+  mouthCanvasContext.setTransform(
+    pixelRatio,
+    0,
+    0,
+    pixelRatio,
+    0,
+    0
+  );
+
+
+  mouthCanvasContext.globalCompositeOperation =
+    "destination-out";
+
+
+  const openingLeft =
+    width / 2 -
+    visibleCavityWidth / 2;
+
+
+  const openingRight =
+    width / 2 +
+    visibleCavityWidth / 2;
+
+
+  const openingTop =
+    cavityCenterY -
+    visibleCavityHeight / 2;
+
+
+  const openingBottom =
+    cavityCenterY +
+    visibleCavityHeight / 2;
+
+
+  mouthCanvasContext.beginPath();
+
+
+  mouthCanvasContext.moveTo(
+    openingLeft,
+    cavityCenterY
+  );
+
+
+  mouthCanvasContext.bezierCurveTo(
+    openingLeft +
+      visibleCavityWidth * 0.17,
+    openingTop +
+      visibleCavityHeight * 0.08,
+    width / 2 -
+      visibleCavityWidth * 0.16,
+    openingTop,
+    width / 2,
+    openingTop +
+      visibleCavityHeight * 0.10
+  );
+
+
+  mouthCanvasContext.bezierCurveTo(
+    width / 2 +
+      visibleCavityWidth * 0.16,
+    openingTop,
+    openingRight -
+      visibleCavityWidth * 0.17,
+    openingTop +
+      visibleCavityHeight * 0.08,
+    openingRight,
+    cavityCenterY
+  );
+
+
+  mouthCanvasContext.bezierCurveTo(
+    openingRight -
+      visibleCavityWidth * 0.17,
+    openingBottom -
+      visibleCavityHeight * 0.08,
+    width / 2 +
+      visibleCavityWidth * 0.16,
+    openingBottom,
+    width / 2,
+    openingBottom -
+      visibleCavityHeight * 0.10
+  );
+
+
+  mouthCanvasContext.bezierCurveTo(
+    width / 2 -
+      visibleCavityWidth * 0.16,
+    openingBottom,
+    openingLeft +
+      visibleCavityWidth * 0.17,
+    openingBottom -
+      visibleCavityHeight * 0.08,
+    openingLeft,
+    cavityCenterY
+  );
+
+
+  mouthCanvasContext.closePath();
+
+
+  mouthCanvasContext.fill();
+
+
+  mouthCanvasContext.globalCompositeOperation =
+    "source-over";
+
+
+  mouthCanvasContext.setTransform(
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+  );
+
+
   /*
-    Sicherheitslage fuer die sichtbare Oeffnung: Die Mundhoehle wird nach
-    allen Textur- und Maskenschritten noch einmal direkt auf die oberste
-    Mundebene gelegt. Dadurch kann das geschlossene Ausgangsfoto sie auf
-    Android nicht erneut ueberdecken. Die gemeinsame Holo-Weichzeichnung
-    glaettet ihre Kontur weiterhin zusammen mit Gesicht und Lippen.
+    Android zeichnet die sichere Oeffnung zusaetzlich als eigene, oberste
+    DOM-Ebene. Sie liegt nur im erkannten Lippenspalt und ist damit nicht von
+    Canvas-Pufferung oder der geschlossenen Fototextur abhaengig.
   */
-  mouthCanvasContext.setTransform(
-    pixelRatio,
-    0,
-    0,
-    pixelRatio,
-    0,
-    0
+  mouthOpening.style.left =
+    `${
+      canvasLeft +
+      width / 2 -
+      visibleCavityWidth / 2
+    }px`;
+
+
+  mouthOpening.style.top =
+    `${
+      canvasTop +
+      cavityCenterY -
+      visibleCavityHeight / 2
+    }px`;
+
+
+  mouthOpening.style.width =
+    `${visibleCavityWidth}px`;
+
+
+  mouthOpening.style.height =
+    `${visibleCavityHeight}px`;
+
+
+  mouthOpening.style.setProperty(
+    "--mouth-teeth-opacity",
+    toothVisibility.toFixed(3)
   );
 
 
-  paintMouthInterior(
-    mouthCanvasContext
+  mouthOpening.style.setProperty(
+    "--mouth-tongue-opacity",
+    clamp(
+      (
+        open -
+        0.06
+      ) * 0.72,
+      0,
+      0.28
+    ).toFixed(3)
   );
 
 
-  mouthCanvasContext.setTransform(
-    1,
-    0,
-    0,
-    1,
-    0,
-    0
-  );
+  mouthOpening.style.opacity =
+    String(
+      clamp(
+        0.84 +
+          open * 0.24,
+        0.84,
+        1
+      )
+    );
+
+
+  mouthOpening.style.display =
+    "block";
 }
 
 
@@ -7648,7 +7961,7 @@ function getSolAudioRoutePlugin(){
 }
 
 
-async function routeSolAudioToSpeaker(){
+async function routeSolAudioToPreferredOutput(){
 
   const plugin = getSolAudioRoutePlugin();
 
@@ -7657,9 +7970,9 @@ async function routeSolAudioToSpeaker(){
   }
 
   try{
-    await plugin.useSpeaker();
+    await plugin.usePreferredOutput();
   }catch(error){
-    console.warn("Sol-Lautsprecherroute:", error);
+    console.warn("Sol-Audioroute:", error);
   }
 }
 
@@ -12580,7 +12893,7 @@ async function startLiveConversation(){
       );
 
 
-  await routeSolAudioToSpeaker();
+  await routeSolAudioToPreferredOutput();
 
 
   if(
@@ -12786,7 +13099,7 @@ async function startLiveConversation(){
           solVolume;
 
 
-        void routeSolAudioToSpeaker();
+        void routeSolAudioToPreferredOutput();
 
 
         realtimeAudio
@@ -12827,7 +13140,7 @@ async function startLiveConversation(){
       nextMicrophoneStream;
 
 
-    await routeSolAudioToSpeaker();
+    await routeSolAudioToPreferredOutput();
 
 
     if(
