@@ -1143,23 +1143,11 @@ LIP SYNC
 
   pointer-events:none;
 
-  border-radius:50%;
-
-  clip-path:
-    polygon(
-      2% 50%,
-      15% 27%,
-      38% 12%,
-      50% 16%,
-      62% 12%,
-      85% 27%,
-      98% 50%,
-      84% 74%,
-      61% 89%,
-      50% 85%,
-      39% 89%,
-      16% 74%
-    );
+  /* Bewusst nur mit Android-Grundfunktionen aufgebaut. Komplexe Masken
+     konnten die sehr kleine Ebene auf einzelnen WebViews ganz ausblenden. */
+  border-radius:
+    48% 48% 52% 52% /
+    44% 44% 56% 56%;
 
   opacity:0;
 
@@ -1175,30 +1163,9 @@ LIP SYNC
     inset 0 1px 2px rgba(0,0,0,.92),
     inset 0 -1px 2px rgba(137,43,65,.42);
 
-  -webkit-mask-image:
-    radial-gradient(
-      ellipse at center,
-      #000 0%,
-      #000 72%,
-      rgba(0,0,0,.88) 84%,
-      transparent 100%
-    );
-
-  mask-image:
-    radial-gradient(
-      ellipse at center,
-      #000 0%,
-      #000 72%,
-      rgba(0,0,0,.88) 84%,
-      transparent 100%
-    );
-
-  filter:blur(.20px);
-
   backface-visibility:hidden;
-  transform:translateZ(0);
 
-  will-change:left,top,width,height,opacity,transform;
+  will-change:left,top,width,height,opacity;
 }
 
 #mouthOpening::before{
@@ -3660,6 +3627,8 @@ let lipMouthRenderContext =
       desynchronized:true
     }
   );
+let lipMouthCanvasRenderingDisabled =
+  false;
 
 let currentMouthOpen = 0;
 let currentMouthWide = 0;
@@ -3795,6 +3764,15 @@ function ensureVisibleRealtimeMouth(
 
 
   updateMouthGeometry();
+
+
+  /* Nicht erst auf den naechsten Animationsframe warten: Sobald Holos
+     OpenAI-Ausgabe bestaetigt ist, wird die Lippenoeffnung direkt gesetzt. */
+  renderVisibleMouthOpening(
+    currentMouthOpen,
+    currentMouthWide,
+    currentMouthRound
+  );
 
 
   requestLipSyncFrame();
@@ -5685,9 +5663,7 @@ MUNDGEOMETRIE
 function updateMouthGeometry(){
 
   if(
-    !solImage.complete ||
-    !mouthCanvasContext ||
-    !lipMouthRenderContext
+    !solImage.complete
   ){
 
     return;
@@ -5957,6 +5933,235 @@ function clearNaturalMouth(){
 }
 
 
+function renderVisibleMouthOpening(
+  openness,
+  wideness,
+  roundness
+){
+
+  const geometry =
+    lipMouthCanvasGeometry;
+
+
+  if(
+    !geometry ||
+    !solImage.complete
+  ){
+
+    return false;
+  }
+
+
+  const open =
+    clamp(
+      openness,
+      0,
+      SOL_SPEECH_MOTION.maximumOpen ||
+        0.60
+    );
+
+
+  if(
+    open <
+      0.006
+  ){
+
+    mouthOpening.style.display =
+      "none";
+
+    mouthOpening.style.opacity =
+      "0";
+
+    return false;
+  }
+
+
+  const wide =
+    clamp(
+      wideness,
+      0,
+      SOL_SPEECH_MOTION.wideMaximum ||
+        0.48
+    );
+
+
+  const round =
+    clamp(
+      roundness,
+      0,
+      SOL_SPEECH_MOTION.roundMaximum ||
+        0.46
+    );
+
+
+  const {
+    width,
+    canvasLeft,
+    canvasTop,
+    imageDisplayWidth,
+    imageDisplayHeight,
+    seamY,
+    mouthWidth,
+    mouthHeight
+  } = geometry;
+
+
+  const effectiveMouthWidth =
+    clamp(
+      mouthWidth,
+      imageDisplayWidth * 0.06,
+      imageDisplayWidth * 0.22
+    );
+
+
+  const lipBandHeight =
+    clamp(
+      Math.min(
+        mouthHeight * 0.42,
+        effectiveMouthWidth * 0.18
+      ),
+      imageDisplayHeight * 0.010,
+      imageDisplayHeight * 0.034
+    );
+
+
+  const lipTravel =
+    Math.min(
+      imageDisplayHeight * 0.024,
+      lipBandHeight * 1.08
+    ) *
+    Math.pow(
+      open,
+      0.66
+    );
+
+
+  const cavityCenterY =
+    seamY +
+    lipTravel * 0.20;
+
+
+  /* Auf dem S23 muss die Oeffnung auch bei leiseren Sprachlauten eindeutig
+     als getrennte Lippen sichtbar bleiben. */
+  const visibleCavityHeight =
+    clamp(
+      imageDisplayHeight *
+        (
+          0.007 +
+          Math.pow(
+            open,
+            0.70
+          ) * 0.052
+        ),
+      5.5,
+      Math.max(
+        8,
+        mouthHeight * 1.18
+      )
+    );
+
+
+  const visibleCavityWidth =
+    effectiveMouthWidth *
+    clamp(
+      0.66 +
+        open * 0.13 -
+        round * 0.04,
+      0.62,
+      0.79
+    );
+
+
+  const toothVisibility =
+    clamp(
+      (
+        open -
+          0.08
+      ) *
+        2.05 *
+        (
+          0.42 +
+          wide * 0.95
+        ),
+      0,
+      0.48
+    );
+
+
+  const tongueVisibility =
+    clamp(
+      (
+        open -
+        0.10
+      ) * 0.54,
+      0,
+      0.20
+    );
+
+
+  mouthOpening.style.left =
+    `${
+      canvasLeft +
+      width / 2 -
+      visibleCavityWidth / 2
+    }px`;
+
+
+  mouthOpening.style.top =
+    `${
+      canvasTop +
+      cavityCenterY -
+      visibleCavityHeight / 2
+    }px`;
+
+
+  mouthOpening.style.width =
+    `${visibleCavityWidth}px`;
+
+
+  mouthOpening.style.height =
+    `${visibleCavityHeight}px`;
+
+
+  mouthOpening.style.setProperty(
+    "--mouth-teeth-opacity",
+    String(
+      clamp(
+        toothVisibility * 1.35,
+        0,
+        0.58
+      )
+    )
+  );
+
+
+  mouthOpening.style.setProperty(
+    "--mouth-tongue-opacity",
+    String(
+      tongueVisibility
+    )
+  );
+
+
+  mouthOpening.style.display =
+    "block";
+
+
+  mouthOpening.style.opacity =
+    String(
+      clamp(
+        0.90 +
+          open * 0.14,
+        0.90,
+        0.99
+      )
+    );
+
+
+  return true;
+}
+
+
 function renderNaturalMouth(
   openness,
   wideness,
@@ -5969,8 +6174,6 @@ function renderNaturalMouth(
 
   if(
     !geometry ||
-    !mouthCanvasContext ||
-    !lipMouthRenderContext ||
     !solImage.complete
   ){
 
@@ -6017,6 +6220,26 @@ function renderNaturalMouth(
       SOL_SPEECH_MOTION.roundMaximum ||
         0.46
     );
+
+
+  /* Diese einfache Vordergrundebene wird zuerst gesetzt. Selbst wenn ein
+     Android-WebView die aufwendigere Canvas-Verformung nicht bereitstellt,
+     oeffnet sich Holos Mund dadurch sichtbar zur eigenen Stimme. */
+  renderVisibleMouthOpening(
+    open,
+    wide,
+    round
+  );
+
+
+  if(
+    !mouthCanvasContext ||
+    !lipMouthRenderContext ||
+    lipMouthCanvasRenderingDisabled
+  ){
+
+    return;
+  }
 
 
   const {
@@ -6839,65 +7062,8 @@ function renderNaturalMouth(
   );
 
 
-  /*
-    Die Oeffnung wird als letzte, eigene Ebene ueber die bewegten
-    Originallippen gelegt. Der Canvas bewegt weiterhin die echte
-    Bildtextur; diese schmale Ebene zeigt ausschliesslich den Mundraum und
-    ein wenig Zaehne. Dadurch kann weder das Vollgesichts-Canvas noch die
-    geschlossene Fotoebene die Oeffnung auf Android wieder uebermalen.
-  */
-  mouthOpening.style.left =
-    `${canvasLeft + openingLeft}px`;
-
-
-  mouthOpening.style.top =
-    `${canvasTop + openingTop}px`;
-
-
-  mouthOpening.style.width =
-    `${visibleCavityWidth}px`;
-
-
-  mouthOpening.style.height =
-    `${visibleCavityHeight}px`;
-
-
-  mouthOpening.style.setProperty(
-    "--mouth-teeth-opacity",
-    String(
-      clamp(
-        toothVisibility * 1.55,
-        0,
-        0.58
-      )
-    )
-  );
-
-
-  mouthOpening.style.setProperty(
-    "--mouth-tongue-opacity",
-    String(
-      clamp(
-        visibleTongueOpacity,
-        0,
-        0.22
-      )
-    )
-  );
-
-
-  mouthOpening.style.display =
-    "block";
-
-
-  mouthOpening.style.opacity =
-    String(
-      clamp(
-        0.86 + open * 0.18,
-        0.86,
-        0.98
-      )
-    );
+  /* Die robuste Vordergrund-Oeffnung wurde bereits vor der aufwendigeren
+     Canvas-Verformung gesetzt und bleibt deshalb auch auf Android sichtbar. */
 }
 
 
@@ -7536,6 +7702,15 @@ function animateLipSync(
   }
 
 
+  /* Die sichtbare Lippenoeffnung kommt vor allen optionalen Bildfiltern.
+     Dadurch kann eine nachgelagerte Gesichtsebene sie nicht verhindern. */
+  renderVisibleMouthOpening(
+    visibleMouthOpen,
+    visibleMouthWide,
+    visibleMouthRound
+  );
+
+
   if(
     fullFaceRigReady
   ){
@@ -7567,11 +7742,37 @@ function animateLipSync(
   }
 
 
-  renderNaturalMouth(
-    visibleMouthOpen,
-    visibleMouthWide,
-    visibleMouthRound
-  );
+  try{
+
+    renderNaturalMouth(
+      visibleMouthOpen,
+      visibleMouthWide,
+      visibleMouthRound
+    );
+
+  }catch(
+    error
+  ){
+
+    lipMouthCanvasRenderingDisabled =
+      true;
+
+
+    /* Der sichtbare Android-Fallback ist bereits vor der Canvas-Arbeit
+       gesetzt. Ein Canvas-Fehler darf weder die Lippen noch die folgenden
+       Sprachframes wieder anhalten. */
+    renderVisibleMouthOpening(
+      visibleMouthOpen,
+      visibleMouthWide,
+      visibleMouthRound
+    );
+
+
+    console.warn(
+      "Lokale Lippen-Canvas deaktiviert:",
+      error
+    );
+  }
 
 
   if(
@@ -13938,7 +14139,10 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js"
+          "./service-worker.js?v=260",
+          {
+            updateViaCache:"none"
+          }
         )
         .catch(
           error => {

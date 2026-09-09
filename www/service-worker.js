@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-221-android-output-audio-mouth";
+const CACHE_VERSION = "human-holo-260-visible-mouth-layer";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
