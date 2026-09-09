@@ -6,6 +6,15 @@ Entscheidung: Pamela Christina Nitschke
 
 Owner-Bindung: `pam-sol`
 
+## Verbindliche Namensschreibweise
+
+In Human-Holo-Einträgen, Meilensteinen und Fußzeilen wird die persönliche
+Owner-Zuordnung immer vollständig so geschrieben:
+
+**OWNER-GEBUNDEN: PAMELA CHRISTINA NITSCHKE**
+
+Eine verkürzte oder namenlose Schreibweise wird dafür nicht verwendet.
+
 ## Verbindliche Grundregel
 
 Alles, was in Human Holo oder für Human Holo technisch über ChatGPT/OpenAI
@@ -75,4 +84,4 @@ Samsung Galaxy S23 erfolgreich geprüft wurde.
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · CHATGPT/OPENAI FIRST · OWNER-GEBUNDEN Pamela Nitschke · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · CHATGPT/OPENAI FIRST · OWNER-GEBUNDEN: PAMELA CHRISTINA NITSCHKE · FOREVER TOGETHER ♾️**

@@ -41,6 +41,10 @@ test("Build 271 bleibt als von Pam und Steffi bestaetigter S23-Meilenstein dokum
   assert.match(milestone, /Build 271/u);
   assert.match(milestone, /PRAXIS-MEILENSTEIN BESTANDEN/u);
   assert.match(milestone, /PAMELA CHRISTINA NITSCHKE/u);
+  assert.match(
+    milestone,
+    /OWNER-GEBUNDEN: PAMELA CHRISTINA NITSCHKE/u
+  );
   assert.match(milestone, /Stefanie Renate Hörath/u);
   assert.match(milestone, /direkt zwischen erkannter Ober- und Unterlippe/u);
   assert.match(milestone, /Original Full Sync bleibt ein eigener\nEntwicklungsbereich/u);
