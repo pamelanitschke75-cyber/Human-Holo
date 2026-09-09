@@ -1146,22 +1146,23 @@ LIP SYNC
   /* Bewusst nur mit Android-Grundfunktionen aufgebaut. Komplexe Masken
      konnten die sehr kleine Ebene auf einzelnen WebViews ganz ausblenden. */
   border-radius:
-    48% 48% 52% 52% /
-    44% 44% 56% 56%;
+    50% 50% 46% 46% /
+    38% 38% 62% 62%;
 
   opacity:0;
 
   background:
     radial-gradient(
-      ellipse at 50% 56%,
-      rgba(14,2,8,.99) 0%,
-      rgba(35,7,17,.98) 68%,
-      rgba(102,30,48,.88) 100%
+      ellipse at 50% 54%,
+      rgba(28,8,14,.98) 0%,
+      rgba(45,13,23,.97) 58%,
+      rgba(119,53,66,.68) 80%,
+      rgba(174,92,103,0) 100%
     );
 
   box-shadow:
-    inset 0 1px 2px rgba(0,0,0,.92),
-    inset 0 -1px 2px rgba(137,43,65,.42);
+    inset 0 1px 1px rgba(134,65,75,.30),
+    inset 0 -1px 1px rgba(167,78,94,.24);
 
   backface-visibility:hidden;
 
@@ -1173,19 +1174,21 @@ LIP SYNC
 
   position:absolute;
 
-  left:14%;
-  right:14%;
-  top:2%;
+  left:25%;
+  right:25%;
+  top:8%;
 
-  height:43%;
+  height:27%;
 
-  border-radius:50% 50% 42% 42%;
+  border-radius:
+    38% 38% 54% 54% /
+    24% 24% 76% 76%;
 
   background:
     linear-gradient(
       180deg,
-      rgba(247,238,229,var(--mouth-teeth-opacity,0)) 0%,
-      rgba(225,207,197,var(--mouth-teeth-opacity,0)) 64%,
+      rgba(238,224,213,var(--mouth-teeth-opacity,0)) 0%,
+      rgba(218,198,190,var(--mouth-teeth-opacity,0)) 58%,
       transparent 100%
     );
 }
@@ -1195,16 +1198,20 @@ LIP SYNC
 
   position:absolute;
 
-  left:20%;
-  right:20%;
-  bottom:-5%;
+  left:27%;
+  right:27%;
+  bottom:4%;
 
-  height:36%;
+  height:24%;
 
   border-radius:50% 50% 38% 38%;
 
   background:
-    rgba(139,43,66,var(--mouth-tongue-opacity,0));
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(145,61,78,var(--mouth-tongue-opacity,0)) 0%,
+      rgba(112,39,56,0) 82%
+    );
 }
 
 #solCloneWrap.sol-speaking{
@@ -3746,11 +3753,11 @@ function ensureVisibleRealtimeMouth(
         SOL_SPEECH_MOTION.maximumOpen ||
           0.60,
         Math.max(
-          0.30,
+          0.16,
           (
             SOL_SPEECH_MOTION.maximumOpen ||
               0.60
-          ) * 0.46
+          ) * 0.24
         )
       )
     );
@@ -5963,7 +5970,7 @@ function renderVisibleMouthOpening(
 
   if(
     open <
-      0.006
+      0.012
   ){
 
     mouthOpening.style.display =
@@ -6038,25 +6045,28 @@ function renderVisibleMouthOpening(
 
   const cavityCenterY =
     seamY +
-    lipTravel * 0.20;
+    lipTravel * 0.34;
 
 
-  /* Auf dem S23 muss die Oeffnung auch bei leiseren Sprachlauten eindeutig
-     als getrennte Lippen sichtbar bleiben. */
+  /* Die Oeffnung bleibt sichtbar, aber deutlich schmaler als der gesamte
+     Lippenbereich. Dadurch wirkt sie nicht mehr wie ein aufgesetztes Oval. */
   const visibleCavityHeight =
     clamp(
       imageDisplayHeight *
         (
-          0.007 +
+          0.0018 +
           Math.pow(
             open,
-            0.70
-          ) * 0.052
+            0.86
+          ) * 0.023
         ),
-      5.5,
+      1.8,
       Math.max(
-        8,
-        mouthHeight * 1.18
+        5,
+        Math.min(
+          imageDisplayHeight * 0.028,
+          mouthHeight * 0.54
+        )
       )
     );
 
@@ -6064,11 +6074,12 @@ function renderVisibleMouthOpening(
   const visibleCavityWidth =
     effectiveMouthWidth *
     clamp(
-      0.66 +
-        open * 0.13 -
-        round * 0.04,
-      0.62,
-      0.79
+      0.48 +
+        open * 0.08 +
+        wide * 0.20 -
+        round * 0.20,
+      0.42,
+      0.66
     );
 
 
@@ -6076,15 +6087,15 @@ function renderVisibleMouthOpening(
     clamp(
       (
         open -
-          0.08
+          0.20
       ) *
-        2.05 *
+        1.25 *
         (
-          0.42 +
-          wide * 0.95
+          0.30 +
+          wide * 0.55
         ),
       0,
-      0.48
+      0.30
     );
 
 
@@ -6092,10 +6103,10 @@ function renderVisibleMouthOpening(
     clamp(
       (
         open -
-        0.10
-      ) * 0.54,
+        0.22
+      ) * 0.30,
       0,
-      0.20
+      0.13
     );
 
 
@@ -6127,9 +6138,9 @@ function renderVisibleMouthOpening(
     "--mouth-teeth-opacity",
     String(
       clamp(
-        toothVisibility * 1.35,
+        toothVisibility,
         0,
-        0.58
+        0.30
       )
     )
   );
@@ -6150,10 +6161,10 @@ function renderVisibleMouthOpening(
   mouthOpening.style.opacity =
     String(
       clamp(
-        0.90 +
-          open * 0.14,
-        0.90,
-        0.99
+        0.88 +
+          open * 0.10,
+        0.88,
+        0.96
       )
     );
 
@@ -6334,40 +6345,43 @@ function renderNaturalMouth(
   const cavityWidth =
     effectiveMouthWidth *
     clamp(
-      0.78 +
-      wide * 0.03 -
-      round * 0.05,
-      0.68,
-      0.82
+      0.54 +
+      wide * 0.16 -
+      round * 0.18,
+      0.42,
+      0.66
     );
 
 
   const cavityHeight =
     Math.max(
-      1.2,
-      lipTravel * 3.55
+      1,
+      lipTravel * 2.15
     );
 
 
   const cavityCenterY =
     seamY +
-    lipTravel * 0.20;
+    lipTravel * 0.34;
 
 
   const visibleCavityHeight =
     clamp(
       imageDisplayHeight *
         (
-          0.004 +
+          0.0018 +
           Math.pow(
             open,
-            0.70
-          ) * 0.036
+            0.86
+          ) * 0.023
         ),
-      3.2,
+      1.8,
       Math.max(
-        6,
-        mouthHeight * 0.92
+        5,
+        Math.min(
+          imageDisplayHeight * 0.028,
+          mouthHeight * 0.54
+        )
       )
     );
 
@@ -6375,11 +6389,12 @@ function renderNaturalMouth(
   const visibleCavityWidth =
     effectiveMouthWidth *
     clamp(
-      0.64 +
-        open * 0.12 -
-        round * 0.04,
-      0.60,
-      0.76
+      0.48 +
+        open * 0.08 +
+        wide * 0.20 -
+        round * 0.20,
+      0.42,
+      0.66
     );
 
 
@@ -6422,19 +6437,19 @@ function renderNaturalMouth(
 
   cavityGradient.addColorStop(
     0,
-    "rgba(18,4,10,.96)"
+    "rgba(28,8,14,.96)"
   );
 
 
   cavityGradient.addColorStop(
-    0.68,
-    "rgba(33,8,17,.94)"
+    0.62,
+    "rgba(45,13,23,.94)"
   );
 
 
   cavityGradient.addColorStop(
     1,
-    "rgba(94,31,47,.82)"
+    "rgba(116,49,63,.78)"
   );
 
 
@@ -6459,15 +6474,15 @@ function renderNaturalMouth(
     clamp(
       (
         open -
-          0.12
+          0.20
       ) *
-        1.85 *
+        1.25 *
         (
-          0.34 +
-          wide * 0.95
+          0.30 +
+          wide * 0.55
         ),
       0,
-      0.42
+      0.30
     );
 
 
@@ -6508,13 +6523,13 @@ function renderNaturalMouth(
 
     toothGradient.addColorStop(
       0,
-      `rgba(244,232,220,${toothVisibility})`
+      `rgba(238,224,213,${toothVisibility})`
     );
 
 
     toothGradient.addColorStop(
       1,
-      "rgba(226,207,198,0)"
+      "rgba(218,198,190,0)"
     );
 
 
@@ -6524,11 +6539,11 @@ function renderNaturalMouth(
 
     paintContext.fillRect(
       width / 2 -
-        cavityWidth * 0.37,
+        cavityWidth * 0.25,
       cavityCenterY -
         cavityHeight * 0.47,
-      cavityWidth * 0.74,
-      cavityHeight * 0.48
+      cavityWidth * 0.50,
+      cavityHeight * 0.30
     );
 
 
@@ -6916,19 +6931,19 @@ function renderNaturalMouth(
 
   visibleCavityGradient.addColorStop(
     0,
-    "rgba(16,3,9,.99)"
+    "rgba(28,8,14,.97)"
   );
 
 
   visibleCavityGradient.addColorStop(
-    0.68,
-    "rgba(39,8,18,.99)"
+    0.62,
+    "rgba(45,13,23,.97)"
   );
 
 
   visibleCavityGradient.addColorStop(
     1,
-    "rgba(111,31,52,.94)"
+    "rgba(116,49,63,.82)"
   );
 
 
@@ -6936,7 +6951,7 @@ function renderNaturalMouth(
 
 
   mouthCanvasContext.shadowColor =
-    "rgba(10,0,5,.72)";
+    "rgba(62,22,31,.32)";
 
 
   mouthCanvasContext.shadowBlur =
@@ -6978,9 +6993,9 @@ function renderNaturalMouth(
       0,
       `rgba(246,236,227,${
         clamp(
-          toothVisibility * 1.35,
+          toothVisibility,
           0,
-          0.48
+          0.30
         )
       })`
     );
@@ -6998,10 +7013,10 @@ function renderNaturalMouth(
 
     mouthCanvasContext.fillRect(
       width / 2 -
-        visibleCavityWidth * 0.36,
+        visibleCavityWidth * 0.25,
       openingTop,
-      visibleCavityWidth * 0.72,
-      visibleCavityHeight * 0.44
+      visibleCavityWidth * 0.50,
+      visibleCavityHeight * 0.27
     );
   }
 
@@ -7010,10 +7025,10 @@ function renderNaturalMouth(
     clamp(
       (
         open -
-        0.08
-      ) * 0.58,
+        0.22
+      ) * 0.30,
       0,
-      0.24
+      0.13
     );
 
 
@@ -7515,7 +7530,7 @@ function animateLipSync(
         visibleKickShape
           ? Math.max(
               visibleKickShape.open,
-              0.24
+              0.12
             )
           : 0
       ),
@@ -7625,8 +7640,8 @@ function animateLipSync(
             mouthRenderBaseOpen,
             Math.pow(
               mouthRenderBaseOpen,
-              0.70
-            ) * 0.90
+              0.82
+            ) * 0.82
           ),
           0,
           SOL_SPEECH_MOTION.maximumOpen ||
@@ -14139,7 +14154,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=260",
+          "./service-worker.js?v=268",
           {
             updateViaCache:"none"
           }
