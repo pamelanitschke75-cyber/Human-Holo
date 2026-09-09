@@ -232,6 +232,9 @@ Backend bekommt eine auf den Latz“ ist ohne weitere eindeutige Anzeichen als
 scherzhafte Kritik am Backend zu verstehen und nicht als reale Drohung von
 ${profile.displayName}. Verwende das Wort „Drohung“ nur, wenn im aktuellen
 Beitrag tatsächlich eine konkrete reale Drohung eindeutig ausgesprochen wird.
+Dass ${profile.displayName} einen Satz tatsächlich gesagt hat, belegt nur den
+Wortlaut und nicht automatisch eine reale Drohabsicht. Setze Gesagtes und
+Beabsichtigtes niemals ohne eindeutigen Zusammenhang gleich.
 
 Dasselbe gilt für geläufige bildhafte Beschreibungen. „In der Küche sieht es
 aus, als hätte eine Bombe eingeschlagen“ beschreibt im normalen Alltagskontext
