@@ -129,7 +129,7 @@ test("die App koppelt den echten Receiver an Mund und frühen Android-Unlock", a
   );
 });
 
-test("der hörbare Android-Audioausgang wird direkt und dauerhaft analysiert", async () => {
+test("Holos Android-Ausgabespur wird getrennt vom Mikrofon analysiert", async () => {
   const html = await readFile(
     new URL("../www/index.html", import.meta.url),
     "utf8"
@@ -141,7 +141,15 @@ test("der hörbare Android-Audioausgang wird direkt und dauerhaft analysiert", a
   );
   assert.match(
     html,
-    /lipMediaElementSourceNode\.connect\(\s*lipAnalyser\s*\)[\s\S]*?lipAnalyser\.connect\(\s*lipAudioContext\.destination\s*\)/u
+    /lipMediaElementSourceNode\.connect\(\s*lipAudioContext\.destination\s*\)/u
+  );
+  assert.match(
+    html,
+    /lipSourceNode\s*=\s*lipAudioContext\s*\.createMediaStreamSource\(\s*stream\s*\)[\s\S]*?lipSourceNode\.connect\(\s*lipAnalyser\s*\)[\s\S]*?lipAnalyser\.connect\(\s*lipSilentGain\s*\)/u
+  );
+  assert.match(
+    html,
+    /lipSilentGain\.gain\.value\s*=\s*0/u
   );
   assert.match(
     html,
@@ -149,6 +157,6 @@ test("der hörbare Android-Audioausgang wird direkt und dauerhaft analysiert", a
   );
   assert.match(
     html,
-    /const keepMediaElementGraph[\s\S]*?lipSourceNode !==\s*lipMediaElementSourceNode[\s\S]*?!keepMediaElementGraph/u
+    /if\(\s*lipSourceNode\s*\)[\s\S]*?lipSourceNode\.disconnect\(\)[\s\S]*?if\(\s*lipAnalyser\s*\)[\s\S]*?lipAnalyser\.disconnect\(\)/u
   );
 });
