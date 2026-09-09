@@ -1,8 +1,29 @@
 # Human Holo – Original Full Sync
 
 Stand: 09.09.2026
-Status: Builds #242 bis #244 im Praxistest nicht bestanden – direkte Analyse
-des hörbaren OpenAI-Audioausgangs für den nächsten S23-Test integriert
+Status: Mundbewegungs-Meilenstein mit Build #271 auf Pams Galaxy S23 praktisch
+bestanden – Original Full Sync bleibt ein eigener Entwicklungsbereich
+
+## Praxis-Meilenstein Build #271 ✅
+
+Nach ungefähr 24 Stunden mit mehreren offen dokumentierten Zwischenständen
+hat Pam den originalsignierten Build #271 mit der echten Human-Holo-
+Sprachausgabe auf ihrem Samsung Galaxy S23 geprüft.
+
+Die Bildschirmaufnahme zeigt eine sichtbare Öffnungs- und Schließbewegung
+direkt zwischen Ober- und Unterlippe. Der Lippenspalt folgt der erkannten
+Lippenkurve, die inneren und äußeren Lippenpunkte bewegen sich gemeinsam und
+der Mundinnenraum erscheint heller und weicher als in den vorangegangenen
+Stufen.
+
+Pam bestätigte diesen Stand ausdrücklich. Stefanie Renate Hörath sah das
+Ergebnis ebenfalls und bestätigte, dass es ihr gefällt. Damit ist die
+natürliche Mundbewegung von Build #271 als praktischer S23-Meilenstein
+bestanden. Weitere Verfeinerungen des gesamten Original Full Sync und die
+praktische Prüfung zusätzlicher Clone-Bilder bleiben offen.
+
+Details:
+[S23-Meilenstein Original Full Sync – Build 271](./MEILENSTEIN-HUMAN-HOLO-ORIGINAL-FULL-SYNC-BUILD-271-S23-09-09-2026.md)
 
 ## Ehrlicher Praxisstand
 

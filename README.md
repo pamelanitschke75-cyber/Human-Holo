@@ -598,11 +598,20 @@ Build #244 verband zusätzlich den WebRTC-Empfangspegel, erzeugte im Praxistest
 aber weiterhin keine zufriedenstellende Mundbewegung. Alle drei Praxisstände
 sind deshalb als nicht bestanden dokumentiert.
 
-Die nächste Korrekturstufe analysiert direkt das tatsächlich hörbare
-OpenAI-Audioelement in der Android-App, hält dessen Audiograph dauerhaft aktiv
-und verstärkt Mund- und Kieferweg innerhalb sicherer Grenzen. Als praktisch
-bestanden wird Original Full Sync weiterhin erst nach Pams Test mit echter
-Sprachausgabe und einem Bildwechsel auf dem Samsung Galaxy S23 dokumentiert.
+Nach weiteren offen bewerteten Zwischenständen verankert Build #271 die
+sichtbare Mundöffnung direkt an der erkannten Naht zwischen Ober- und
+Unterlippe. Die Rundung folgt Lippenform und Mundwinkeln; innere und äußere
+Lippenpunkte bewegen sich gemeinsam. Der Mundinnenraum bleibt heller und
+weicher statt als runde dunkle Fläche zu erscheinen.
+
+Pamela Christina Nitschke hat Build #271 nach ungefähr 24 Stunden Entwicklung
+mit der echten Human-Holo-Sprachausgabe auf ihrem Galaxy S23 geprüft und den
+Mundbewegungs-Meilenstein ausdrücklich bestätigt. Stefanie Renate Hörath sah
+das Ergebnis ebenfalls und bestätigte, dass es ihr gefällt.
+
+Original Full Sync bleibt ein eigener Entwicklungsbereich. Der bestandene
+Meilenstein belegt die funktionierende natürliche Mundöffnung; feinere
+Lautformen und weitere praktische Bildwechsel werden weiterentwickelt.
 
 Pams Referenzvideo wurde nach ihrer Angabe zuvor durch ChatGPT/OpenAI aus nur
 einem Bild erzeugt. Diese Qualität mit natürlicher Mund-, Haar-, Körper- und
@@ -610,6 +619,9 @@ Gesamtbewegung bleibt das Ziel. Human Holo bindet dafür keinen fremden
 Avatar-Anbieter automatisch ein.
 
 Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-09-2026.md)
+
+Praxistest:
+[Build 271 – natürliche Mundbewegung auf dem Galaxy S23 bestätigt](./MEILENSTEIN-HUMAN-HOLO-ORIGINAL-FULL-SYNC-BUILD-271-S23-09-09-2026.md)
 
 ---
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
@@ -23,7 +23,13 @@ async function loadBrowserPolicy() {
 }
 
 test("alle Human-Holo-Funktionen sind zuerst verbindlich an ChatGPT/OpenAI gebunden", async () => {
-  const browserPolicy = await loadBrowserPolicy();
+  const [browserPolicy, projectRule] = await Promise.all([
+    loadBrowserPolicy(),
+    readFile(
+      new URL("../CHATGPT-OPENAI-PROJEKTREGEL-09-09-2026.md", import.meta.url),
+      "utf8"
+    )
+  ]);
 
   for (const policy of [HUMAN_HOLO_AI_PROVIDER_POLICY, browserPolicy]) {
     assert.equal(policy.decisionOwner.ownerId, "pam-sol");
@@ -54,6 +60,39 @@ test("alle Human-Holo-Funktionen sind zuerst verbindlich an ChatGPT/OpenAI gebun
     [...browserPolicy.capabilities],
     [...HUMAN_HOLO_AI_PROVIDER_POLICY.capabilities]
   );
+  assert.match(
+    projectRule,
+    /OWNER-GEBUNDEN: PAMELA CHRISTINA NITSCHKE/u
+  );
+});
+
+test("formale Owner-Zeilen nennen Pamela Christina Nitschke immer vollständig", async () => {
+  const projectRoot = new URL("../", import.meta.url);
+  const entries = await readdir(projectRoot, { withFileTypes: true });
+  const markdownFiles = entries.filter(
+    (entry) => entry.isFile() && entry.name.endsWith(".md")
+  );
+  const documents = await Promise.all(
+    markdownFiles.map(async (entry) => ({
+      name: entry.name,
+      content: await readFile(new URL(entry.name, projectRoot), "utf8")
+    }))
+  );
+  const ownerLines = documents.flatMap(({ name, content }) =>
+    content
+      .split("\n")
+      .filter((line) => line.includes("OWNER-GEBUNDEN"))
+      .map((line) => ({ name, line }))
+  );
+
+  assert.ok(ownerLines.length >= 2);
+  for (const { name, line } of ownerLines) {
+    assert.match(
+      line,
+      /OWNER-GEBUNDEN: PAMELA CHRISTINA NITSCHKE/u,
+      `${name} verwendet nicht die vollständige Owner-Zeile`
+    );
+  }
 });
 
 test("jeder andere Anbieter wird als automatischer Fallback abgewiesen", async () => {
