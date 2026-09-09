@@ -1121,6 +1121,8 @@ LIP SYNC
   opacity:1;
 
   visibility:visible;
+
+  filter:blur(.32px);
 }
 
 #solCloneWrap.sol-speaking{
@@ -5961,9 +5963,9 @@ function renderNaturalMouth(
 
   const cavityHeight =
     Math.max(
-      2.0,
-      1.6 +
-      lipTravel * 1.88
+      3.0,
+      2.4 +
+      lipTravel * 2.34
     );
 
 
@@ -6046,15 +6048,15 @@ function renderNaturalMouth(
     clamp(
       (
         open -
-          0.26
+          0.12
       ) *
-        2.4 *
+        1.85 *
         (
-          0.30 +
-          wide * 1.25
+          0.34 +
+          wide * 0.95
         ),
       0,
-      0.48
+      0.42
     );
 
 
@@ -6276,94 +6278,86 @@ function renderNaturalMouth(
     "destination-in";
 
 
-  const horizontalMask =
-    context.createLinearGradient(
-      0,
-      0,
-      width,
-      0
+  // Eine enge elliptische Federkante blendet nur die bewegten Lippen ein.
+  // Wangen und Kinn bleiben dadurch auf der stabilen Gesichtsebene und eine
+  // rechteckige Ausschnittkante kann bei der Bewegung nicht mehr auffallen.
+  const maskOuterRadius =
+    effectWidth * 0.58;
+
+
+  const maskVerticalScale =
+    clamp(
+      (
+        lipBandHeight * 1.72 +
+        cavityHeight * 0.42
+      ) /
+      Math.max(
+        1,
+        maskOuterRadius
+      ),
+      0.20,
+      0.46
     );
 
 
-  horizontalMask.addColorStop(
+  context.save();
+
+
+  context.translate(
+    width / 2,
+    seamY +
+      lipTravel * 0.24
+  );
+
+
+  context.scale(
+    1,
+    maskVerticalScale
+  );
+
+
+  const featherMask =
+    context.createRadialGradient(
+      0,
+      0,
+      maskOuterRadius * 0.66,
+      0,
+      0,
+      maskOuterRadius
+    );
+
+
+  featherMask.addColorStop(
     0,
-    "rgba(0,0,0,0)"
-  );
-
-
-  horizontalMask.addColorStop(
-    0.14,
     "rgba(0,0,0,1)"
   );
 
 
-  horizontalMask.addColorStop(
-    0.86,
-    "rgba(0,0,0,1)"
+  featherMask.addColorStop(
+    0.72,
+    "rgba(0,0,0,.98)"
   );
 
 
-  horizontalMask.addColorStop(
+  featherMask.addColorStop(
     1,
     "rgba(0,0,0,0)"
   );
 
 
   context.fillStyle =
-    horizontalMask;
+    featherMask;
 
 
   context.fillRect(
-    0,
-    0,
-    width,
-    height
+    -maskOuterRadius,
+    -maskOuterRadius,
+    maskOuterRadius * 2,
+    maskOuterRadius * 2
   );
 
 
-  const verticalMask =
-    context.createLinearGradient(
-      0,
-      0,
-      0,
-      height
-    );
-
-
-  verticalMask.addColorStop(
-    0,
-    "rgba(0,0,0,0)"
-  );
-
-
-  verticalMask.addColorStop(
-    0.18,
-    "rgba(0,0,0,1)"
-  );
-
-
-  verticalMask.addColorStop(
-    0.82,
-    "rgba(0,0,0,1)"
-  );
-
-
-  verticalMask.addColorStop(
-    1,
-    "rgba(0,0,0,0)"
-  );
-
-
-  context.fillStyle =
-    verticalMask;
-
-
-  context.fillRect(
-    0,
-    0,
-    width,
-    height
-  );
+  context.restore();
 
 
   context.globalCompositeOperation =
@@ -6895,6 +6889,75 @@ function animateLipSync(
     );
 
 
+  const unmeasuredMouthShape =
+    realtimeSpeechActive &&
+    !audioSignalActive
+      ? realtimeFallbackMouthShape(
+          timestamp
+        )
+      : null;
+
+
+  const mouthRenderBaseOpen =
+    Math.max(
+      currentMouthOpen,
+      (
+        unmeasuredMouthShape?.open ||
+        0
+      ) * 0.74
+    );
+
+
+  // Kleine echte Pegelbewegungen bleiben zeitlich unveraendert, werden aber
+  // optisch so angehoben, dass sich die Lippen auf einem Foto wirklich
+  // trennen. Null bleibt Null, damit Verschlusslaute weiterhin schliessen.
+  const visibleMouthOpen =
+    mouthRenderBaseOpen < 0.006
+      ? 0
+      : clamp(
+          Math.max(
+            mouthRenderBaseOpen,
+            Math.pow(
+              mouthRenderBaseOpen,
+              0.70
+            ) * 0.90
+          ),
+          0,
+          SOL_SPEECH_MOTION.maximumOpen ||
+            0.60
+        );
+
+
+  const visibleMouthWide =
+    clamp(
+      Math.max(
+        currentMouthWide,
+        (
+          unmeasuredMouthShape?.wide ||
+          0
+        ) * 0.46
+      ),
+      0,
+      SOL_SPEECH_MOTION.wideMaximum ||
+        0.48
+    );
+
+
+  const visibleMouthRound =
+    clamp(
+      Math.max(
+        currentMouthRound,
+        (
+          unmeasuredMouthShape?.round ||
+          0
+        ) * 0.46
+      ),
+      0,
+      SOL_SPEECH_MOTION.roundMaximum ||
+        0.46
+    );
+
+
   const originalFullSyncFrame =
     originalFullSyncController
       ?.update({
@@ -6939,9 +7002,12 @@ function animateLipSync(
 
     fullFaceRig?.render(
       {
-        openness:currentMouthOpen,
-        wideness:currentMouthWide,
-        roundness:currentMouthRound,
+        // Die WebGL-Gesichtsebene bleibt fest verankert. Die sichtbare
+        // Lippen- und Kieferbewegung liegt ausschliesslich in der weich
+        // ausgeblendeten lokalen Mundebene und zieht nicht mehr die Wangen.
+        openness:0,
+        wideness:0,
+        roundness:0,
         fullSync:
           originalFullSyncFrame?.face
             ? {
@@ -6950,7 +7016,9 @@ function animateLipSync(
                 // Ebenen. Die Gesichtstextur selbst darf nicht verrutschen.
                 headX:0,
                 headY:0,
-                headTilt:0
+                headTilt:0,
+                cheekLift:0,
+                mouthAsymmetry:0
               }
             : null,
         timestamp
@@ -6960,9 +7028,9 @@ function animateLipSync(
 
 
   renderNaturalMouth(
-    currentMouthOpen,
-    currentMouthWide,
-    currentMouthRound
+    visibleMouthOpen,
+    visibleMouthWide,
+    visibleMouthRound
   );
 
 

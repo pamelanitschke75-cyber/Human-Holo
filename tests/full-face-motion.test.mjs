@@ -263,4 +263,10 @@ test("sichtbare Mundoeffnung wird zuletzt ueber die verschobene Bildtextur geleg
   assert.ok(textureWarp >= 0);
   assert.ok(mouthInterior > textureWarp);
   assert.ok(edgeMask > mouthInterior);
+  assert.match(renderSource, /featherMask/u);
+  assert.match(renderSource, /open\s*-\s*0\.12/u);
+  assert.match(
+    html,
+    /fullFaceRig\?\.render\([\s\S]*?openness:0,[\s\S]*?cheekLift:0,[\s\S]*?mouthAsymmetry:0/u
+  );
 });
