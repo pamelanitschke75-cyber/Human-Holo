@@ -6,7 +6,7 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-09-original-full-sync-6-visible-natural-lip-slit",
+    version:"2026-09-09-original-full-sync-7-visible-curved-moving-lips",
 
     speech:{
       maximumOpen:0.72,

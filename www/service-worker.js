@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-270-natural-lip-slit";
+const CACHE_VERSION = "human-holo-271-curved-moving-lips";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

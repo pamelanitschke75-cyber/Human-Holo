@@ -1134,85 +1134,36 @@ LIP SYNC
 
   display:none;
 
-  /* Die sichtbare Oeffnung liegt bewusst ueber dem lokalen Lippen-Canvas.
-     So kann die geschlossene Fotoebene sie in Android WebView nicht mehr
-     verdecken. */
+  /* Die sichtbare Oeffnung liegt ueber dem Gesicht, folgt aber als gebogener
+     SVG-Pfad der jeweils erkannten Lippenkurve. */
   z-index:12;
 
-  overflow:hidden;
+  overflow:visible;
 
   pointer-events:none;
 
-  /* Bewusst nur mit Android-Grundfunktionen aufgebaut. Die sehr flache Form
-     zeigt nur den Spalt zwischen Pams echten Lippen und keine aufgesetzte,
-     runde Mundflaeche. */
-  border-radius:
-    48% 48% 50% 50% /
-    24% 24% 76% 76%;
-
   opacity:0;
 
-  background:
-    radial-gradient(
-      ellipse at 50% 50%,
-      rgba(31,9,15,.90) 0%,
-      rgba(47,15,24,.80) 54%,
-      rgba(111,49,63,.24) 78%,
-      rgba(158,78,91,0) 100%
-    );
-
-  box-shadow:
-    inset 0 .5px .8px rgba(151,81,92,.18),
-    inset 0 -.5px .8px rgba(161,76,91,.14);
+  filter:
+    drop-shadow(0 .35px .45px rgba(54,18,27,.18));
 
   backface-visibility:hidden;
 
   will-change:left,top,width,height,opacity;
 }
 
-#mouthOpening::before{
-  content:"";
-
-  position:absolute;
-
-  left:31%;
-  right:31%;
-  top:6%;
-
-  height:18%;
-
-  border-radius:
-    38% 38% 54% 54% /
-    24% 24% 76% 76%;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(239,226,216,var(--mouth-teeth-opacity,0)) 0%,
-      rgba(216,198,190,var(--mouth-teeth-opacity,0)) 54%,
-      transparent 100%
-    );
+#mouthOpeningShape{
+  fill:url(#mouthOpeningCavityGradient);
 }
 
-#mouthOpening::after{
-  content:"";
+#mouthOpeningTeeth{
+  fill:url(#mouthOpeningTeethGradient);
+  opacity:var(--mouth-teeth-opacity,0);
+}
 
-  position:absolute;
-
-  left:34%;
-  right:34%;
-  bottom:2%;
-
-  height:14%;
-
-  border-radius:50% 50% 38% 38%;
-
-  background:
-    radial-gradient(
-      ellipse at 50% 100%,
-      rgba(145,61,78,var(--mouth-tongue-opacity,0)) 0%,
-      rgba(112,39,56,0) 82%
-    );
+#mouthOpeningTongue{
+  fill:url(#mouthOpeningTongueGradient);
+  opacity:var(--mouth-tongue-opacity,0);
 }
 
 #solCloneWrap.sol-speaking{
@@ -2301,7 +2252,46 @@ Verbindung
 
 <canvas id="faceCanvas" aria-hidden="true"></canvas>
 <canvas id="mouthCanvas" aria-hidden="true"></canvas>
-<div id="mouthOpening" aria-hidden="true"></div>
+<svg
+  id="mouthOpening"
+  viewBox="0 0 100 20"
+  preserveAspectRatio="none"
+  focusable="false"
+  aria-hidden="true">
+  <defs>
+    <linearGradient
+      id="mouthOpeningCavityGradient"
+      x1="0"
+      y1="0"
+      x2="0"
+      y2="1">
+      <stop offset="0" stop-color="#704151" stop-opacity=".58"></stop>
+      <stop offset=".58" stop-color="#492632" stop-opacity=".72"></stop>
+      <stop offset="1" stop-color="#8a5362" stop-opacity=".38"></stop>
+    </linearGradient>
+    <linearGradient
+      id="mouthOpeningTeethGradient"
+      x1="0"
+      y1="0"
+      x2="0"
+      y2="1">
+      <stop offset="0" stop-color="#f0e3da" stop-opacity=".92"></stop>
+      <stop offset="1" stop-color="#d8c6be" stop-opacity=".22"></stop>
+    </linearGradient>
+    <linearGradient
+      id="mouthOpeningTongueGradient"
+      x1="0"
+      y1="0"
+      x2="0"
+      y2="1">
+      <stop offset="0" stop-color="#713044" stop-opacity=".18"></stop>
+      <stop offset="1" stop-color="#913d51" stop-opacity=".52"></stop>
+    </linearGradient>
+  </defs>
+  <path id="mouthOpeningShape"></path>
+  <path id="mouthOpeningTeeth"></path>
+  <path id="mouthOpeningTongue"></path>
+</svg>
 
 </div>
 
@@ -2504,7 +2494,7 @@ Schreiben bereit.
 
 
 <script src="./human-holo-ai-policy.js?v=1"></script>
-<script src="./sol-motion-profile.js?v=5"></script>
+<script src="./sol-motion-profile.js?v=6"></script>
 <script src="./remote-audio-level.js?v=1"></script>
 <script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=3"></script>
@@ -2962,6 +2952,15 @@ const mouthCanvas =
 const mouthOpening =
   document.getElementById("mouthOpening");
 
+const mouthOpeningShape =
+  document.getElementById("mouthOpeningShape");
+
+const mouthOpeningTeeth =
+  document.getElementById("mouthOpeningTeeth");
+
+const mouthOpeningTongue =
+  document.getElementById("mouthOpeningTongue");
+
 const mouthCanvasContext =
   mouthCanvas.getContext(
     "2d",
@@ -3290,7 +3289,8 @@ const DEFAULT_LIP_SYNC_FACE = {
   x:0.500,
   y:0.392,
   width:0.145,
-  height:0.072
+  height:0.072,
+  curve:0.16
 };
 
 const LIP_SYNC_FACE = {
@@ -3410,6 +3410,18 @@ function applyLipSyncFace(
       DEFAULT_LIP_SYNC_FACE.height,
       0.035,
       0.18
+    );
+
+  const requestedCurve =
+    Number(nextFace?.curve);
+
+  LIP_SYNC_FACE.curve =
+    clamp(
+      Number.isFinite(requestedCurve)
+        ? requestedCurve
+        : DEFAULT_LIP_SYNC_FACE.curve,
+      -0.10,
+      0.38
     );
 
   requestAnimationFrame(
@@ -4178,7 +4190,7 @@ async function ensureFullFaceRig(){
 
     fullFaceRigLoadPromise =
       import(
-        "./full-face-rig.mjs?v=4"
+        "./full-face-rig.mjs?v=5"
       )
         .then(
           module =>
@@ -5953,7 +5965,10 @@ function renderVisibleMouthOpening(
 
   if(
     !geometry ||
-    !solImage.complete
+    !solImage.complete ||
+    !mouthOpeningShape ||
+    !mouthOpeningTeeth ||
+    !mouthOpeningTongue
   ){
 
     return false;
@@ -6092,6 +6107,191 @@ function renderVisibleMouthOpening(
     );
 
 
+  const lipCurve =
+    clamp(
+      LIP_SYNC_FACE.curve,
+      -0.10,
+      0.38
+    );
+
+
+  /* Die erkannte Mittellinie der Lippen ist die verbindliche Form. Ein
+     positiver Wert bedeutet: Die Lippenmitte liegt tiefer als die Mundwinkel.
+     Die Viseme veraendern diese Originalkurve nur sehr leicht. */
+  const curveDepth =
+    clamp(
+      lipCurve *
+        mouthHeight /
+        1.45 +
+        effectiveMouthWidth *
+          (
+            wide * 0.006 -
+            round * 0.004
+          ),
+      -visibleCavityHeight * 0.55,
+      visibleCavityHeight * 0.95
+    );
+
+
+  const edgeX =
+    Math.max(
+      0.35,
+      visibleCavityWidth * 0.012
+    );
+
+
+  const cornerHalfHeight =
+    Math.max(
+      0.12,
+      visibleCavityHeight * 0.06
+    );
+
+
+  /* Koordinaten relativ zur erkannten Lippenmitte: In der Mitte liegt der
+     Spalt exakt zwischen Landmark 13 (Oberlippe) und 14 (Unterlippe). */
+  const centerUpperY =
+    -visibleCavityHeight / 2;
+
+
+  const centerLowerY =
+    visibleCavityHeight / 2;
+
+
+  const cornerCenterY =
+    -curveDepth;
+
+
+  const cornerUpperY =
+    cornerCenterY -
+    cornerHalfHeight;
+
+
+  const cornerLowerY =
+    cornerCenterY +
+    cornerHalfHeight;
+
+
+  const shapeTopY =
+    Math.min(
+      centerUpperY,
+      cornerUpperY
+    ) - 0.35;
+
+
+  const shapeBottomY =
+    Math.max(
+      centerLowerY,
+      cornerLowerY
+    ) + 0.35;
+
+
+  const openingLayerHeight =
+    Math.max(
+      2,
+      shapeBottomY -
+      shapeTopY
+    );
+
+
+  const localOffsetY =
+    -shapeTopY;
+
+
+  const upperCenterY =
+    centerUpperY +
+    localOffsetY;
+
+
+  const lowerCenterY =
+    centerLowerY +
+    localOffsetY;
+
+
+  const cornerUpperLocalY =
+    cornerUpperY +
+    localOffsetY;
+
+
+  const cornerLowerLocalY =
+    cornerLowerY +
+    localOffsetY;
+
+
+  const upperControlY =
+    cornerUpperLocalY +
+    (
+      upperCenterY -
+      cornerUpperLocalY
+    ) * 0.70;
+
+
+  const lowerControlY =
+    cornerLowerLocalY +
+    (
+      lowerCenterY -
+      cornerLowerLocalY
+    ) * 0.86;
+
+
+  mouthOpening.setAttribute(
+    "viewBox",
+    `0 0 ${visibleCavityWidth} ${openingLayerHeight}`
+  );
+
+
+  mouthOpeningShape.setAttribute(
+    "d",
+    `M ${edgeX} ${cornerUpperLocalY} ` +
+    `C ${visibleCavityWidth * 0.18} ${cornerUpperLocalY}, ` +
+    `${visibleCavityWidth * 0.34} ${upperControlY}, ` +
+    `${visibleCavityWidth * 0.50} ${upperCenterY} ` +
+    `C ${visibleCavityWidth * 0.66} ${upperControlY}, ` +
+    `${visibleCavityWidth * 0.82} ${cornerUpperLocalY}, ` +
+    `${visibleCavityWidth - edgeX} ${cornerUpperLocalY} ` +
+    `C ${visibleCavityWidth * 0.82} ${cornerLowerLocalY}, ` +
+    `${visibleCavityWidth * 0.68} ${lowerControlY}, ` +
+    `${visibleCavityWidth * 0.50} ${lowerCenterY} ` +
+    `C ${visibleCavityWidth * 0.32} ${lowerControlY}, ` +
+    `${visibleCavityWidth * 0.18} ${cornerLowerLocalY}, ` +
+    `${edgeX} ${cornerUpperLocalY} Z`
+  );
+
+
+  const toothSideY =
+    cornerUpperLocalY +
+    (
+      upperCenterY -
+      cornerUpperLocalY
+    ) * 0.82;
+
+
+  mouthOpeningTeeth.setAttribute(
+    "d",
+    `M ${visibleCavityWidth * 0.29} ${toothSideY} ` +
+    `C ${visibleCavityWidth * 0.40} ${upperCenterY + visibleCavityHeight * 0.12}, ` +
+    `${visibleCavityWidth * 0.60} ${upperCenterY + visibleCavityHeight * 0.12}, ` +
+    `${visibleCavityWidth * 0.71} ${toothSideY} ` +
+    `C ${visibleCavityWidth * 0.63} ${upperCenterY + visibleCavityHeight * 0.24}, ` +
+    `${visibleCavityWidth * 0.57} ${upperCenterY + visibleCavityHeight * 0.28}, ` +
+    `${visibleCavityWidth * 0.50} ${upperCenterY + visibleCavityHeight * 0.28} ` +
+    `C ${visibleCavityWidth * 0.43} ${upperCenterY + visibleCavityHeight * 0.28}, ` +
+    `${visibleCavityWidth * 0.37} ${upperCenterY + visibleCavityHeight * 0.24}, ` +
+    `${visibleCavityWidth * 0.29} ${toothSideY} Z`
+  );
+
+
+  mouthOpeningTongue.setAttribute(
+    "d",
+    `M ${visibleCavityWidth * 0.34} ${lowerCenterY - visibleCavityHeight * 0.08} ` +
+    `C ${visibleCavityWidth * 0.40} ${lowerCenterY - visibleCavityHeight * 0.25}, ` +
+    `${visibleCavityWidth * 0.60} ${lowerCenterY - visibleCavityHeight * 0.25}, ` +
+    `${visibleCavityWidth * 0.66} ${lowerCenterY - visibleCavityHeight * 0.08} ` +
+    `C ${visibleCavityWidth * 0.58} ${lowerCenterY}, ` +
+    `${visibleCavityWidth * 0.42} ${lowerCenterY}, ` +
+    `${visibleCavityWidth * 0.34} ${lowerCenterY - visibleCavityHeight * 0.08} Z`
+  );
+
+
   const toothVisibility =
     clamp(
       (
@@ -6131,7 +6331,7 @@ function renderVisibleMouthOpening(
     `${
       canvasTop +
       cavityCenterY -
-      visibleCavityHeight / 2
+      localOffsetY
     }px`;
 
 
@@ -6140,7 +6340,7 @@ function renderVisibleMouthOpening(
 
 
   mouthOpening.style.height =
-    `${visibleCavityHeight}px`;
+    `${openingLayerHeight}px`;
 
 
   mouthOpening.style.setProperty(
@@ -6170,10 +6370,10 @@ function renderVisibleMouthOpening(
   mouthOpening.style.opacity =
     String(
       clamp(
-        0.60 +
-          open * 0.28,
-        0.60,
-        0.78
+        0.46 +
+          open * 0.20,
+        0.46,
+        0.62
       )
     );
 
@@ -6220,10 +6420,6 @@ function renderNaturalMouth(
   }
 
 
-  mouthCanvas.style.display =
-    "block";
-
-
   const wide =
     clamp(
       wideness,
@@ -6250,6 +6446,25 @@ function renderNaturalMouth(
     wide,
     round
   );
+
+
+  /* Bei sicher erkannten Gesichtslandmarks bewegt das Vollgesichts-Rig die
+     echten inneren und aeusseren Lippenpunkte. Die zusaetzliche lokale
+     Fotoebene darf diese Bewegung nicht wieder mit einer starren Kopie
+     ueberdecken. Sie bleibt nur der Fallback fuer nicht erkannte Bilder. */
+  if(
+    fullFaceRigReady
+  ){
+
+    mouthCanvas.style.display =
+      "none";
+
+    return;
+  }
+
+
+  mouthCanvas.style.display =
+    "block";
 
 
   if(
@@ -14164,7 +14379,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=270",
+          "./service-worker.js?v=271",
           {
             updateViaCache:"none"
           }
