@@ -38,6 +38,17 @@ test("bildhafte Alltagsbeschreibungen lösen keinen erfundenen Alarm aus", () =>
   );
 });
 
+test("absurder Pamisch-Humor wird nicht zur persönlichen Tatsache", () => {
+  assert.match(
+    serverSource,
+    /„Wie die Kuh die Eier[\s\S]*?legt“[\s\S]*?keine[\s\S]*?Tatsachenbehauptung über Kühe/u
+  );
+  assert.match(
+    serverSource,
+    /nicht als Irrtum, reale[\s\S]*?Absicht oder persönliche Erinnerung/u
+  );
+});
+
 test("Zitate, Formulierungsaufträge und eigene Absichten bleiben getrennt", () => {
   assert.match(
     serverSource,
