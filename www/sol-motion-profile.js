@@ -6,7 +6,7 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-09-original-full-sync-4-pamela-counting-reference-visible",
+    version:"2026-09-09-original-full-sync-5-visible-natural-mouth",
 
     speech:{
       maximumOpen:0.72,
@@ -38,10 +38,10 @@
     },
 
     fallback:{
-      baseOpen:0.075,
-      minimumOpen:0.018,
-      maximumOpen:0.64,
-      closureDepth:0.50,
+      baseOpen:0.055,
+      minimumOpen:0.004,
+      maximumOpen:0.58,
+      closureDepth:0.54,
       syllableRate:0.0174,
       consonantRate:0.039,
       phraseRate:0.0055
