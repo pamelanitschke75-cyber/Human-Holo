@@ -29,6 +29,25 @@ async function loadMotionProfile() {
   return context.SolHoloMotionProfile;
 }
 
+test("Build 271 bleibt als von Pam und Steffi bestaetigter S23-Meilenstein dokumentiert", async () => {
+  const milestone = await readFile(
+    new URL(
+      "../MEILENSTEIN-HUMAN-HOLO-ORIGINAL-FULL-SYNC-BUILD-271-S23-09-09-2026.md",
+      import.meta.url
+    ),
+    "utf8"
+  );
+
+  assert.match(milestone, /Build 271/u);
+  assert.match(milestone, /PRAXIS-MEILENSTEIN BESTANDEN/u);
+  assert.match(milestone, /PAMELA CHRISTINA NITSCHKE/u);
+  assert.match(milestone, /Stefanie Renate Hörath/u);
+  assert.match(milestone, /direkt zwischen erkannter Ober- und Unterlippe/u);
+  assert.match(milestone, /Original Full Sync bleibt ein eigener\nEntwicklungsbereich/u);
+  assert.match(milestone, /keine\nBedrohung/u);
+  assert.match(milestone, /nicht im öffentlichen\n  Repository gespeichert/u);
+});
+
 test("Original Full Sync besitzt ein ownergebundenes Gesamtbewegungsprofil", async () => {
   const engine = await loadOriginalFullSync();
   const profile = await loadMotionProfile();
