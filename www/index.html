@@ -5968,9 +5968,8 @@ function renderNaturalMouth(
 
   const cavityHeight =
     Math.max(
-      3.0,
-      2.4 +
-      lipTravel * 2.34
+      1.2,
+      lipTravel * 3.55
     );
 
 
@@ -5980,16 +5979,18 @@ function renderNaturalMouth(
 
 
   const paintMouthInterior =
-    () => {
+    (
+      paintContext = context
+    ) => {
 
 
-  context.save();
+  paintContext.save();
 
 
-  context.beginPath();
+  paintContext.beginPath();
 
 
-  context.ellipse(
+  paintContext.ellipse(
     width / 2,
     cavityCenterY,
     cavityWidth / 2,
@@ -6000,11 +6001,11 @@ function renderNaturalMouth(
   );
 
 
-  context.clip();
+  paintContext.clip();
 
 
   const cavityGradient =
-    context.createLinearGradient(
+    paintContext.createLinearGradient(
       0,
       cavityCenterY -
         cavityHeight / 2,
@@ -6032,11 +6033,11 @@ function renderNaturalMouth(
   );
 
 
-  context.fillStyle =
+  paintContext.fillStyle =
     cavityGradient;
 
 
-  context.fillRect(
+  paintContext.fillRect(
     width / 2 -
       cavityWidth / 2,
     cavityCenterY -
@@ -6046,7 +6047,7 @@ function renderNaturalMouth(
   );
 
 
-  context.restore();
+  paintContext.restore();
 
 
   const toothVisibility =
@@ -6070,13 +6071,13 @@ function renderNaturalMouth(
       0.015
   ){
 
-    context.save();
+    paintContext.save();
 
 
-    context.beginPath();
+    paintContext.beginPath();
 
 
-    context.ellipse(
+    paintContext.ellipse(
       width / 2,
       cavityCenterY,
       cavityWidth / 2,
@@ -6087,11 +6088,11 @@ function renderNaturalMouth(
     );
 
 
-    context.clip();
+    paintContext.clip();
 
 
     const toothGradient =
-      context.createLinearGradient(
+      paintContext.createLinearGradient(
         0,
         cavityCenterY -
           cavityHeight / 2,
@@ -6112,11 +6113,11 @@ function renderNaturalMouth(
     );
 
 
-    context.fillStyle =
+    paintContext.fillStyle =
       toothGradient;
 
 
-    context.fillRect(
+    paintContext.fillRect(
       width / 2 -
         cavityWidth * 0.37,
       cavityCenterY -
@@ -6126,7 +6127,7 @@ function renderNaturalMouth(
     );
 
 
-    context.restore();
+    paintContext.restore();
   }
 
 
@@ -6389,6 +6390,38 @@ function renderNaturalMouth(
 
   mouthCanvasContext.drawImage(
     lipMouthRenderLayer,
+    0,
+    0
+  );
+
+
+  /*
+    Sicherheitslage fuer die sichtbare Oeffnung: Die Mundhoehle wird nach
+    allen Textur- und Maskenschritten noch einmal direkt auf die oberste
+    Mundebene gelegt. Dadurch kann das geschlossene Ausgangsfoto sie auf
+    Android nicht erneut ueberdecken. Die gemeinsame Holo-Weichzeichnung
+    glaettet ihre Kontur weiterhin zusammen mit Gesicht und Lippen.
+  */
+  mouthCanvasContext.setTransform(
+    pixelRatio,
+    0,
+    0,
+    pixelRatio,
+    0,
+    0
+  );
+
+
+  paintMouthInterior(
+    mouthCanvasContext
+  );
+
+
+  mouthCanvasContext.setTransform(
+    1,
+    0,
+    0,
+    1,
     0,
     0
   );

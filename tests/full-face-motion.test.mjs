@@ -263,10 +263,21 @@ test("sichtbare Mundoeffnung wird zuletzt ueber die verschobene Bildtextur geleg
     'context.globalCompositeOperation =\n    "destination-in";',
     mouthInterior
   );
+  const visibleTexture = renderSource.indexOf(
+    "mouthCanvasContext.drawImage(",
+    edgeMask
+  );
+  const visibleInterior = renderSource.indexOf(
+    "paintMouthInterior(\n    mouthCanvasContext",
+    visibleTexture
+  );
 
   assert.ok(textureWarp >= 0);
   assert.ok(mouthInterior > textureWarp);
   assert.ok(edgeMask > mouthInterior);
+  assert.ok(visibleTexture > edgeMask);
+  assert.ok(visibleInterior > visibleTexture);
+  assert.match(renderSource, /lipTravel\s*\*\s*3\.55/u);
   assert.match(renderSource, /featherMask/u);
   assert.match(renderSource, /open\s*-\s*0\.12/u);
   assert.match(
