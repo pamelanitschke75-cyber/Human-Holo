@@ -21,6 +21,14 @@ test("Pamisch wird nicht ohne eindeutigen Beleg zu einer Drohung umgedeutet", ()
     serverSource,
     /nicht als reale Drohung von[\s\S]*?\$\{profile\.displayName\}/u
   );
+  assert.match(
+    serverSource,
+    /einen Satz tatsächlich gesagt hat,[\s\S]*?nur den[\s\S]*?Wortlaut und nicht automatisch eine reale Drohabsicht/u
+  );
+  assert.match(
+    serverSource,
+    /Gesagtes und[\s\S]*?Beabsichtigtes niemals ohne eindeutigen Zusammenhang gleich/u
+  );
 });
 
 test("bildhafte Alltagsbeschreibungen lösen keinen erfundenen Alarm aus", () => {
