@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-220-pamela-mouth-reference";
+const CACHE_VERSION = "human-holo-221-android-output-audio-mouth";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

@@ -5110,8 +5110,7 @@ async function ensureLipPlaybackAudioGraph(){
 
 
       if(
-        !ready ||
-        !ensureLipAnalyserBuffers()
+        !ready
       ){
 
         return false;
@@ -5137,11 +5136,6 @@ async function ensureLipPlaybackAudioGraph(){
         ){
 
           lipMediaElementSourceNode.connect(
-            lipAnalyser
-          );
-
-
-          lipAnalyser.connect(
             lipAudioContext.destination
           );
 
@@ -5149,10 +5143,6 @@ async function ensureLipPlaybackAudioGraph(){
           lipMediaElementGraphConnected =
             true;
         }
-
-
-        lipSourceNode =
-          lipMediaElementSourceNode;
 
 
         return true;
@@ -7110,47 +7100,47 @@ async function startLipSync(
     const streamGeneration =
       ++lipStreamGeneration;
 
-    if(
-      !playbackReady
-    ){
-
-      lipSourceNode =
-        lipAudioContext
-          .createMediaStreamSource(
-            stream
-          );
-
-
-      ensureLipAnalyserBuffers();
+    // Der hoerbare Media-Element-Ausgang kann in Android WebView korrekt
+    // spielen und gleichzeitig am Web-Audio-Analyser nur Nullen liefern.
+    // Deshalb wird Holos empfangene WebRTC-Spur immer noch einmal separat
+    // und lautlos analysiert. Sie stammt ausschliesslich von Holos Ausgabe,
+    // niemals von Pams Mikrofon.
+    lipSourceNode =
+      lipAudioContext
+        .createMediaStreamSource(
+          stream
+        );
 
 
-      lipAnalyser.smoothingTimeConstant =
-        0.62;
+    ensureLipAnalyserBuffers();
 
 
-      lipSilentGain =
-        lipAudioContext
-          .createGain();
+    lipAnalyser.smoothingTimeConstant =
+      0.62;
 
 
-      lipSilentGain.gain.value =
-        0;
+    lipSilentGain =
+      lipAudioContext
+        .createGain();
 
 
-      lipSourceNode.connect(
-        lipAnalyser
-      );
+    lipSilentGain.gain.value =
+      0;
 
 
-      lipAnalyser.connect(
-        lipSilentGain
-      );
+    lipSourceNode.connect(
+      lipAnalyser
+    );
 
 
-      lipSilentGain.connect(
-        lipAudioContext.destination
-      );
-    }
+    lipAnalyser.connect(
+      lipSilentGain
+    );
+
+
+    lipSilentGain.connect(
+      lipAudioContext.destination
+    );
 
 
     updateMouthGeometry();
@@ -7277,14 +7267,6 @@ function stopLipSync(
   }
 
 
-  const keepMediaElementGraph =
-    Boolean(
-      lipMediaElementGraphConnected &&
-      lipMediaElementSourceNode &&
-      lipAnalyser
-    );
-
-
   if(
     lipHeadAudioSourceNode &&
     lipHeadAudioNode
@@ -7303,9 +7285,7 @@ function stopLipSync(
 
 
   if(
-    lipSourceNode &&
-    lipSourceNode !==
-      lipMediaElementSourceNode
+    lipSourceNode
   ){
 
     try{
@@ -7332,8 +7312,7 @@ function stopLipSync(
 
 
   if(
-    lipAnalyser &&
-    !keepMediaElementGraph
+    lipAnalyser
   ){
 
     try{
@@ -7360,17 +7339,12 @@ function stopLipSync(
   }
 
 
-  if(
-    !keepMediaElementGraph
-  ){
-
-    lipTimeData =
-      null;
+  lipTimeData =
+    null;
 
 
-    lipFrequencyData =
-      null;
-  }
+  lipFrequencyData =
+    null;
 
 
   currentMouthOpen = 0;
