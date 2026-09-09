@@ -49,6 +49,21 @@ test("absurder Pamisch-Humor wird nicht zur persönlichen Tatsache", () => {
   );
 });
 
+test("alte spöttische Sprüche werden im scherzhaften Zusammenhang verstanden", () => {
+  assert.match(
+    serverSource,
+    /„Oh Herr, lass Gras wachsen, die Rindviecher haben Hunger“[\s\S]*?weder eine böse Absicht noch eine[\s\S]*?Drohung/u
+  );
+  assert.match(
+    serverSource,
+    /keine Tatsachenmeldung über hungrige Rinder/u
+  );
+  assert.match(
+    serverSource,
+    /Unterstelle allein[\s\S]*?keine Beleidigungsabsicht/u
+  );
+});
+
 test("Zitate, Formulierungsaufträge und eigene Absichten bleiben getrennt", () => {
   assert.match(
     serverSource,
