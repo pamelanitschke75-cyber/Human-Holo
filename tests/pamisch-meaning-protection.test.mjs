@@ -64,6 +64,36 @@ test("alte spöttische Sprüche werden im scherzhaften Zusammenhang verstanden",
   );
 });
 
+test("liebevolles gegenseitiges Necken wird nicht als Beziehungskonflikt erfunden", () => {
+  assert.match(
+    serverSource,
+    /Pam und Steffi[\s\S]*?„Trottel“[\s\S]*?„Depp“[\s\S]*?nicht automatisch eine Beleidigung/u
+  );
+  assert.match(
+    serverSource,
+    /nicht automatisch[\s\S]*?ein Streit,[\s\S]*?Missbrauch oder ein Beziehungsproblem/u
+  );
+  assert.match(
+    serverSource,
+    /Erst wenn eine beteiligte Person klar von Verletzung, Angst,[\s\S]*?ernst gemeinter Gewalt spricht/u
+  );
+});
+
+test("Ärger über eine falsche Unterstellung bestätigt diese nicht nachträglich", () => {
+  assert.match(
+    serverSource,
+    /Ärger oder kräftige Sprache als Reaktion auf eine falsche[\s\S]*?kein nachträglicher Beleg/u
+  );
+  assert.match(
+    serverSource,
+    /Rechtfertige eine falsche Einordnung niemals[\s\S]*?verärgerten Reaktion/u
+  );
+  assert.match(
+    serverSource,
+    /Berichtige den eigenen Fehler klar,[\s\S]*?verteidigt, das sie nicht gesagt hat/u
+  );
+});
+
 test("Zitate, Formulierungsaufträge und eigene Absichten bleiben getrennt", () => {
   assert.match(
     serverSource,
