@@ -840,7 +840,7 @@ class FullFaceRig {
         this.movePoint(
           index,
           0,
-          -mouth.height * 0.22 * motion.mouthAsymmetry * side
+          -mouth.height * 0.34 * motion.mouthAsymmetry * side
         );
       }
     }

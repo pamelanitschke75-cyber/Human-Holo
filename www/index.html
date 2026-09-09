@@ -2407,8 +2407,9 @@ Schreiben bereit.
 
 
 <script src="./human-holo-ai-policy.js?v=1"></script>
-<script src="./sol-motion-profile.js?v=3"></script>
+<script src="./sol-motion-profile.js?v=4"></script>
 <script src="./remote-audio-level.js?v=1"></script>
+<script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=2"></script>
 <script src="./media-tools.js"></script>
 <script>
@@ -3510,10 +3511,16 @@ let lipVisemeValues = Object.create(null);
 let realtimeAssistantSpeechUntil = 0;
 let realtimeAssistantSpeechStartedAt = 0;
 let realtimeOutputBufferPlaying = false;
-let lastLipAudioSignalAt = 0;
 const lipRemoteAudioTracker =
   window.SolHoloRemoteAudioLevel
     ?.createTracker?.() ||
+  null;
+const lipVoiceMotionDriver =
+  window.SolHoloVoiceMotionDriver ||
+  null;
+const lipSpeechSourceGate =
+  lipVoiceMotionDriver
+    ?.createSpeechGate?.() ||
   null;
 let lipMouthCanvasGeometry = null;
 let lipMouthRenderLayer =
@@ -6638,26 +6645,25 @@ function animateLipSync(
     receiverSignalActive;
 
 
-  if(
-    analyserSignalActive
-  ){
-
-    lastLipAudioSignalAt =
-      timestamp;
-  }
+  const speechSourceState =
+    lipSpeechSourceGate
+      ?.sample({
+        timestamp,
+        speaking:
+          realtimeSpeechActive ||
+          audioSignalActive,
+        signalActive:audioSignalActive
+      }) ||
+    {
+      measuredSignal:audioSignalActive,
+      useFallback:
+        realtimeSpeechActive &&
+        !audioSignalActive
+    };
 
 
   const useRealtimeFallback =
-    receiverSignalActive ||
-    (
-      realtimeSpeechActive &&
-      (
-        !lastLipAudioSignalAt ||
-        timestamp -
-          lastLipAudioSignalAt >
-          120
-      )
-    );
+    speechSourceState.useFallback;
 
 
   let fallbackShape =
@@ -6670,44 +6676,42 @@ function animateLipSync(
       null;
 
 
-  if(
-    fallbackShape &&
-    receiverSignalActive
-  ){
+  const receiverShape =
+    receiverSignalActive &&
+    !analyserSignalActive
+      ?
+      realtimeFallbackMouthShape(
+        timestamp
+      )
+      :
+      null;
 
-    const receiverShapeWeight =
-      0.25 +
-      remoteAudio.level *
-        0.75;
 
-
-    fallbackShape = {
-      open:
-        Math.max(
-          receiverRawOpen,
-          fallbackShape.open *
-            receiverShapeWeight
-        ),
-      wide:
-        fallbackShape.wide *
-        receiverShapeWeight,
-      round:
-        fallbackShape.round *
-        receiverShapeWeight
-    };
-  }
+  const resolvedShape =
+    lipVoiceMotionDriver
+      ?.resolveShape?.({
+        detected:detectedShape,
+        fallback:fallbackShape,
+        receiver:receiverShape,
+        receiverWeight:
+          clamp(
+            receiverRawOpen /
+              Math.max(
+                0.01,
+                SOL_SPEECH_MOTION.maximumOpen ||
+                  0.60
+              ),
+            0,
+            1
+          ),
+        useFallback:useRealtimeFallback
+      }) ||
+    detectedShape;
 
 
   const targetOpen =
     clamp(
-      fallbackShape
-        ?
-        Math.max(
-          detectedShape.open,
-          fallbackShape.open
-        )
-        :
-        detectedShape.open,
+      resolvedShape.open,
       0,
       SOL_SPEECH_MOTION.maximumOpen ||
         0.60
@@ -6716,14 +6720,7 @@ function animateLipSync(
 
   const targetWide =
     clamp(
-      fallbackShape
-        ?
-        Math.max(
-          detectedShape.wide,
-          fallbackShape.wide
-        )
-        :
-        detectedShape.wide,
+      resolvedShape.wide,
       0,
       SOL_SPEECH_MOTION.wideMaximum ||
         0.48
@@ -6732,14 +6729,7 @@ function animateLipSync(
 
   const targetRound =
     clamp(
-      fallbackShape
-        ?
-        Math.max(
-          detectedShape.round,
-          fallbackShape.round
-        )
-        :
-        detectedShape.round,
+      resolvedShape.round,
       0,
       SOL_SPEECH_MOTION.roundMaximum ||
         0.46
@@ -7151,15 +7141,15 @@ function stopLipSync(
     false;
 
 
-  lastLipAudioSignalAt =
-    0;
-
-
   lipSyncRunning =
     false;
 
 
   lipRemoteAudioTracker
+    ?.reset();
+
+
+  lipSpeechSourceGate
     ?.reset();
 
 

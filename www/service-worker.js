@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-219-chatgpt-openai-only-full-sync";
+const CACHE_VERSION = "human-holo-220-pamela-mouth-reference";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

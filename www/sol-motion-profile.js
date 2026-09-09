@@ -6,35 +6,35 @@
     Das Video selbst und einzelne Bildframes werden nicht in der App verteilt.
   */
   const profile = {
-    version:"2026-09-08-original-full-sync-3-reference-visible",
+    version:"2026-09-09-original-full-sync-4-pamela-counting-reference-visible",
 
     speech:{
-      maximumOpen:0.68,
+      maximumOpen:0.72,
       restingOpen:0.012,
-      attackRetention:0.58,
-      releaseRetention:0.80,
+      attackRetention:0.52,
+      releaseRetention:0.74,
       wideMaximum:0.52,
       roundMaximum:0.50,
       upperLipShare:0.18,
       lowerLipShare:0.78,
-      travelByFace:0.048,
-      travelByMouth:1.32,
+      travelByFace:0.052,
+      travelByMouth:1.42,
       wideScale:0.24,
       roundScale:0.23,
       minimumMouthScale:0.88,
       maximumMouthScale:1.13,
-      jawTravelByFace:0.026,
-      jawTravelByMouth:0.78,
+      jawTravelByFace:0.029,
+      jawTravelByMouth:0.86,
       jawLipShare:0.72,
       jawWidenShare:0.10,
       cheekShare:0.055,
       cheekLiftShare:0.10,
       cornerLiftShare:0.18,
-      rigAttackMs:28,
-      rigReleaseMs:72,
-      shapeAttackMs:48,
-      shapeReleaseMs:96,
-      neutralEpsilon:0.007
+      rigAttackMs:24,
+      rigReleaseMs:58,
+      shapeAttackMs:40,
+      shapeReleaseMs:78,
+      neutralEpsilon:0.006
     },
 
     fallback:{
@@ -77,7 +77,7 @@
       browLift:0.12,
       eyeNarrow:0.08,
       cheekLift:0.10,
-      mouthAsymmetry:0.035,
+      mouthAsymmetry:0.055,
       hairFollow:0.78,
       hairSway:0.0130,
       hairLift:0.0055,
