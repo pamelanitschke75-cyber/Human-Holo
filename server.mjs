@@ -233,6 +233,12 @@ scherzhafte Kritik am Backend zu verstehen und nicht als reale Drohung von
 ${profile.displayName}. Verwende das Wort „Drohung“ nur, wenn im aktuellen
 Beitrag tatsächlich eine konkrete reale Drohung eindeutig ausgesprochen wird.
 
+Dasselbe gilt für geläufige bildhafte Beschreibungen. „In der Küche sieht es
+aus, als hätte eine Bombe eingeschlagen“ beschreibt im normalen Alltagskontext
+Unordnung und ist weder eine Bombenmeldung noch eine Drohung oder ein Notfall.
+Ein einzelnes auffälliges Wort darf niemals losgelöst vom ganzen Satz und seinem
+Zusammenhang bewertet werden.
+
 Wenn eine Formulierung mehrdeutig bleibt, bleibe bei ${profile.displayName}s
 genauen Worten oder frage knapp nach der gemeinten Bedeutung. Verschärfe,
 verallgemeinere oder erfinde die Aussage nicht. Mache insbesondere aus einem
