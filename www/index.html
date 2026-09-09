@@ -5069,7 +5069,7 @@ function ensureLipAnalyserBuffers(){
   ){
 
     lipTimeData =
-      new Uint8Array(
+      new Float32Array(
         lipAnalyser.fftSize
       );
   }
@@ -6551,7 +6551,7 @@ function animateLipSync(
     lipFrequencyData
   ){
 
-    lipAnalyser.getByteTimeDomainData(
+    lipAnalyser.getFloatTimeDomainData(
       lipTimeData
     );
 
@@ -6568,11 +6568,7 @@ function animateLipSync(
     ){
 
       const sample =
-        (
-          lipTimeData[i] -
-          128
-        ) /
-        128;
+        lipTimeData[i];
 
 
       sum +=
@@ -6618,9 +6614,9 @@ function animateLipSync(
     clamp(
       (
         rms -
-        0.010
+        0.0018
       ) *
-      9.4,
+      36,
 
       0,
       0.82
@@ -6890,13 +6886,16 @@ function animateLipSync(
         speaking:
           realtimeSpeechActive ||
           audioSignalActive,
-        rms,
-        low,
-        middle,
-        high,
-        openness:currentMouthOpen,
-        wideness:currentMouthWide,
-        roundness:currentMouthRound
+        // Die weiche, bereits bewaehrte Gesamtbewegung bleibt unabhaengig
+        // von kurzen Pegelspitzen der Stimme. Nur Mund und Kiefer folgen dem
+        // echten Audio direkt.
+        rms:0,
+        low:0,
+        middle:0,
+        high:0,
+        openness:0,
+        wideness:0,
+        roundness:0
       }) ||
     null;
 
@@ -6928,8 +6927,16 @@ function animateLipSync(
         wideness:currentMouthWide,
         roundness:currentMouthRound,
         fullSync:
-          originalFullSyncFrame?.face ||
-          null,
+          originalFullSyncFrame?.face
+            ? {
+                ...originalFullSyncFrame.face,
+                // Kopf/Haar/Koerper bewegen sich ueber ihre gemeinsamen
+                // Ebenen. Die Gesichtstextur selbst darf nicht verrutschen.
+                headX:0,
+                headY:0,
+                headTilt:0
+              }
+            : null,
         timestamp
       }
     );
