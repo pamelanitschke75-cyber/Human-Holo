@@ -297,7 +297,7 @@ test("sichtbare Mundoeffnung bleibt auf Android unabhaengig von der Canvas-Verfo
   assert.ok(visibleOpeningFill > visibleCavity);
   assert.ok(foregroundOpening >= 0);
   assert.ok(canvasAvailability > foregroundOpening);
-  assert.match(renderSource, /lipTravel\s*\*\s*2\.15/u);
+  assert.match(renderSource, /visibleCavityHeight\s*\*\s*0\.92/u);
   assert.match(renderSource, /mouthCanvasContext\.bezierCurveTo\(/u);
   assert.doesNotMatch(renderSource, /destination-out/u);
   assert.match(renderSource, /visibleToothGradient/u);
@@ -310,25 +310,30 @@ test("sichtbare Mundoeffnung bleibt auf Android unabhaengig von der Canvas-Verfo
     /mouthOpening\.style\.left\s*=\s*`\$\{[\s\S]*?canvasLeft[\s\S]*?visibleCavityWidth/u
   );
   assert.match(openingSource, /--mouth-teeth-opacity/u);
-  assert.match(openingSource, /visibleCavityHeight[\s\S]*?0\.023/u);
-  assert.match(openingSource, /imageDisplayHeight \* 0\.028/u);
-  assert.match(openingSource, /mouthHeight \* 0\.54/u);
-  assert.match(openingSource, /wide \* 0\.20[\s\S]*?round \* 0\.20/u);
-  assert.match(openingSource, /0\.42,[\s\S]*?0\.66/u);
+  assert.match(openingSource, /visibleCavityHeight[\s\S]*?0\.016/u);
+  assert.match(openingSource, /imageDisplayHeight \* 0\.018/u);
+  assert.match(openingSource, /mouthHeight \* 0\.36/u);
+  assert.match(openingSource, /effectiveMouthWidth \* 0\.13/u);
+  assert.match(openingSource, /wide \* 0\.30[\s\S]*?round \* 0\.10/u);
+  assert.match(openingSource, /visibleCavityHeight \* 6\.2/u);
+  assert.match(
+    openingSource,
+    /effectiveMouthWidth \* 0\.58,[\s\S]*?effectiveMouthWidth \* 0\.82/u
+  );
   assert.match(openingSource, /mouthOpening\.style\.display\s*=\s*"block"/u);
   assert.doesNotMatch(geometrySource, /!mouthCanvasContext/u);
   assert.doesNotMatch(geometrySource, /!lipMouthRenderContext/u);
   assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?clip-path:/u);
   assert.doesNotMatch(html, /#mouthOpening\{[\s\S]*?mask-image:/u);
   assert.match(renderSource, /featherMask/u);
-  assert.match(renderSource, /open\s*-\s*0\.20/u);
+  assert.match(renderSource, /open\s*-\s*0\.26/u);
   assert.match(
     html,
-    /#mouthOpening\{[\s\S]*?rgba\(174,92,103,0\) 100%/u
+    /#mouthOpening\{[\s\S]*?rgba\(158,78,91,0\) 100%/u
   );
   assert.match(
     html,
-    /#mouthOpening::before\{[\s\S]*?left:25%;[\s\S]*?height:27%/u
+    /#mouthOpening::before\{[\s\S]*?left:31%;[\s\S]*?height:18%/u
   );
   assert.match(
     html,
