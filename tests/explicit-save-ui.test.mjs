@@ -113,7 +113,14 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
 });
 
 test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", () => {
-  assert.match(ui, /id="homeImportantButton"/u);
+  assert.match(
+    ui,
+    /id="homeImportantButton" class="humanHoloImportantCard"/u
+  );
+  assert.doesNotMatch(
+    ui,
+    /id="homeImportantButton" class="humanHoloImportantCard glassCard"/u
+  );
   assert.match(ui, />Wichtiges</u);
   assert.match(ui, /id="calendarImportantSection"/u);
   assert.match(ui, /id="shoppingImportantSection"/u);
@@ -213,7 +220,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=68/u);
+  assert.match(html, /sol-holo-ui\.js\?v=69/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {

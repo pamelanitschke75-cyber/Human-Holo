@@ -77,7 +77,7 @@ test("Server, App und Android-Build veröffentlichen dieselbe feste Richtlinie",
   assert.match(server, /\/ai\/provider-policy/u);
   assert.match(server, /assertHumanHoloAIProvider/u);
   assert.match(html, /human-holo-ai-policy\.js\?v=1/u);
-  assert.match(html, /sol-holo-ui\.js\?v=68/u);
+  assert.match(html, /sol-holo-ui\.js\?v=69/u);
   assert.match(ui, /ChatGPT\/OpenAI zuerst und verbindlich/u);
   assert.match(workflow, /www\/human-holo-ai-policy\.js/u);
   assert.deepEqual(
