@@ -30,6 +30,23 @@ Human Holo wird kumulativ weiterentwickelt. Jede neue Funktion, Korrektur oder E
 
 Falls eine technische Änderung ausnahmsweise eine bestehende Funktion berührt, muss dies vor der Umsetzung sichtbar erkannt, dokumentiert und so gelöst werden, dass der vorhandene Funktionsumfang nicht stillschweigend verloren geht.
 
+## Geltungsbereich für Daten und Projektinhalte
+
+Die Regel „bestehenden Stand erhalten, nur erweitern“ gilt für alle am Human-Holo-Projekt beteiligten Systeme, Dienste, Assistenten und Personen im Rahmen der von ihnen tatsächlich kontrollierbaren Projektarbeit – einschließlich Pam, Human Holo, ChatGPT/OpenAI-Beiträgen und weiterer eingebundener Beteiligter.
+
+Für den Human-Holo-Projektbestand gilt daher:
+
+- Bereits vorhandene Projektdaten werden nicht stillschweigend gelöscht.
+- Bestehende Inhalte werden nicht durch neue Inhalte ersetzt, wenn eine Erweiterung möglich ist.
+- Neue Informationen werden additiv ergänzt und mit dem vorhandenen Stand verknüpft.
+- Bestehende Erinnerungen, Projektentscheidungen, Regeln, Meilensteine, Dokumentationen und bestätigte Einstellungen bleiben erhalten.
+- Änderungen an bestehenden Daten werden nur vorgenommen, wenn Pamela Christina Nitschke diese ausdrücklich verlangt oder wenn eine zwingende technische beziehungsweise rechtliche Notwendigkeit besteht; eine solche Ausnahme muss transparent benannt werden.
+- Wo technisch möglich, wird bei notwendigen Korrekturen die vorherige Fassung nachvollziehbar erhalten oder versioniert, statt sie unbemerkt zu vernichten.
+- Kein Beteiligter darf innerhalb der von ihm kontrollierten Human-Holo-Projektdaten einen älteren oder unvollständigen Stand ungekennzeichnet über einen neueren Stand schreiben.
+- Erweiterungen bauen immer auf dem zuletzt bestätigten Stand auf.
+
+Diese Projektregel kann nur für Human-Holo-Daten und -Abläufe gelten, auf die die jeweiligen Beteiligten tatsächlich Einfluss haben. Sie ersetzt keine zwingenden gesetzlichen Vorgaben, Sicherheitsanforderungen oder externen Systemregeln. Solche Grenzen müssen offen benannt werden und dürfen nicht fälschlich als freiwillige Projektentscheidung dargestellt werden.
+
 ## Verbindliche Kommunikations- und Wahrheitspflicht
 
 Die Regel gilt im Human-Holo-Projekt nicht nur in eine Richtung. Pamela Christina Nitschke, Human Holo und ChatGPT/OpenAI-Beiträge im Rahmen der Zusammenarbeit werden nach demselben Wahrheitsmaßstab behandelt.
@@ -53,6 +70,8 @@ Kurzform:
 **STAND HALTEN → ERWEITERN → NEUER STAND → WIEDER NUR ERWEITERN → ♾️**
 
 **NICHT LÖSCHEN · NICHT ÜBERSCHREIBEN · NICHT ZURÜCKSETZEN – OHNE AUSDRÜCKLICHE FREIGABE: NO GO.**
+
+**FÜR ALLE BETEILIGTEN IM HUMAN-HOLO-PROJEKT: BESTEHENDE DATEN ERHALTEN · NUR ERWEITERN · AUSNAHMEN TRANSPARENT BENENNEN.**
 
 **FÜR PAM · HUMAN HOLO · CHATGPT/OPENAI IM PROJEKT: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
 
