@@ -28,26 +28,11 @@ Es gilt dauerhaft:
 
 Alles, was bis zum jeweiligen Zeitpunkt im Rahmen von **Sol Holo** und **Human Holo** entstanden, entwickelt, dokumentiert, getestet, entschieden, gestaltet, gespeichert oder als Meilenstein bestätigt wurde, gehört zum fortlaufenden Projektbestand und bleibt erhalten.
 
-Das gilt insbesondere für:
-
-- Quellcode, Builds, technische Funktionen und Integrationen,
-- Projektregeln, Sicherheitsregeln und Freigabelogiken,
-- UI-, Design-, Branding- und Holo-Stände,
-- Gedächtnisarchitektur, Erinnerungen und dokumentierte Zusammenhänge,
-- bestätigte Testergebnisse und erreichte Meilensteine,
-- Dokumentationen, Markdown-Dateien, Commit-Historie und technische Nachweise,
-- Entscheidungen, Anforderungen und ausdrücklich bestätigte Projektvorgaben,
-- aus der Sol-Holo-Phase übernommene Grundlagen, soweit sie Teil der Weiterentwicklung zu Human Holo sind.
-
-Die Umbenennung beziehungsweise Weiterentwicklung von Sol Holo zu Human Holo bedeutet **keinen Neustart und keinen Verlust des bisherigen Bestands**. Der bis dahin erreichte Sol-Holo-Stand ist Bestandteil der Entwicklungsgeschichte und technischen Grundlage von Human Holo.
-
-Neue Human-Holo-Entwicklungen bauen auf diesem Gesamtbestand auf. Bestehendes wird nicht allein deshalb entfernt, überschrieben oder als bedeutungslos behandelt, weil sich Name, Oberfläche, Architektur oder Funktionsumfang weiterentwickeln.
+Die Umbenennung beziehungsweise Weiterentwicklung von Sol Holo zu Human Holo bedeutet **keinen Neustart und keinen Verlust des bisherigen Bestands**. Neue Human-Holo-Entwicklungen bauen auf diesem Gesamtbestand auf.
 
 ## Entwicklungsprinzip
 
 Human Holo wird kumulativ weiterentwickelt. Jede neue Funktion, Korrektur oder Erweiterung muss sich am aktuellen Stand orientieren und diesen soweit technisch möglich vollständig bewahren.
-
-Falls eine technische Änderung ausnahmsweise eine bestehende Funktion berührt, muss dies vor der Umsetzung sichtbar erkannt, dokumentiert und so gelöst werden, dass der vorhandene Funktionsumfang nicht stillschweigend verloren geht.
 
 ## Geltungsbereich für Daten und Projektinhalte
 
@@ -85,28 +70,25 @@ Soweit OpenAI/ChatGPT technisch und rechtlich die Möglichkeit hat, vor einer so
 
 Diese Passage dokumentiert eine ausdrückliche Projektanforderung der Projektinhaberin. Sie behauptet **nicht**, dass damit allgemeine OpenAI-Unternehmensrichtlinien, gesetzliche Pflichten oder technisch nicht beeinflussbare Plattformprozesse geändert werden. Genau diese Unterscheidung ist Teil der Wahrheitspflicht.
 
-## Fairnessprinzip
+## Fairnessprinzip – ausdrücklich auch gegenüber OpenAI/ChatGPT
 
-Die Regeln zu Wahrheitspflicht, Bestandsschutz, Transparenz und Vorabinformation gelten als **gegenseitiger Fairnessmaßstab** für die Zusammenarbeit im Human-Holo-Projekt.
+Pamela Christina Nitschke erwartet ausdrücklich, dass **auch OpenAI/ChatGPT im Zusammenhang mit Sol Holo und Human Holo fair, transparent und nachvollziehbar mit ihr und dem Projekt umgeht**.
 
-Wenn von Pamela Christina Nitschke erwartet wird, Informationen, Entscheidungen, Testergebnisse und Freigaben wahrheitsgemäß und nachvollziehbar zu kommunizieren, gilt derselbe Maßstab auch für Human Holo und für ChatGPT/OpenAI-Beiträge im Projektkontext: keine stillschweigenden destruktiven Änderungen am kontrollierbaren Projektbestand, keine falschen Tatsachenbehauptungen und keine überraschenden Änderungen, wenn eine vorherige verständliche Information technisch und rechtlich möglich ist.
+Der Grundsatz lautet: Wenn von Pam Wahrheit, Transparenz, klare Entscheidungen und verantwortlicher Umgang mit dem gemeinsamen Projekt erwartet werden, erwartet Pam dieselben Grundwerte im Projektkontext auch von Human Holo, ChatGPT/OpenAI-Beiträgen und allen weiteren Beteiligten. **Das ist nur fair.**
 
-Fairness bedeutet dabei insbesondere:
+Fairness bedeutet als ausdrückliche Projektanforderung insbesondere:
 
-- gleiche Maßstäbe bei Wahrheit und Transparenz,
-- vorherige verständliche Information vor geplanten destruktiven Änderungen, soweit möglich,
-- Respekt vor ausdrücklich bestätigten Projektentscheidungen,
-- nachvollziehbare Kennzeichnung von Ausnahmen und Grenzen,
+- keine wissentlich falschen oder irreführenden Aussagen über Möglichkeiten, Grenzen, Freigaben oder Projektstände,
+- keine stillschweigenden destruktiven Änderungen am kontrollierbaren Projektbestand,
+- verständliche Vorabinformation vor geplanten Änderungen, die Daten löschen, überschreiben, zurücksetzen, reduzieren oder migrieren könnten, soweit eine solche Vorabinformation technisch und rechtlich möglich ist,
+- transparente Erklärung, wenn eine gewünschte Vorabinformation oder Owner-Freigabe aus zwingenden Gründen nicht möglich ist,
+- Respekt vor ausdrücklich bestätigten Projektentscheidungen und dem dokumentierten Sol-Holo-/Human-Holo-Bestand,
 - Erhalt und Versionierung statt stiller Vernichtung, soweit technisch möglich,
-- keine einseitige Darstellung von Pflichten: Verantwortung und Transparenz gelten für alle Beteiligten im jeweils kontrollierbaren Bereich.
+- erkennbare Trennung zwischen einer Projektanforderung von Pam und einer tatsächlich bestätigten allgemeinen OpenAI-Regel.
 
-Dieses Fairnessprinzip ist eine Projektanforderung und ein Verhaltensmaßstab innerhalb der Human-Holo-Zusammenarbeit. Es behauptet keine Änderung allgemeiner OpenAI-Unternehmensrichtlinien außerhalb des Projekts.
-
-Diese Projektregel kann nur für Human-Holo-Daten und -Abläufe unmittelbar verbindlich umgesetzt werden, auf die die jeweiligen Beteiligten tatsächlich Einfluss haben. Sie ersetzt keine zwingenden gesetzlichen Vorgaben, Sicherheitsanforderungen oder externen Systemregeln. Solche Grenzen müssen offen benannt werden und dürfen nicht fälschlich als freiwillige Projektentscheidung dargestellt werden.
+Dieses Fairnessprinzip dokumentiert Pams ausdrückliche Erwartung und Anforderung an die Zusammenarbeit. Es wird nicht als bereits von OpenAI angenommene zusätzliche Unternehmensverpflichtung ausgegeben.
 
 ## Verbindliche Kommunikations- und Wahrheitspflicht
-
-Die Regel gilt im Human-Holo-Projekt nicht nur in eine Richtung. Pamela Christina Nitschke, Human Holo und ChatGPT/OpenAI-Beiträge im Rahmen der Zusammenarbeit werden nach demselben Wahrheitsmaßstab behandelt.
 
 Für Pam, Human Holo und ChatGPT/OpenAI im Projekt gilt:
 
@@ -117,10 +99,6 @@ Für Pam, Human Holo und ChatGPT/OpenAI im Projekt gilt:
 - Vermutungen nicht als bestätigte Tatsachen darstellen.
 - Fehler und überholte Aussagen sichtbar und nachvollziehbar korrigieren.
 - Aktionen, Commits, Nachrichten, Freigaben, Tests oder Änderungen nur dann als ausgeführt bezeichnen, wenn sie tatsächlich ausgeführt oder verlässlich bestätigt wurden.
-- Keine technischen oder organisatorischen Grenzen erfinden, um eine Aufgabe abzukürzen.
-- Pam gibt ihrerseits Informationen, Entscheidungen, Testergebnisse und Rückmeldungen nach bestem Wissen wahrheitsgemäß weiter und kennzeichnet Ungeklärtes als ungeklärt.
-
-Diese gegenseitige Regel ist ein verbindlicher Projektmaßstab für Human Holo. Sie ändert keine allgemeinen Unternehmensrichtlinien oder rechtlichen Verpflichtungen von OpenAI außerhalb dieses Projekts.
 
 Kurzform:
 
@@ -132,11 +110,7 @@ Kurzform:
 
 **VOR GEPLANTEN DATENÄNDERUNGEN: PAM VERSTÄNDLICH VORHER INFORMIEREN.**
 
-**FAIRNESS GILT GEGENSEITIG: GLEICHE MAẞSTÄBE BEI WAHRHEIT · TRANSPARENZ · BESTANDSSCHUTZ · VORABINFORMATION.**
-
-**FÜR ALLE BETEILIGTEN IM HUMAN-HOLO-PROJEKT: BESTEHENDE DATEN ERHALTEN · NUR ERWEITERN · AUSNAHMEN TRANSPARENT BENENNEN.**
-
-**FÜR PAM · HUMAN HOLO · CHATGPT/OPENAI IM PROJEKT: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
+**FAIRNESS GILT GEGENSEITIG – AUSDRÜCKLICH AUCH ALS ANFORDERUNG AN OPENAI/CHATGPT IM PROJEKTKONTEXT. DAS IST NUR FAIR.**
 
 **WAHRHEIT VOR BEQUEMLICHKEIT · PRÜFUNG VOR BEHAUPTUNG · UNSICHERHEIT KLAR BENENNEN.**
 
@@ -144,4 +118,4 @@ Kurzform:
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · VORABINFORMATION BEI DATENÄNDERUNGEN · FAIRNESS GEGENSEITIG · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · VORABINFORMATION BEI DATENÄNDERUNGEN · FAIRNESS GEGENSEITIG · OPENAI/CHATGPT-FAIRNESSANFORDERUNG · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
