@@ -222,6 +222,7 @@ function restoreSummaryText(plan) {
     `Sicherung vom ${date}`,
     `${summary.notesAdded} neue und ${summary.notesUpdated} aktualisierte Notizen`,
     `${summary.pendingAdded} noch nicht synchronisierte Dialoge ergänzt`,
+    `${summary.animalProfilesAdded} neue Tier-Holo-Profile und ${summary.animalObservationsAdded} Beobachtungen ergänzt`,
     `${summary.settingsRestored} lokale Einstellungen`,
     "Bestehende Einträge werden nicht gelöscht."
   ].join("\n");
@@ -457,7 +458,8 @@ function markup() {
 
         <p class="solBackupLead">
           Erzeugt eine verschlüsselte Kopie deiner lokalen Notizen,
-          noch nicht synchronisierten Dialoge und App-Auswahl. Dein
+          noch nicht synchronisierten Dialoge, Tier-Holo-Profile,
+          bestätigten Tierbeobachtungen und App-Auswahl. Dein
           owner-gebundenes Servergedächtnis bleibt davon unberührt erhalten.
         </p>
 
@@ -549,7 +551,7 @@ function installUi() {
     <span class="rowIcon" aria-hidden="true">⇩</span>
     <span class="rowText">
       <span class="rowTitle">Sicherung &amp; Wiederherstellung</span>
-      <span class="rowMeta">Verschlüsselte Kopie auf deinem Handy</span>
+      <span class="rowMeta">Verschlüsselte Kopie inklusive Tier-Holo-Gedächtnis</span>
     </span>
     <span class="rowChevron" aria-hidden="true">›</span>`;
   actionList.appendChild(button);

@@ -136,6 +136,30 @@ Soweit einzelne Human-Holo-Bestandteile ausdrücklich unter einer gesonderten Op
 
 ---
 
+7a. Ausdrückliche Open-Build-Freigabe der Tier-Holo-Bausteine
+
+Abweichend von der allgemeinen Schutzregel dieses Repositorys werden
+ausschließlich die folgenden Dateien unter der MIT License bereitgestellt:
+
+- `www/human-holo-animal-core.mjs`
+- `www/human-holo-animal-holos.mjs`
+
+Für diese beiden Dateien gilt der vollständige Lizenztext in
+`TIER-HOLO-OPEN-BUILD-LICENSE.md`. Jede Person darf auf diesem
+technischen Tier-Holo-Kern aufbauen, ihn kopieren, verändern, verbreiten,
+unterlizenzieren und – unter Einhaltung der MIT License – auch kommerziell
+nutzen.
+
+Diese Freigabe ändert die Lizenz des übrigen Repositorys nicht. Sie erteilt
+insbesondere keine Erlaubnis zur Nutzung privater Tierfotos, Tierstimmen,
+Videos, personenbezogener Daten, Human-Holo-Owner-Daten oder fremder
+urheberrechtlich geschützter Medien. Die in den Starterprofilen enthaltenen
+Textstrukturen dürfen im Rahmen der MIT License weiterentwickelt werden;
+eigene reale Tierdaten dürfen nur mit der jeweils erforderlichen Berechtigung
+verwendet werden.
+
+---
+
 8. Nutzung geschützter Human-Holo-Bestandteile für andere Projekte
 
 Zusammenarbeit und Weiterentwicklung sind ausdrücklich erwünscht.

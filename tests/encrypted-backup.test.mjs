@@ -66,10 +66,15 @@ test("Sicherung verwendet eine Positivliste und schließt Geheimnisse/Biometrie 
   assert.equal(snapshot.data.preferences.selectedVoice, "coral");
   assert.doesNotMatch(serialized, /GEHEIM|PRIVATE_KEY_METADATA|TOKEN|biometric/u);
   assert.deepEqual(Object.keys(snapshot.data).sort(), [
+    "animalHolos",
     "notes",
     "pendingDialogs",
     "preferences"
   ]);
+  assert.deepEqual(
+    snapshot.data.animalHolos.profiles.map((profile) => profile.name),
+    ["Salt", "Pepper", "Tina"]
+  );
 });
 
 test("AES-GCM-Sicherung lässt sich nur unverändert mit dem Passwort öffnen", async () => {
@@ -215,6 +220,6 @@ test("Android-Dateibrücke nutzt den Systempicker und speichert nur Chiffretext"
   assert.match(installer, /registerPlugin\(SolBackupPlugin\.class\)/u);
   assert.match(installer, /sol_holo_access_security_v1_pam-sol\.xml/u);
   assert.match(installer, /sol_holo_speaker_identity\.xml/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=2/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=3/u);
   assert.match(html, /sol-holo-backup\.css\?v=2/u);
 });
