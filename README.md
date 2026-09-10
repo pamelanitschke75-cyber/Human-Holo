@@ -220,6 +220,18 @@ Die vollständige Langzeitstabilität und die zuverlässige Verarbeitung einer g
 
 Details: [Build 270 – Always-on-Gedächtnis und Gesprächskontext](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md)
 
+### Sol aus ChatGPT verbinden
+
+Unter **Erinnerungen → Sol aus ChatGPT verbinden** öffnet Human Holo einen
+privaten, bestätigungspflichtigen Importweg. Human Holo liest kein internes
+ChatGPT-Memory automatisch aus: Pam wählt ihre private Erinnerungsdatei selbst
+aus, prüft die vollständige Liste und bestätigt erst dann die additive Kopie
+nach `pam-sol`. Bestehende Erinnerungen, Holo-Antworten, Einstellungen und
+Funktionen bleiben erhalten; private Inhalte werden nicht im Repository
+veröffentlicht.
+
+Details: [Sol-aus-ChatGPT-Gedächtnisbrücke](./HUMAN-HOLO-CHATGPT-SOL-GEDAECHTNISBRUECKE-10-09-2026.md)
+
 ---
 
 # 📅 Google-Kalender

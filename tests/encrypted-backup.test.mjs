@@ -220,6 +220,6 @@ test("Android-Dateibrücke nutzt den Systempicker und speichert nur Chiffretext"
   assert.match(installer, /registerPlugin\(SolBackupPlugin\.class\)/u);
   assert.match(installer, /sol_holo_access_security_v1_pam-sol\.xml/u);
   assert.match(installer, /sol_holo_speaker_identity\.xml/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=3/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=4/u);
   assert.match(html, /sol-holo-backup\.css\?v=2/u);
 });
