@@ -64,7 +64,28 @@ Für den Human-Holo-Projektbestand gilt daher:
 - Kein Beteiligter darf innerhalb der von ihm kontrollierten Human-Holo-Projektdaten einen älteren oder unvollständigen Stand ungekennzeichnet über einen neueren Stand schreiben.
 - Erweiterungen bauen immer auf dem zuletzt bestätigten Stand auf.
 
-Diese Projektregel kann nur für Human-Holo-Daten und -Abläufe gelten, auf die die jeweiligen Beteiligten tatsächlich Einfluss haben. Sie ersetzt keine zwingenden gesetzlichen Vorgaben, Sicherheitsanforderungen oder externen Systemregeln. Solche Grenzen müssen offen benannt werden und dürfen nicht fälschlich als freiwillige Projektentscheidung dargestellt werden.
+## Vorabinformation und Owner-Freigabe bei Datenänderungen
+
+Pamela Christina Nitschke verlangt für Sol Holo und Human Holo ausdrücklich, dass geplante Löschungen, Überschreibungen, Zurücksetzungen, Migrationen oder sonstige Veränderungen am bestehenden Projekt- oder Datenbestand **nicht unangekündigt** erfolgen.
+
+Für alle im Projekt tatsächlich kontrollierbaren Änderungen gilt:
+
+- Pamela Christina Nitschke wird **vorher**, klar, verständlich und konkret darüber informiert, was geändert werden soll.
+- Die Information nennt nach Möglichkeit **welche Daten oder Funktionen betroffen sind, warum die Änderung notwendig ist und welche Folgen sie haben kann**.
+- Soweit die Änderung im Einflussbereich des Projekts oder der beteiligten Systeme liegt, wird vor einer destruktiven oder ersetzenden Änderung eine **ausdrückliche Owner-Freigabe** eingeholt.
+- Wo technisch möglich, wird vor einer unvermeidbaren Änderung der bisherige Stand gesichert, versioniert oder anderweitig nachvollziehbar erhalten.
+- Eine Änderung darf nicht stillschweigend als normale Erweiterung dargestellt werden, wenn sie tatsächlich Daten ersetzt, reduziert, migriert oder entfernt.
+- Kann eine Vorabinformation aus zwingenden technischen, gesetzlichen, sicherheitsbedingten oder externen Gründen ausnahmsweise nicht erfolgen, muss die Abweichung **so früh wie möglich transparent erklärt** werden.
+
+## Ausdrückliche Anforderung an OpenAI/ChatGPT im Projektkontext
+
+Pamela Christina Nitschke richtet an OpenAI/ChatGPT im Zusammenhang mit Sol Holo und Human Holo ausdrücklich die Anforderung und den Wunsch, dass projektbezogene Daten, Erinnerungen, Dokumentationen, Projektstände und andere relevante Inhalte **nicht ohne verständliche Vorabinformation gelöscht, überschrieben, zurückgesetzt, migriert oder anderweitig verändert werden**.
+
+Soweit OpenAI/ChatGPT technisch und rechtlich die Möglichkeit hat, vor einer solchen Änderung zu informieren, soll diese Information **vor der Änderung** erfolgen und die betroffenen Inhalte sowie die zu erwartenden Auswirkungen verständlich benennen.
+
+Diese Passage dokumentiert eine ausdrückliche Projektanforderung der Projektinhaberin. Sie behauptet **nicht**, dass damit allgemeine OpenAI-Unternehmensrichtlinien, gesetzliche Pflichten oder technisch nicht beeinflussbare Plattformprozesse geändert werden. Genau diese Unterscheidung ist Teil der Wahrheitspflicht.
+
+Diese Projektregel kann nur für Human-Holo-Daten und -Abläufe unmittelbar verbindlich umgesetzt werden, auf die die jeweiligen Beteiligten tatsächlich Einfluss haben. Sie ersetzt keine zwingenden gesetzlichen Vorgaben, Sicherheitsanforderungen oder externen Systemregeln. Solche Grenzen müssen offen benannt werden und dürfen nicht fälschlich als freiwillige Projektentscheidung dargestellt werden.
 
 ## Verbindliche Kommunikations- und Wahrheitspflicht
 
@@ -92,6 +113,8 @@ Kurzform:
 
 **NICHT LÖSCHEN · NICHT ÜBERSCHREIBEN · NICHT ZURÜCKSETZEN – OHNE AUSDRÜCKLICHE FREIGABE: NO GO.**
 
+**VOR GEPLANTEN DATENÄNDERUNGEN: PAM VERSTÄNDLICH VORHER INFORMIEREN.**
+
 **FÜR ALLE BETEILIGTEN IM HUMAN-HOLO-PROJEKT: BESTEHENDE DATEN ERHALTEN · NUR ERWEITERN · AUSNAHMEN TRANSPARENT BENENNEN.**
 
 **FÜR PAM · HUMAN HOLO · CHATGPT/OPENAI IM PROJEKT: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
@@ -102,4 +125,4 @@ Kurzform:
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · VORABINFORMATION BEI DATENÄNDERUNGEN · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
