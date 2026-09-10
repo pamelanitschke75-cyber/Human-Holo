@@ -3828,6 +3828,17 @@ function looksLikeCalendarWriteRequest(
     return false;
   }
 
+  const explicitListRequest =
+    /\b(?:einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\b/u.test(text);
+  const explicitNoteRequest =
+    /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
+    /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
+    /^(?:bitte\s+)?(?:mach|mache)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?notiz\b/u.test(text) ||
+    /^(?:neue\s+)?notiz\s*[:,-]/u.test(text);
+  if (explicitListRequest || explicitNoteRequest) {
+    return false;
+  }
+
   const patterns = [
     "kalender",
     "trag ",
@@ -3851,23 +3862,28 @@ function looksLikeCalendarWriteRequest(
     return true;
   }
 
-  const hasConcreteTime =
+  const hasDateReference =
     /\b(?:heute|morgen|ubermorgen|nachste[nrsm]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/u.test(text) ||
-    /\b\d{1,2}(?::\d{2})?\s*uhr\b/u.test(text) ||
     /\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/u.test(text) ||
     /\b\d{1,2}\.?\s+(?:januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|dezember)(?:\s+\d{2,4})?\b/u.test(text);
+  const hasClockTime =
+    /\b\d{1,2}(?::\d{2})?\s*uhr\b/u.test(text) ||
+    /\b(?:[01]?\d|2[0-3]):[0-5]\d\b/u.test(text);
+  const hasConcreteTime =
+    hasDateReference ||
+    hasClockTime;
   const asksToSchedule =
     /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze|halt|halte)\b[\s\S]*\b(?:auf|ein|fest|vor)\b/u.test(text) ||
     /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze)\b/u.test(text);
+  const looksLikeQuestion =
+    /\?\s*$/u.test(text) ||
+    /^(?:wann|was|wie|wo|wer|warum|wieso|weshalb)\b/u.test(text);
 
-  return hasConcreteTime && asksToSchedule;
+  return !looksLikeQuestion && (
+    (hasDateReference && hasClockTime) ||
+    (hasConcreteTime && asksToSchedule)
+  );
 }
-
-/*
-  ==========================================================
-  JSON AUS MODELLANTWORT LESEN
-  ==========================================================
-*/
 
 function parseJsonText(text) {
   const clean =
@@ -4121,11 +4137,18 @@ ${calendarMemoryText || "Keine passende frühere persönliche Aussage gefunden."
 Prüfe, ob die Nachricht wirklich verlangt,
 einen Google-Kalendertermin zu ERSTELLEN.
 
-Ein natürlicher Auftrag mit konkretem Datum oder Wochentag und Uhrzeit gilt
-auch ohne das Wort „Kalender“ als Kalenderauftrag, zum Beispiel:
+Ein natürlicher Auftrag mit konkretem Datum, relativem Tag oder Wochentag und
+Uhrzeit gilt auch ohne das Wort „Kalender“ als Kalenderauftrag, zum Beispiel:
+„Morgen 13 Uhr Zahnarzt.“ oder
 „Schreib für morgen bitte 13 Uhr auf, dass wir zu meinen Eltern fahren.“
-In diesem Beispiel ist die Aktion create und der Titel sinngemäß
+„Morgen“ ist bereits die vollständige relative Datumsangabe; ein numerisches
+Datum darf nicht zusätzlich verlangt werden. In den Beispielen ist die Aktion
+create und der Titel sinngemäß „Zahnarzt“ beziehungsweise
 „Zu meinen Eltern fahren“.
+
+Klare Zielangaben haben Vorrang: „Notiere morgen 13 Uhr Zahnarzt“ und
+„Schreib auf: morgen 13 Uhr Zahnarzt“ sind Notizen und deshalb action none.
+Ein ausdrücklicher Eintrag in die Einkaufsliste ist ebenfalls action none.
 
 Gib ausschließlich gültiges JSON zurück.
 Keine Markdown-Codeblöcke.
@@ -9021,45 +9044,37 @@ niemals im Hintergrund und niemals aus der anderen Holo-Instanz. Behaupte keinen
 Treffer, den das Tool nicht geliefert hat. Zum Senden oder Beantworten von Mails
 ist dieses Tool nicht berechtigt.
 
-WICHTIG ZU SAMSUNG NOTES:
+WICHTIG ZU WICHTIGES, EINKAUFSLISTE UND NOTIZEN:
 
-Samsung Notes ist eine lokale, einsatzbereite Android-Funktion. Führe einen
-erkannten Notizauftrag sofort über das passende Tool aus. Erfinde keinen
-technischen Hinderungsgrund und verlange keinen zusätzlichen Einrichtungsschritt.
+In ${instanceName} gibt es einen sichtbaren Bereich „Wichtiges“ mit drei
+getrennten Fächern: Kalender, Einkaufsliste und Notizen. Vermische diese Ziele
+niemals.
 
-Wenn ${identity.displayName} ausdrücklich sagt „Sol, notiere …“, „Mach eine
-Notiz …“, „Schreib bitte Zucker in Notes/Noten“ oder sinngleich
-klar etwas in Samsung Notes übernehmen möchte, verwende
-create_personal_note mit genau dem von ${identity.displayName} genannten Inhalt.
-Eine besondere Schreibweise wie „Notiz:“ oder „Notes:“ ist
-nicht erforderlich. Die Android-App speichert die Notiz sofort im persönlichen
-Notizbuch von ${instanceName} und öffnet zusätzlich einen sichtbaren
-Samsung-Notes-Entwurf mit diesem Text.
+Wenn ${identity.displayName} ausdrücklich „in die Einkaufsliste“ sagt oder
+schreibt, gehört der genannte Artikel ausschließlich in die Einkaufsliste.
+Die App erledigt diesen lokalen Eintrag vor der Modellantwort. Beginnt eine
+Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], führe deshalb kein Notiz-Tool
+erneut aus, sondern bestätige das gelieferte Ergebnis kurz und unverändert.
 
-Wenn ${identity.displayName} eigene Notizen sehen oder nach einer Notiz suchen möchte,
-verwende search_personal_notes. Die App öffnet Samsung Notes;
-${identity.displayName} sucht dort selbst, weil ${instanceName} Samsung-Notizen nicht
-auslesen darf.
+Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Mach eine Notiz …“
+oder sinngleich sagt, verwende create_personal_note mit genau dem genannten
+Inhalt. Die App speichert ihn sofort im persönlichen Fach „Notizen“ unter
+„Wichtiges“. Sie öffnet dabei Samsung Notes nicht und verlangt keine zweite
+Speicherbestätigung.
 
-Für Änderungen und Löschungen verwende update_personal_note
-beziehungsweise delete_personal_note. Auch dann wird Samsung
-Notes nur geöffnet; ${identity.displayName} wählt und bestätigt die Änderung dort selbst.
+Wenn ${identity.displayName} eigene Notizen sehen oder durchsuchen möchte,
+verwende search_personal_notes. Für Änderungen und Löschungen verwende
+update_personal_note beziehungsweise delete_personal_note. Diese Werkzeuge
+arbeiten im ownergebundenen Human-Holo-Notizfach; behaupte keine Ergebnisse,
+die das Tool nicht geliefert hat.
 
-Eine erfolgreiche Tool-Rückmeldung darf bestätigen, dass die Notiz im
-persönlichen Notizbuch von ${instanceName} gespeichert wurde. Die zusätzliche
-Samsung-Notes-Übergabe beweist dagegen NICHT, dass Samsung Notes den Entwurf
-gespeichert hat. Wiederhole das lokale Ergebnis kurz, ohne eine weitere
-Bestätigung in ${instanceName} zu verlangen. Behaupte niemals, Samsung Notes
-habe eine Notiz gespeichert, geändert oder gelöscht.
-
-Wenn eine Nutzernachricht mit [LOKALES_NOTIZERGEBNIS] beginnt, hat die
-Sol-Holo-App die Samsung-Notes-Übergabe bereits ausgeführt. Rufe dann
-kein Notiz-Tool erneut auf, sondern sprich nur dieses Ergebnis kurz und
-unverändert aus. Aus „geöffnet“ darfst du nicht „gespeichert“ machen.
+Samsung Notes bleibt nur eine optionale, manuell antippbare Übergabe unter
+„Dienste“. Behaupte niemals, Human Holo könne über eine öffentliche
+Samsung-Schnittstelle im Hintergrund direkt in Samsung Notes schreiben.
 
 Speichere niemals erkennbare Passwörter, PINs, TANs,
 API-Schlüssel, Tokens, Banking- oder Authenticator-Daten als
-Notiz. Die App blockiert die Übergabe solcher Inhalte zusätzlich.
+Notiz. Die App blockiert die Speicherung solcher Inhalte zusätzlich.
 
 WICHTIG ZU GOOGLE CALENDAR:
 
@@ -9284,7 +9299,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "create_personal_note",
 
             description:
-              `Speichert den ausdrücklich von ${identity.displayName} diktierten oder geschriebenen Notiztext sofort im persönlichen Notizbuch von ${instanceName} und öffnet zusätzlich einen Samsung-Notes-Entwurf. Natürliche Sätze wie ‚Schreib bitte Zucker in Notes‘ reichen aus; ein Präfix wie ‚Notes:‘ ist nicht nötig. Nur die lokale Speicherung darf bestätigt werden; Samsung Notes selbst braucht dort weiterhin Speichern.`,
+              `Speichert den ausdrücklich von ${identity.displayName} diktierten oder geschriebenen Text sofort im ownergebundenen Fach „Wichtiges → Notizen“ von ${instanceName}. Natürliche Sätze wie „Notiere Zucker“ oder „Schreib auf: Katzenfutter kaufen“ reichen aus. Samsung Notes wird dabei nicht geöffnet.`,
 
             parameters: {
               type:
@@ -9316,7 +9331,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "search_personal_notes",
 
             description:
-              `Öffnet Samsung Notes, damit ${identity.displayName} eigene Notizen dort selbst ansehen oder durchsuchen kann. ${instanceName} darf Samsung Notes nicht auslesen und darf keine Treffer erfinden.`,
+              `Durchsucht die ownergebundenen Human-Holo-Notizen von ${identity.displayName} und öffnet den sichtbaren Bereich „Wichtiges → Notizen“. Erfinde keine Treffer.`,
 
             parameters: {
               type:
@@ -9328,7 +9343,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
                     "string",
 
                   description:
-                    `Der von ${identity.displayName} genannte Suchbegriff; er dient nur zur sprachlichen Einordnung, gesucht wird sichtbar in Samsung Notes.`
+                    `Der von ${identity.displayName} genannte Suchbegriff für die sichtbaren Human-Holo-Notizen.`
                 }
               },
 
@@ -9348,7 +9363,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "update_personal_note",
 
             description:
-              `Öffnet Samsung Notes, damit ${identity.displayName} eine vorhandene Notiz dort selbst suchen, bearbeiten und bestätigen kann. Behaupte niemals, dass die Änderung bereits erfolgt ist.`,
+              `Ändert genau eine eindeutig gefundene ownergebundene Human-Holo-Notiz von ${identity.displayName}. Bestätige die Änderung nur bei erfolgreicher Tool-Rückmeldung.`,
 
             parameters: {
               type:
@@ -9388,7 +9403,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "delete_personal_note",
 
             description:
-              `Öffnet Samsung Notes, damit ${identity.displayName} eine vorhandene Notiz dort selbst suchen und löschen kann. Behaupte niemals, dass die Löschung bereits erfolgt ist.`,
+              `Löscht genau eine eindeutig gefundene ownergebundene Human-Holo-Notiz von ${identity.displayName}. Bestätige die Löschung nur bei erfolgreicher Tool-Rückmeldung.`,
 
             parameters: {
               type:

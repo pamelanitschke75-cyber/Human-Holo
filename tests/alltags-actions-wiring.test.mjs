@@ -45,7 +45,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-282-health-self-care/u);
+  assert.match(serviceWorker, /human-holo-283-wichtiges-drei-kisten/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -264,15 +264,44 @@ test("Google Maps hat einen echten nativen Android-Ausführungsweg", () => {
   assert.match(ui, /plugin\.openGoogleMaps/u);
 });
 
-test("Notizen werden lokal gespeichert und Samsung Notes ehrlich übergeben", () => {
+test("Notizen werden direkt in Human Holo gespeichert und öffnen Samsung nicht automatisch", () => {
   const toolStart = ui.indexOf("async function executeNotesTool");
   const toolEnd = ui.indexOf("window.executeSolHoloNotesTool", toolStart);
   const handler = ui.slice(toolStart, toolEnd);
 
   assert.match(handler, /createPersonalNote\(text/u);
-  assert.match(handler, /prepareSamsungNote\(text\)/u);
   assert.match(handler, /localSaved:\s*true/u);
-  assert.match(handler, /ist die Notiz gespeichert/u);
+  assert.match(handler, /destination:\s*"Notizen"/u);
+  assert.match(handler, /Unter Wichtiges → Notizen gespeichert/u);
+  assert.match(
+    handler,
+    /if \(args\?\.openSamsungNotes === true\)[\s\S]*?prepareSamsungNote\(text\)/u,
+    "Samsung Notes darf nur noch durch einen ausdrücklichen manuellen Aufruf öffnen"
+  );
+  assert.doesNotMatch(
+    handler,
+    /const handoffResult = await prepareSamsungNote\(text\)/u,
+    "Der normale Notizweg darf Samsung Notes nicht automatisch öffnen"
+  );
   assert.match(android, /directWriteSupported", false/u);
   assert.match(android, /reviewAndSaveInSamsungNotesRequired", true/u);
+});
+
+test("relative Weckerangaben werden auf die Gerätezeit umgerechnet", () => {
+  const start = ui.indexOf("  function normalizeNoteSearchText");
+  const end = ui.indexOf("  function explicitSaveRequestFromMessage", start);
+  const extract = new Function(
+    `${ui.slice(start, end)}\nreturn alarmClockRequestFromMessage;`
+  )();
+
+  const request = extract("Stell den Wecker in 20 Minuten");
+  assert.equal(request.action, "set");
+  assert.equal(request.relativeMinutes, 20);
+  assert.equal(request.label, "Human Holo");
+  assert.ok(Number.isInteger(request.hour));
+  assert.ok(Number.isInteger(request.minute));
+  assert.match(
+    ui,
+    /Dein Wecker ist in \$\{request\.relativeMinutes\} Minuten gestellt/u
+  );
 });
