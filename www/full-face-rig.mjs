@@ -356,6 +356,52 @@ function boundsFor(points, indices) {
   };
 }
 
+export function normalizedLipCurve(points, mouth) {
+  const leftCorner = points?.[78];
+  const rightCorner = points?.[308];
+  const upperCenter = points?.[13];
+  const lowerCenter = points?.[14];
+
+  if (
+    !mouth ||
+    ![leftCorner, rightCorner, upperCenter, lowerCenter].every(point =>
+      point && Number.isFinite(point.y)
+    )
+  ) {
+    return 0.16;
+  }
+
+  const cornerY = (leftCorner.y + rightCorner.y) / 2;
+  const centerY = (upperCenter.y + lowerCenter.y) / 2;
+
+  return clamp(
+    (centerY - cornerY) / Math.max(0.0001, mouth.height),
+    -0.10,
+    0.38
+  );
+}
+
+export function normalizedLipSeam(points, mouth) {
+  const upperCenter = points?.[13];
+  const lowerCenter = points?.[14];
+
+  if (
+    ![upperCenter, lowerCenter].every(point =>
+      point && Number.isFinite(point.x) && Number.isFinite(point.y)
+    )
+  ) {
+    return {
+      x: clamp(mouth?.centerX, 0.08, 0.92) || 0.50,
+      y: clamp(mouth?.centerY, 0.08, 0.92) || 0.50
+    };
+  }
+
+  return {
+    x: clamp((upperCenter.x + lowerCenter.x) / 2, 0.08, 0.92),
+    y: clamp((upperCenter.y + lowerCenter.y) / 2, 0.08, 0.92)
+  };
+}
+
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -747,11 +793,16 @@ class FullFaceRig {
     const mouth = this.mouthBounds;
     if (!mouth) return null;
 
+    const seam = normalizedLipSeam(this.sourcePoints, mouth);
+
     return {
-      x: clamp(mouth.centerX, 0.08, 0.92),
-      y: clamp(mouth.centerY, 0.08, 0.92),
+      // Die sichtbare Oeffnung wird an der echten Naht zwischen Ober- und
+      // Unterlippe verankert, nicht nur in der Mitte des Lippen-Rechtecks.
+      x: seam.x,
+      y: seam.y,
       width: clamp(mouth.width * 1.06, 0.06, 0.32),
-      height: clamp(mouth.height * 1.45, 0.035, 0.18)
+      height: clamp(mouth.height * 1.45, 0.035, 0.18),
+      curve: normalizedLipCurve(this.sourcePoints, mouth)
     };
   }
 
