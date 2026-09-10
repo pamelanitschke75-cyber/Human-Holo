@@ -91,6 +91,15 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
+      - name: Android API 36 bereitstellen
+        run: |
+          set -Eeuo pipefail
+          android_sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$android_sdk_root"
+          sdk_manager="$android_sdk_root/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdk_manager"
+          "$sdk_manager" "platforms;android-36"
+
       - name: Sprecher-Sicherheitslogik testen
         run: |
           set -Eeuo pipefail
@@ -214,6 +223,51 @@ jobs:
 
       - name: Android-Projekt erzeugen
         run: npx cap add android
+
+      - name: Google-Play-Ziel-API 36 setzen
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          variables_file = Path("android/variables.gradle")
+          variables = variables_file.read_text(encoding="utf-8")
+
+          if not re.search(r"(?m)^\s*minSdkVersion\s*=\s*23\s*$", variables):
+              raise SystemExit("Android-minSdkVersion 23 muss unverändert bleiben.")
+
+          for name in ("compileSdkVersion", "targetSdkVersion"):
+              variables, replacements = re.subn(
+                  rf"(?m)^(\s*){name}\s*=\s*35\s*$",
+                  rf"\1{name} = 36",
+                  variables,
+                  count=1,
+              )
+              if replacements != 1:
+                  raise SystemExit(f"{name} konnte nicht eindeutig auf API 36 gesetzt werden.")
+
+          variables_file.write_text(variables, encoding="utf-8")
+
+          build_file = Path("android/build.gradle")
+          build_text = build_file.read_text(encoding="utf-8")
+          build_text, replacements = re.subn(
+              r"com\.android\.tools\.build:gradle:8\.7\.2",
+              "com.android.tools.build:gradle:8.10.1",
+              build_text,
+              count=1,
+          )
+          if replacements != 1:
+              raise SystemExit("Android Gradle Plugin konnte nicht eindeutig auf 8.10.1 gesetzt werden.")
+          build_file.write_text(build_text, encoding="utf-8")
+
+          wrapper = Path("android/gradle/wrapper/gradle-wrapper.properties").read_text(
+              encoding="utf-8"
+          )
+          if "gradle-8.11.1-all.zip" not in wrapper:
+              raise SystemExit("Für AGP 8.10.1 wird der vorhandene Gradle-8.11.1-Wrapper benötigt.")
+
+          print("Human Holo: minSdk 23 bleibt; compileSdk und targetSdk sind API 36.")
+          PY
 
       - name: Fortlaufende Build-Version setzen
         env:
