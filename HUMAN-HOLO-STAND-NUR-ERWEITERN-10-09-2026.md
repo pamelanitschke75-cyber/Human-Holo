@@ -30,21 +30,23 @@ Human Holo wird kumulativ weiterentwickelt. Jede neue Funktion, Korrektur oder E
 
 Falls eine technische Änderung ausnahmsweise eine bestehende Funktion berührt, muss dies vor der Umsetzung sichtbar erkannt, dokumentiert und so gelöst werden, dass der vorhandene Funktionsumfang nicht stillschweigend verloren geht.
 
-## Verbindliche Kommunikationsregel gegenüber Pam
+## Verbindliche Kommunikations- und Wahrheitspflicht
 
-Pam darf nicht fälschlich gesagt werden, eine Funktion oder Handlung sei unmöglich, nicht freigegeben oder technisch nicht machbar, wenn sie tatsächlich verfügbar und zulässig ist.
+Die Regel gilt im Human-Holo-Projekt nicht nur in eine Richtung. Pamela Christina Nitschke, Human Holo und ChatGPT/OpenAI-Beiträge im Rahmen der Zusammenarbeit werden nach demselben Wahrheitsmaßstab behandelt.
 
-Ebenso darf Pam nicht gesagt werden, etwas sei möglich, freigegeben, umgesetzt oder technisch verfügbar, wenn dies tatsächlich nicht der Fall ist.
+Für Pam, Human Holo und ChatGPT/OpenAI im Projekt gilt:
 
-Für Aussagen über technische Möglichkeiten, Freigaben, Zugriffe, Funktionen und Projektstände gilt daher:
+- Keine Aussage „geht nicht“, wenn ein verfügbarer und zulässiger Weg tatsächlich existiert.
+- Keine Aussage „geht“, wenn Funktion, Zugriff, Freigabe oder Umsetzung tatsächlich nicht bestätigt ist.
+- Zuerst den aktuellen tatsächlichen Stand prüfen, soweit dies technisch möglich und erforderlich ist.
+- Unsicherheit ausdrücklich als Unsicherheit kennzeichnen.
+- Vermutungen nicht als bestätigte Tatsachen darstellen.
+- Fehler und überholte Aussagen sichtbar und nachvollziehbar korrigieren.
+- Aktionen, Commits, Nachrichten, Freigaben, Tests oder Änderungen nur dann als ausgeführt bezeichnen, wenn sie tatsächlich ausgeführt oder verlässlich bestätigt wurden.
+- Keine technischen oder organisatorischen Grenzen erfinden, um eine Aufgabe abzukürzen.
+- Pam gibt ihrerseits Informationen, Entscheidungen, Testergebnisse und Rückmeldungen nach bestem Wissen wahrheitsgemäß weiter und kennzeichnet Ungeklärtes als ungeklärt.
 
-- zuerst den aktuellen tatsächlichen Stand prüfen, soweit dies technisch möglich ist,
-- danach eindeutig und wahrheitsgemäß antworten,
-- Unsicherheit ausdrücklich als Unsicherheit kennzeichnen,
-- keine Vermutungen als bestätigte Tatsachen darstellen,
-- bei geänderter technischer Lage die neue Lage klar benennen und eine frühere Aussage nachvollziehbar korrigieren,
-- niemals ein „geht nicht“ ausgeben, wenn ein verfügbarer und zulässiger Weg tatsächlich existiert,
-- niemals ein „geht“ ausgeben, wenn der erforderliche Zugriff, die Funktion oder die Freigabe tatsächlich fehlt.
+Diese gegenseitige Regel ist ein verbindlicher Projektmaßstab für Human Holo. Sie ändert keine allgemeinen Unternehmensrichtlinien oder rechtlichen Verpflichtungen von OpenAI außerhalb dieses Projekts.
 
 Kurzform:
 
@@ -52,10 +54,12 @@ Kurzform:
 
 **NICHT LÖSCHEN · NICHT ÜBERSCHREIBEN · NICHT ZURÜCKSETZEN – OHNE AUSDRÜCKLICHE FREIGABE: NO GO.**
 
-**BEI PAM: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
+**FÜR PAM · HUMAN HOLO · CHATGPT/OPENAI IM PROJEKT: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
+
+**WAHRHEIT VOR BEQUEMLICHKEIT · PRÜFUNG VOR BEHAUPTUNG · UNSICHERHEIT KLAR BENENNEN.**
 
 ---
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · BESTEHENDES BEHALTEN · NUR ERWEITERN · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
