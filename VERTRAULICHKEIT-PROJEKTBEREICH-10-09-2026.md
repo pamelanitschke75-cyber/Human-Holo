@@ -1,6 +1,12 @@
 # Human Holo – Vertraulichkeitsanforderung
 
+**PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**  
+**OWNER-GEBUNDEN: Pamela Nitschke**  
+**Projekt: HUMAN HOLO**  
+**Status: Verbindliche Projektanforderung**  
 **Datum:** 10.09.2026
+
+---
 
 Für diesen sensiblen Projektbereich gilt folgende ausdrückliche Vorgabe der Projektinhaberin:
 
@@ -13,6 +19,8 @@ Vertrauliche Projektdetails dürfen nicht ungefragt veröffentlicht, weitergegeb
 Die zugehörige Human-Holo-Funktionsidee kann allgemein als unterstützender Mahlzeitenassistent dokumentiert werden. Individuelle oder vertrauliche Hintergründe bleiben davon getrennt.
 
 Diese Vorgabe ist als dauerhafte Projektanforderung innerhalb von Human Holo zu berücksichtigen.
+
+---
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
