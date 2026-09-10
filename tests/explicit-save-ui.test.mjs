@@ -126,6 +126,12 @@ test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", 
   assert.match(ui, /id="shoppingImportantSection"/u);
   assert.match(ui, /id="notesImportantSection"/u);
   assert.match(ui, /Kalender · Einkaufsliste · Notizen/u);
+  assert.match(ui, /id="calendarAccessStatus"/u);
+  assert.match(ui, /id="calendarAccessButton"/u);
+  assert.match(ui, /Zugriff freigeben/u);
+  assert.match(ui, /needsGoogleAuth/u);
+  assert.match(ui, /needsTrustedAppSession/u);
+  assert.match(ui, /accessRequired:\s*true/u);
 });
 
 test("Datum oder ‚morgen‘ plus Uhrzeit nimmt den Kalenderweg", () => {
@@ -220,7 +226,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=69/u);
+  assert.match(html, /sol-holo-ui\.js\?v=70/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {
