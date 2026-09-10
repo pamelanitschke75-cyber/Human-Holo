@@ -113,7 +113,14 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
 });
 
 test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", () => {
-  assert.match(ui, /id="homeImportantButton"/u);
+  assert.match(
+    ui,
+    /id="homeImportantButton" class="humanHoloImportantCard"/u
+  );
+  assert.doesNotMatch(
+    ui,
+    /id="homeImportantButton" class="humanHoloImportantCard glassCard"/u
+  );
   assert.match(ui, />Wichtiges</u);
   assert.match(ui, /id="calendarImportantSection"/u);
   assert.match(ui, /id="shoppingImportantSection"/u);
