@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.1
-Stand: 06.09.2026
+Version: 1.2
+Stand: 10.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -425,6 +425,77 @@ hochgeladen. Die Bedienungshilfe kann jederzeit in den Android-Einstellungen
 ausgeschaltet werden. Änderungen an WhatsApp oder Android können die Funktion
 unterbrechen; deshalb ist vor einer allgemeinen Veröffentlichung erneut zu
 prüfen, ob Technik, Plattformregeln und Hinweise noch aktuell sind.
+
+---
+
+16B. GESUNDHEITSBEGLEITUNG UND SELBSTHILFE
+
+Human Holo kann auf eine freiwillig gestellte Gesundheitsfrage allgemeine,
+vorsichtige Selbsthilfe- und Erste-Hilfe-Informationen zu leichten Beschwerden
+und kleinen, oberflächlichen Verletzungen geben. Verarbeitet werden die
+eingegebene Frage oder das Sprachtranskript, freiwillig genannte Angaben zur
+Situation, die technischen Kennungen der ownergebundenen Instanz und die
+erzeugte Antwort. Diese Daten werden über das Human-Holo-Backend zur
+Antworterzeugung an OpenAI übertragen.
+
+Frage beziehungsweise Sprachtranskript und Antwort bleiben wie die übrigen
+Gespräche ownergebunden im Vollzeitgedächtnis. Für als Selbsthilfe erkannte
+Textanfragen wird die dauerhafte Speicherung des OpenAI-Response-Objekts
+ausgeschaltet. Ein Wundfoto ist nicht erforderlich; Human Holo nimmt anhand
+eines Fotos keine verlässliche Wunddiagnose vor.
+
+Human Holo ist kein Medizinprodukt, stellt keine Diagnose und ersetzt keine
+individuelle Untersuchung oder ärztliche Beratung. Bei möglicher Lebensgefahr
+oder nicht auszuschließenden bleibenden Schäden gilt 112. Bei dringenden, nicht
+lebensbedrohlichen Beschwerden außerhalb der Sprechzeiten gilt 116117.
+
+Die Funktion empfiehlt Jugendlichen keinen Alkohol und niemandem alkoholische
+Getränke als Hausmittel. Sie empfiehlt keine Zigaretten, Vapes, sonstigen
+Tabak- oder Nikotinprodukte, illegalen oder berauschenden Drogen oder Waffen und
+gibt keine Anleitung zu ihrer Beschaffung oder Nutzung. Menschenhandel,
+Kinderhandel, sexuelle Ausbeutung, Prostitution sowie Tierhandel werden nicht
+vermittelt, beworben oder anderweitig unterstützt; Betroffene erhalten Schutz-
+und Ausstiegshilfe. Die Todesstrafe und jede Unterstützung einer Hinrichtung
+sind ausgeschlossen. Die mobil lesbare Funktionsinformation liegt unter
+`www/datenschutz-gesundheitsbegleitung.html`.
+
+Human Holo empfiehlt keine Rache, Vergeltung oder Selbstjustiz und unterstützt
+keine Gewalt nach dem Prinzip „Gleiches mit Gleichem“. Vorrang haben
+Deeskalation, Schutz Betroffener und rechtsstaatliche Hilfe.
+
+---
+
+16C. GESUNDHEITSFUNKTION MEDIKAMENTENERKENNUNG
+
+Die Medikamentenerkennung wird offen als Gesundheitsfunktion gekennzeichnet.
+Vor jeder einzelnen Analyse sieht die Nutzerin Zweck, Datenweg, Speicherung und
+Sicherheitsgrenzen und muss die Übertragung des ausgewählten Fotos ausdrücklich
+bestätigen.
+
+Verarbeitet werden nur:
+
+- das bewusst ausgewählte Foto einer bedruckten Originalverpackung oder eines
+  beschrifteten Blisters,
+- die dazugehörige Frage,
+- die technischen Kennungen der richtigen ownergebundenen Human-Holo-Instanz,
+- die erzeugte Antwort.
+
+Bild und Frage werden über das Human-Holo-Backend zur einmaligen Bilderkennung
+an OpenAI übertragen. Die dauerhafte Speicherung des OpenAI-Response-Objekts
+wird für diesen Weg ausgeschaltet. Human Holo übernimmt die Bilddatei selbst
+nicht in das Vollzeitgedächtnis. Dort bleiben wie bisher der Nachrichtentext,
+der Hinweis „Foto gesendet“ und Pam’s Holos Antwort ownergebunden gespeichert.
+
+Die Funktion darf eindeutig sichtbare Angaben wie Medikamentenname, Wirkstoff,
+Wirkstärke, Darreichungsform, Packungsgröße, Hersteller und Verfallsdatum
+wiedergeben. Sie identifiziert keine losen Tabletten oder Kapseln nach Farbe,
+Form oder Prägung und legt keine persönliche Dosierung, Einnahme, Eignung,
+Diagnose, Wechselwirkung oder Behandlung fest.
+
+Human Holo ist kein Medizinprodukt. Die Funktion diagnostiziert, behandelt,
+heilt oder verhindert keine Krankheit und ersetzt keine Ärztin, keinen Arzt und
+keine Apotheke. Die kurze, mobil lesbare Funktionsinformation liegt zusätzlich
+unter `www/datenschutz-medikamentenerkennung.html`.
 
 ---
 

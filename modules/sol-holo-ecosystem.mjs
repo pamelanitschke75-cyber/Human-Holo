@@ -135,20 +135,20 @@ const URGENT_MEDICAL_TERMS = Object.freeze([
 ]);
 
 const URGENT_MEDICAL_CONTEXT_TERMS = Object.freeze([
-  "ich habe",
-  "ich brauche",
   "brauche hilfe",
   "dringend",
   "stark",
-  "heute",
+  "sehr stark",
+  "akut",
   "sonntag",
   "wochenende",
   "nachts",
   "praxis geschlossen",
+  "kann nicht bis morgen warten",
+  "kann nicht warten",
   "nicht lebensbedrohlich",
   "keine lebensgefahr",
   "wen soll ich anrufen",
-  "was soll ich tun",
   "116117"
 ]);
 

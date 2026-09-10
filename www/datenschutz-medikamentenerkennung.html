@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Human Holo · Datenschutz Medikamentenerkennung</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f8f9ff;background:#061341}
+    body{margin:0;background:radial-gradient(circle at 15% 5%,#6239af 0,transparent 28rem),linear-gradient(180deg,#102b81,#080f42 58%,#030923);line-height:1.58}
+    main{width:min(760px,calc(100% - 32px));margin:0 auto;padding:34px 0 64px}
+    article{padding:clamp(20px,5vw,38px);border:1px solid #8ddffc88;border-radius:28px;background:#172e7bbb;box-shadow:0 20px 70px #0007,0 0 34px #824cff55}
+    h1,h2{line-height:1.16}h1{font-size:clamp(29px,8vw,48px);margin-top:0}h2{margin-top:30px;color:#9ef7e1}a{color:#9ef7e1}strong{color:#fff}li+li{margin-top:8px}.meta,.notice{color:#d7e0ff}.notice{padding:15px;border:1px solid #ffc96c99;border-radius:16px;background:#6a452855}
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <p class="meta">Stand: 10.09.2026 · Version 1.0</p>
+      <h1>Datenschutz der Medikamentenerkennung</h1>
+      <p>
+        Verantwortliches Projekt: <strong>Human Holo</strong><br>
+        Projektinhaberin: <strong>Pamela Christina Nitschke</strong>
+      </p>
+
+      <h2>Zweck und Freigabe</h2>
+      <p>
+        Die freiwillige Gesundheitsfunktion liest ausschließlich ein Foto aus,
+        das die Nutzerin nach einem sichtbaren Hinweis für genau diese Analyse
+        über Kamera oder Galerie auswählt und ausdrücklich freigibt.
+      </p>
+
+      <h2>Verarbeitete Daten</h2>
+      <ul>
+        <li>das ausgewählte Foto einer Medikamentenverpackung oder eines beschrifteten Blisters,</li>
+        <li>die dazugehörige Frage,</li>
+        <li>ownergebundene technische Kennungen für die richtige Human-Holo-Instanz,</li>
+        <li>die erzeugte Antwort.</li>
+      </ul>
+
+      <h2>Empfänger und Speicherung</h2>
+      <p>
+        Das Bild und die Frage werden über das Human-Holo-Backend zur einmaligen
+        Bilderkennung an <strong>OpenAI</strong> übertragen. Für diese Anfrage
+        wird die dauerhafte Speicherung des OpenAI-Response-Objekts technisch
+        ausgeschaltet. Maßgeblich für die Verarbeitung durch OpenAI sind
+        zusätzlich die dort geltenden Datenschutz- und API-Bedingungen.
+      </p>
+      <p>
+        Human Holo speichert die Bilddatei selbst nicht im ownergebundenen
+        Vollzeitgedächtnis. Dort bleiben wie bei anderen Chatbeiträgen der
+        Nachrichtentext, der Hinweis „Foto gesendet“ und die Antwort langfristig
+        erhalten. Es gibt dafür keinen automatischen Ablaufzeitpunkt. Daten
+        verschiedener Human-Holo-Owner werden nicht miteinander vermischt.
+      </p>
+
+      <h2>Sicherheitsgrenzen</h2>
+      <p class="notice">
+        Human Holo ist kein Medizinprodukt. Die Funktion diagnostiziert,
+        behandelt, heilt oder verhindert keine Krankheit. Sie legt keine
+        persönliche Dosierung, Einnahme, Eignung oder Therapie fest und
+        identifiziert keine lose Tablette oder Kapsel allein anhand von Farbe,
+        Form oder Prägung. Medizinische Entscheidungen gehören zu einer
+        Ärztin, einem Arzt oder einer Apotheke.
+      </p>
+
+      <h2>Kontrolle und Kontaktweg</h2>
+      <p>
+        Wird die Freigabe abgelehnt, wird das Foto nicht zur
+        Medikamentenerkennung übertragen. Android-Kamera- und Dateirechte
+        können zusätzlich in den Systemeinstellungen widerrufen werden.
+        Datenschutzfragen und Löschanliegen können über den öffentlichen
+        Projektkontakt eingereicht werden:
+        <a href="https://github.com/pamelanitschke75-cyber/Human-Holo/issues">Human-Holo-Projektkontakt auf GitHub</a>.
+      </p>
+    </article>
+  </main>
+</body>
+</html>
