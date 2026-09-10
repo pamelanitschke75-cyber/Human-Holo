@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-273-animal-holos";
+const CACHE_VERSION = "human-holo-278-chatgpt-memory-bridge";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

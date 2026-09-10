@@ -257,7 +257,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   ]);
 
   assert.match(html, /human-holo-animal-holos\.mjs\?v=1/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=3/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=4/u);
   assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);
   assert.match(ui, /fulltime\/history\/append/u);
   assert.match(ui, /interactive: false/u);
@@ -267,7 +267,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /Tina erhält ein eigenes Hund-Tier-Holo/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-273-animal-holos/u);
+  assert.match(worker, /human-holo-278-chatgpt-memory-bridge/u);
 });
 
 test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {
@@ -288,4 +288,3 @@ test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {
   assert.match(ui, /SPDX-License-Identifier: MIT/u);
   assert.match(openBuild, /private Erinnerungen/u);
 });
-

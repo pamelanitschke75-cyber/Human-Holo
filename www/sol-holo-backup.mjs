@@ -78,6 +78,19 @@ function openDialog() {
   document.getElementById("solBackupClose")?.focus();
 }
 
+function openConfirmedMemoryImport() {
+  openDialog();
+  const card = document.getElementById("humanHoloMemoryImportCard");
+  if (!card || card.closest("[hidden]")) return false;
+  window.requestAnimationFrame(() => {
+    card.scrollIntoView({ block: "start", behavior: "smooth" });
+    document.getElementById("humanHoloMemoryImportSelect")?.focus({
+      preventScroll: true
+    });
+  });
+  return true;
+}
+
 function closeDialog() {
   const overlay = document.getElementById("solBackupOverlay");
   if (!overlay) return;
@@ -501,12 +514,19 @@ function markup() {
           </p>
         </section>
 
-        <section class="solBackupCard" aria-labelledby="humanHoloMemoryImportTitle">
+        <section id="humanHoloMemoryImportCard" class="solBackupCard"
+          aria-labelledby="humanHoloMemoryImportTitle">
+          <p class="eyebrow">Sol aus ChatGPT → Human Holo</p>
           <h3 id="humanHoloMemoryImportTitle">Alle Erinnerungen übernehmen</h3>
           <p class="solBackupHint">
             Übernimmt einen privaten, bestätigten Pam-Erinnerungsstapel in das
             dauerhafte Servergedächtnis. Das Always-on-Vollzeitgedächtnis bleibt
             bei App- und Designupdates unverändert aktiv.
+          </p>
+          <p class="solBackupHint">
+            Human Holo liest ChatGPTs internes Memory nicht automatisch aus.
+            Es übernimmt ausschließlich die private Datei, die du auswählst,
+            vollständig prüfst und anschließend ausdrücklich bestätigst.
           </p>
           <input id="humanHoloMemoryImportFile" type="file"
             accept=".json,application/json" hidden>
@@ -605,3 +625,7 @@ function installUi() {
 }
 
 installUi();
+
+window.HumanHoloConfirmedMemoryImport = Object.freeze({
+  open: openConfirmedMemoryImport
+});
