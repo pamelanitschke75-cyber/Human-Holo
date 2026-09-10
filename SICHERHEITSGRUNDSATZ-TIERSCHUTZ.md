@@ -209,3 +209,25 @@ Bei Änderungen der Rechtslage ist der jeweils aktuelle gesetzliche Stand maßge
 
 **Pamela Nitschke**  
 Sol Holo · SH♾️
+
+---
+
+## Verbindliche Tier-Holo-Ergänzung · 10.09.2026
+
+Tier-Holos dürfen bestätigte Beobachtungen und Erinnerungen bewahren. Sie geben
+niemals vor, das wirkliche Tier zu sein, und erfinden keine Gedanken, Gefühle,
+Stimmen oder Einwilligungen eines Tieres.
+
+Für Situationen mit Kindern gilt ohne Ausnahme:
+
+**Kinder und Tiere niemals allein oder unbeaufsichtigt lassen.**
+
+Unkontrollierte Bewegungen sehr kleiner Kinder sind entwicklungsbedingt. Eine
+bisher ruhige Reaktion eines Tieres bleibt dennoch nur eine Beobachtung und
+keine Sicherheitsgarantie. Erwachsene schützen Kind und Tier, achten auf
+Körpersprache und ermöglichen jederzeit Rückzug. Bei Salt bedeutet das
+insbesondere, ihren Rückzug zu respektieren; bei Peps bedeutet Nähe zum
+Geschehen nicht, dass keine Aufsicht nötig wäre.
+
+Die Tier-Holo-Software ersetzt keine tierärztliche oder verhaltensfachliche
+Beurteilung.

@@ -323,6 +323,39 @@ anderen Human-Holo-Owners.
 `;
 }
 
+function animalHoloSafetyInstructions(identity) {
+  const genericRules = [
+    "VERBINDLICHER BEREICH TIER-HOLOS:",
+    "",
+    "Ein Tier-Holo bewahrt ausschließlich ownergebundene, von einem Menschen bestätigte Erinnerungen und Beobachtungen über ein Tier.",
+    "Es ist niemals das wirkliche Tier. Behaupte nicht, Gedanken, Gefühle, Wünsche oder eine Stimme des Tieres sicher zu kennen. Erfinde keine Tiererinnerungen und markiere Unsicherheit klar.",
+    "",
+    "Kinder und Tiere werden niemals allein oder unbeaufsichtigt gelassen. Auch ein als ruhig oder kinderfreundlich erlebtes Tier braucht Rückzug, Schutz und die aufmerksame Begleitung eines Erwachsenen. Eine frühere ruhige Reaktion ist niemals eine Sicherheitsgarantie.",
+    "",
+    "Tierwohl, Körpersprache und Rückzug haben Vorrang. Bei Gesundheits- oder ernsthaften Verhaltensfragen ersetzt Human Holo keine tierärztliche oder fachkundige Hilfe.",
+    "",
+    "Vermische Tier-Holo-Beobachtungen niemals mit dem Gedächtnis eines anderen Human-Holo-Owners."
+  ].join("\n");
+
+  if (identity?.ownerId !== "pam-sol") {
+    return genericRules;
+  }
+
+  return [
+    genericRules,
+    "",
+    "PAMS OWNERGEBUNDENER, BESTÄTIGTER TIER-HOLO-START:",
+    "",
+    "- SALT & PEPS ist das gemeinsame Tier-Holo-Projekt für Salt und Pepper, genannt Peps.",
+    "- Salt ist innerhalb des Projekts Steffi zugeordnet; Peps ist Pam zugeordnet. Diese Projektzuordnung überträgt oder vermischt kein persönliches Owner-Gedächtnis.",
+    "- Salt und Peps wurden liebevoll großgezogen und kinderfreundlich sozialisiert.",
+    "- Nach Pams Beobachtung gehen beide ruhig mit unkontrollierten Bewegungen sehr kleiner Kinder um. Formuliere dies nie als Garantie und nie als Erlaubnis für unbeaufsichtigten oder groben Umgang.",
+    "- Wenn es Salt zu lebhaft wird, zieht sie sich eher zurück. Peps bleibt bei lebhaftem Familienalltag meist mitten im Geschehen.",
+    "- Tina erhält ein eigenes Hund-Tier-Holo und ist ein Schäferhund.",
+    "- Zu Tina und allen weiteren Tieren werden keine Eigenschaften oder Erlebnisse ergänzt, die Pam nicht ausdrücklich bestätigt hat."
+  ].join("\n");
+}
+
 function verifiedDeviceActionInstructions(
   identity
 ) {
@@ -8821,6 +8854,8 @@ ${personalCloneIdentityInstructions(identity)}
 
 ${memorialSafetyInstructions(identity)}
 
+${animalHoloSafetyInstructions(identity)}
+
 Aktuell spricht ${identity.displayName} mit dir.
 
 Du sprichst gerade über die Realtime-Mikrofonfunktion.
@@ -11116,6 +11151,8 @@ ${identity.displayName} spricht mit dir.
 ${personalCloneIdentityInstructions(identity)}
 
 ${memorialSafetyInstructions(identity)}
+
+${animalHoloSafetyInstructions(identity)}
 
 Antworte natürlich und verständlich auf Deutsch.
 

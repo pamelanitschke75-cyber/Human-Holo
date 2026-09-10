@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-270-always-on-memory-context";
+const CACHE_VERSION = "human-holo-273-animal-holos";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

@@ -245,6 +245,45 @@ Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden
 
 ---
 
+# 🐾 Tier-Holos – Salt, Pepper (Peps) und Tina
+
+Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
+**Erinnerungen**. Der technisch integrierte Start umfasst:
+
+- **Salt** als Teil von **SALT & PEPS**, innerhalb des Projekts Steffi
+  zugeordnet
+- **Pepper**, genannt **Peps**, als Teil von **SALT & PEPS**, innerhalb des
+  Projekts Pam zugeordnet
+- **Tina** mit einem eigenen Hund-Tier-Holo als Schäferhund
+- weitere Tier-Holos, die der jeweilige Mensch selbst anlegen kann
+- sofortige ownergebundene lokale Speicherung bestätigter Beobachtungen
+- additive Aufnahme in die verschlüsselte Human-Holo-Sicherung
+- sichere Wiederholung der Synchronisierung ins ownergebundene
+  Vollzeitgedächtnis, sobald eine vertrauenswürdige App-Sitzung verfügbar ist
+
+Ein Tier-Holo bewahrt Erinnerungen und bestätigte Beobachtungen. Es gibt
+niemals vor, das wirkliche Tier zu sein oder dessen Gedanken und Stimme zu
+kennen. Tierwohl und Rückzug haben Vorrang. **Kinder und Tiere werden niemals
+allein oder unbeaufsichtigt gelassen.** Eine als gelassen erlebte Reaktion ist
+keine Sicherheitsgarantie.
+
+Der generische Tier-Holo-Kern und seine Bedienoberfläche sind als ausdrücklich
+abgegrenzter Open-Build-Baustein unter MIT freigegeben. Das übrige Repository
+behält seine bestehenden Lizenzbedingungen; private Fotos, Stimmen und
+Identitätsdaten werden durch diese Freigabe nicht mitlizenziert.
+
+Der Stand ist technisch integriert und automatisiert geprüft. Als praktisch
+bestanden wird die neue Bedienoberfläche erst nach Installation und Test des
+zugehörigen Android-Builds auf dem Galaxy S23 bezeichnet.
+
+Details:
+
+- [Human Holo Tier-Holos](./HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
+- [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
+- [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
+
+---
+
 # 📱 Android-App
 
 Human Holo läuft als eigene Android-Anwendung.

@@ -238,5 +238,54 @@ test("Der offene Kern trägt eine eindeutige MIT-Kennzeichnung", async () => {
     "utf8"
   );
   assert.match(source, /SPDX-License-Identifier: MIT/u);
-  assert.match(source, /private photos, recordings and identity data/u);
+  assert.match(source, /private photos, recordings and identity data/iu);
 });
+
+test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet", async () => {
+  const [html, ui, server, workflow, worker] = await Promise.all([
+    readFile(new URL("../www/index.html", import.meta.url), "utf8"),
+    readFile(
+      new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
+      "utf8"
+    ),
+    readFile(new URL("../server.mjs", import.meta.url), "utf8"),
+    readFile(
+      new URL("../.github/workflows/android-build.yml", import.meta.url),
+      "utf8"
+    ),
+    readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
+  ]);
+
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=1/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=3/u);
+  assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);
+  assert.match(ui, /fulltime\/history\/append/u);
+  assert.match(ui, /interactive: false/u);
+  assert.match(ui, /pending/u);
+  assert.match(server, /function animalHoloSafetyInstructions/u);
+  assert.match(server, /identity\?\.ownerId !== "pam-sol"/u);
+  assert.match(server, /Tina erhält ein eigenes Hund-Tier-Holo/u);
+  assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
+  assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
+  assert.match(worker, /human-holo-273-animal-holos/u);
+});
+
+test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {
+  const [license, openBuild, ui] = await Promise.all([
+    readFile(new URL("../LICENSE", import.meta.url), "utf8"),
+    readFile(
+      new URL("../TIER-HOLO-OPEN-BUILD-LICENSE.md", import.meta.url),
+      "utf8"
+    ),
+    readFile(
+      new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
+      "utf8"
+    )
+  ]);
+  assert.match(license, /Ausdrückliche Open-Build-Freigabe/u);
+  assert.match(openBuild, /MIT License/u);
+  assert.match(openBuild, /gilt ausschließlich/u);
+  assert.match(ui, /SPDX-License-Identifier: MIT/u);
+  assert.match(openBuild, /private Erinnerungen/u);
+});
+
