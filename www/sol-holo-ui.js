@@ -528,6 +528,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             <p>Datum oder „morgen“ plus Uhrzeit kommt hierhin.</p>
           </div>
         </div>
+        <div class="importantComposerFooter" aria-label="Kalenderzugriff">
+          <span id="calendarAccessStatus">Direktes Speichern wird geprüft …</span>
+          <button id="calendarAccessButton" class="primaryButton" type="button">
+            Zugriff prüfen
+          </button>
+        </div>
         <form id="calendarComposer" class="importantComposer">
           <label class="srOnly" for="calendarTextInput">Neuer Kalendereintrag</label>
           <textarea id="calendarTextInput" maxlength="1000" rows="2"
@@ -3637,6 +3643,20 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     await startLiveConversation();
   }
 
+  function renderCalendarAccessState(message, actionLabel, granted = false) {
+    const status = document.getElementById("calendarAccessStatus");
+    const button = document.getElementById("calendarAccessButton");
+    if (status) {
+      status.textContent = message;
+      status.dataset.granted = granted ? "true" : "false";
+    }
+    if (button) {
+      button.textContent = actionLabel;
+      button.disabled = Boolean(granted);
+      button.setAttribute("aria-pressed", String(Boolean(granted)));
+    }
+  }
+
   async function loadGoogleStatus() {
     const serviceState = document.getElementById("googleAccountStatus");
     const profileState = document.getElementById("profileGoogleState");
@@ -3654,6 +3674,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       serviceState.classList.add("setup");
       profileState.textContent = "Persönliche Auswahl nötig";
       todayState.textContent = "Kalender bleibt getrennt";
+      renderCalendarAccessState(
+        "Persönliche Holo-ID zuerst bestätigen",
+        "Holo-ID nötig"
+      );
       return;
     }
 
@@ -3666,10 +3690,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       serviceState.textContent = "Wird geprüft …";
       serviceState.classList.remove("connected", "setup");
     }
+    renderCalendarAccessState("Direktes Speichern wird geprüft …", "Bitte warten");
 
     try {
       const response = await fetch(
-        `https://sol-holo.onrender.com/google/status?${identityQuery}`,
+        "https://sol-holo.onrender.com/google/status?" + identityQuery,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -3687,27 +3712,50 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           data?.error === "TRUSTED_APP_SESSION_REQUIRED"
       };
       googleConnected = googleStatus.allRequestedAccessGranted;
+      const calendarGranted = googleStatus.services?.calendar === true;
 
       if (googleStatus.trustedSessionRequired) {
         serviceState.textContent = "S23 bestätigen";
         serviceState.classList.add("setup");
         profileState.textContent = "App-Sitzung noch nicht gebunden";
         todayState.textContent = "Kalender bleibt geschützt";
+        renderCalendarAccessState(
+          "S23-Sicherheit einmal bestätigen",
+          "S23 bestätigen"
+        );
       } else if (googleConnected) {
         serviceState.textContent = "Verbunden";
         serviceState.classList.add("connected");
         profileState.textContent = "Vollständig verbunden";
         todayState.textContent = "Google Kalender verbunden";
+        renderCalendarAccessState(
+          "Direktes Speichern freigegeben ✅️",
+          "Freigegeben",
+          true
+        );
       } else if (googleStatus.connected) {
         serviceState.textContent = "Erweitern";
         serviceState.classList.add("setup");
         profileState.textContent = "Weitere Freigabe nötig";
-        todayState.textContent = "Google Kalender verbunden";
+        todayState.textContent = calendarGranted
+          ? "Google Kalender verbunden"
+          : "Kalenderfreigabe ergänzen";
+        renderCalendarAccessState(
+          calendarGranted
+            ? "Direktes Speichern freigegeben ✅️"
+            : "Kalenderzugriff noch nicht freigegeben",
+          calendarGranted ? "Freigegeben" : "Freigabe erweitern",
+          calendarGranted
+        );
       } else {
         serviceState.textContent = "Verbinden";
         serviceState.classList.add("setup");
         profileState.textContent = "Noch nicht verbunden";
         todayState.textContent = "Kalender verknüpfen";
+        renderCalendarAccessState(
+          "Kalenderzugriff noch nicht freigegeben",
+          "Zugriff freigeben"
+        );
       }
     } catch (error) {
       console.error("Google-Kontostatus:", error);
@@ -3721,6 +3769,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       serviceState.classList.add("setup");
       profileState.textContent = "Status nicht erreichbar";
       todayState.textContent = "Kalenderstatus offen";
+      renderCalendarAccessState(
+        "Kalenderstatus konnte nicht geprüft werden",
+        "Erneut prüfen"
+      );
     }
   }
 
@@ -4071,6 +4123,33 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.openSolHoloCalendarDraft = async (calendarResult) => {
     const draft = calendarResult?.calendarDraft;
     if (calendarResult?.success || !draft) return calendarResult;
+    if (
+      calendarResult?.needsGoogleAuth ||
+      calendarResult?.needsTrustedAppSession
+    ) {
+      const needsDeviceConfirmation =
+        calendarResult?.needsTrustedAppSession === true;
+      showView("notes");
+      renderCalendarAccessState(
+        needsDeviceConfirmation
+          ? "S23-Sicherheit einmal bestätigen"
+          : "Kalenderzugriff noch nicht freigegeben",
+        needsDeviceConfirmation ? "S23 bestätigen" : "Zugriff freigeben"
+      );
+      showToast(
+        needsDeviceConfirmation
+          ? "Bestätige einmal dein S23. Danach speichert Holo direkt."
+          : "Gib den Kalenderzugriff einmal frei. Danach speichert Holo direkt."
+      );
+      return {
+        ...calendarResult,
+        accessRequired: true,
+        answer: needsDeviceConfirmation
+          ? "Der Termin wurde noch nicht gespeichert. Tippe im Kalenderbereich auf „S23 bestätigen“."
+          : "Der Termin wurde noch nicht gespeichert. Tippe im Kalenderbereich auf „Zugriff freigeben“."
+      };
+    }
+
     const plugin = getPhoneContactsPlugin();
     if (typeof plugin?.openCalendarEvent !== "function") return calendarResult;
 
@@ -6462,6 +6541,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   );
 
+  document.getElementById("calendarAccessButton").addEventListener("click", () => {
+    document.getElementById("googleAccountRow")?.click();
+  });
+
   document.getElementById("googleAccountRow").addEventListener("click", async () => {
     const identity = requireActivePersonalOwner();
     if (!identity) {
@@ -6711,6 +6794,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
+      void loadGoogleStatus();
       void loadWhatsAppStatus();
       void loadWakeStatus(true);
       void loadPhoneStatus();
@@ -6726,6 +6810,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   window.addEventListener("focus", () => {
+    void loadGoogleStatus();
     void loadWhatsAppStatus();
     void loadWakeStatus(true);
     void loadPhoneStatus();
