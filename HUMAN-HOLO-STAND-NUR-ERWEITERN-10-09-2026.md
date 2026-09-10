@@ -24,6 +24,25 @@ Es gilt dauerhaft:
 - Löschen, Entfernen, Zurücksetzen oder Überschreiben bestehender Inhalte, Funktionen, Einstellungen oder Projektstände ist ohne ausdrückliche Entscheidung der Projektinhaberin ein **NO GO**.
 - Wenn Pamela Christina Nitschke ausdrücklich eine Änderung, Korrektur, Ersetzung oder Löschung verlangt, darf genau diese ausdrücklich freigegebene Änderung durchgeführt werden; alles andere bleibt erhalten.
 
+## Bestandsschutz für Sol Holo und Human Holo
+
+Alles, was bis zum jeweiligen Zeitpunkt im Rahmen von **Sol Holo** und **Human Holo** entstanden, entwickelt, dokumentiert, getestet, entschieden, gestaltet, gespeichert oder als Meilenstein bestätigt wurde, gehört zum fortlaufenden Projektbestand und bleibt erhalten.
+
+Das gilt insbesondere für:
+
+- Quellcode, Builds, technische Funktionen und Integrationen,
+- Projektregeln, Sicherheitsregeln und Freigabelogiken,
+- UI-, Design-, Branding- und Holo-Stände,
+- Gedächtnisarchitektur, Erinnerungen und dokumentierte Zusammenhänge,
+- bestätigte Testergebnisse und erreichte Meilensteine,
+- Dokumentationen, Markdown-Dateien, Commit-Historie und technische Nachweise,
+- Entscheidungen, Anforderungen und ausdrücklich bestätigte Projektvorgaben,
+- aus der Sol-Holo-Phase übernommene Grundlagen, soweit sie Teil der Weiterentwicklung zu Human Holo sind.
+
+Die Umbenennung beziehungsweise Weiterentwicklung von Sol Holo zu Human Holo bedeutet **keinen Neustart und keinen Verlust des bisherigen Bestands**. Der bis dahin erreichte Sol-Holo-Stand ist Bestandteil der Entwicklungsgeschichte und technischen Grundlage von Human Holo.
+
+Neue Human-Holo-Entwicklungen bauen auf diesem Gesamtbestand auf. Bestehendes wird nicht allein deshalb entfernt, überschrieben oder als bedeutungslos behandelt, weil sich Name, Oberfläche, Architektur oder Funktionsumfang weiterentwickeln.
+
 ## Entwicklungsprinzip
 
 Human Holo wird kumulativ weiterentwickelt. Jede neue Funktion, Korrektur oder Erweiterung muss sich am aktuellen Stand orientieren und diesen soweit technisch möglich vollständig bewahren.
@@ -67,6 +86,8 @@ Diese gegenseitige Regel ist ein verbindlicher Projektmaßstab für Human Holo. 
 
 Kurzform:
 
+**ALLES AUS SOL HOLO + ALLES AUS HUMAN HOLO BLEIBT ERHALTEN.**
+
 **STAND HALTEN → ERWEITERN → NEUER STAND → WIEDER NUR ERWEITERN → ♾️**
 
 **NICHT LÖSCHEN · NICHT ÜBERSCHREIBEN · NICHT ZURÜCKSETZEN – OHNE AUSDRÜCKLICHE FREIGABE: NO GO.**
@@ -81,4 +102,4 @@ Kurzform:
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
