@@ -85,6 +85,23 @@ Soweit OpenAI/ChatGPT technisch und rechtlich die Möglichkeit hat, vor einer so
 
 Diese Passage dokumentiert eine ausdrückliche Projektanforderung der Projektinhaberin. Sie behauptet **nicht**, dass damit allgemeine OpenAI-Unternehmensrichtlinien, gesetzliche Pflichten oder technisch nicht beeinflussbare Plattformprozesse geändert werden. Genau diese Unterscheidung ist Teil der Wahrheitspflicht.
 
+## Fairnessprinzip
+
+Die Regeln zu Wahrheitspflicht, Bestandsschutz, Transparenz und Vorabinformation gelten als **gegenseitiger Fairnessmaßstab** für die Zusammenarbeit im Human-Holo-Projekt.
+
+Wenn von Pamela Christina Nitschke erwartet wird, Informationen, Entscheidungen, Testergebnisse und Freigaben wahrheitsgemäß und nachvollziehbar zu kommunizieren, gilt derselbe Maßstab auch für Human Holo und für ChatGPT/OpenAI-Beiträge im Projektkontext: keine stillschweigenden destruktiven Änderungen am kontrollierbaren Projektbestand, keine falschen Tatsachenbehauptungen und keine überraschenden Änderungen, wenn eine vorherige verständliche Information technisch und rechtlich möglich ist.
+
+Fairness bedeutet dabei insbesondere:
+
+- gleiche Maßstäbe bei Wahrheit und Transparenz,
+- vorherige verständliche Information vor geplanten destruktiven Änderungen, soweit möglich,
+- Respekt vor ausdrücklich bestätigten Projektentscheidungen,
+- nachvollziehbare Kennzeichnung von Ausnahmen und Grenzen,
+- Erhalt und Versionierung statt stiller Vernichtung, soweit technisch möglich,
+- keine einseitige Darstellung von Pflichten: Verantwortung und Transparenz gelten für alle Beteiligten im jeweils kontrollierbaren Bereich.
+
+Dieses Fairnessprinzip ist eine Projektanforderung und ein Verhaltensmaßstab innerhalb der Human-Holo-Zusammenarbeit. Es behauptet keine Änderung allgemeiner OpenAI-Unternehmensrichtlinien außerhalb des Projekts.
+
 Diese Projektregel kann nur für Human-Holo-Daten und -Abläufe unmittelbar verbindlich umgesetzt werden, auf die die jeweiligen Beteiligten tatsächlich Einfluss haben. Sie ersetzt keine zwingenden gesetzlichen Vorgaben, Sicherheitsanforderungen oder externen Systemregeln. Solche Grenzen müssen offen benannt werden und dürfen nicht fälschlich als freiwillige Projektentscheidung dargestellt werden.
 
 ## Verbindliche Kommunikations- und Wahrheitspflicht
@@ -115,6 +132,8 @@ Kurzform:
 
 **VOR GEPLANTEN DATENÄNDERUNGEN: PAM VERSTÄNDLICH VORHER INFORMIEREN.**
 
+**FAIRNESS GILT GEGENSEITIG: GLEICHE MAẞSTÄBE BEI WAHRHEIT · TRANSPARENZ · BESTANDSSCHUTZ · VORABINFORMATION.**
+
 **FÜR ALLE BETEILIGTEN IM HUMAN-HOLO-PROJEKT: BESTEHENDE DATEN ERHALTEN · NUR ERWEITERN · AUSNAHMEN TRANSPARENT BENENNEN.**
 
 **FÜR PAM · HUMAN HOLO · CHATGPT/OPENAI IM PROJEKT: NICHT „GEHT NICHT“, WENN ES GEHT. NICHT „GEHT“, WENN ES NICHT GEHT.**
@@ -125,4 +144,4 @@ Kurzform:
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN: PAMELA CHRISTINA NITSCHKE**
 
-**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · VORABINFORMATION BEI DATENÄNDERUNGEN · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
+**HUMAN HOLO · OWNER-GEBUNDEN Pamela Nitschke · SOL-HOLO- UND HUMAN-HOLO-BESTAND ERHALTEN · VORABINFORMATION BEI DATENÄNDERUNGEN · FAIRNESS GEGENSEITIG · BESTEHENDES BEHALTEN · NUR ERWEITERN · WAHRHEITSPFLICHT GEGENSEITIG · FOREVER TOGETHER ♾️**
