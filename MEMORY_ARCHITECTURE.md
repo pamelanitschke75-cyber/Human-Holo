@@ -18,17 +18,20 @@ Technische Zustände der Anwendung, z. B. Versionen, aktivierte Funktionen und T
 
 Grundregel:
 
-Persönliche Informationen werden nicht automatisch dauerhaft gespeichert.
-Eine dauerhafte Speicherung erfolgt nur bei ausdrücklicher Anweisung oder bestätigter Zustimmung.
+Der vollständige Dialogverlauf wird automatisch und ownergebunden dauerhaft
+gespeichert. Als **bestätigte persönliche Erinnerung** wird ein Inhalt jedoch
+nur bei ausdrücklicher Anweisung oder bestätigter Zustimmung geführt.
 
-## Technischer Stand – bestätigtes Vollzeitgedächtnis und Identitätstrennung
+## Technischer Stand – Always-on-Vollzeitverlauf und Identitätstrennung
 
-Stand: 2. September 2026
+Stand: 9. September 2026
 
-Das Wort **Vollzeitgedächtnis** bedeutet, dass ausdrücklich bestätigte
-Erinnerungen später dauerhaft zur Verfügung stehen können. Es bedeutet nicht,
-dass jede Text- oder Sprachnachricht ungeprüft als persönliche Erinnerung
-protokolliert wird.
+Das **Vollzeitgedächtnis** protokolliert jede Textnachricht und jedes
+Sprachtranskript beider Dialogseiten wortgetreu und ownergebunden. Die
+Audio-Rohaufnahme gehört nicht zu diesem Speicher. Davon getrennt existiert
+der strengere Bereich der ausdrücklich bestätigten persönlichen Erinnerungen.
+Ein Eintrag im Vollzeitverlauf wird niemals automatisch zu einem bestätigten
+persönlichen Fakt.
 
 Die verbindliche technische Reihenfolge lautet:
 
@@ -42,9 +45,10 @@ Die verbindliche technische Reihenfolge lautet:
    Owner-ID gebunden. Fehlt diese Bindung oder passt ein Signal nicht dazu,
    werden persönliche Daten gesperrt. Eine andere Person darf in dieser
    Installation weder auswählbar noch vorladbar sein.
-5. Eine normale Nachricht bleibt ohne ausdrücklichen Speicherwunsch außerhalb
-   des dauerhaften persönlichen Gedächtnisses.
-6. Ein direkter Speicherbefehl oder eine bestätigte Speicherrückfrage gilt nur
+5. Eine normale Nachricht und die zugehörige Holo-Antwort werden dauerhaft im
+   ownergebundenen Vollzeitverlauf gespeichert.
+6. Ein direkter Speicherbefehl oder eine bestätigte Speicherrückfrage übernimmt
+   einen Inhalt zusätzlich in den strengeren bestätigten Erinnerungsbereich und gilt nur
    für die eindeutig zugeordnete Person.
 7. Der Datenbankzugriff wird zusätzlich auf die kanonische Owner-ID dieser
    Person begrenzt.
@@ -133,10 +137,10 @@ stellt deshalb nur ein inhaltsfreies Audit-Ereignis bereit. Private Inhalte
 dürfen nicht durch das Protokollieren kompletter Requests, Policy-Entscheidungen
 oder SQL-Parameter umgangen werden.
 
-### Verbleibende Einbindung in den aktiven Server
+### Einbindung in den aktiven Server
 
-Der aktive Server muss die beiden Module noch an seinen Text- und Sprachpfad
-anschließen. Dabei sind folgende Punkte gemeinsam umzusetzen:
+Der aktive Server bindet die Identitäts- und Speicherregeln in Text und Sprache
+ein. Dabei gelten folgende Punkte gemeinsam:
 
 - Identitätssignale (`selectedSpeakerId` und gegebenenfalls
   `verifiedSpeakerId`) aus der jeweils vertrauenswürdigen Quelle übergeben,
@@ -145,9 +149,9 @@ anschließen. Dabei sind folgende Punkte gemeinsam umzusetzen:
 - nur `persist` an `saveConfirmed()` weiterreichen,
 - persönliche Abrufe ausschließlich mit zusammenpassender Sprecher- und
   kanonischer Owner-ID durchführen,
-- ungeprüfte automatische Writes in `sol_fulltime_memory`,
-  `sol_long_term_memory` oder ungetrennte Gesprächstabellen für diesen neuen
-  Pfad nicht mehr verwenden,
+- automatische Dialogprotokolle ausschließlich ownergebunden in
+  `sol_fulltime_memory` schreiben und niemals ungeprüft als bestätigte
+  Erinnerung behandeln,
 - die Zugriffsberechtigung auf den angeforderten Owner serverseitig prüfen;
   Identitätszuordnung und Zugriffsberechtigung sind zwei getrennte Schranken.
 

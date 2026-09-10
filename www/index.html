@@ -1974,11 +1974,11 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=45">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=46">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
-<link rel="stylesheet" href="./human-holo-theme.css?v=7">
+<link rel="stylesheet" href="./human-holo-theme.css?v=8">
 </head>
 
 <body>
@@ -10664,6 +10664,12 @@ function speakPersonalRecallResult(
       ""
     ).trim().slice(0, 16000);
 
+  const contextQuestion =
+    String(
+      recall?.contextQuestion ||
+      ""
+    ).trim().slice(0, 1200);
+
   const directRecall =
     recall?.mode ===
       "recall" ||
@@ -10675,7 +10681,7 @@ function speakPersonalRecallResult(
     directRecall
       ? recall?.found &&
         memoryText
-        ? `Frage: ${cleanQuestion}\n\nGefundene persönliche Aussagen:\n${memoryText}`
+        ? `Frage: ${cleanQuestion}${contextQuestion ? `\nBezugsfrage: ${contextQuestion}` : ""}\n\nGefundene persönliche Aussagen und klar gekennzeichneter Gesprächsverlauf:\n${memoryText}`
         : `Frage: ${cleanQuestion}\n\nKeine passende persönliche Aussage wurde gefunden.`
       : `Aktuelle Nachricht: ${cleanQuestion}\n\nPassender ownergebundener Dauerkontext:\n${memoryText}`;
 
@@ -14190,7 +14196,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=63"></script>
+<script src="./sol-holo-ui.js?v=65"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=2"></script>

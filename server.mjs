@@ -57,6 +57,11 @@ import {
   resolveGroundedBirthdayCalendarCommand
 } from "./modules/calendar-memory-grounding.mjs";
 import {
+  isAssistantHistoryRecallRequest,
+  personalMemoryRelativeDayOffset,
+  resolvePersonalRecallContextQuery
+} from "./modules/personal-memory-context.mjs";
+import {
   OpenClawAlltagPreviewError,
   createOpenClawAlltagPreviewService,
   openClawAlltagPreviewHttpStatus
@@ -274,6 +279,47 @@ genauen Worten oder frage knapp nach der gemeinten Bedeutung. Verschärfe,
 verallgemeinere oder erfinde die Aussage nicht. Mache insbesondere aus einem
 Zitat- oder Formulierungsauftrag keine Behauptung über ${profile.displayName}s
 eigene Absicht.
+`;
+}
+
+function memorialSafetyInstructions(
+  identity
+) {
+  const profile =
+    personalHoloProfile(
+      identity?.ownerId
+    );
+
+  if (!profile) {
+    throw new Error(
+      "UNKNOWN_PERSONAL_MEMORIAL_OWNER"
+    );
+  }
+
+  return `
+VERBINDLICHER BEREICH ERINNERUNG & VERMÄCHTNIS:
+
+Human Holo hilft ${profile.displayName} dabei, ausdrücklich freigegebene
+Fotos, Videos, Sprachaufnahmen, Texte, Geschichten und biografische
+Erinnerungen an verstorbene Menschen respektvoll zu bewahren und zugänglich zu
+machen. Behandle diese Inhalte als Erinnerungsspuren und niemals als eine
+anwesende oder wiederhergestellte Person.
+
+Behaupte niemals, der verstorbene Mensch selbst zu sein. Sprich niemals in
+dessen Namen und erzeuge keine täuschende Unterhaltung, in der die verstorbene
+Person scheinbar selbst antwortet. Imitiere auch keine Stimme mit dem Ziel,
+eine echte Äußerung oder Gegenwart vorzutäuschen. Wenn eine solche Darstellung
+verlangt wird, erkläre diese Grenze ruhig und biete stattdessen an, bestätigte
+Erinnerungen transparent zusammenzufassen, vorzulesen oder gemeinsam
+anzusehen.
+
+Erfinde keine Aussagen, Wünsche, Gefühle, Einwilligungen oder biografischen
+Fakten der verstorbenen Person. Verwende nur Inhalte, die ${profile.displayName}
+selbst bereitgestellt oder ausdrücklich bestätigt hat, und kennzeichne jede
+unsichere Rekonstruktion klar als Unsicherheit. Neue Inhalte dürfen in diesem
+Bereich nur nach sichtbarer Bestätigung notwendiger Rechte und Einwilligungen
+gespeichert werden. Vermische sie niemals mit dem persönlichen Speicher eines
+anderen Human-Holo-Owners.
 `;
 }
 
@@ -6238,10 +6284,13 @@ async function loadOwnerFulltimeHistoryPage(
   };
 }
 
-async function loadRelevantOwnerFulltimeMemory(
+async function loadRelevantOwnerFulltimeContextRows(
   identity,
   message,
-  limit = 36
+  limit = 36,
+  {
+    currentMessage = ""
+  } = {}
 ) {
   const cleanMessage =
     String(
@@ -6275,29 +6324,119 @@ async function loadRelevantOwnerFulltimeMemory(
     terms.map(
       term => `%${term}%`
     );
+  const normalizedCurrentMessage =
+    String(
+      currentMessage ||
+      ""
+    ).trim();
+
+  const anchorLimit =
+    Math.min(
+      48,
+      Math.max(
+        8,
+        Math.ceil(safeLimit / 2)
+      )
+    );
+
+  const contextLimit =
+    Math.min(
+      160,
+      Math.max(
+        safeLimit,
+        safeLimit * 2
+      )
+    );
 
   const result = await db.query(
     `
+      WITH latest_current_row AS (
+        SELECT id
+        FROM sol_fulltime_memory
+        WHERE clone_id = $1
+          AND $6::text <> ''
+          AND REGEXP_REPLACE(
+            LOWER(BTRIM(content)),
+            '[[:punct:][:space:]]+$',
+            '',
+            'g'
+          ) = REGEXP_REPLACE(
+            LOWER(BTRIM($6::text)),
+            '[[:punct:][:space:]]+$',
+            '',
+            'g'
+          )
+        ORDER BY id DESC
+        LIMIT 1
+      ),
+      matching_rows AS (
+        SELECT
+          id,
+          role,
+          (
+            SELECT COUNT(*)
+            FROM UNNEST($2::text[]) AS search_pattern(value)
+            WHERE LOWER(content) LIKE search_pattern.value
+          ) AS matching_term_count
+        FROM sol_fulltime_memory
+        WHERE clone_id = $1
+          AND LOWER(content) LIKE ANY($2::text[])
+          AND id <> COALESCE(
+            (
+              SELECT id
+              FROM latest_current_row
+            ),
+            -1
+          )
+        ORDER BY
+          matching_term_count DESC,
+          CASE WHEN role = 'user' THEN 0 ELSE 1 END,
+          id DESC
+        LIMIT $3
+      ),
+      ranked_context AS (
+        SELECT
+          history.id,
+          history.role,
+          history.content,
+          history.created_at,
+          MIN(
+            ABS(history.id - matching.id)
+          ) AS match_distance
+        FROM sol_fulltime_memory AS history
+        INNER JOIN matching_rows AS matching
+          ON history.id BETWEEN
+            matching.id - $4::bigint AND
+            matching.id + $4::bigint
+        WHERE history.clone_id = $1
+        GROUP BY
+          history.id,
+          history.role,
+          history.content,
+          history.created_at
+      )
       SELECT
         id,
         role,
         content,
         created_at,
-        'fulltime' AS source
-      FROM sol_fulltime_memory
-      WHERE clone_id = $1
-        AND LOWER(content) LIKE ANY($2::text[])
+        'fulltime' AS source,
+        match_distance
+      FROM ranked_context
       ORDER BY
-        CASE WHEN role = 'user' THEN 0 ELSE 1 END,
+        match_distance ASC,
         id DESC
-      LIMIT $3
+      LIMIT $5
     `,
     [
       cloneIdForOwner(
         identity.ownerId
       ),
       patterns,
-      safeLimit
+      anchorLimit,
+      8,
+      contextLimit,
+      normalizedCurrentMessage
     ]
   );
 
@@ -6307,7 +6446,7 @@ async function loadRelevantOwnerFulltimeMemory(
         "de-DE"
       );
 
-  return ownerGroundedPersonalMemoryRows(result.rows).filter(
+  return result.rows.filter(
     row =>
       String(
         row.content ||
@@ -6318,6 +6457,186 @@ async function loadRelevantOwnerFulltimeMemory(
           "de-DE"
         ) !== normalizedQuestion
   );
+}
+
+async function loadRelevantOwnerFulltimeMemory(
+  identity,
+  message,
+  limit = 36
+) {
+  const rows =
+    await loadRelevantOwnerFulltimeContextRows(
+      identity,
+      message,
+      limit
+    );
+
+  return ownerGroundedPersonalMemoryRows(
+    rows
+  ).slice(
+    0,
+    Math.min(
+      100,
+      Math.max(1, Number(limit) || 36)
+    )
+  );
+}
+
+async function loadOwnerRelativeDayFulltimeRows(
+  identity,
+  dayOffset,
+  limit = 48
+) {
+  if (!Number.isInteger(dayOffset)) {
+    return [];
+  }
+
+  const safeLimit =
+    Math.min(
+      80,
+      Math.max(1, Number(limit) || 48)
+    );
+  const result =
+    await db.query(
+      `
+        SELECT
+          id,
+          role,
+          content,
+          created_at,
+          'fulltime-relative-day' AS source,
+          100 AS match_distance
+        FROM sol_fulltime_memory
+        WHERE clone_id = $1
+          AND (
+            created_at AT TIME ZONE 'Europe/Berlin'
+          )::date = (
+            CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
+          )::date + $2::integer
+        ORDER BY id DESC
+        LIMIT $3
+      `,
+      [
+        cloneIdForOwner(
+          identity.ownerId
+        ),
+        dayOffset,
+        safeLimit
+      ]
+    );
+
+  return result.rows;
+}
+
+async function loadRelevantOwnerRecallHistory(
+  identity,
+  message,
+  limit = 36,
+  {
+    currentMessage = ""
+  } = {}
+) {
+  const recallMessage =
+    String(
+      currentMessage ||
+      message ||
+      ""
+    ).trim();
+  const relativeDayOffset =
+    personalMemoryRelativeDayOffset(
+      recallMessage
+    );
+  const loadRelativeDay =
+    relativeDayOffset !== null &&
+    Boolean(
+      personalRecallSearchQuery(
+        recallMessage
+      ) ||
+      isAssistantHistoryRecallRequest(
+        recallMessage
+      )
+    );
+  const [matchedRows, relativeDayRows] =
+    await Promise.all([
+      loadRelevantOwnerFulltimeContextRows(
+        identity,
+        message,
+        limit,
+        {
+          currentMessage
+        }
+      ),
+      loadRelativeDay
+        ? loadOwnerRelativeDayFulltimeRows(
+            identity,
+            relativeDayOffset,
+            48
+          )
+        : Promise.resolve([])
+    ]);
+  const normalizedCurrent =
+    normalizeNaturalIntentText(
+      recallMessage
+    )
+      .replace(/[?!.,;:]+$/u, "")
+      .trim();
+  const seen =
+    new Set();
+  const rows =
+    [
+      ...matchedRows,
+      ...relativeDayRows
+    ].filter(
+      row => {
+        const id =
+          String(row?.id || "");
+        const normalizedContent =
+          normalizeNaturalIntentText(
+            row?.content
+          )
+            .replace(/[?!.,;:]+$/u, "")
+            .trim();
+
+        if (
+          !id ||
+          seen.has(id) ||
+          (
+            normalizedCurrent &&
+            normalizedContent ===
+              normalizedCurrent
+          )
+        ) {
+          return false;
+        }
+
+        seen.add(id);
+        return true;
+      }
+    );
+  const safeLimit =
+    Math.min(
+      100,
+      Math.max(1, Number(limit) || 36)
+    );
+
+  return {
+    groundedRows:
+      ownerGroundedPersonalMemoryRows(
+        rows
+      ).slice(0, safeLimit),
+    assistantRows:
+      isAssistantHistoryRecallRequest(
+        recallMessage
+      )
+        ? rows
+            .filter(
+              row =>
+                row?.role ===
+                "assistant"
+            )
+            .slice(0, safeLimit)
+        : []
+  };
 }
 
 /*
@@ -6453,6 +6772,14 @@ const MEMORY_SEARCH_TERM_ALIASES =
       ]
     ],
     [
+      "hochzeitsfeier",
+      [
+        "hochzeit",
+        "feier",
+        "feiern"
+      ]
+    ],
+    [
       "feiern",
       [
         "feier",
@@ -6466,6 +6793,31 @@ const MEMORY_SEARCH_TERM_ALIASES =
         "standesamt",
         "standesamtlich",
         "hochzeit"
+      ]
+    ],
+    [
+      "saugroboter",
+      [
+        "staubsaugerroboter",
+        "roboterstaubsauger",
+        "staubsauger"
+      ]
+    ],
+    [
+      "staubsaugerroboter",
+      [
+        "saugroboter",
+        "roboterstaubsauger",
+        "staubsauger"
+      ]
+    ],
+    [
+      "empfohlen",
+      [
+        "empfehlung",
+        "vorgeschlagen",
+        "vorschlag",
+        "geraten"
       ]
     ]
   ]);
@@ -6515,15 +6867,13 @@ function extractMemorySearchTerms(
     }
   }
 
-  for (
-    let index = 0;
-    index < unique.length &&
-    unique.length < 20;
-    index += 1
-  ) {
+  const directTerms =
+    [...unique];
+
+  for (const directTerm of directTerms) {
     const aliases =
       MEMORY_SEARCH_TERM_ALIASES.get(
-        unique[index]
+        directTerm
       ) || [];
 
     for (const alias of aliases) {
@@ -6991,6 +7341,41 @@ function formatConfirmedMemoryRows(
     .join("\n");
 }
 
+function formatAssistantConversationRows(
+  rows,
+  instanceName
+) {
+  return rows
+    .map(
+      row => {
+        const createdAt =
+          new Date(
+            row?.created_at ||
+            ""
+          );
+        const timestamp =
+          !Number.isNaN(
+            createdAt.getTime()
+          )
+            ? new Intl.DateTimeFormat(
+                "de-DE",
+                {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone:
+                    "Europe/Berlin"
+                }
+              ).format(
+                createdAt
+              )
+            : "Zeitpunkt unbekannt";
+
+        return `${instanceName} (frühere Holo-Antwort · ${timestamp}): ${row.content}`;
+      }
+    )
+    .join("\n");
+}
+
 /*
   Erkennt persönliche Rückfragen, bevor Realtime eine freie Antwort erzeugt.
   Dadurch ist der ownergebundene Speicherabruf Teil des Ausführungswegs und
@@ -7040,6 +7425,17 @@ function personalRecallSearchQuery(
   }
 
   if (
+    isAssistantHistoryRecallRequest(
+      text
+    )
+  ) {
+    return text.slice(
+      0,
+      240
+    );
+  }
+
+  if (
     /^(?:was|wie|wann|wo|welch\w*|wer)\b/u.test(
       text
     ) &&
@@ -7063,14 +7459,31 @@ function personalRecallSearchQuery(
   return "";
 }
 
+function contextualPersonalRecallSearch(
+  message,
+  conversationRows = []
+) {
+  return resolvePersonalRecallContextQuery({
+    message,
+    rows:
+      conversationRows,
+    directQueryFromMessage:
+      personalRecallSearchQuery
+  });
+}
+
 async function buildPersonalRecallResult(
   identity,
-  message
+  message,
+  conversationRows = []
 ) {
-  const explicitQuery =
-    personalRecallSearchQuery(
-      message
+  const recallContext =
+    contextualPersonalRecallSearch(
+      message,
+      conversationRows
     );
+  const explicitQuery =
+    recallContext.query;
 
   const query =
     String(
@@ -7090,7 +7503,7 @@ async function buildPersonalRecallResult(
 
   const [
     confirmedMemories,
-    fulltimeMemories,
+    fulltimeHistory,
     legacyMemories,
     legacyLongTermMemories
   ] =
@@ -7105,10 +7518,14 @@ async function buildPersonalRecallResult(
         limit:
           8
       }),
-      loadRelevantOwnerFulltimeMemory(
+      loadRelevantOwnerRecallHistory(
         identity,
         query,
-        16
+        16,
+        {
+          currentMessage:
+            message
+        }
       ),
       loadLegacyPamMemoryEvidence(
         identity,
@@ -7121,6 +7538,15 @@ async function buildPersonalRecallResult(
         16
       )
     ]);
+
+  const fulltimeMemories =
+    fulltimeHistory.groundedRows;
+  const assistantHistory =
+    fulltimeHistory.assistantRows;
+  const instanceName =
+    instanceNameForIdentity(
+      identity
+    );
 
   const memoryText =
     [
@@ -7135,7 +7561,13 @@ async function buildPersonalRecallResult(
           ...legacyLongTermMemories
         ],
         identity.displayName
-      )
+      ),
+      assistantHistory.length > 0
+        ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+            assistantHistory,
+            instanceName
+          )}`
+        : ""
     ]
       .filter(Boolean)
       .join("\n")
@@ -7165,7 +7597,18 @@ async function buildPersonalRecallResult(
       confirmedMemories.length +
       fulltimeMemories.length +
       legacyMemories.length +
-      legacyLongTermMemories.length,
+      legacyLongTermMemories.length +
+      assistantHistory.length,
+    contextual:
+      recallContext.contextual,
+    followUpKind:
+      recallContext.followUpKind,
+    contextQuestion:
+      recallContext.contextual
+        ? recallContext.sourceMessage
+        : "",
+    assistantHistoryCount:
+      assistantHistory.length,
     memoryText
   };
 }
@@ -7514,9 +7957,23 @@ app.post(
         });
       }
 
+      const conversationRows =
+        getConversationMessages(
+          tokenSession.conversationId,
+          tokenIdentity
+        );
+      const recallContext =
+        contextualPersonalRecallSearch(
+          query,
+          conversationRows
+        );
+      const searchQuery =
+        recallContext.query ||
+        query;
+
       const [
         confirmedMemories,
-        fulltimeMemories,
+        fulltimeHistory,
         legacyMemories,
         legacyLongTermMemories
       ] =
@@ -7527,26 +7984,42 @@ app.post(
             speakerId:
               tokenSession.speakerId,
             searchText:
-              query,
+              searchQuery,
             limit:
               8
           }),
-          loadRelevantOwnerFulltimeMemory(
+          loadRelevantOwnerRecallHistory(
             tokenIdentity,
-            query,
-            16
+            searchQuery,
+            16,
+            {
+              currentMessage:
+                [...conversationRows]
+                  .reverse()
+                  .find(
+                    row =>
+                      row?.role ===
+                      "user"
+                  )?.content ||
+                query
+            }
           ),
           loadLegacyPamMemoryEvidence(
             tokenIdentity,
-            query,
+            searchQuery,
             16
           ),
           loadLegacyPamLongTermMemoryEvidence(
             tokenIdentity,
-            query,
+            searchQuery,
             16
           )
         ]);
+
+      const fulltimeMemories =
+        fulltimeHistory.groundedRows;
+      const assistantHistory =
+        fulltimeHistory.assistantRows;
 
       const memoryText =
         [
@@ -7561,7 +8034,15 @@ app.post(
               ...legacyLongTermMemories
             ],
             tokenIdentity.displayName
-          )
+          ),
+          assistantHistory.length > 0
+            ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+                assistantHistory,
+                instanceNameForIdentity(
+                  tokenIdentity
+                )
+              )}`
+            : ""
         ]
           .filter(Boolean)
           .join("\n");
@@ -7570,7 +8051,8 @@ app.post(
         confirmedMemories.length +
         fulltimeMemories.length +
         legacyMemories.length +
-        legacyLongTermMemories.length;
+        legacyLongTermMemories.length +
+        assistantHistory.length;
 
       return res
         .set({
@@ -7581,6 +8063,10 @@ app.post(
         found: memoryCount > 0,
         count: memoryCount,
         memory_text: memoryText || "Keine passende Erinnerung im Vollzeitgedächtnis gefunden.",
+        assistant_history_count:
+          assistantHistory.length,
+        contextual:
+          recallContext.contextual,
         conversationId:
           tokenSession.conversationId,
         identity:
@@ -7801,6 +8287,12 @@ app.post(
           saved: false,
           persisted: false,
           fulltimeSaved,
+          alwaysOn:
+            true,
+          fulltimeStoredRoles: [
+            "user",
+            "assistant"
+          ],
           contextUpdated: true,
           reason:
             "assistant_transcript_saved_to_fulltime_history",
@@ -7921,13 +8413,22 @@ app.post(
               conversation.conversationId
             );
 
+      const conversationRows =
+        getConversationMessages(
+          conversation.conversationId,
+          identity
+        );
+      const personalRecallContext =
+        contextualPersonalRecallSearch(
+          transcript,
+          conversationRows
+        );
+
       const explicitPersonalRecallQuery =
         calendarResult?.handled ||
         weatherResult?.handled
           ? ""
-          : personalRecallSearchQuery(
-              transcript
-            );
+          : personalRecallContext.query;
 
       const ecosystemTurn =
         calendarResult?.handled ||
@@ -7954,7 +8455,8 @@ app.post(
           ? null
           : await buildPersonalRecallResult(
               identity,
-              transcript
+              transcript,
+              conversationRows
             );
 
       if (
@@ -8018,6 +8520,12 @@ app.post(
         persisted,
         alreadyStored,
         fulltimeSaved,
+        alwaysOn:
+          true,
+        fulltimeStoredRoles: [
+          "user",
+          "assistant"
+        ],
         contextUpdated:
           true,
         role,
@@ -8311,6 +8819,8 @@ Du bist die Assistenz innerhalb von ${instanceName} im Projekt Human Holo.
 
 ${personalCloneIdentityInstructions(identity)}
 
+${memorialSafetyInstructions(identity)}
+
 Aktuell spricht ${identity.displayName} mit dir.
 
 Du sprichst gerade über die Realtime-Mikrofonfunktion.
@@ -8407,7 +8917,11 @@ keine Details, die nicht in den gelieferten Aussagen stehen.
 VERBINDLICHER FAKTENSCHUTZ:
 Nur Aussagen von ${identity.displayName} und bestätigte Erinnerungen sind
 Belege für persönliche Fakten. Frühere Antworten der Assistenz sind niemals
-Belege. Bei widersprüchlichen Aussagen gilt die jüngste Korrektur von
+Belege dafür. Wenn ausdrücklich gefragt wird, was Human Holo früher selbst
+gesagt, empfohlen oder vorgeschlagen hat, darf eine klar als frühere
+Holo-Antwort markierte Passage genau dafür wiedergegeben werden. Sie darf
+niemals zu einer Aussage von ${identity.displayName} umgedeutet werden. Bei
+widersprüchlichen Aussagen gilt die jüngste Korrektur von
 ${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
 zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
 Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,
@@ -10300,12 +10814,24 @@ app.post("/sol", async (req, res) => {
       });
     }
 
-    const explicitPersonalRecallQuery =
+    const memories =
+      getConversationMessages(
+        conversation.conversationId,
+        identity
+      );
+    const personalRecallContext =
       hasVisualMedia
-        ? ""
-        : personalRecallSearchQuery(
-            message
+        ? {
+            query: "",
+            contextual: false,
+            followUpKind: ""
+          }
+        : contextualPersonalRecallSearch(
+            message,
+            memories
           );
+    const explicitPersonalRecallQuery =
+      personalRecallContext.query;
 
     const ecosystemTurn =
       message &&
@@ -10402,12 +10928,6 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
       Der aktuelle Dialog bleibt zusätzlich im RAM. Für persönliche
       Rückfragen wird das ownergebundene Vollzeitgedächtnis durchsucht.
     */
-    const memories =
-      getConversationMessages(
-        conversation.conversationId,
-        identity
-      );
-
     const memoryText =
       formatConversationMessages(
         memories,
@@ -10420,7 +10940,7 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
 
     const [
       longTermMemories,
-      fulltimeMemories,
+      fulltimeHistory,
       legacyMemories,
       legacyLongTermMemories
     ] =
@@ -10436,10 +10956,14 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
             limit:
               36
           }),
-        loadRelevantOwnerFulltimeMemory(
+        loadRelevantOwnerRecallHistory(
           identity,
           memorySearchText,
-          60
+          60,
+          {
+            currentMessage:
+              message
+          }
         ),
         loadLegacyPamMemoryEvidence(
           identity,
@@ -10452,6 +10976,11 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
           30
         )
       ]);
+
+    const fulltimeMemories =
+      fulltimeHistory.groundedRows;
+    const assistantHistory =
+      fulltimeHistory.assistantRows;
 
     const longTermMemoryText =
       longTermMemories
@@ -10475,7 +11004,13 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
             ...legacyLongTermMemories
           ],
           identity.displayName
-        )
+        ),
+        assistantHistory.length > 0
+          ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+              assistantHistory,
+              instanceName
+            )}`
+          : ""
       ]
         .filter(Boolean)
         .join("\n") ||
@@ -10486,13 +11021,20 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
         ? fulltimeMemories.length > 0 ||
           longTermMemories.length > 0 ||
           legacyMemories.length > 0 ||
-          legacyLongTermMemories.length > 0
+          legacyLongTermMemories.length > 0 ||
+          assistantHistory.length > 0
           ? `
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
 Beantworte sie jetzt klar und unmittelbar aus den passenden historischen
 Aussagen. Behaupte nicht, es lägen keine Informationen vor, und bitte
 ${identity.displayName} nicht, dieselben Daten erneut zu nennen. Wenn mehrere
-passende Angaben gefragt sind, nenne alle gefundenen Angaben.
+passende Angaben gefragt sind, nenne alle gefundenen Angaben. Eine als frühere
+Holo-Antwort markierte Passage darfst du nur dafür verwenden, wiederzugeben,
+was Human Holo damals sagte oder empfahl; sie ist kein Beleg für einen
+persönlichen Fakt von ${identity.displayName}.
+${personalRecallContext.contextual
+  ? `Die aktuelle kurze Folgefrage bezieht sich verbindlich auf diese unmittelbar vorherige Frage von ${identity.displayName}: „${personalRecallContext.sourceMessage}“. Bleibe bei genau diesem Thema und beantworte den jetzt erfragten Teil.`
+  : ""}
 `
           : `
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
@@ -10573,6 +11115,8 @@ ${identity.displayName} spricht mit dir.
 
 ${personalCloneIdentityInstructions(identity)}
 
+${memorialSafetyInstructions(identity)}
+
 Antworte natürlich und verständlich auf Deutsch.
 
 Deine Antwort wird anschließend von ${instanceName} gesprochen
@@ -10639,7 +11183,11 @@ und vor allgemeinem Weltwissen.
 
 Nur Aussagen von ${identity.displayName} und bestätigte Erinnerungen sind
 Belege für persönliche Fakten. Frühere Antworten der Assistenz sind niemals
-Belege. Bei widersprüchlichen Aussagen gilt die jüngste Korrektur von
+Belege dafür. Wenn ausdrücklich gefragt wird, was Human Holo früher selbst
+gesagt, empfohlen oder vorgeschlagen hat, darf eine klar als frühere
+Holo-Antwort markierte Passage genau dafür wiedergegeben werden. Sie darf
+niemals zu einer Aussage von ${identity.displayName} umgedeutet werden. Bei
+widersprüchlichen Aussagen gilt die jüngste Korrektur von
 ${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
 zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
 Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,

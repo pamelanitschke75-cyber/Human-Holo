@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
+import {
+  isAssistantHistoryRecallRequest
+} from "../modules/personal-memory-context.mjs";
+
 const server = fs.readFileSync(
   new URL("../server.mjs", import.meta.url),
   "utf8"
@@ -41,7 +45,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-268-natural-mouth/u);
+  assert.match(serviceWorker, /human-holo-270-always-on-memory-context/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -57,11 +61,15 @@ test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
 });
 
 test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () => {
-  const serverDetector = new Function(
+  const createServerDetector = new Function(
+    "isAssistantHistoryRecallRequest",
     `${sourceFunction("normalizeNaturalIntentText", "looksLikeLiveWeatherRequest")}\n` +
     `${sourceFunction("personalRecallSearchQuery", "buildPersonalRecallResult").replace(/\basync\s*$/u, "")}\n` +
     "return personalRecallSearchQuery;"
-  )();
+  );
+  const serverDetector = createServerDetector(
+    isAssistantHistoryRecallRequest
+  );
   const uiStart = ui.indexOf("function normalizeNoteSearchText");
   const uiEnd = ui.indexOf("function googleMapsDestinationFromMessage", uiStart);
   const clientDetector = new Function(
@@ -108,7 +116,33 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
       "geboren"
     ]
   );
+  assert.deepEqual(
+    termExtractor("hochzeitsfeier"),
+    [
+      "hochzeitsfeier",
+      "hochzeit",
+      "feier",
+      "feiern"
+    ]
+  );
+  assert.deepEqual(
+    termExtractor("saugroboter"),
+    [
+      "saugroboter",
+      "staubsaugerroboter",
+      "roboterstaubsauger",
+      "staubsauger"
+    ]
+  );
   assert.equal(clientDetector("Wie ist das Wetter in München?"), "");
+  assert.equal(
+    serverDetector("Was hast du uns gestern zum Essen empfohlen?"),
+    "was hast du uns gestern zum essen empfohlen"
+  );
+  assert.equal(
+    clientDetector("Was hast du uns gestern zum Essen empfohlen?"),
+    "was hast du uns gestern zum essen empfohlen"
+  );
   assert.match(server, /buildPersonalRecallResult\(\s*identity,\s*transcript/u);
   assert.match(server, /alwaysOn:\s*\n\s*true/u);
   assert.match(server, /recall:\s*\n\s*recallResult/u);
@@ -118,6 +152,9 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
   assert.match(server, /"eltern"[\s\S]*?"mutter"[\s\S]*?"vater"/u);
   assert.match(server, /explicitPersonalRecallQuery/u);
   assert.match(server, /memorySearchText/u);
+  assert.match(server, /matching_term_count DESC/u);
+  assert.match(server, /matching\.id - \$4::bigint/u);
+  assert.match(server, /matching\.id \+ \$4::bigint/u);
   assert.match(server, /create_response:\s*\n\s*!manualResponseRouting/u);
   assert.match(html, /manualResponseRouting:\s*\n\s*true/u);
   assert.match(html, /data\?\.recall\?\.contextAvailable/u);

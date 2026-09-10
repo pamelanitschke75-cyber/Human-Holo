@@ -99,6 +99,11 @@ test("Sprachtranskripte beider Rollen landen im Vollzeitgedächtnis", () => {
     /saveFulltimeMemory\(\s*role,\s*transcript/u
   );
   assert.match(liveRoute, /fulltimeSaved/u);
+  assert.match(
+    liveRoute,
+    /fulltimeStoredRoles:\s*\[\s*"user",\s*"assistant"\s*\]/u
+  );
+  assert.match(liveRoute, /alwaysOn:\s*\n\s*true/u);
 });
 
 test("privater Verlauf wird nur der signierten App-Sitzung paginiert geliefert", () => {
@@ -144,26 +149,37 @@ test("persönliche Rückfragen durchsuchen bestätigte und vollständige Histori
   );
 
   assert.match(searchRoute, /identityMemoryStore\.searchConfirmed/u);
-  assert.match(searchRoute, /loadRelevantOwnerFulltimeMemory/u);
+  assert.match(searchRoute, /loadRelevantOwnerRecallHistory/u);
+  assert.match(searchRoute, /assistantHistory/u);
+  assert.match(searchRoute, /contextualPersonalRecallSearch/u);
+  assert.match(server, /loadOwnerRelativeDayFulltimeRows/u);
+  assert.match(server, /AT TIME ZONE 'Europe\/Berlin'/u);
+  assert.match(server, /matching_term_count DESC/u);
+  assert.match(server, /latest_current_row/u);
   assert.match(
     server,
     /PASSENDE EINTRÄGE AUS BESTÄTIGTEN ERINNERUNGEN UND VOLLZEITGEDÄCHTNIS/u
   );
 });
 
-test("frühere Holo-Antworten gelten niemals als persönliche Fakten", () => {
+test("Holo-Antworten bleiben abrufbar, gelten aber niemals als persönliche Fakten", () => {
   assert.match(
     server,
     /function ownerGroundedPersonalMemoryRows[\s\S]*?row\?\.role === "user" \|\| row\?\.role === "memory"/u
   );
   assert.match(
     server,
-    /return ownerGroundedPersonalMemoryRows\(result\.rows\)\.filter/u
+    /return ownerGroundedPersonalMemoryRows\([\s\S]*?rows[\s\S]*?\)\.slice/u
   );
   assert.match(
     server,
     /Frühere Antworten der Assistenz sind niemals\nBelege/u
   );
+  assert.match(
+    server,
+    /Frühere Holo-Antworten \(nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten\)/u
+  );
+  assert.match(server, /row\?\.role ===\s*\n\s*"assistant"/u);
   assert.match(server, /jüngste Korrektur/u);
   assert.match(server, /standesamtliche Trauung von einer späteren Hochzeitsfeier/u);
 });

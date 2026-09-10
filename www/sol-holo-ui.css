@@ -1923,6 +1923,479 @@ body{
   font-size:10px;
 }
 
+/* Erinnerung & Vermächtnis – eigener, ownergebundener Hauptbereich */
+.memorialMemoryRow{
+  border-color:rgba(239,201,98,.28);
+}
+
+.memorialRowIcon svg{
+  width:24px;
+  height:24px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+}
+
+.memorialHeaderFlower{
+  display:grid;
+  width:42px;
+  height:42px;
+  place-items:center;
+  font-size:20px;
+  filter:drop-shadow(0 0 10px rgba(255,209,78,.46));
+}
+
+.memorialIntro{
+  margin:16px 0 12px;
+  padding:18px;
+}
+
+.memorialIntro h2{
+  margin:0;
+  color:#fff;
+  font-size:clamp(22px,6.5vw,30px);
+  line-height:1.08;
+  letter-spacing:-.035em;
+}
+
+.memorialIntro h2 strong{
+  display:block;
+  margin-top:3px;
+  color:#7de5ff;
+}
+
+.memorialIntro>p:last-child{
+  margin:11px 0 0;
+  color:#cbd5ef;
+  font-size:12px;
+  line-height:1.55;
+}
+
+.memorialBoundary{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  padding:15px;
+  border-color:rgba(255,211,96,.45);
+}
+
+.memorialBoundaryIcon{
+  display:grid;
+  width:46px;
+  height:46px;
+  place-items:center;
+  border:1px solid rgba(255,223,125,.52);
+  border-radius:15px;
+  color:#ffe397;
+  background:rgba(132,80,205,.28);
+  box-shadow:0 0 18px rgba(255,204,78,.2);
+  font-size:27px;
+}
+
+.memorialBoundary strong{
+  color:#fff3c8;
+  font-size:13px;
+}
+
+.memorialBoundary p{
+  margin:5px 0 0;
+  color:#e0e5f7;
+  font-size:11px;
+  line-height:1.52;
+}
+
+.memorialKinds{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0;
+}
+
+.memorialKind{
+  display:grid;
+  min-height:88px;
+  place-items:center;
+  align-content:center;
+  gap:7px;
+  padding:10px 7px;
+  text-align:center;
+}
+
+.memorialKind>span{
+  color:#8be7ff;
+  font-size:22px;
+  text-shadow:0 0 13px rgba(71,218,255,.5);
+}
+
+.memorialKind strong{
+  color:#f5f7ff;
+  font-size:10px;
+  line-height:1.3;
+}
+
+.memorialForm{
+  display:grid;
+  gap:13px;
+  margin-top:14px;
+  padding:16px;
+}
+
+.memorialFormHeading{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.memorialFormHeading>span{
+  display:grid;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  place-items:center;
+  border:1px solid rgba(183,211,255,.54);
+  border-radius:14px;
+  color:#9ceaff;
+  background:rgba(89,75,205,.3);
+  font-size:24px;
+}
+
+.memorialFormHeading h3{
+  margin:0 0 3px;
+  color:#fff;
+  font-size:15px;
+}
+
+.memorialFormHeading p{
+  margin:0;
+  color:#aebbd8;
+  font-size:10px;
+  line-height:1.4;
+}
+
+.memorialField{
+  display:grid;
+  gap:6px;
+}
+
+.memorialField>span{
+  color:#e3e6f7;
+  font-size:11px;
+  font-weight:700;
+}
+
+.memorialField small{
+  color:#a3aec8;
+  font-weight:400;
+}
+
+.memorialField :is(input,textarea){
+  width:100%;
+  padding:12px 13px;
+  border:1px solid rgba(186,211,255,.38);
+  border-radius:14px;
+  outline:none;
+  color:#fff;
+  background:rgba(11,18,77,.46);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  font:inherit;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.memorialField textarea{
+  min-height:112px;
+  resize:vertical;
+}
+
+.memorialField :is(input,textarea)::placeholder{
+  color:rgba(220,226,245,.58);
+}
+
+.memorialField :is(input,textarea):focus{
+  border-color:rgba(99,225,255,.78);
+  box-shadow:0 0 0 3px rgba(82,207,255,.14);
+}
+
+.memorialMediaPicker{
+  position:relative;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  align-items:center;
+  gap:11px;
+  min-height:70px;
+  padding:11px;
+  overflow:hidden;
+  border:1px dashed rgba(155,220,255,.62);
+  border-radius:16px;
+  color:#fff;
+  background:rgba(44,67,170,.28);
+  cursor:pointer;
+}
+
+.memorialMediaIcon{
+  display:grid;
+  width:40px;
+  height:40px;
+  place-items:center;
+  border:1px solid rgba(199,224,255,.48);
+  border-radius:13px;
+  color:#8fe9ff;
+  background:rgba(101,83,218,.32);
+  font-size:23px;
+}
+
+.memorialMediaPicker strong,
+.memorialMediaPicker small{
+  display:block;
+}
+
+.memorialMediaPicker strong{
+  font-size:11px;
+  line-height:1.35;
+}
+
+.memorialMediaPicker small{
+  margin-top:3px;
+  color:#a9b7d5;
+  font-size:9px;
+}
+
+.memorialMediaPicker input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
+
+.memorialMediaStatus{
+  margin:-7px 2px 0;
+  color:#aab7d3;
+  font-size:9px;
+}
+
+.memorialMediaStatus.error{
+  color:#ffd1d9;
+}
+
+.memorialConsent{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px;
+  border:1px solid rgba(255,216,110,.33);
+  border-radius:15px;
+  color:#e8eaf6;
+  background:rgba(91,63,147,.25);
+  font-size:10px;
+  line-height:1.48;
+}
+
+.memorialConsent input{
+  flex:0 0 auto;
+  width:20px;
+  height:20px;
+  margin:1px 0 0;
+  accent-color:#8e75ff;
+}
+
+.memorialOwnerNote{
+  margin:0;
+  color:#b8c5e1;
+  font-size:9px;
+  line-height:1.5;
+}
+
+.memorialForm>.primaryButton{
+  width:100%;
+  min-height:48px;
+  margin:0;
+  border-radius:15px;
+}
+
+.memorialForm>.primaryButton:disabled{
+  cursor:wait;
+  opacity:.66;
+}
+
+.memorialCollection{
+  padding:18px 0 8px;
+}
+
+.memorialCollectionHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 2px 11px;
+}
+
+.memorialCollectionHeader h3{
+  margin:0;
+  color:#fff;
+  font-size:14px;
+}
+
+#memorialCount{
+  display:grid;
+  min-width:30px;
+  height:26px;
+  place-items:center;
+  border:1px solid rgba(186,215,255,.44);
+  border-radius:999px;
+  color:#a8edff;
+  background:rgba(69,66,181,.36);
+  font-size:10px;
+}
+
+.memorialList{
+  display:grid;
+  gap:11px;
+}
+
+.memorialCard{
+  display:grid;
+  gap:12px;
+  padding:15px;
+}
+
+.memorialCardHeader,
+.memorialCardFooter{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.memorialCardHeader h3{
+  margin:0;
+  overflow-wrap:anywhere;
+  color:#fff;
+  font-size:15px;
+}
+
+.memorialCardHeader div>span{
+  display:block;
+  margin-top:3px;
+  color:#a9b7d5;
+  font-size:9px;
+}
+
+.memorialCardHeader time{
+  flex:0 0 auto;
+  color:#9ba9c8;
+  font-size:8px;
+}
+
+.memorialStory{
+  max-height:260px;
+  margin:0;
+  overflow:auto;
+  color:#e1e5f3;
+  font-size:12px;
+  line-height:1.58;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+}
+
+.memorialMediaGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+
+.memorialMediaGrid figure{
+  min-width:0;
+  margin:0;
+  overflow:hidden;
+  border:1px solid rgba(190,217,255,.35);
+  border-radius:14px;
+  background:rgba(5,12,55,.45);
+}
+
+.memorialMediaGrid :is(img,video){
+  display:block;
+  width:100%;
+  height:138px;
+  object-fit:cover;
+  background:#05071a;
+}
+
+.memorialMediaGrid audio{
+  display:block;
+  width:100%;
+  min-height:52px;
+}
+
+.memorialMediaGrid figure:has(audio){
+  grid-column:1 / -1;
+}
+
+.memorialMediaGrid figcaption{
+  padding:7px 8px;
+  overflow:hidden;
+  color:#b7c4df;
+  font-size:8px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.memorialCardFooter{
+  align-items:center;
+  padding-top:2px;
+}
+
+.memorialCardFooter>span{
+  max-width:70%;
+  color:#b9c8e6;
+  font-size:8px;
+  line-height:1.4;
+}
+
+.memorialCardFooter button{
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid rgba(239,151,168,.38);
+  border-radius:11px;
+  color:#ffd2da;
+  background:rgba(116,42,82,.25);
+  font:inherit;
+  font-size:9px;
+}
+
+.memorialEmpty{
+  display:grid;
+  min-height:150px;
+  place-items:center;
+  align-content:center;
+  gap:6px;
+  padding:24px;
+  text-align:center;
+}
+
+.memorialEmpty[hidden]{
+  display:none!important;
+}
+
+.memorialEmpty>span{
+  font-size:30px;
+}
+
+.memorialEmpty strong{
+  color:#fff;
+  font-size:13px;
+}
+
+.memorialEmpty p{
+  margin:0;
+  color:#b5c1db;
+  font-size:10px;
+  line-height:1.45;
+}
+
 /*
 ==========================================================
 GEMEINSAME BEDIENFREUNDLICHKEIT
@@ -3160,6 +3633,7 @@ body.voice-open #onboardingScreen{
 /* Einheitlicher Human-Holo-Stil fuer alle Bereiche hinter der Startseite. */
 #chatView,
 #memoryView,
+#memorialView,
 #servicesView,
 #profileView,
 #settingsView,
@@ -3173,6 +3647,7 @@ body.voice-open #onboardingScreen{
 
 #chatView::before,
 #memoryView::before,
+#memorialView::before,
 #servicesView::before,
 #profileView::before,
 #settingsView::before,
@@ -3193,6 +3668,7 @@ body.voice-open #onboardingScreen{
 
 #chatView>header,
 #memoryView .subHeader,
+#memorialView .subHeader,
 #servicesView .subHeader,
 #profileView .subHeader,
 #settingsView .subHeader,
@@ -3204,6 +3680,7 @@ body.voice-open #onboardingScreen{
 }
 
 #memoryView .subHeader,
+#memorialView .subHeader,
 #servicesView .subHeader,
 #profileView .subHeader,
 #settingsView .subHeader,
@@ -3215,6 +3692,7 @@ body.voice-open #onboardingScreen{
 }
 
 #memoryView .subHeaderTitle,
+#memorialView .subHeaderTitle,
 #servicesView .subHeaderTitle,
 #profileView .subHeaderTitle,
 #settingsView .subHeaderTitle,
@@ -3225,6 +3703,7 @@ body.voice-open #onboardingScreen{
 }
 
 #memoryView .iconButton,
+#memorialView .iconButton,
 #servicesView .iconButton,
 #profileView .iconButton,
 #settingsView .iconButton,
@@ -3235,7 +3714,7 @@ body.voice-open #onboardingScreen{
   box-shadow:0 0 10px rgba(74,211,255,.52),0 0 20px rgba(143,75,255,.35);
 }
 
-.appView:not(.humanHoloHome) :is(.glassCard,.actionRow,.serviceRow,.settingsGroup,.profileStatus,.noteCard){
+.appView:not(.humanHoloHome) :is(.glassCard,.actionRow,.serviceRow,.settingsGroup,.profileStatus,.noteCard,.memorialCard){
   border-color:rgba(200,224,255,.46);
   background:
     radial-gradient(circle at 28% 12%,rgba(255,255,255,.12),transparent 28%),
@@ -3248,12 +3727,12 @@ body.voice-open #onboardingScreen{
   backdrop-filter:blur(15px) saturate(1.22);
 }
 
-.appView:not(.humanHoloHome) :is(.featureHeadline,.profileName,.notesIntro h3,.settingsIntro h2){
+.appView:not(.humanHoloHome) :is(.featureHeadline,.profileName,.notesIntro h3,.settingsIntro h2,.memorialIntro h2){
   color:#fff;
   text-shadow:0 0 13px rgba(108,185,255,.46);
 }
 
-.appView:not(.humanHoloHome) :is(.featureCopy,.profileMeta,.notesIntro p,.settingsIntro p,.rowMeta,.permissionNote){
+.appView:not(.humanHoloHome) :is(.featureCopy,.profileMeta,.notesIntro p,.settingsIntro p,.rowMeta,.permissionNote,.memorialIntro p,.memorialOwnerNote){
   color:rgba(226,234,255,.76);
 }
 

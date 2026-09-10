@@ -206,6 +206,154 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     </footer>
   `;
 
+  const memoryActionList = document.querySelector("#memoryView .actionList");
+  memoryActionList?.insertAdjacentHTML(
+    "afterbegin",
+    `
+      <button id="memorialMemoryRow" class="actionRow memorialMemoryRow"
+        type="button" data-open-view="memorial">
+        <span class="rowIcon memorialRowIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="4.2"/>
+            <path d="M16 3.5v5M16 23.5v5M3.5 16h5M23.5 16h5M7.2 7.2l3.5 3.5M21.3 21.3l3.5 3.5M24.8 7.2l-3.5 3.5M10.7 21.3l-3.5 3.5"/>
+          </svg>
+        </span>
+        <span class="rowText">
+          <span class="rowTitle">Erinnerung &amp; Vermächtnis</span>
+          <span class="rowMeta">Fotos, Stimme, Geschichten und Lebensspuren bewahren</span>
+        </span>
+        <span class="rowChevron">›</span>
+      </button>
+    `
+  );
+
+  const memorialView = document.createElement("section");
+  memorialView.id = "memorialView";
+  memorialView.className = "appView";
+  memorialView.setAttribute("aria-labelledby", "memorialViewTitle");
+  memorialView.innerHTML = `
+    <div class="subHeader">
+      <button class="iconButton" type="button" data-open-view="memory"
+        aria-label="Zurück zu den Erinnerungen">‹</button>
+      <div id="memorialViewTitle" class="subHeaderTitle">Erinnerung &amp; Vermächtnis</div>
+      <span class="memorialHeaderFlower" aria-hidden="true">🌻</span>
+    </div>
+
+    <section class="memorialIntro glassCard" aria-labelledby="memorialIntroTitle">
+      <p class="eyebrow">Eigenständiger Human-Holo-Bereich</p>
+      <h2 id="memorialIntroTitle">Erinnerungen bewahren.<strong>Würde schützen.</strong></h2>
+      <p>
+        Bewahre Fotos, Videos, Sprachaufnahmen, Geschichten, Texte und
+        biografische Erinnerungen an einen verstorbenen Menschen respektvoll
+        und nur in deinem eigenen Human Holo.
+      </p>
+    </section>
+
+    <aside class="memorialBoundary glassCard" role="note"
+      aria-label="Verbindliche Identitätsgrenze">
+      <span class="memorialBoundaryIcon" aria-hidden="true">∞</span>
+      <div>
+        <strong>Klare und unverrückbare Grenze</strong>
+        <p>
+          Human Holo bewahrt Erinnerungen. Es behauptet niemals, der
+          verstorbene Mensch selbst zu sein, und erzeugt keine täuschende
+          Unterhaltung in dessen Namen.
+        </p>
+      </div>
+    </aside>
+
+    <div class="memorialKinds" aria-label="Bewahrbare Erinnerungsarten">
+      <div class="memorialKind glassCard">
+        <span aria-hidden="true">▧</span>
+        <strong>Fotos &amp; Videos</strong>
+      </div>
+      <div class="memorialKind glassCard">
+        <span aria-hidden="true">◉</span>
+        <strong>Stimme &amp; Texte</strong>
+      </div>
+      <div class="memorialKind glassCard">
+        <span aria-hidden="true">✦</span>
+        <strong>Geschichten &amp; Lebensspuren</strong>
+      </div>
+    </div>
+
+    <form id="memorialForm" class="memorialForm glassCard">
+      <div class="memorialFormHeading">
+        <span aria-hidden="true">＋</span>
+        <div>
+          <h3>Eine Erinnerung bewahren</h3>
+          <p>Erst nach deiner ausdrücklichen Bestätigung wird etwas gespeichert.</p>
+        </div>
+      </div>
+
+      <label class="memorialField" for="memorialPersonName">
+        <span>Name des Menschen</span>
+        <input id="memorialPersonName" name="personName" type="text"
+          maxlength="120" autocomplete="off" required
+          placeholder="An wen möchtest du erinnern?">
+      </label>
+
+      <label class="memorialField" for="memorialRelationship">
+        <span>Verbindung zu dir <small>(freiwillig)</small></span>
+        <input id="memorialRelationship" name="relationship" type="text"
+          maxlength="120" autocomplete="off"
+          placeholder="Zum Beispiel Familie, Freundschaft …">
+      </label>
+
+      <label class="memorialField" for="memorialStory">
+        <span>Geschichte oder Erinnerung</span>
+        <textarea id="memorialStory" name="story" maxlength="10000" rows="5"
+          placeholder="Was soll respektvoll bewahrt werden?"></textarea>
+      </label>
+
+      <label class="memorialMediaPicker" for="memorialMediaInput">
+        <span class="memorialMediaIcon" aria-hidden="true">＋</span>
+        <span>
+          <strong>Foto, Video oder Sprachaufnahme hinzufügen</strong>
+          <small>Bis zu 8 Dateien · je höchstens 20 MB</small>
+        </span>
+        <input id="memorialMediaInput" name="media" type="file" multiple
+          accept="image/*,audio/*,video/mp4,video/webm">
+      </label>
+      <p id="memorialMediaStatus" class="memorialMediaStatus" aria-live="polite">
+        Noch keine Datei ausgewählt.
+      </p>
+
+      <label class="memorialConsent" for="memorialRightsConfirmation">
+        <input id="memorialRightsConfirmation" name="rightsConfirmation"
+          type="checkbox" required>
+        <span>
+          Ich bestätige ausdrücklich, dass ich die nötigen Rechte und
+          Einwilligungen geprüft habe und diese Erinnerung respektvoll
+          bewahren darf.
+        </span>
+      </label>
+
+      <p class="memorialOwnerNote">
+        Die Inhalte bleiben lokal und ownergebunden in deinem persönlichen
+        Human Holo. Eine andere Human-Holo-Identität kann sie nicht laden.
+      </p>
+
+      <button id="memorialSaveButton" class="primaryButton" type="submit">
+        Erinnerung sicher anlegen
+      </button>
+    </form>
+
+    <section class="memorialCollection" aria-labelledby="memorialCollectionTitle">
+      <div class="memorialCollectionHeader">
+        <h3 id="memorialCollectionTitle">Bewahrte Erinnerungen</h3>
+        <span id="memorialCount">0</span>
+      </div>
+      <div id="memorialList" class="memorialList" aria-live="polite"></div>
+      <div id="memorialEmpty" class="memorialEmpty glassCard">
+        <span aria-hidden="true">🌻</span>
+        <strong>Noch keine Erinnerung angelegt.</strong>
+        <p>Du entscheidest bewusst, was hier einen geschützten Platz erhält.</p>
+      </div>
+    </section>
+  `;
+  solApp.insertBefore(memorialView, currentHeader);
+
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
     profileMemoryState.textContent = "Immer aktiv · updatefest";
@@ -540,6 +688,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     chat: chatView,
     notes: notesView,
     memory: document.getElementById("memoryView"),
+    memorial: memorialView,
     services: document.getElementById("servicesView"),
     profile: document.getElementById("profileView"),
     settings: document.getElementById("settingsView")
@@ -567,6 +716,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const unverifiedPamCloneMetadataQuarantineKey =
     "sol-holo:unassigned:clone-appearance:v2:quarantine-meta";
   const pamNotesStorageKey = "pams-holo-original-notes-v1";
+  const memorialDatabaseName = "human-holo-erinnerung-vermaechtnis-v1";
+  const memorialStoreName = "ownerMemories";
+  const memorialIdentityBoundary =
+    "Human Holo bewahrt Erinnerungen und behauptet niemals, " +
+    "der verstorbene Mensch selbst zu sein.";
+  const maxMemorialMediaFiles = 8;
+  const maxMemorialMediaBytes = 20 * 1024 * 1024;
+  const maxMemorialTotalBytes = 64 * 1024 * 1024;
   const onboarding = document.getElementById("onboardingScreen");
   const noteComposer = document.getElementById("noteComposer");
   const noteTextInput = document.getElementById("noteTextInput");
@@ -574,6 +731,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const notesList = document.getElementById("notesList");
   const notesEmpty = document.getElementById("notesEmpty");
   const notesCount = document.getElementById("notesCount");
+  const memorialForm = document.getElementById("memorialForm");
+  const memorialPersonName = document.getElementById("memorialPersonName");
+  const memorialRelationship = document.getElementById("memorialRelationship");
+  const memorialStory = document.getElementById("memorialStory");
+  const memorialMediaInput = document.getElementById("memorialMediaInput");
+  const memorialMediaStatus = document.getElementById("memorialMediaStatus");
+  const memorialRightsConfirmation = document.getElementById(
+    "memorialRightsConfirmation"
+  );
+  const memorialSaveButton = document.getElementById("memorialSaveButton");
+  const memorialList = document.getElementById("memorialList");
+  const memorialEmpty = document.getElementById("memorialEmpty");
+  const memorialCount = document.getElementById("memorialCount");
   const profilePhotoInput = document.getElementById("profilePhotoInput");
   const profilePhotoChangeButton = document.getElementById(
     "profilePhotoChangeButton"
@@ -611,6 +781,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   let pendingPersonalNoteText = false;
   let previousPlainUserMessage = "";
   let previousPlainUserMessageAt = 0;
+  let personalRecallAnchorQuery = "";
+  let personalRecallAnchorAt = 0;
   let lastPreparedSamsungNoteText = "";
   let lastPreparedSamsungNoteAt = 0;
   let customCloneMouth = {
@@ -673,6 +845,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   let noteImportRunning = false;
   let noteListenerRegistered = false;
   let personalNotes = [];
+  let memorialEntries = [];
+  let memorialLoadRunning = false;
+  const memorialObjectUrls = new Set();
 
   function activePersonalOwner() {
     return window.SolHoloIdentity?.selected()?.ownerId || "";
@@ -863,7 +1038,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Eure Text- und Sprachgespräche werden Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
+        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
     }
 
@@ -881,6 +1056,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       permissionCopy.textContent = identity
         ? `Euer Dialog bleibt automatisch in ${instanceName}s ownergebundenem Vollzeitgedächtnis. Zusätzliche Alltagsinhalte wie Listen speichert ${instanceName} auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung.`
         : "Die feste Holo-ID ist nicht verfügbar. Keine persönliche Verbindung wird geladen.";
+    }
+
+    const memorialOwnerNote = document.querySelector(
+      "#memorialView .memorialOwnerNote"
+    );
+    if (memorialOwnerNote) {
+      memorialOwnerNote.textContent = identity
+        ? `Die Inhalte bleiben lokal und ownergebunden in ${instanceName}. ` +
+          `Eine andere Human-Holo-Identität kann ${displayName}s bewahrte ` +
+          "Erinnerungen nicht laden."
+        : "Die feste Holo-ID ist nicht verfügbar. Der Erinnerungsbereich bleibt gesperrt.";
     }
 
     const settingsCopy = document.querySelector("#settingsView .settingsIntro p:last-child");
@@ -1176,6 +1362,475 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return "";
   }
 
+  function cleanMemorialText(value, maxLength) {
+    return String(value || "")
+      .replace(/\u0000/g, "")
+      .trim()
+      .slice(0, maxLength);
+  }
+
+  function validateMemorialMedia(fileList) {
+    const files = Array.from(fileList || []);
+    if (files.length > maxMemorialMediaFiles) {
+      return {
+        valid: false,
+        files: [],
+        error: `Bitte höchstens ${maxMemorialMediaFiles} Dateien auswählen.`
+      };
+    }
+
+    let totalBytes = 0;
+    for (const file of files) {
+      const type = String(file?.type || "").toLocaleLowerCase("de-DE");
+      const supported =
+        type.startsWith("image/") ||
+        type.startsWith("audio/") ||
+        type === "video/mp4" ||
+        type === "video/webm";
+
+      if (!supported) {
+        return {
+          valid: false,
+          files: [],
+          error: "Erlaubt sind Fotos, Sprachaufnahmen sowie MP4- und WebM-Videos."
+        };
+      }
+
+      const size = Number(file?.size || 0);
+      if (!Number.isFinite(size) || size <= 0 || size > maxMemorialMediaBytes) {
+        return {
+          valid: false,
+          files: [],
+          error: "Jede Datei muss lesbar und höchstens 20 MB groß sein."
+        };
+      }
+      totalBytes += size;
+    }
+
+    if (totalBytes > maxMemorialTotalBytes) {
+      return {
+        valid: false,
+        files: [],
+        error: "Die ausgewählten Dateien dürfen zusammen höchstens 64 MB groß sein."
+      };
+    }
+
+    return { valid: true, files, totalBytes, error: "" };
+  }
+
+  function openMemorialDatabase() {
+    return new Promise((resolve, reject) => {
+      if (!globalThis.indexedDB) {
+        reject(new Error("MEMORIAL_STORAGE_UNAVAILABLE"));
+        return;
+      }
+
+      const request = globalThis.indexedDB.open(memorialDatabaseName, 1);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        const store = database.objectStoreNames.contains(memorialStoreName)
+          ? request.transaction.objectStore(memorialStoreName)
+          : database.createObjectStore(memorialStoreName, {
+            keyPath: "storageId"
+          });
+        if (!store.indexNames.contains("ownerId")) {
+          store.createIndex("ownerId", "ownerId", { unique: false });
+        }
+      };
+      request.onerror = () => reject(
+        request.error || new Error("MEMORIAL_STORAGE_OPEN_FAILED")
+      );
+      request.onblocked = () => reject(new Error("MEMORIAL_STORAGE_BLOCKED"));
+      request.onsuccess = () => {
+        const database = request.result;
+        database.onversionchange = () => database.close();
+        resolve(database);
+      };
+    });
+  }
+
+  function memorialRequestResult(request) {
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(
+        request.error || new Error("MEMORIAL_STORAGE_REQUEST_FAILED")
+      );
+    });
+  }
+
+  function memorialTransactionDone(transaction) {
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(
+        transaction.error || new Error("MEMORIAL_STORAGE_TRANSACTION_FAILED")
+      );
+      transaction.onabort = () => reject(
+        transaction.error || new Error("MEMORIAL_STORAGE_TRANSACTION_ABORTED")
+      );
+    });
+  }
+
+  function normalizeMemorialEntry(entry, ownerId) {
+    if (
+      !entry ||
+      entry.ownerId !== ownerId ||
+      entry.rightsConfirmed !== true ||
+      entry.impersonationAllowed !== false ||
+      entry.identityBoundary !== memorialIdentityBoundary
+    ) {
+      return null;
+    }
+
+    const personName = cleanMemorialText(entry.personName, 120);
+    const story = cleanMemorialText(entry.story, 10_000);
+    const media = Array.isArray(entry.media)
+      ? entry.media
+        .filter((item) => item?.blob && item?.type && item?.name)
+        .slice(0, maxMemorialMediaFiles)
+      : [];
+    if (!personName || (!story && media.length === 0)) {
+      return null;
+    }
+
+    return {
+      storageId: String(entry.storageId || ""),
+      id: String(entry.id || ""),
+      ownerId,
+      personName,
+      relationship: cleanMemorialText(entry.relationship, 120),
+      story,
+      media,
+      rightsConfirmed: true,
+      rightsConfirmedAt: Number(entry.rightsConfirmedAt || 0),
+      identityBoundary: memorialIdentityBoundary,
+      impersonationAllowed: false,
+      createdAt: Number(entry.createdAt || Date.now()),
+      updatedAt: Number(entry.updatedAt || entry.createdAt || Date.now())
+    };
+  }
+
+  function releaseMemorialObjectUrls() {
+    for (const objectUrl of memorialObjectUrls) {
+      try {
+        URL.revokeObjectURL(objectUrl);
+      } catch {}
+    }
+    memorialObjectUrls.clear();
+  }
+
+  function memorialDateText(entry) {
+    try {
+      return new Intl.DateTimeFormat("de-DE", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(new Date(entry.updatedAt));
+    } catch {
+      return new Date(entry.updatedAt).toLocaleString("de-DE");
+    }
+  }
+
+  function memorialMediaElement(item) {
+    if (!globalThis.URL?.createObjectURL || !item?.blob) {
+      return null;
+    }
+
+    const objectUrl = URL.createObjectURL(item.blob);
+    memorialObjectUrls.add(objectUrl);
+    const type = String(item.type || "");
+    let mediaElement;
+    if (type.startsWith("image/")) {
+      mediaElement = document.createElement("img");
+      mediaElement.alt = `Bewahrtes Foto: ${cleanMemorialText(item.name, 160)}`;
+      mediaElement.loading = "lazy";
+    } else if (type.startsWith("audio/")) {
+      mediaElement = document.createElement("audio");
+      mediaElement.controls = true;
+      mediaElement.preload = "metadata";
+      mediaElement.setAttribute(
+        "aria-label",
+        `Bewahrte Sprachaufnahme: ${cleanMemorialText(item.name, 160)}`
+      );
+    } else {
+      mediaElement = document.createElement("video");
+      mediaElement.controls = true;
+      mediaElement.preload = "metadata";
+      mediaElement.setAttribute(
+        "aria-label",
+        `Bewahrtes Video: ${cleanMemorialText(item.name, 160)}`
+      );
+    }
+    mediaElement.src = objectUrl;
+    return mediaElement;
+  }
+
+  function renderMemorialEntries() {
+    releaseMemorialObjectUrls();
+    memorialList.replaceChildren();
+    memorialCount.textContent = String(memorialEntries.length);
+    memorialEmpty.hidden = memorialEntries.length > 0;
+
+    for (const entry of memorialEntries) {
+      const card = document.createElement("article");
+      card.className = "memorialCard glassCard";
+      card.dataset.memorialId = entry.id;
+
+      const header = document.createElement("div");
+      header.className = "memorialCardHeader";
+      const titleWrap = document.createElement("div");
+      const title = document.createElement("h3");
+      title.textContent = entry.personName;
+      titleWrap.append(title);
+      if (entry.relationship) {
+        const relationship = document.createElement("span");
+        relationship.textContent = entry.relationship;
+        titleWrap.append(relationship);
+      }
+      const date = document.createElement("time");
+      date.dateTime = new Date(entry.updatedAt).toISOString();
+      date.textContent = memorialDateText(entry);
+      header.append(titleWrap, date);
+      card.append(header);
+
+      if (entry.story) {
+        const story = document.createElement("p");
+        story.className = "memorialStory";
+        story.textContent = entry.story;
+        card.append(story);
+      }
+
+      if (entry.media.length) {
+        const mediaGrid = document.createElement("div");
+        mediaGrid.className = "memorialMediaGrid";
+        for (const item of entry.media) {
+          const figure = document.createElement("figure");
+          const mediaElement = memorialMediaElement(item);
+          if (!mediaElement) continue;
+          const caption = document.createElement("figcaption");
+          caption.textContent = cleanMemorialText(item.name, 160);
+          figure.append(mediaElement, caption);
+          mediaGrid.append(figure);
+        }
+        if (mediaGrid.childElementCount) {
+          card.append(mediaGrid);
+        }
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "memorialCardFooter";
+      const boundary = document.createElement("span");
+      boundary.textContent = "Digitale Erinnerungsform · keine Identitätssimulation";
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.dataset.memorialAction = "delete";
+      deleteButton.dataset.memorialId = entry.id;
+      deleteButton.textContent = "Löschen";
+      deleteButton.setAttribute(
+        "aria-label",
+        `Bewahrte Erinnerung an ${entry.personName} löschen`
+      );
+      footer.append(boundary, deleteButton);
+      card.append(footer);
+      memorialList.append(card);
+    }
+  }
+
+  async function loadMemorialEntries() {
+    if (memorialLoadRunning) return;
+    const identity = requireActivePersonalOwner();
+    if (!identity) {
+      memorialEntries = [];
+      renderMemorialEntries();
+      return;
+    }
+
+    memorialLoadRunning = true;
+    try {
+      const database = await openMemorialDatabase();
+      const transaction = database.transaction(memorialStoreName, "readonly");
+      const done = memorialTransactionDone(transaction);
+      const request = transaction
+        .objectStore(memorialStoreName)
+        .index("ownerId")
+        .getAll(identity.ownerId);
+      const records = await memorialRequestResult(request);
+      await done;
+      database.close();
+      memorialEntries = Array.isArray(records)
+        ? records
+          .map((entry) => normalizeMemorialEntry(entry, identity.ownerId))
+          .filter(Boolean)
+          .sort((left, right) => right.updatedAt - left.updatedAt)
+        : [];
+      renderMemorialEntries();
+    } catch (error) {
+      console.error(
+        "Erinnerung-und-Vermächtnis-Speicher laden:",
+        error?.name || "Fehler"
+      );
+      memorialEntries = [];
+      renderMemorialEntries();
+      showToast("Der geschützte lokale Erinnerungsbereich ist gerade nicht verfügbar.");
+    } finally {
+      memorialLoadRunning = false;
+    }
+  }
+
+  function renderMemorialMediaSelection() {
+    const result = validateMemorialMedia(memorialMediaInput.files);
+    memorialMediaInput.setCustomValidity(result.error);
+    if (!result.valid) {
+      memorialMediaStatus.textContent = result.error;
+      memorialMediaStatus.classList.add("error");
+      return result;
+    }
+
+    memorialMediaStatus.classList.remove("error");
+    if (!result.files.length) {
+      memorialMediaStatus.textContent = "Noch keine Datei ausgewählt.";
+      return result;
+    }
+
+    const sizeMegabytes = result.totalBytes / (1024 * 1024);
+    memorialMediaStatus.textContent =
+      `${result.files.length} ${result.files.length === 1 ? "Datei" : "Dateien"}` +
+      ` ausgewählt · ${sizeMegabytes.toLocaleString("de-DE", {
+        maximumFractionDigits: 1
+      })} MB`;
+    return result;
+  }
+
+  async function saveMemorialEntry() {
+    const identity = requireActivePersonalOwner();
+    if (!identity) return false;
+
+    const personName = cleanMemorialText(memorialPersonName.value, 120);
+    const relationship = cleanMemorialText(memorialRelationship.value, 120);
+    const story = cleanMemorialText(memorialStory.value, 10_000);
+    const mediaResult = renderMemorialMediaSelection();
+
+    if (!personName) {
+      memorialPersonName.setCustomValidity("Bitte den Namen des Menschen eintragen.");
+      memorialPersonName.reportValidity();
+      return false;
+    }
+    memorialPersonName.setCustomValidity("");
+
+    if (!story && mediaResult.files.length === 0) {
+      memorialStory.setCustomValidity(
+        "Bitte eine Geschichte eintragen oder mindestens eine Datei auswählen."
+      );
+      memorialStory.reportValidity();
+      return false;
+    }
+    memorialStory.setCustomValidity("");
+
+    if (!mediaResult.valid) {
+      memorialMediaInput.reportValidity();
+      return false;
+    }
+
+    const securityWarning = noteSecurityWarning(
+      `${personName}\n${relationship}\n${story}`
+    );
+    if (securityWarning) {
+      showToast(securityWarning);
+      return false;
+    }
+
+    if (!memorialRightsConfirmation.checked) {
+      memorialRightsConfirmation.setCustomValidity(
+        "Bitte Rechte und Einwilligungen ausdrücklich bestätigen."
+      );
+      memorialRightsConfirmation.reportValidity();
+      return false;
+    }
+    memorialRightsConfirmation.setCustomValidity("");
+
+    const now = Date.now();
+    const entryId = globalThis.crypto?.randomUUID?.() ||
+      `memorial-${now}-${Math.random().toString(36).slice(2, 10)}`;
+    const record = {
+      storageId: `${identity.ownerId}:${entryId}`,
+      id: entryId,
+      ownerId: identity.ownerId,
+      speakerId: identity.speakerId,
+      personName,
+      relationship,
+      story,
+      media: mediaResult.files.map((file, index) => ({
+        id: `${entryId}-media-${index + 1}`,
+        name: cleanMemorialText(file.name, 160) || `Datei ${index + 1}`,
+        type: String(file.type || "").toLocaleLowerCase("de-DE"),
+        size: Number(file.size),
+        lastModified: Number(file.lastModified || 0),
+        blob: file
+      })),
+      rightsConfirmed: true,
+      rightsConfirmedAt: now,
+      identityBoundary: memorialIdentityBoundary,
+      impersonationAllowed: false,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    memorialSaveButton.disabled = true;
+    memorialSaveButton.textContent = "Wird geschützt gespeichert …";
+    try {
+      const database = await openMemorialDatabase();
+      const transaction = database.transaction(memorialStoreName, "readwrite");
+      const done = memorialTransactionDone(transaction);
+      transaction.objectStore(memorialStoreName).put(record);
+      await done;
+      database.close();
+      memorialForm.reset();
+      renderMemorialMediaSelection();
+      await loadMemorialEntries();
+      showToast("Erinnerung ownergebunden und respektvoll bewahrt ✅️");
+      return true;
+    } catch (error) {
+      console.error(
+        "Erinnerung-und-Vermächtnis-Speicher schreiben:",
+        error?.name || "Fehler"
+      );
+      showToast("Die Erinnerung konnte nicht sicher gespeichert werden.");
+      return false;
+    } finally {
+      memorialSaveButton.disabled = false;
+      memorialSaveButton.textContent = "Erinnerung sicher anlegen";
+    }
+  }
+
+  async function deleteMemorialEntry(entryId) {
+    const identity = requireActivePersonalOwner();
+    const entry = memorialEntries.find((item) => item.id === entryId);
+    if (!identity || !entry || entry.ownerId !== identity.ownerId) return;
+
+    const confirmed = window.confirm(
+      `Die bewahrte Erinnerung an „${entry.personName}“ wirklich löschen?\n\n` +
+      "Dieser Schritt kann in der App nicht rückgängig gemacht werden."
+    );
+    if (!confirmed) return;
+
+    try {
+      const database = await openMemorialDatabase();
+      const transaction = database.transaction(memorialStoreName, "readwrite");
+      const done = memorialTransactionDone(transaction);
+      transaction
+        .objectStore(memorialStoreName)
+        .delete(`${identity.ownerId}:${entry.id}`);
+      await done;
+      database.close();
+      await loadMemorialEntries();
+      showToast("Bewahrte Erinnerung gelöscht.");
+    } catch (error) {
+      console.error(
+        "Erinnerung-und-Vermächtnis-Speicher löschen:",
+        error?.name || "Fehler"
+      );
+      showToast("Die Erinnerung konnte nicht sicher gelöscht werden.");
+    }
+  }
+
   function cleanExplicitSaveContent(value) {
     return String(value || "")
       .replace(/^[\s:,-]+|[\s.!?]+$/g, "")
@@ -1267,6 +1922,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     if (
+      /\b(?:empfohlen|vorgeschlagen|geraten|gesagt|erzahlt|geschrieben|geantwortet|gemeint|ausgesucht)\b/u.test(text) &&
+      (
+        /\b(?:du|ihr|sie|sol|holo|assistenz)\b/u.test(text) ||
+        /\bdein(?:e|er|en|em|es)?\s+(?:antwort|empfehlung|vorschlag)\b/u.test(text)
+      )
+    ) {
+      return text.slice(0, 240);
+    }
+
+    if (
       /^(?:was|wie|wann|wo|welch\w*|wer)\b/u.test(text) &&
       /\b(?:mein(?:e|er|en|em|es)?|unser(?:e|er|en|em|es)?)\b/u.test(text)
     ) {
@@ -1280,6 +1945,61 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return text.slice(0, 240);
     }
 
+    return "";
+  }
+
+  function personalRecallFollowUpKindFromMessage(value) {
+    const text = normalizeNoteSearchText(stripHoloInvocation(value))
+      .replace(/[?!.,;:]+$/u, "")
+      .replace(/\s+/gu, " ")
+      .trim();
+    if (!text || text.length > 64) return "";
+
+    const patterns = [
+      [
+        "place",
+        /^(?:und\s+)?(?:wo(?:\s+genau)?|an\s+welchem\s+ort)(?:\s+(?:ist|war)\s+(?:das|es))?$/u
+      ],
+      [
+        "time",
+        /^(?:und\s+)?(?:wann(?:\s+genau)?|an\s+welchem\s+tag|zu\s+welchem\s+datum)(?:\s+(?:ist|war)\s+(?:das|es))?$/u
+      ],
+      [
+        "person",
+        /^(?:und\s+)?wer(?:\s+genau)?(?:\s+(?:ist|war)\s+(?:das|es))?$/u
+      ],
+      [
+        "detail",
+        /^(?:und\s+)?(?:wie(?:\s+genau)?|was(?:\s+noch)?)(?:\s+(?:ist|war)\s+(?:das|es))?$/u
+      ]
+    ];
+
+    for (const [kind, pattern] of patterns) {
+      if (pattern.test(text)) return kind;
+    }
+    return "";
+  }
+
+  function contextualPersonalRecallQueryFromMessage(value) {
+    const directQuery = personalRecallQueryFromMessage(value);
+    if (directQuery) {
+      personalRecallAnchorQuery = directQuery;
+      personalRecallAnchorAt = Date.now();
+      return directQuery;
+    }
+
+    const followUpKind = personalRecallFollowUpKindFromMessage(value);
+    const hasRecentAnchor =
+      personalRecallAnchorQuery &&
+      Date.now() - personalRecallAnchorAt <= 10 * 60 * 1000;
+    if (followUpKind && hasRecentAnchor) {
+      return personalRecallAnchorQuery;
+    }
+
+    if (String(value || "").trim() && !followUpKind) {
+      personalRecallAnchorQuery = "";
+      personalRecallAnchorAt = 0;
+    }
     return "";
   }
 
@@ -2415,7 +3135,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     solApp.dataset.activeView = activeViewName;
 
     const activeNavView =
-      activeViewName === "settings" ? "profile" : activeViewName;
+      activeViewName === "settings"
+        ? "profile"
+        : activeViewName === "memorial"
+          ? "memory"
+          : activeViewName;
 
     currentBottomNav.querySelectorAll(".navItem").forEach((button) => {
       const isActive = button.dataset.view === activeNavView;
@@ -2446,6 +3170,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (viewName === "notes") {
       renderPersonalNotes();
+    }
+
+    if (viewName === "memorial") {
+      void loadMemorialEntries();
     }
 
     if (viewName === "chat" && typeof updateMouthGeometry === "function") {
@@ -4315,11 +5043,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.extractSolHoloPersonalRecallQuery =
     personalRecallQueryFromMessage;
   window.isSolHoloPersonalRecallRequest =
-    (message) => Boolean(personalRecallQueryFromMessage(message));
+    (message) => Boolean(contextualPersonalRecallQueryFromMessage(message));
 
   window.handleSolHoloLocalAction = async (message) => {
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
+
+    contextualPersonalRecallQueryFromMessage(
+      noteMessage
+    );
 
     const alarmRequest = alarmClockRequestFromMessage(noteMessage);
     if (alarmRequest) {
@@ -4663,7 +5395,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (
       calendarWriteDestinationFromMessage(noteMessage) ||
       liveWeatherRequestFromMessage(noteMessage) ||
-      personalRecallQueryFromMessage(noteMessage)
+      contextualPersonalRecallQueryFromMessage(noteMessage)
     ) {
       return { handled: false };
     }
@@ -5193,6 +5925,35 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   });
 
+  memorialPersonName.addEventListener("input", () => {
+    memorialPersonName.setCustomValidity("");
+  });
+
+  memorialStory.addEventListener("input", () => {
+    memorialStory.setCustomValidity("");
+  });
+
+  memorialRightsConfirmation.addEventListener("change", () => {
+    memorialRightsConfirmation.setCustomValidity("");
+  });
+
+  memorialMediaInput.addEventListener("change", () => {
+    renderMemorialMediaSelection();
+  });
+
+  memorialForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void saveMemorialEntry();
+  });
+
+  memorialList.addEventListener("click", (event) => {
+    const actionButton = event.target.closest("[data-memorial-action]");
+    if (!actionButton) return;
+    if (actionButton.dataset.memorialAction === "delete") {
+      void deleteMemorialEntry(actionButton.dataset.memorialId);
+    }
+  });
+
   document.getElementById("notesVoiceButton").addEventListener("click", () => {
     void startSolVoice();
   });
@@ -5507,6 +6268,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     renderPersonalIdentityUi();
     loadPersonalNotes();
     renderPersonalNotes("");
+    memorialEntries = [];
+    renderMemorialEntries();
+    if (views.memorial.classList.contains("active")) {
+      void loadMemorialEntries();
+    }
     restoreCustomCloneAppearance();
     void loadGoogleStatus();
     void loadSmartThingsStatus();
@@ -5519,6 +6285,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   loadPersonalNotes();
   renderPersonalNotes();
+  renderMemorialMediaSelection();
+  renderMemorialEntries();
   renderPersonalIdentityUi();
   restoreCustomCloneAppearance();
   document.querySelectorAll(".pamUnicorn, #chatUnicornSignature").forEach(

@@ -191,13 +191,16 @@ Human Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Info
 
 ## Vollzeitgedächtnis
 
-Ziel von Human Holo ist ein persönliches **Vollzeitgedächtnis**.
+Human Holo besitzt ein persönliches, ownergebundenes
+**Always-on-Vollzeitgedächtnis**.
 
 Der Nutzer soll nicht jedes Mal ausdrücklich sagen müssen:
 
 > „Merke dir das.“
 
-Persönlich relevante Interaktionen sollen grundsätzlich für die weitere Entwicklung des eigenen Human-Holo-Clones verwendet werden können.
+Die Nachrichten der Nutzerin und die Antworten ihres Holos werden bei Text und
+transkribierter Sprache Wort für Wort gespeichert. Bestätigte persönliche
+Erinnerungen bleiben davon als eigener, strengerer Bereich getrennt.
 
 Dabei muss weiterhin technisch sichergestellt werden:
 
@@ -207,9 +210,15 @@ Dabei muss weiterhin technisch sichergestellt werden:
 - dass keine Erinnerungen erfunden werden
 - dass langfristige Erinnerungen zuverlässig abrufbar bleiben
 
-Die grundlegende Speicher- und Abruffunktion wurde erfolgreich getestet.
+Die grundlegende Speicher- und Abruffunktion wurde automatisiert getestet.
+Kurze Folgefragen, benachbarte Gesprächsteile und ausdrücklich erfragte frühere
+Holo-Empfehlungen sind in den Abrufweg eingebunden. Frühere Holo-Antworten
+bleiben dabei als Gesprächsverlauf gekennzeichnet und gelten niemals als
+bestätigte persönliche Fakten.
 
 Die vollständige Langzeitstabilität und die zuverlässige Verarbeitung einer großen Menge historischer Erinnerungen werden weiter getestet und optimiert.
+
+Details: [Build 270 – Always-on-Gedächtnis und Gesprächskontext](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md)
 
 ---
 

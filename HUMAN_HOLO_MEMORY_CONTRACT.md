@@ -4,6 +4,10 @@ Dieser Vertrag gilt für alle künftigen Human-Holo-Versionen.
 
 ## Always-on bleibt bestehen
 
+- Textnachrichten und Sprachtranskripte der Nutzerin sowie die Antworten ihres
+  Holos werden Wort für Wort im ownergebundenen Vollzeitverlauf gespeichert.
+  Frühere Holo-Antworten bleiben als Gesprächsverlauf gekennzeichnet und werden
+  nicht zu bestätigten persönlichen Fakten umgedeutet.
 - Das Vollzeitgedächtnis bleibt bei App-, Design-, Namens-, Funktions-,
   Server-, Datenbank- und Migrationsänderungen erhalten.
 - Speicheränderungen sind additiv und idempotent. Eine neue Version darf

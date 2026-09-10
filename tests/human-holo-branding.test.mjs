@@ -40,7 +40,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=63/u);
+  assert.match(html, /sol-holo-ui\.js\?v=65/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
@@ -60,9 +60,9 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   );
   assert.match(css, /#homeView\.humanHoloHome\{/u);
   assert.match(css, /\.humanHoloAreaGrid\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
-  assert.match(html, /human-holo-theme\.css\?v=7/u);
+  assert.match(html, /human-holo-theme\.css\?v=8/u);
   assert.ok(
-    html.indexOf("human-holo-theme.css?v=7") >
+    html.indexOf("human-holo-theme.css?v=8") >
       html.indexOf("sol-holo-backup.css?v=2")
   );
   assert.match(ui, /<img src="human-holo-home-hero\.png"/u);
@@ -130,6 +130,7 @@ test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
   for (const view of [
     "chatView",
     "memoryView",
+    "memorialView",
     "servicesView",
     "profileView",
     "settingsView",
@@ -139,7 +140,7 @@ test("alle App-Bereiche verwenden denselben Human-Holo-Glasstil", () => {
   }
 
   assert.match(css, /Einheitlicher Human-Holo-Stil fuer alle Bereiche/u);
-  assert.match(css, /\.appView:not\(\.humanHoloHome\) :is\(\.glassCard,\.actionRow,\.serviceRow,\.settingsGroup,\.profileStatus,\.noteCard\)/u);
+  assert.match(css, /\.appView:not\(\.humanHoloHome\) :is\(\.glassCard,\.actionRow,\.serviceRow,\.settingsGroup,\.profileStatus,\.noteCard,\.memorialCard\)/u);
   assert.match(theme, /HUMAN HOLO · EINHEITLICHE GLASOPTIK/u);
   assert.match(theme, /#app:not\(\.voice-mode\) #chatView #chatPanel/u);
   assert.match(theme, /#app:not\(\.voice-mode\) #chatView #messageWrap/u);
