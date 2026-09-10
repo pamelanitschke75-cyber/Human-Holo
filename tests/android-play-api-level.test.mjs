@@ -5,7 +5,8 @@ import test from "node:test";
 const workflow = readFileSync(".github/workflows/android-build.yml", "utf8");
 
 test("der Play-Build verwendet Android 16 mit Ziel-API 36", () => {
-  assert.match(workflow, /sdkmanager "platforms;android-36"/u);
+  assert.match(workflow, /cmdline-tools\/latest\/bin\/sdkmanager/u);
+  assert.match(workflow, /"\$sdk_manager" "platforms;android-36"/u);
   assert.match(workflow, /compileSdkVersion[\s\S]*?= 36/u);
   assert.match(workflow, /targetSdkVersion[\s\S]*?= 36/u);
   assert.match(workflow, /com\.android\.tools\.build:gradle:8\.10\.1/u);
