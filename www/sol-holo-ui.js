@@ -141,7 +141,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </span>
     </button>
 
-    <button id="homeImportantButton" class="humanHoloImportantCard glassCard"
+    <button id="homeImportantButton" class="humanHoloImportantCard"
       type="button" data-open-view="notes"
       aria-label="Wichtiges mit Kalender, Einkaufsliste und Notizen öffnen">
       <span class="humanHoloImportantIcon" aria-hidden="true">★</span>
