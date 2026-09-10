@@ -66,10 +66,15 @@ test("Sicherung verwendet eine Positivliste und schließt Geheimnisse/Biometrie 
   assert.equal(snapshot.data.preferences.selectedVoice, "coral");
   assert.doesNotMatch(serialized, /GEHEIM|PRIVATE_KEY_METADATA|TOKEN|biometric/u);
   assert.deepEqual(Object.keys(snapshot.data).sort(), [
+    "animalHolos",
     "notes",
     "pendingDialogs",
     "preferences"
   ]);
+  assert.deepEqual(
+    snapshot.data.animalHolos.profiles.map((profile) => profile.name),
+    ["Salt", "Pepper", "Tina"]
+  );
 });
 
 test("AES-GCM-Sicherung lässt sich nur unverändert mit dem Passwort öffnen", async () => {

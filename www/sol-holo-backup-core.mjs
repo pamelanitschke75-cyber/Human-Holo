@@ -1,3 +1,10 @@
+import {
+  ANIMAL_HOLO_STORAGE_KEY,
+  mergeAnimalHoloStates,
+  normalizeAnimalHoloState,
+  serializeAnimalHoloState
+} from "./human-holo-animal-core.mjs";
+
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
 
@@ -12,6 +19,7 @@ export const BACKUP_MIN_PASSWORD_LENGTH = 12;
 export const BACKUP_STORAGE_KEYS = Object.freeze({
   notes: "pams-holo-original-notes-v1",
   pendingDialogs: "sol-holo-fulltime-pending-v1",
+  animalHolos: ANIMAL_HOLO_STORAGE_KEY,
   selectedVoice: "sol-holo-realtime-voice-v1",
   introSeen: "sol-holo-intro-v2-seen"
 });
@@ -21,6 +29,7 @@ export const EXCLUDED_BACKUP_CATEGORIES = Object.freeze([
   "Passwörter, Tokens und Sitzungen",
   "Stimmprofile und Sprecher-Embeddings",
   "Fotos, Gesichtsdaten und Original-Full-Sync-Geometrie",
+  "Tierfotos, Tierstimmen und nicht ausdrücklich freigegebene Tiermedien",
   "nicht eindeutig zugeordnete Quarantänedaten"
 ]);
 
@@ -123,6 +132,10 @@ export function createBackupSnapshot(storage, now = new Date()) {
   const pendingDialogs = normalizePendingDialogs(
     readStorage(storage, BACKUP_STORAGE_KEYS.pendingDialogs)
   );
+  const animalHolos = normalizeAnimalHoloState(
+    readStorage(storage, BACKUP_STORAGE_KEYS.animalHolos),
+    { ownerId: BACKUP_OWNER_ID }
+  );
   const selectedVoice = cleanText(
     readStorage(storage, BACKUP_STORAGE_KEYS.selectedVoice),
     40
@@ -138,6 +151,7 @@ export function createBackupSnapshot(storage, now = new Date()) {
     data: {
       notes,
       pendingDialogs,
+      animalHolos,
       preferences: {
         introSeen,
         selectedVoice: ALLOWED_VOICES.has(selectedVoice)
@@ -170,6 +184,9 @@ export function validateBackupSnapshot(snapshot) {
     data: {
       notes: normalizeNotes(snapshot.data?.notes),
       pendingDialogs: normalizePendingDialogs(snapshot.data?.pendingDialogs),
+      animalHolos: normalizeAnimalHoloState(snapshot.data?.animalHolos, {
+        ownerId: BACKUP_OWNER_ID
+      }),
       preferences: {
         introSeen: snapshot.data?.preferences?.introSeen === true,
         selectedVoice: ALLOWED_VOICES.has(
@@ -398,6 +415,11 @@ export function planBackupRestore(storage, snapshot) {
     readStorage(storage, BACKUP_STORAGE_KEYS.pendingDialogs),
     validated.data.pendingDialogs
   );
+  const animalHolos = mergeAnimalHoloStates(
+    readStorage(storage, BACKUP_STORAGE_KEYS.animalHolos),
+    validated.data.animalHolos,
+    { ownerId: BACKUP_OWNER_ID }
+  );
   const writes = new Map();
   if (notes.values.length) {
     writes.set(BACKUP_STORAGE_KEYS.notes, JSON.stringify(notes.values));
@@ -408,6 +430,10 @@ export function planBackupRestore(storage, snapshot) {
       JSON.stringify(pendingDialogs.values)
     );
   }
+  writes.set(
+    BACKUP_STORAGE_KEYS.animalHolos,
+    serializeAnimalHoloState(animalHolos.state)
+  );
   writes.set(
     BACKUP_STORAGE_KEYS.selectedVoice,
     validated.data.preferences.selectedVoice
@@ -427,6 +453,9 @@ export function planBackupRestore(storage, snapshot) {
       notesSkipped: notes.skipped,
       pendingAdded: pendingDialogs.added,
       pendingSkipped: pendingDialogs.skipped,
+      animalProfilesAdded: animalHolos.profilesAdded,
+      animalObservationsAdded: animalHolos.observationsAdded,
+      animalObservationsSkipped: animalHolos.observationsSkipped,
       settingsRestored: 2
     }
   };
