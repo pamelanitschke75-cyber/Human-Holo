@@ -171,7 +171,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         <span>Umwelt</span>
       </button>
       <button class="humanHoloAreaCard humanHoloAreaCard--health" type="button"
-        data-sol-prompt="Ich möchte zum Bereich Gesundheit. Hilf mir dort bitte weiter.">
+        data-open-view="medication">
         <span class="humanHoloAreaIcon" aria-hidden="true">
           <svg viewBox="0 0 32 32"><path d="M16 27S5.5 21 5.5 13.4A6 6 0 0 1 16 9.5a6 6 0 0 1 10.5 3.9C26.5 21 16 27 16 27Z"/><path d="M8.5 17h4l2-4 3.2 8 2.2-4H24"/></svg>
         </span>
@@ -353,6 +353,132 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     </section>
   `;
   solApp.insertBefore(memorialView, currentHeader);
+
+  const medicationView = document.createElement("section");
+  medicationView.id = "medicationView";
+  medicationView.className = "appView";
+  medicationView.setAttribute("aria-labelledby", "medicationViewTitle");
+  medicationView.innerHTML = `
+    <div class="subHeader">
+      <button class="iconButton" type="button" data-open-view="home"
+        aria-label="Zurück zur Startseite">‹</button>
+      <div id="medicationViewTitle" class="subHeaderTitle">Gesundheit</div>
+      <span class="medicationHeaderIcon" aria-hidden="true">✚</span>
+    </div>
+
+    <section class="healthSelfCareIntro glassCard" aria-labelledby="healthSelfCareTitle">
+      <p class="eyebrow">Gesundheitsbegleitung · Hilfe für zu Hause</p>
+      <h2 id="healthSelfCareTitle">Leichte Beschwerden.<strong>Kleine Verletzungen.</strong></h2>
+      <p>
+        Beschreibe Pam’s Holo per Text oder Sprache, was los ist. Bei zum
+        Beispiel milden Halsschmerzen oder einer kleinen oberflächlichen
+        Schnittwunde nennt Holo vorsichtige Schritte für zu Hause und sagt dir,
+        auf welche Warnzeichen du achten musst.
+      </p>
+      <ul class="healthSelfCareExamples">
+        <li>konkrete, schonende Selbsthilfe statt pauschalem Arztverweis</li>
+        <li>bei dringend, aber nicht lebensbedrohlich: 116117</li>
+        <li>bei möglicher Lebensgefahr oder bleibenden Schäden: 112</li>
+      </ul>
+      <p class="healthSelfCareBoundary">
+        Keine Diagnose und keine garantierte Entwarnung. Keine Wunddiagnose per
+        Foto. Kein Alkohol für Jugendliche oder als Hausmittel, keine
+        Zigaretten, Vapes, sonstigen Nikotinprodukte, Drogen oder Waffen.
+      </p>
+      <aside class="healthSelfCareDisclosure" role="note">
+        Deine Beschreibung wird zur Antwort an <strong>ChatGPT/OpenAI</strong>
+        übertragen. Frage und Antwort bleiben wie deine übrigen Gespräche
+        ausschließlich ownergebunden in Pam’s Holos Vollzeitgedächtnis.
+      </aside>
+      <button id="healthSelfCareButton" class="primaryButton" type="button">
+        Hinweis verstanden &amp; Beschwerden schildern
+      </button>
+      <a class="healthSelfCarePrivacyLink"
+        href="./datenschutz-gesundheitsbegleitung.html" target="_blank"
+        rel="noopener noreferrer">Datenschutz &amp; Grenzen ansehen</a>
+    </section>
+
+    <details class="humanHoloNoGoCard glassCard">
+      <summary>Unverrückbare Human-Holo-No-Gos</summary>
+      <ul>
+        <li>Menschenhandel und Kinderhandel</li>
+        <li>Prostitution, Vermittlung oder Werbung sexueller Dienstleistungen</li>
+        <li>Todesstrafe und jede Unterstützung von Hinrichtungen</li>
+        <li>Rache, Vergeltung und Selbstjustiz</li>
+        <li>Waffen, Munition und alles zu Beschaffung oder Einsatz</li>
+        <li>Drogen sowie Zigaretten, Vapes und sonstige Nikotinprodukte</li>
+        <li>Tierhandel</li>
+      </ul>
+      <p>
+        Betroffene bekommen immer Schutz- und Ausstiegshilfe. In akuter Gefahr
+        nennt Holo zuerst 110 beziehungsweise 112.
+      </p>
+    </details>
+
+    <section class="medicationIntro glassCard" aria-labelledby="medicationIntroTitle">
+      <p class="eyebrow">Gesundheitsfunktion · Medikamentenerkennung</p>
+      <h2 id="medicationIntroTitle">Verpackung zeigen.<strong>Angaben sicher lesen.</strong></h2>
+      <p>
+        Pam’s Holo kann ein von dir ausgewähltes Foto einer bedruckten
+        Originalverpackung oder eines beschrifteten Blisters auslesen.
+      </p>
+    </section>
+
+    <aside class="medicationDisclosure glassCard" role="note"
+      aria-labelledby="medicationDisclosureTitle">
+      <span class="medicationDisclosureIcon" aria-hidden="true">☝️</span>
+      <div>
+        <strong id="medicationDisclosureTitle">Vor dem Foto: deine ausdrückliche Freigabe</strong>
+        <p>
+          Das ausgewählte Foto wird einmalig zur Bilderkennung an
+          <strong>ChatGPT/OpenAI</strong> übertragen. Human Holo übernimmt die
+          Bilddatei selbst nicht in dein Vollzeitgedächtnis. Wie bisher bleiben
+          dort dein Nachrichtentext, der Hinweis „Foto gesendet“ und Pam’s Holos
+          Antwort ownergebunden gespeichert.
+        </p>
+      </div>
+    </aside>
+
+    <section class="medicationLimits glassCard" aria-labelledby="medicationLimitsTitle">
+      <h3 id="medicationLimitsTitle">Was Pam’s Holo dabei darf</h3>
+      <ul>
+        <li>Medikamentenname, Wirkstoff und Wirkstärke ablesen</li>
+        <li>Darreichungsform, Packungsgröße, Hersteller und Verfallsdatum nennen</li>
+        <li>Unsicherheit sichtbar kennzeichnen</li>
+      </ul>
+      <h3>Feste Sicherheitsgrenzen</h3>
+      <ul>
+        <li>Keine lose Tablette oder Kapsel nach Farbe, Form oder Prägung bestimmen</li>
+        <li>Keine persönliche Dosierung, Einnahme oder Behandlungsentscheidung festlegen</li>
+        <li>Keine Diagnose stellen und nichts als sicher ausgeben, was nicht eindeutig lesbar ist</li>
+      </ul>
+    </section>
+
+    <p class="medicationMedicalNotice" role="note">
+      Human Holo ist kein Medizinprodukt. Die Funktion diagnostiziert,
+      behandelt, heilt oder verhindert keine Krankheit und ersetzt keine
+      individuelle Untersuchung oder ärztliche Beratung. Bei medizinischen
+      Entscheidungen bitte immer medizinisches Fachpersonal fragen.
+      <a href="./datenschutz-medikamentenerkennung.html" target="_blank"
+        rel="noopener noreferrer">Datenschutz dieser Funktion ansehen</a>
+    </p>
+
+    <div class="medicationConsentActions" aria-label="Medikamentenerkennung freigeben">
+      <button id="medicationCameraButton" class="primaryButton" type="button">
+        Zustimmen &amp; Kamera öffnen
+      </button>
+      <button id="medicationGalleryButton" class="secondaryButton" type="button">
+        Zustimmen &amp; Foto auswählen
+      </button>
+      <input id="medicationGalleryInput" type="file" accept="image/*" hidden>
+    </div>
+
+    <button id="medicationGeneralHealthButton" class="medicationGeneralHealthButton"
+      type="button">
+      Andere Gesundheitsfrage stellen <span aria-hidden="true">→</span>
+    </button>
+  `;
+  solApp.insertBefore(medicationView, currentHeader);
 
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
@@ -689,6 +815,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     notes: notesView,
     memory: document.getElementById("memoryView"),
     memorial: memorialView,
+    medication: medicationView,
     services: document.getElementById("servicesView"),
     profile: document.getElementById("profileView"),
     settings: document.getElementById("settingsView")
@@ -724,6 +851,20 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const maxMemorialMediaFiles = 8;
   const maxMemorialMediaBytes = 20 * 1024 * 1024;
   const maxMemorialTotalBytes = 64 * 1024 * 1024;
+  const medicationRecognitionPrompt =
+    "Bitte erkenne diese Medikamentenverpackung oder diesen beschrifteten Blister und lies nur die eindeutig sichtbaren Packungsangaben vor.";
+  const healthSelfCarePrompt =
+    "Ich möchte sichere Hilfe für zu Hause bei einer leichten Beschwerde oder kleinen Verletzung. Bitte frage mich zuerst, was los ist, und prüfe die entscheidenden Warnzeichen.";
+  const medicationRecognitionDisclosure =
+    "Gesundheitsfunktion · Medikamentenerkennung\n\n" +
+    "Das ausgewählte Foto wird einmalig zur Bilderkennung an ChatGPT/OpenAI übertragen. Human Holo speichert die Bilddatei selbst nicht im Vollzeitgedächtnis; dein Nachrichtentext, der Hinweis ‚Foto gesendet‘ und Pam’s Holos Antwort bleiben dort ownergebunden gespeichert.\n\n" +
+    "Human Holo ist kein Medizinprodukt. Es gibt keine persönliche Dosierung, Einnahme, Diagnose oder Behandlung vor. Lose Tabletten oder Kapseln werden nicht anhand von Farbe, Form oder Prägung bestimmt.\n\n" +
+    "Möchtest du dieses eine Foto jetzt freigeben?";
+  const medicationRecognitionPattern =
+    /\b(?:arznei(?:mittel)?|beipackzettel|blister|kapseln?|medikament[\p{L}-]*|packungsbeilage|pillen?|tabletten?|wirkstoff|wirkstärke)\b/iu;
+  const medicationRecognitionActionPattern =
+    /\b(?:auslesen|erkenn(?:e|en|st|t)?|identifizieren|lies|lesen|prüfen|sag(?:en)?|welche[rs]?|was\s+ist|zeig(?:en)?)\b/iu;
+  let medicationConsentExpiresAt = 0;
   const onboarding = document.getElementById("onboardingScreen");
   const noteComposer = document.getElementById("noteComposer");
   const noteTextInput = document.getElementById("noteTextInput");
@@ -3139,6 +3280,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ? "profile"
         : activeViewName === "memorial"
           ? "memory"
+          : activeViewName === "medication"
+            ? "home"
           : activeViewName;
 
     currentBottomNav.querySelectorAll(".navItem").forEach((button) => {
@@ -3207,6 +3350,66 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       await sendMessage();
     }
   }
+
+  function isMedicationImageRequest(message, hasImage) {
+    const cleanMessage = String(message || "").trim();
+    return Boolean(
+      hasImage &&
+      medicationRecognitionPattern.test(cleanMessage) &&
+      medicationRecognitionActionPattern.test(cleanMessage)
+    );
+  }
+
+  function grantMedicationConsentForNextPhoto() {
+    medicationConsentExpiresAt = Date.now() + 5 * 60 * 1000;
+  }
+
+  function authorizeMedicationRecognition({ message, hasImage }) {
+    if (!isMedicationImageRequest(message, hasImage)) {
+      return {
+        required: false,
+        granted: false
+      };
+    }
+
+    if (Date.now() <= medicationConsentExpiresAt) {
+      medicationConsentExpiresAt = 0;
+      return {
+        required: true,
+        granted: true
+      };
+    }
+
+    const granted = window.confirm(medicationRecognitionDisclosure);
+    medicationConsentExpiresAt = 0;
+
+    return {
+      required: true,
+      granted
+    };
+  }
+
+  function beginMedicationRecognition(source) {
+    grantMedicationConsentForNextPhoto();
+    showView("chat");
+
+    const chatInput = document.getElementById("messageInput");
+    chatInput.value = medicationRecognitionPrompt;
+    chatInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+    if (source === "camera") {
+      document.getElementById("imageButton")?.click();
+      return;
+    }
+
+    document.getElementById("medicationGalleryInput")?.click();
+  }
+
+  window.SolHoloMedicationRecognition = Object.freeze({
+    authorizeRequest: authorizeMedicationRecognition,
+    isRequest: isMedicationImageRequest,
+    prompt: medicationRecognitionPrompt
+  });
 
   async function startSolVoice() {
     showView("chat");
@@ -5690,6 +5893,37 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       void askSol(normalizedVisibleText(promptButton.dataset.solPrompt));
     }
   });
+
+  document.getElementById("medicationCameraButton")?.addEventListener(
+    "click",
+    () => beginMedicationRecognition("camera")
+  );
+
+  document.getElementById("healthSelfCareButton")?.addEventListener(
+    "click",
+    () => {
+      medicationConsentExpiresAt = 0;
+      void askSol(healthSelfCarePrompt);
+    }
+  );
+
+  document.getElementById("medicationGalleryButton")?.addEventListener(
+    "click",
+    () => beginMedicationRecognition("gallery")
+  );
+
+  document.getElementById("medicationGalleryInput")?.addEventListener(
+    "change",
+    handleMediaInputChange
+  );
+
+  document.getElementById("medicationGeneralHealthButton")?.addEventListener(
+    "click",
+    () => {
+      medicationConsentExpiresAt = 0;
+      void askSol("Ich möchte zum Bereich Gesundheit. Hilf mir dort bitte weiter.");
+    }
+  );
 
   currentBottomNav.addEventListener("click", (event) => {
     const button = event.target.closest("[data-view]");

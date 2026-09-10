@@ -1926,11 +1926,11 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=46">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=48">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
-<link rel="stylesheet" href="./human-holo-theme.css?v=8">
+<link rel="stylesheet" href="./human-holo-theme.css?v=9">
 </head>
 
 <body>
@@ -9799,6 +9799,36 @@ async function sendMessage(
   }
 
 
+  const medicationAuthorization =
+    window.SolHoloMedicationRecognition
+      ?.authorizeRequest?.({
+        message,
+        hasImage:
+          Boolean(imageToSend)
+      }) || {
+        required:false,
+        granted:false
+      };
+
+
+  if(
+    medicationAuthorization.required &&
+    !medicationAuthorization.granted
+  ){
+
+    chatStatus.textContent =
+      "Medikamentenerkennung abgebrochen · das Foto wurde nicht übertragen.";
+
+
+    return;
+  }
+
+
+  const medicationRecognitionConsent =
+    medicationAuthorization.required &&
+    medicationAuthorization.granted;
+
+
   const identity =
     requireSelectedIdentity();
 
@@ -10104,6 +10134,8 @@ async function sendMessage(
               conversationId,
 
               fulltimeEventId,
+
+              medicationRecognitionConsent,
 
               source:
                 "text"
@@ -14385,7 +14417,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=280",
+          "./service-worker.js?v=282",
           {
             updateViaCache:"none"
           }
@@ -14421,7 +14453,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=65"></script>
+<script src="./sol-holo-ui.js?v=67"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=1"></script>

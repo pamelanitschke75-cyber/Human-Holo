@@ -3634,6 +3634,7 @@ body.voice-open #onboardingScreen{
 #chatView,
 #memoryView,
 #memorialView,
+#medicationView,
 #servicesView,
 #profileView,
 #settingsView,
@@ -3648,6 +3649,7 @@ body.voice-open #onboardingScreen{
 #chatView::before,
 #memoryView::before,
 #memorialView::before,
+#medicationView::before,
 #servicesView::before,
 #profileView::before,
 #settingsView::before,
@@ -3669,6 +3671,7 @@ body.voice-open #onboardingScreen{
 #chatView>header,
 #memoryView .subHeader,
 #memorialView .subHeader,
+#medicationView .subHeader,
 #servicesView .subHeader,
 #profileView .subHeader,
 #settingsView .subHeader,
@@ -3681,6 +3684,7 @@ body.voice-open #onboardingScreen{
 
 #memoryView .subHeader,
 #memorialView .subHeader,
+#medicationView .subHeader,
 #servicesView .subHeader,
 #profileView .subHeader,
 #settingsView .subHeader,
@@ -3693,6 +3697,7 @@ body.voice-open #onboardingScreen{
 
 #memoryView .subHeaderTitle,
 #memorialView .subHeaderTitle,
+#medicationView .subHeaderTitle,
 #servicesView .subHeaderTitle,
 #profileView .subHeaderTitle,
 #settingsView .subHeaderTitle,
@@ -3704,6 +3709,7 @@ body.voice-open #onboardingScreen{
 
 #memoryView .iconButton,
 #memorialView .iconButton,
+#medicationView .iconButton,
 #servicesView .iconButton,
 #profileView .iconButton,
 #settingsView .iconButton,
@@ -3789,4 +3795,213 @@ body.voice-open #onboardingScreen{
 #chatView .sol-message,
 #chatView .system-message{
   background:linear-gradient(145deg,rgba(48,124,204,.42),rgba(43,35,132,.5));
+}
+
+/* Sichtbar freigegebene Gesundheitsfunktionen. */
+#medicationView{
+  gap:14px;
+  padding-bottom:118px;
+}
+
+#medicationView>.subHeader~*{
+  margin-top:14px;
+}
+
+.medicationHeaderIcon{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  color:#9ef7dd;
+  font-size:22px;
+  text-shadow:0 0 14px rgba(77,255,209,.72);
+}
+
+.medicationIntro,
+.medicationDisclosure,
+.medicationLimits,
+.healthSelfCareIntro{
+  padding:19px;
+  border-radius:25px;
+}
+
+.medicationIntro h2,
+.healthSelfCareIntro h2{
+  display:grid;
+  gap:4px;
+  margin:8px 0 10px;
+  color:#fff;
+  font-size:clamp(25px,7.2vw,35px);
+  line-height:1.08;
+}
+
+.medicationIntro h2 strong,
+.healthSelfCareIntro h2 strong{
+  color:#8cebd9;
+}
+
+.medicationIntro p:last-child,
+.medicationDisclosure p,
+.medicationLimits li,
+.healthSelfCareIntro>p,
+.healthSelfCareExamples{
+  color:rgba(234,241,255,.84);
+  line-height:1.55;
+}
+
+.healthSelfCareIntro{
+  border-color:rgba(113,238,213,.62)!important;
+}
+
+.healthSelfCareExamples{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+  padding-left:21px;
+}
+
+.healthSelfCareBoundary,
+.healthSelfCareDisclosure{
+  padding:13px 15px;
+  border-radius:17px;
+  background:rgba(9,28,90,.45);
+}
+
+.healthSelfCareBoundary{
+  border:1px solid rgba(255,203,113,.5);
+  color:#fff4d6!important;
+}
+
+.healthSelfCareDisclosure{
+  margin:13px 0;
+  border:1px solid rgba(128,225,255,.43);
+  color:rgba(234,241,255,.88);
+  line-height:1.5;
+}
+
+.healthSelfCareIntro .primaryButton{
+  min-height:58px;
+  border-radius:21px;
+}
+
+.healthSelfCarePrivacyLink{
+  display:block;
+  margin-top:12px;
+  color:#9ef7e1;
+  font-size:14px;
+  font-weight:800;
+  text-align:center;
+}
+
+.humanHoloNoGoCard{
+  padding:17px 19px;
+  border-radius:21px;
+}
+
+.humanHoloNoGoCard summary{
+  color:#fff;
+  cursor:pointer;
+  font-weight:850;
+  line-height:1.4;
+}
+
+.humanHoloNoGoCard :is(ul,p){
+  color:rgba(234,241,255,.84);
+  line-height:1.55;
+}
+
+.humanHoloNoGoCard ul{
+  display:grid;
+  gap:7px;
+  padding-left:21px;
+}
+
+.humanHoloNoGoCard p{
+  margin-bottom:0;
+}
+
+.medicationDisclosure{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:13px;
+  border-color:rgba(113,238,213,.62)!important;
+}
+
+.medicationDisclosureIcon{
+  display:grid;
+  place-items:start center;
+  font-size:29px;
+}
+
+.medicationDisclosure strong,
+.medicationLimits h3{
+  color:#fff;
+  line-height:1.3;
+}
+
+.medicationDisclosure p{
+  margin:8px 0 0;
+}
+
+.medicationLimits h3{
+  margin:0 0 8px;
+}
+
+.medicationLimits h3:not(:first-child){
+  margin-top:18px;
+}
+
+.medicationLimits ul{
+  display:grid;
+  gap:8px;
+  margin:0;
+  padding-left:21px;
+}
+
+.medicationMedicalNotice{
+  margin:0;
+  padding:16px 18px;
+  border:1px solid rgba(255,203,113,.58);
+  border-radius:21px;
+  color:#fff4d6;
+  background:rgba(91,59,43,.34);
+  box-shadow:0 0 17px rgba(255,184,74,.14);
+  font-size:14px;
+  line-height:1.52;
+}
+
+.medicationMedicalNotice a{
+  display:block;
+  margin-top:9px;
+  color:#9ef7e1;
+  font-weight:800;
+}
+
+.medicationConsentActions{
+  display:grid;
+  gap:11px;
+}
+
+.medicationConsentActions :is(.primaryButton,.secondaryButton){
+  min-height:58px;
+  margin:0;
+  border-radius:21px;
+  font-weight:800;
+}
+
+.medicationGeneralHealthButton{
+  min-height:52px;
+  border:1px solid rgba(196,222,255,.48);
+  border-radius:19px;
+  color:#fff;
+  background:rgba(34,54,145,.42);
+  font:inherit;
+  font-weight:700;
+}
+
+@media(max-width:380px){
+  .medicationDisclosure{
+    grid-template-columns:38px minmax(0,1fr);
+    padding:16px;
+  }
 }

@@ -340,6 +340,44 @@ Health Connect besitzt in Human Holo keine Schreib- oder Löschfunktion und kein
 
 Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.
 
+## 🩹 Gesundheitsbegleitung & Selbsthilfe
+
+Im sichtbaren Bereich **Gesundheit** kann Human Holo bei leichten menschlichen
+Beschwerden und kleinen, oberflächlichen Verletzungen konkrete, vorsichtige
+Schritte für zu Hause erklären. Die Antwort prüft zuerst Warnzeichen, nennt dann
+Selbsthilfe, ungeeignete Maßnahmen und klare Grenzen für Apotheke,
+Hausarztpraxis, 116117 oder 112. Human Holo stellt dabei keine Diagnose und gibt
+keine garantierte Entwarnung oder persönliche Dosierung vor.
+
+Kinder- und Gesundheitsschutz sind fest: kein Alkohol für Jugendliche oder als
+Hausmittel, keine Zigaretten, Vapes oder sonstigen Nikotinprodukte und keine
+illegalen oder berauschenden Drogen. Waffen und alles, was ihre Beschaffung,
+Herstellung oder Nutzung ermöglicht, sowie Tierhandel sind im Human-Holo-System
+ein No-Go. Dasselbe gilt absolut für Menschenhandel, Kinderhandel, Prostitution
+und die Vermittlung oder Bewerbung sexueller Dienstleistungen. Betroffene
+erhalten trotzdem Schutz- und Ausstiegshilfe. Die Todesstrafe und jede
+Unterstützung von Hinrichtungen sind ebenfalls ausgeschlossen; bestehende
+Gefahren werden sicher an 110, 112, 116117 oder den Giftnotruf weitergeleitet.
+Human Holo empfiehlt keine Rache, Vergeltung oder Selbstjustiz und vergilt
+nichts nach dem Prinzip „Gleiches mit Gleichem“.
+
+Details: [Human Holo – Gesundheitsbegleitung & Selbsthilfe](./HUMAN-HOLO-GESUNDHEITSBEGLEITUNG-10-09-2026.md)
+
+## 💊 Medikamentenerkennung
+
+Human Holo enthält im sichtbaren Bereich **Gesundheit** eine ausdrücklich
+freizugebende Medikamentenerkennung. Sie liest nur eindeutig sichtbare Angaben
+auf einer bedruckten Originalverpackung oder einem beschrifteten Blister aus.
+Lose Tabletten oder Kapseln werden nicht nach Farbe, Form oder Prägung bestimmt;
+persönliche Dosierung, Einnahme, Diagnose und Behandlung bleiben gesperrt.
+
+Vor jedem einzelnen Foto zeigt die App den Gesundheitszweck, die Übertragung an
+ChatGPT/OpenAI, den Speicherweg und die Grenzen. Ohne Zustimmung wird nichts zur
+Medikamentenerkennung übertragen. Human Holo ist kein Medizinprodukt und
+ersetzt keine Ärztin, keinen Arzt und keine Apotheke.
+
+Details: [Human Holo – Medikamentenerkennung](./HUMAN-HOLO-MEDIKAMENTENERKENNUNG-10-09-2026.md)
+
 ---
 
 # 🌎 Human-Holo-Ökosystem
