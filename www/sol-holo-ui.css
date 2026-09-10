@@ -4287,3 +4287,102 @@ body.voice-open #onboardingScreen{
     padding:16px;
   }
 }
+
+/* Additive Play-Transparenz in den bestehenden Human-Holo-Einstellungen. */
+#privacySecuritySettings{
+  margin-top:18px;
+  padding:18px;
+  border-radius:22px;
+}
+
+#privacySecuritySettings .settingsGroupHeader{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+}
+
+#privacySecuritySettings .settingsGroupHeader h3{
+  margin:0;
+  color:#fff;
+  font-size:18px;
+  line-height:1.25;
+}
+
+#privacySecuritySettings .settingsGroupHeader p,
+.privacySecurityLead{
+  color:rgba(231,239,255,.8);
+  line-height:1.5;
+}
+
+#privacySecuritySettings .settingsGroupHeader p{
+  margin:4px 0 0;
+  font-size:12px;
+}
+
+.privacySecurityLead{
+  margin:15px 0 0;
+  font-size:13px;
+}
+
+.privacySecurityFacts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:15px;
+}
+
+.privacySecurityFacts>div{
+  min-width:0;
+  padding:12px;
+  border:1px solid rgba(195,223,255,.42);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(95,105,222,.38),rgba(32,42,132,.48));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.privacySecurityFacts strong,
+.privacySecurityFacts span{
+  display:block;
+}
+
+.privacySecurityFacts strong{
+  color:#fff;
+  font-size:13px;
+}
+
+.privacySecurityFacts span{
+  margin-top:4px;
+  color:rgba(220,231,255,.72);
+  font-size:11px;
+  line-height:1.35;
+}
+
+.privacySecurityLinks .actionRow{
+  text-decoration:none;
+}
+
+.privacySecurityDetails{
+  margin-top:13px;
+  padding:14px 15px;
+  border:1px solid rgba(196,221,255,.42);
+  border-radius:17px;
+  color:rgba(235,242,255,.84);
+  background:rgba(27,41,127,.36);
+}
+
+.privacySecurityDetails summary{
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  line-height:1.4;
+}
+
+.privacySecurityDetails ul{
+  display:grid;
+  gap:8px;
+  margin:13px 0 0;
+  padding-left:20px;
+  font-size:12px;
+  line-height:1.55;
+}

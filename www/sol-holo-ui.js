@@ -496,6 +496,99 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     profileMemoryState.textContent = "Immer aktiv · updatefest";
   }
 
+  const settingsViewRoot = document.getElementById("settingsView");
+  const settingsSystemGroup = settingsViewRoot?.querySelector(
+    '[aria-labelledby="settingsSystemTitle"]'
+  );
+  if (settingsViewRoot && settingsSystemGroup) {
+    const privacySecurityGroup = document.createElement("section");
+    privacySecurityGroup.id = "privacySecuritySettings";
+    privacySecurityGroup.className = "settingsGroup glassCard";
+    privacySecurityGroup.setAttribute(
+      "aria-labelledby",
+      "privacySecuritySettingsTitle"
+    );
+    privacySecurityGroup.innerHTML = `
+      <div class="settingsGroupHeader">
+        <span class="settingsGroupIcon" aria-hidden="true">⌾</span>
+        <div>
+          <h3 id="privacySecuritySettingsTitle">Datenschutz &amp; Sicherheit</h3>
+          <p>Deine Rechte, Datenwege und unverrückbaren Schutzgrenzen</p>
+        </div>
+      </div>
+
+      <p class="privacySecurityLead">
+        Human Holo bleibt persönlich und ownergebunden. Berechtigungen und
+        externe Verbindungen werden nur für die Funktion verwendet, die du
+        bewusst auswählst.
+      </p>
+
+      <div class="privacySecurityFacts" aria-label="Verbindliche App-Angaben">
+        <div>
+          <strong>18+</strong>
+          <span>Zielgruppe</span>
+        </div>
+        <div>
+          <strong>Werbefrei</strong>
+          <span>keine Werbe-ID</span>
+        </div>
+        <div>
+          <strong>Verschlüsselt</strong>
+          <span>bei Übertragung</span>
+        </div>
+        <div>
+          <strong>Geschützt</strong>
+          <span>ownergebundener Zugriff</span>
+        </div>
+      </div>
+
+      <div class="actionList settingsActionList privacySecurityLinks">
+        <a class="actionRow" href="./datenschutz.html" target="_blank"
+          rel="noopener noreferrer">
+          <span class="rowIcon" aria-hidden="true">◎</span>
+          <span class="rowText">
+            <span class="rowTitle">Datenschutzerklärung</span>
+            <span class="rowMeta">Welche Daten freiwillig verarbeitet werden und wofür</span>
+          </span>
+          <span class="rowChevron" aria-hidden="true">›</span>
+        </a>
+        <a class="actionRow" href="./datenloeschung.html" target="_blank"
+          rel="noopener noreferrer">
+          <span class="rowIcon" aria-hidden="true">⌫</span>
+          <span class="rowText">
+            <span class="rowTitle">Daten löschen lassen</span>
+            <span class="rowMeta">Löschweg, Umfang und mögliche Aufbewahrung</span>
+          </span>
+          <span class="rowChevron" aria-hidden="true">›</span>
+        </a>
+      </div>
+
+      <details class="privacySecurityDetails">
+        <summary>Datennutzung und feste Grenzen</summary>
+        <ul>
+          <li>
+            Nachrichten, Medien, Sprache, Gesundheit, Kontakte, Kalender,
+            Dateien, App-Aktivitäten und Gerätekennungen werden nur verarbeitet,
+            soweit du die jeweilige Funktion nutzt oder freigibst.
+          </li>
+          <li>Kein Verkauf deiner Daten und keine Nutzung für Werbung.</li>
+          <li>
+            Gesundheitsinformationen sind allgemeine Orientierung und ersetzen
+            keine Diagnose, Behandlung oder persönliche Dosierungsentscheidung.
+          </li>
+          <li>
+            Human Holo ist keine Behörden-App und enthält keine Finanzfunktionen.
+          </li>
+          <li>
+            Menschen- und Kinderhandel, Prostitution, Todesstrafe, Vergeltung,
+            Waffen, Drogen, Nikotinprodukte und Tierhandel bleiben absolute No-Gos.
+          </li>
+        </ul>
+      </details>
+    `;
+    settingsViewRoot.insertBefore(privacySecurityGroup, settingsSystemGroup);
+  }
+
   const notesView = document.createElement("section");
   notesView.id = "notesView";
   notesView.className = "appView";
