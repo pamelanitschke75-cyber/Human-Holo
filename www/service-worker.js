@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-282-health-self-care";
+const CACHE_VERSION = "human-holo-283-wichtiges-drei-kisten";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

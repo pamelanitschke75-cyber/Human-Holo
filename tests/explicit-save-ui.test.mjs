@@ -60,6 +60,23 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
       listTitle: "Einkaufsliste"
     }
   );
+  for (const phrase of [
+    "Bitte Milch in die Einkaufsliste",
+    "Milch bitte in die Einkaufsliste",
+    "In die Einkaufsliste: Milch"
+  ]) {
+    assert.deepEqual(
+      extract(phrase),
+      {
+        category: "Einkaufsliste",
+        content: "Milch",
+        kind: "list-item",
+        listTitle: "Einkaufsliste"
+      },
+      phrase
+    );
+  }
+
   assert.deepEqual(
     extract("Bitte merke dir, dass der Airfryer später über HomeID eingerichtet wird."),
     {
@@ -92,6 +109,45 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
     extract("Notiere Zucker"),
     null,
     "Ein Notizauftrag muss den Notes-Adapter erreichen"
+  );
+});
+
+test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", () => {
+  assert.match(ui, /id="homeImportantButton"/u);
+  assert.match(ui, />Wichtiges</u);
+  assert.match(ui, /id="calendarImportantSection"/u);
+  assert.match(ui, /id="shoppingImportantSection"/u);
+  assert.match(ui, /id="notesImportantSection"/u);
+  assert.match(ui, /Kalender · Einkaufsliste · Notizen/u);
+});
+
+test("Datum oder ‚morgen‘ plus Uhrzeit nimmt den Kalenderweg", () => {
+  const source = [
+    functionSource("normalizeNoteSearchText", "noteSecurityWarning"),
+    functionSource("calendarWriteDestinationFromMessage", "liveWeatherRequestFromMessage"),
+    "return calendarWriteDestinationFromMessage;"
+  ].join("\n");
+  const isCalendar = new Function(source)();
+
+  assert.equal(isCalendar("Morgen 13 Uhr Zahnarzt"), true);
+  assert.equal(
+    isCalendar("Morgen um 10 Uhr Katzenklo sauber machen"),
+    true
+  );
+  assert.equal(
+    isCalendar("Notiere morgen um 10 Uhr Katzenklo sauber machen"),
+    false,
+    "‚Notiere‘ hat Vorrang und bleibt in Notizen"
+  );
+  assert.equal(
+    isCalendar("Schreib auf: morgen um 10 Uhr Katzenklo sauber machen"),
+    false,
+    "‚Schreib auf‘ hat Vorrang und bleibt in Notizen"
+  );
+  assert.equal(
+    isCalendar("Milch bitte in die Einkaufsliste"),
+    false,
+    "Eine ausdrücklich genannte Einkaufsliste bleibt getrennt"
   );
 });
 
@@ -157,7 +213,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=67/u);
+  assert.match(html, /sol-holo-ui\.js\?v=68/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {

@@ -141,6 +141,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </span>
     </button>
 
+    <button id="homeImportantButton" class="humanHoloImportantCard glassCard"
+      type="button" data-open-view="notes"
+      aria-label="Wichtiges mit Kalender, Einkaufsliste und Notizen öffnen">
+      <span class="humanHoloImportantIcon" aria-hidden="true">★</span>
+      <span class="humanHoloImportantCopy">
+        <strong>Wichtiges</strong>
+        <small id="notesQuickMeta">Kalender · Einkaufsliste · Notizen</small>
+      </span>
+      <span class="humanHoloImportantChevron" aria-hidden="true">›</span>
+    </button>
+
     <div class="humanHoloAreaGrid" aria-label="Human-Holo-Bereiche">
       <button class="humanHoloAreaCard humanHoloAreaCard--people" type="button"
         data-sol-prompt="Ich möchte zum Bereich Menschen. Hilf mir dort bitte weiter.">
@@ -493,43 +504,107 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     <div class="subHeader">
       <button class="iconButton" type="button" data-open-view="home"
         aria-label="Zurück zur Startseite">‹</button>
-      <div id="notesViewTitle" class="subHeaderTitle">Notizen ✏️</div>
+      <div id="notesViewTitle" class="subHeaderTitle">Wichtiges</div>
       <button id="notesVoiceButton" class="iconButton" type="button"
-        aria-label="Notiz mit Pam’s Holo sprechen">◉</button>
+        aria-label="Wichtiges mit Pam’s Holo sprechen">◉</button>
     </div>
 
     <div class="notesIntro glassCard">
-      <span class="notesIntroIcon" aria-hidden="true">✎</span>
+      <span class="notesIntroIcon" aria-hidden="true">★</span>
       <div>
-        <h3>Dein Notizbuch in Pam’s Holo</h3>
-        <p>Schreib hier direkt – oder sag: „Notiere …“</p>
+        <h3>Pams Wichtiges in Pam’s Holo</h3>
+        <p>Drei klare Bereiche – Kalender, Einkaufsliste und Notizen.</p>
       </div>
     </div>
 
-    <form id="noteComposer" class="noteComposer glassCard">
-      <label for="noteTextInput">Neue Notiz</label>
-      <textarea id="noteTextInput" maxlength="10000" rows="4"
-        placeholder="Was soll Pam’s Holo für dich notieren?"></textarea>
-      <div class="noteComposerFooter">
-        <span>Bleibt in deiner Pam’s-Holo-Original-App auf diesem Handy.</span>
-        <button class="primaryButton" type="submit">Notiz speichern</button>
-      </div>
-    </form>
+    <div class="importantSections">
+      <section id="calendarImportantSection"
+        class="importantSection importantSection--calendar glassCard"
+        aria-labelledby="calendarImportantTitle">
+        <div class="importantSectionHeader">
+          <span class="importantSectionIcon" aria-hidden="true">📅</span>
+          <div>
+            <h3 id="calendarImportantTitle">Kalender</h3>
+            <p>Datum oder „morgen“ plus Uhrzeit kommt hierhin.</p>
+          </div>
+        </div>
+        <form id="calendarComposer" class="importantComposer">
+          <label class="srOnly" for="calendarTextInput">Neuer Kalendereintrag</label>
+          <textarea id="calendarTextInput" maxlength="1000" rows="2"
+            placeholder="Zum Beispiel: Morgen 13 Uhr Zahnarzt"></textarea>
+          <div class="importantComposerFooter">
+            <span id="calendarComposerStatus">„Morgen“ genügt als Datum.</span>
+            <button class="primaryButton" type="submit">In Kalender</button>
+          </div>
+        </form>
+      </section>
 
-    <div class="notesToolbar">
-      <strong id="notesCount">0 Notizen</strong>
-      <label class="notesSearch">
-        <span class="srOnly">Notizen durchsuchen</span>
-        <input id="notesSearchInput" type="search" autocomplete="off"
-          placeholder="Notizen durchsuchen …">
-      </label>
-    </div>
+      <section id="shoppingImportantSection"
+        class="importantSection importantSection--shopping glassCard"
+        aria-labelledby="shoppingImportantTitle">
+        <div class="importantSectionHeader">
+          <span class="importantSectionIcon" aria-hidden="true">🛒</span>
+          <div>
+            <h3 id="shoppingImportantTitle">Einkaufsliste</h3>
+            <p>Nur Einkäufe – getrennt von deinen Notizen.</p>
+          </div>
+        </div>
+        <form id="shoppingComposer" class="importantComposer">
+          <label class="srOnly" for="shoppingItemInput">Neuer Einkauf</label>
+          <input id="shoppingItemInput" maxlength="300" autocomplete="off"
+            placeholder="Was brauchst du?">
+          <div class="importantComposerFooter">
+            <span>Oder sag: „Milch bitte in die Einkaufsliste.“</span>
+            <button class="primaryButton" type="submit">Hinzufügen</button>
+          </div>
+        </form>
+        <div class="importantSectionToolbar">
+          <strong id="shoppingCount">0 Artikel</strong>
+        </div>
+        <div id="shoppingList" class="notesList shoppingList" aria-live="polite"></div>
+        <div id="shoppingEmpty" class="notesEmpty importantInlineEmpty">
+          <span aria-hidden="true">🛒</span>
+          <strong>Die Einkaufsliste ist leer.</strong>
+          <p>Hier landet nur, was du ausdrücklich in die Einkaufsliste schickst.</p>
+        </div>
+      </section>
 
-    <div id="notesList" class="notesList" aria-live="polite"></div>
-    <div id="notesEmpty" class="notesEmpty glassCard">
-      <span aria-hidden="true">✏️</span>
-      <strong>Noch keine Notiz.</strong>
-      <p>Schreib oben etwas hinein oder sag: „Sol, notiere …“</p>
+      <section id="notesImportantSection"
+        class="importantSection importantSection--notes glassCard"
+        aria-labelledby="notesImportantTitle">
+        <div class="importantSectionHeader">
+          <span class="importantSectionIcon" aria-hidden="true">✏️</span>
+          <div>
+            <h3 id="notesImportantTitle">Notizen</h3>
+            <p>„Notiere …“ und „Schreib auf …“ landen nur hier.</p>
+          </div>
+        </div>
+        <form id="noteComposer" class="noteComposer importantComposer">
+          <label for="noteTextInput">Neue Notiz</label>
+          <textarea id="noteTextInput" maxlength="10000" rows="4"
+            placeholder="Was soll Pam’s Holo für dich notieren?"></textarea>
+          <div class="noteComposerFooter importantComposerFooter">
+            <span id="noteStorageHint">Bleibt in deiner Pam’s-Holo-Original-App auf diesem Handy.</span>
+            <button class="primaryButton" type="submit">Notiz speichern</button>
+          </div>
+        </form>
+
+        <div class="notesToolbar">
+          <strong id="notesCount">0 Notizen</strong>
+          <label class="notesSearch">
+            <span class="srOnly">Notizen durchsuchen</span>
+            <input id="notesSearchInput" type="search" autocomplete="off"
+              placeholder="Notizen durchsuchen …">
+          </label>
+        </div>
+
+        <div id="notesList" class="notesList" aria-live="polite"></div>
+        <div id="notesEmpty" class="notesEmpty importantInlineEmpty">
+          <span aria-hidden="true">✏️</span>
+          <strong>Noch keine Notiz.</strong>
+          <p>Schreib oben etwas hinein oder sag: „Sol, notiere …“</p>
+        </div>
+      </section>
     </div>
   `;
   solApp.insertBefore(notesView, currentHeader);
@@ -672,8 +747,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     '<button id="samsungNotesRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">✎</span>' +
       '<span class="rowText">' +
-        '<span class="rowTitle">Samsung Notes</span>' +
-        '<span class="rowMeta">Entwurf mit Text öffnen · in Samsung Notes speichern</span>' +
+        '<span class="rowTitle">Samsung Notes · optional</span>' +
+        '<span class="rowMeta">Nur bei manuellem Antippen öffnen · Zurufe speichern in Human Holo</span>' +
       '</span>' +
       '<span id="samsungNotesStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>' +
@@ -866,6 +941,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     /\b(?:auslesen|erkenn(?:e|en|st|t)?|identifizieren|lies|lesen|prüfen|sag(?:en)?|welche[rs]?|was\s+ist|zeig(?:en)?)\b/iu;
   let medicationConsentExpiresAt = 0;
   const onboarding = document.getElementById("onboardingScreen");
+  const calendarComposer = document.getElementById("calendarComposer");
+  const calendarTextInput = document.getElementById("calendarTextInput");
+  const calendarComposerStatus = document.getElementById("calendarComposerStatus");
+  const shoppingComposer = document.getElementById("shoppingComposer");
+  const shoppingItemInput = document.getElementById("shoppingItemInput");
+  const shoppingList = document.getElementById("shoppingList");
+  const shoppingEmpty = document.getElementById("shoppingEmpty");
+  const shoppingCount = document.getElementById("shoppingCount");
   const noteComposer = document.getElementById("noteComposer");
   const noteTextInput = document.getElementById("noteTextInput");
   const notesSearchInput = document.getElementById("notesSearchInput");
@@ -1220,11 +1303,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const notesHeading = document.querySelector("#notesView .notesIntro h3");
     if (notesHeading) {
       notesHeading.textContent = identity
-        ? `${displayName}s eigenes Notizbuch in ${instanceName}`
-        : "Getrenntes persönliches Notizbuch";
+        ? `${displayName}s Wichtiges in ${instanceName}`
+        : "Drei getrennte persönliche Bereiche";
     }
 
-    const notesFooter = document.querySelector("#notesView .noteComposerFooter span");
+    const notesFooter = document.getElementById("noteStorageHint");
     if (notesFooter) {
       notesFooter.textContent = identity
         ? `Bleibt getrennt in ${instanceName} auf diesem Handy.`
@@ -2006,6 +2089,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function calendarWriteDestinationFromMessage(value) {
     const text = normalizeNoteSearchText(value);
+    if (!text) return false;
+
+    const explicitListRequest =
+      /\b(?:einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\b/u.test(text);
+    const explicitNoteRequest =
+      /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
+      /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
+      /^(?:bitte\s+)?(?:mach|mache)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?notiz\b/u.test(text) ||
+      /^(?:neue\s+)?notiz\s*[:,-]/u.test(text);
+    if (explicitListRequest || explicitNoteRequest) {
+      return false;
+    }
+
     const directCalendarRequest = Boolean(
       /\b(?:google\s+)?kalender\b/u.test(text) ||
       /\btermin\w*\b/u.test(text) ||
@@ -2014,18 +2110,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (directCalendarRequest) return true;
 
-    const hasConcreteTime = Boolean(
+    const hasDateReference = Boolean(
       /\b(?:heute|morgen|ubermorgen|nachste[nrsm]?\s+(?:montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/u.test(text) ||
-      /\b\d{1,2}(?::\d{2})?\s*uhr\b/u.test(text) ||
       /\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/u.test(text) ||
       /\b\d{1,2}\.?\s+(?:januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|dezember)(?:\s+\d{2,4})?\b/u.test(text)
     );
+    const hasClockTime = Boolean(
+      /\b\d{1,2}(?::\d{2})?\s*uhr\b/u.test(text) ||
+      /\b(?:[01]?\d|2[0-3]):[0-5]\d\b/u.test(text)
+    );
+    const hasConcreteTime = hasDateReference || hasClockTime;
     const asksToSchedule = Boolean(
       /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze|halt|halte)\b[\s\S]*\b(?:auf|ein|fest|vor)\b/u.test(text) ||
       /\b(?:schreib|schreibe|trag|trage|plane|plan|setz|setze)\b/u.test(text)
     );
+    const looksLikeQuestion =
+      /\?\s*$/u.test(text) ||
+      /^(?:wann|was|wie|wo|wer|warum|wieso|weshalb)\b/u.test(text);
 
-    return hasConcreteTime && asksToSchedule;
+    return !looksLikeQuestion && (
+      (hasDateReference && hasClockTime) ||
+      (hasConcreteTime && asksToSchedule)
+    );
   }
 
   function liveWeatherRequestFromMessage(value) {
@@ -2277,6 +2383,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     };
   }
 
+  function relativeAlarmTimeFromMessage(value) {
+    const text = normalizeNoteSearchText(value);
+    const match = text.match(
+      /\bin\s+(?:(\d{1,4})|(ein(?:e|er|em)?))\s*(min(?:ute|uten)?|std\.?|stunde|stunden)\b/u
+    );
+    if (!match) return null;
+
+    const amount = match[1] ? Number(match[1]) : 1;
+    const isHours = /^(?:std|stunde)/u.test(match[3]);
+    const relativeMinutes = amount * (isHours ? 60 : 1);
+    if (!Number.isInteger(relativeMinutes) || relativeMinutes < 1 || relativeMinutes > 7 * 24 * 60) {
+      return null;
+    }
+
+    const target = new Date(Date.now() + relativeMinutes * 60 * 1000);
+    return {
+      hour: target.getHours(),
+      minute: target.getMinutes(),
+      relativeMinutes
+    };
+  }
+
   function alarmClockRequestFromMessage(value) {
     const cleanMessage = stripHoloInvocation(value);
     if (!cleanMessage) return null;
@@ -2302,7 +2430,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       /\b(?:brauch(?:en|st|t|e)|mocht(?:est|en|et|e)|will|wollen|hatte\s+gern)\b/u.test(normalizedMessage);
     if (!isAlarmRequest || !isSetRequest) return null;
 
-    const time = alarmClockTimeFromMessage(cleanMessage);
+    const relativeTime = relativeAlarmTimeFromMessage(cleanMessage);
+    const time = relativeTime || alarmClockTimeFromMessage(cleanMessage);
     if (!time) return null;
     const { hour, minute } = time;
     if (
@@ -2324,6 +2453,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       action: "set",
       hour,
       minute,
+      ...(relativeTime ? { relativeMinutes: relativeTime.relativeMinutes } : {}),
       label: label || "Human Holo"
     };
   }
@@ -2333,22 +2463,39 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (
       !cleanMessage ||
-      /\b(?:samsung\s*)?(?:notes?|noten)\b/i.test(cleanMessage) ||
-      calendarWriteDestinationFromMessage(cleanMessage)
+      /\b(?:samsung\s*)?(?:notes?|noten)\b/i.test(cleanMessage)
     ) {
       return null;
     }
 
     const listPatterns = [
-      /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?[.!?]*$/i,
-      /^(?:bitte\s+)?f(?:u|ü)g(?:e)?\s+(?:(?:meiner|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\s+(.+?)\s+hinzu[.!?]*$/i
+      {
+        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?[.!?]*$/i,
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: /^(?:bitte\s+)?f(?:u|ü)g(?:e)?\s+(?:(?:meiner|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\s+(.+?)\s+hinzu[.!?]*$/i,
+        contentGroup: 2,
+        listGroup: 1
+      },
+      {
+        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?[.!?]*$/i,
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: /^(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i,
+        contentGroup: 2,
+        listGroup: 1
+      }
     ];
 
-    for (let index = 0; index < listPatterns.length; index += 1) {
-      const match = cleanMessage.match(listPatterns[index]);
+    for (const listPattern of listPatterns) {
+      const match = cleanMessage.match(listPattern.pattern);
       if (!match) continue;
-      const content = cleanExplicitSaveContent(index === 0 ? match[1] : match[2]);
-      const rawListTitle = index === 0 ? match[2] : match[1];
+      const content = cleanExplicitSaveContent(match[listPattern.contentGroup]);
+      const rawListTitle = match[listPattern.listGroup];
       if (content) {
         return {
           category: explicitListTitle(rawListTitle),
@@ -2357,6 +2504,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           listTitle: explicitListTitle(rawListTitle)
         };
       }
+    }
+
+    if (calendarWriteDestinationFromMessage(cleanMessage)) {
+      return null;
     }
 
     const directMatch = cleanMessage.match(
@@ -2472,28 +2623,115 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  function isShoppingListNote(note) {
+    return normalizeNoteSearchText(note?.title) === "einkaufsliste";
+  }
+
+  function shoppingItemsFromNote(note) {
+    return String(note?.text || "")
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^[•*\-]\s*/, "").trim())
+      .filter(Boolean);
+  }
+
+  function buildPersonalNoteCard(note, options = {}) {
+    const shopping = options.shopping === true;
+    const card = document.createElement("article");
+    card.className = shopping ? "noteCard shoppingCard" : "noteCard";
+    card.dataset.noteId = note.id;
+
+    const header = document.createElement("div");
+    header.className = "noteCardHeader";
+    const heading = document.createElement("h3");
+    heading.textContent = note.title;
+    const source = document.createElement("span");
+    source.className = "noteSource";
+    source.textContent = note.source;
+    header.append(heading, source);
+
+    let body;
+    if (shopping) {
+      body = document.createElement("ul");
+      body.className = "shoppingItems";
+      shoppingItemsFromNote(note).forEach((item) => {
+        const entry = document.createElement("li");
+        entry.textContent = item;
+        body.appendChild(entry);
+      });
+    } else {
+      body = document.createElement("p");
+      body.className = "noteBody";
+      body.textContent = note.text;
+    }
+
+    const footer = document.createElement("div");
+    footer.className = "noteCardFooter";
+    const date = document.createElement("time");
+    date.dateTime = new Date(note.updatedAt).toISOString();
+    date.textContent = noteDateText(note);
+    const actions = document.createElement("div");
+    actions.className = "noteActions";
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.dataset.noteAction = "edit";
+    editButton.dataset.noteId = note.id;
+    editButton.textContent = "Bearbeiten";
+    editButton.setAttribute(
+      "aria-label",
+      shopping ? "Einkaufsliste bearbeiten" : `Notiz „${note.title}“ bearbeiten`
+    );
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.dataset.noteAction = "delete";
+    deleteButton.dataset.noteId = note.id;
+    deleteButton.textContent = "Löschen";
+    deleteButton.setAttribute(
+      "aria-label",
+      shopping ? "Einkaufsliste löschen" : `Notiz „${note.title}“ löschen`
+    );
+
+    actions.append(editButton, deleteButton);
+    footer.append(date, actions);
+    card.append(header, body, footer);
+    return card;
+  }
+
   function renderPersonalNotes(searchText = notesSearchInput?.value || "") {
     const query = normalizeNoteSearchText(searchText);
-    const visibleNotes = personalNotes.filter((note) => {
-      if (!query) {
-        return true;
-      }
+    const shoppingNotes = personalNotes.filter(isShoppingListNote);
+    const regularNotes = personalNotes.filter((note) => !isShoppingListNote(note));
+    const visibleNotes = regularNotes.filter((note) => {
+      if (!query) return true;
       return normalizeNoteSearchText(
         `${note.title}\n${note.text}\n${note.source}`
       ).includes(query);
     });
 
     notesList.replaceChildren();
+    shoppingList.replaceChildren();
+
     notesCount.textContent = query
-      ? `${visibleNotes.length} von ${personalNotes.length} Notizen`
-      : `${personalNotes.length} ${personalNotes.length === 1 ? "Notiz" : "Notizen"}`;
+      ? `${visibleNotes.length} von ${regularNotes.length} Notizen`
+      : `${regularNotes.length} ${regularNotes.length === 1 ? "Notiz" : "Notizen"}`;
+
+    const shoppingItemCount = shoppingNotes.reduce(
+      (total, note) => total + shoppingItemsFromNote(note).length,
+      0
+    );
+    shoppingCount.textContent = `${shoppingItemCount} Artikel`;
 
     const quickMeta = document.getElementById("notesQuickMeta");
     if (quickMeta) {
-      quickMeta.textContent = personalNotes.length
-        ? `${personalNotes.length} ${personalNotes.length === 1 ? "Notiz" : "Notizen"}`
-        : "Dein Notizbuch";
+      quickMeta.textContent =
+        `Kalender · ${shoppingItemCount} Einkäufe · ${regularNotes.length} Notizen`;
     }
+
+    shoppingEmpty.hidden = shoppingNotes.length > 0;
+    shoppingNotes.forEach((note) => {
+      shoppingList.appendChild(buildPersonalNoteCard(note, { shopping: true }));
+    });
 
     notesEmpty.hidden = visibleNotes.length > 0;
     const emptyTitle = notesEmpty.querySelector("strong");
@@ -2508,49 +2746,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     visibleNotes.forEach((note) => {
-      const card = document.createElement("article");
-      card.className = "noteCard glassCard";
-      card.dataset.noteId = note.id;
-
-      const header = document.createElement("div");
-      header.className = "noteCardHeader";
-      const heading = document.createElement("h3");
-      heading.textContent = note.title;
-      const source = document.createElement("span");
-      source.className = "noteSource";
-      source.textContent = note.source;
-      header.append(heading, source);
-
-      const body = document.createElement("p");
-      body.className = "noteBody";
-      body.textContent = note.text;
-
-      const footer = document.createElement("div");
-      footer.className = "noteCardFooter";
-      const date = document.createElement("time");
-      date.dateTime = new Date(note.updatedAt).toISOString();
-      date.textContent = noteDateText(note);
-      const actions = document.createElement("div");
-      actions.className = "noteActions";
-
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.dataset.noteAction = "edit";
-      editButton.dataset.noteId = note.id;
-      editButton.textContent = "Bearbeiten";
-      editButton.setAttribute("aria-label", `Notiz „${note.title}“ bearbeiten`);
-
-      const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.dataset.noteAction = "delete";
-      deleteButton.dataset.noteId = note.id;
-      deleteButton.textContent = "Löschen";
-      deleteButton.setAttribute("aria-label", `Notiz „${note.title}“ löschen`);
-
-      actions.append(editButton, deleteButton);
-      footer.append(date, actions);
-      card.append(header, body, footer);
-      notesList.appendChild(card);
+      notesList.appendChild(buildPersonalNoteCard(note));
     });
   }
 
@@ -2951,16 +3147,23 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         return localResult;
       }
 
-      const handoffResult = await prepareSamsungNote(text);
+      let handoffResult = null;
+      if (args?.openSamsungNotes === true) {
+        handoffResult = await prepareSamsungNote(text);
+      }
+
       void notifyGalaxyWatchSummary("note");
       return {
-        ...handoffResult,
+        ...(handoffResult || {}),
         success: true,
+        opened: Boolean(handoffResult?.opened),
         saved: true,
         localSaved: true,
+        destination: "Notizen",
         note: localResult.note,
-        answer:
-          `In Pam’s Holo ist die Notiz gespeichert. ${handoffResult.answer}`
+        answer: handoffResult
+          ? `Unter Wichtiges → Notizen gespeichert. ${handoffResult.answer}`
+          : "Unter Wichtiges → Notizen gespeichert ✅️"
       };
     }
 
@@ -2985,7 +3188,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return deletePersonalNote(args?.query);
     }
 
-    return { success: false, answer: "Unbekannte Samsung-Notes-Funktion." };
+    return { success: false, answer: "Unbekannte Notiz-Funktion." };
   }
 
   window.executeSolHoloNotesTool = executeNotesTool;
@@ -3759,8 +3962,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         throw new Error("Die Uhr-App hat das Öffnen nicht bestätigt.");
       }
 
+      const alarmTime =
+        `${String(request.hour).padStart(2, "0")}:${String(request.minute).padStart(2, "0")} Uhr`;
       const answer = isSet
-        ? `Dein Wecker auf dem Handy ist auf ${String(request.hour).padStart(2, "0")}:${String(request.minute).padStart(2, "0")} Uhr gestellt.`
+        ? Number.isInteger(request?.relativeMinutes)
+          ? `Dein Wecker ist in ${request.relativeMinutes} Minuten gestellt (${alarmTime}).`
+          : `Dein Wecker auf dem Handy ist auf ${alarmTime} gestellt.`
         : "Deine Wecker auf dem Handy sind geöffnet.";
       showToast(answer);
       if (isSet) void notifyGalaxyWatchSummary("alarm");
@@ -5178,8 +5385,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   function samsungNoteTextFromNaturalRequest(message) {
     const cleanMessage = stripHoloInvocation(message);
     const patterns = [
-      /^(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?[.!?]*$/i,
-      /^(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i
+      /^(?:bitte\s+)?(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?[.!?]*$/i,
+      /^(?:bitte\s+)?(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i
     ];
 
     for (const pattern of patterns) {
@@ -5325,11 +5532,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
       return {
         handled: true,
-        status: result?.opened
-          ? "In Pam’s Holo gespeichert · Samsung Notes geöffnet."
-          : result?.localSaved
-            ? "In Pam’s Holo gespeichert · Samsung Notes nicht geöffnet."
-            : "Notiz wurde nicht gespeichert.",
+        status: result?.localSaved
+          ? "Unter Wichtiges · Notizen gespeichert."
+          : "Notiz wurde nicht gespeichert.",
         answer: result.answer
       };
     };
@@ -5361,13 +5566,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       previousPlainUserMessageAt = 0;
       return {
         handled: true,
-        status: result?.opened
-          ? "In Pam’s Holo gespeichert · Samsung Notes geöffnet."
-          : "In Pam’s Holo gespeichert · Samsung Notes nicht geöffnet.",
-        answer: result?.opened
-          ? `In Pam’s Holo ist die Notiz gespeichert. Samsung Notes ist mit „${noteInsertion.anchor}\n${noteInsertion.addition}“ geöffnet. ` +
-            "Bitte dort noch speichern; deine vorhandene Notiz bleibt unverändert."
-          : result.answer
+        status: "Unter Wichtiges · Notizen gespeichert.",
+        answer: result.answer
       };
     }
 
@@ -5379,16 +5579,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     let noteMatch = noteMessage.match(
-      /^notier(?:e)?\b\s*(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!]?$/i
+      /^(?:bitte\s+)?notier(?:e)?\b\s*(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!]?$/i
     );
     if (!noteMatch) {
       noteMatch = noteMessage.match(
-        /^(?:mach|mache|schreib|schreibe)\s+(?:mir\s+)?(?:bitte\s+)?eine\s+notiz(?:\s+daraus)?\s*[:,-]?\s+(.+?)[.!]?$/i
+        /^(?:bitte\s+)?(?:mach|mache|schreib|schreibe)\s+(?:mir\s+)?(?:bitte\s+)?eine\s+notiz(?:\s+daraus)?\s*[:,-]?\s+(.+?)[.!]?$/i
       );
     }
     if (!noteMatch) {
       noteMatch = noteMessage.match(
-        /^schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:als\s+notiz|in\s+meine\s+notizen|auf)\s*[:,-]?\s+(.+?)[.!]?$/i
+        /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:als\s+notiz|in\s+meine\s+notizen|auf)\s*[:,-]?\s+(.+?)[.!]?$/i
       );
     }
     if (!noteMatch) {
@@ -5405,7 +5605,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         pendingPersonalNoteText = false;
         return {
           handled: true,
-          answer: "Alles klar. Es wurde nichts an Samsung Notes übergeben."
+          answer: "Alles klar. Es wurde keine Notiz gespeichert."
         };
       }
       return finishNoteCreation(noteMessage);
@@ -5426,7 +5626,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       pendingPersonalNoteText = true;
       return {
         handled: true,
-        answer: "Gern. Was soll ich in Samsung Notes notieren?"
+        answer: "Gern. Was soll ich unter Wichtiges → Notizen speichern?"
       };
     }
 
@@ -6094,6 +6294,44 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     showToast("Das HUMAN-HOLO-Bild ist wieder aktiv.");
   });
 
+  calendarComposer.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const calendarText = calendarTextInput.value.trim();
+    if (!calendarText) {
+      calendarComposerStatus.textContent = "Sag bitte, was und wann eingetragen werden soll.";
+      showToast("Kalendereintrag fehlt.");
+      return;
+    }
+    if (!calendarWriteDestinationFromMessage(calendarText)) {
+      calendarComposerStatus.textContent =
+        "Bitte Datum oder „morgen“, Uhrzeit und Anlass nennen.";
+      showToast("Zum Beispiel: Morgen 13 Uhr Zahnarzt");
+      return;
+    }
+
+    calendarComposerStatus.textContent = "Kalenderauftrag wird geprüft …";
+    calendarTextInput.value = "";
+    void askSol(calendarText);
+  });
+
+  shoppingComposer.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const result = appendPersonalListItem(
+      "Einkaufsliste",
+      shoppingItemInput.value
+    );
+    if (result.success) {
+      shoppingItemInput.value = "";
+      shoppingItemInput.focus();
+      return;
+    }
+    if (result.securityBlocked) {
+      window.alert(result.answer);
+    } else {
+      showToast(result.answer);
+    }
+  });
+
   noteComposer.addEventListener("submit", (event) => {
     event.preventDefault();
     const result = createPersonalNote(noteTextInput.value, {
@@ -6115,7 +6353,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     renderPersonalNotes(notesSearchInput.value);
   });
 
-  notesList.addEventListener("click", async (event) => {
+  const handlePersonalNoteAction = async (event) => {
     const actionButton = event.target.closest("[data-note-action]");
     if (!actionButton) {
       return;
@@ -6125,14 +6363,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       (entry) => entry.id === actionButton.dataset.noteId
     );
     if (!note) {
-      showToast("Diese Notiz wurde nicht mehr gefunden.");
+      showToast("Dieser Eintrag wurde nicht mehr gefunden.");
       renderPersonalNotes();
       return;
     }
 
     if (actionButton.dataset.noteAction === "delete") {
       const confirmed = window.confirm(
-        `Notiz „${note.title}“ wirklich löschen?`
+        `„${note.title}“ wirklich löschen?`
       );
       if (!confirmed) {
         return;
@@ -6143,7 +6381,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (actionButton.dataset.noteAction === "edit") {
       const newText = window.prompt(
-        `Notiz „${note.title}“ bearbeiten:`,
+        `„${note.title}“ bearbeiten:`,
         note.text
       );
       if (newText === null || newText.trim() === note.text) {
@@ -6157,7 +6395,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         window.alert(result.answer);
       }
     }
-  });
+  };
+
+  notesList.addEventListener("click", handlePersonalNoteAction);
+  shoppingList.addEventListener("click", handlePersonalNoteAction);
 
   memorialPersonName.addEventListener("input", () => {
     memorialPersonName.setCustomValidity("");
@@ -6443,7 +6684,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     showToast(
       "Jeder Dienst wird einzeln freigegeben. " + whatsappText +
       " Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
-      "Samsung Galerie öffnet die Bildauswahl; Samsung Notes wird für Notizen direkt geöffnet."
+      "Samsung Galerie öffnet die Bildauswahl; Zurufe werden direkt unter Wichtiges gespeichert. Samsung Notes öffnet nur beim manuellen Antippen."
     );
   });
 
