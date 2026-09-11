@@ -2614,7 +2614,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const listPatterns = [
       {
-        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?(?:\s+bitte\w*)?[.!?]*$/i,
+        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?(?:\s*[,;:]?\s*bitte\w*)?[\s,;:.!?]*$/i,
         contentGroup: 1,
         listGroup: 2
       },
@@ -2624,7 +2624,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         listGroup: 1
       },
       {
-        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?(?:\s+bitte\w*)?[.!?]*$/i,
+        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?(?:\s*[,;:]?\s*bitte\w*)?[\s,;:.!?]*$/i,
         contentGroup: 1,
         listGroup: 2
       },

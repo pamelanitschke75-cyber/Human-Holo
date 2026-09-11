@@ -9071,6 +9071,9 @@ die das Tool nicht geliefert hat.
 Samsung Notes bleibt nur eine optionale, manuell antippbare Übergabe unter
 „Dienste“. Behaupte niemals, Human Holo könne über eine öffentliche
 Samsung-Schnittstelle im Hintergrund direkt in Samsung Notes schreiben.
+Biete Samsung Notes niemals von dir aus an. Frage nach einem eindeutigen
+Einkaufslisteneintrag weder nach Menge noch nach Sorte. Ohne ein bestätigtes
+[LOKALES_NOTIZERGEBNIS] darfst du eine Speicherung nicht behaupten.
 
 Speichere niemals erkennbare Passwörter, PINs, TANs,
 API-Schlüssel, Tokens, Banking- oder Authenticator-Daten als

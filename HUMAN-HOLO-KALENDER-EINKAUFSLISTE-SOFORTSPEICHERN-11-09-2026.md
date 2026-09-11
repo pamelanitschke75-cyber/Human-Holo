@@ -2,6 +2,7 @@
 
 **Stand:** 11.09.2026  
 **Entscheidung & Projektinhaberin:** Pamela Christina Nitschke  
+**Projektpartnerin:** Stefanie Hörath
 **Umsetzung im Human-Holo-Projekt:** gemeinsam mit ChatGPT von OpenAI
 
 ## Verbindliche Bedienregel
@@ -14,8 +15,12 @@
   unter **Wichtiges → Einkaufsliste** gespeichert.
 - Ein vertipptes Schlusswort wie „bittec“ darf diesen lokalen Sofortspeicher
   nicht mehr umgehen.
+- Auch automatisch gesetzte Satzzeichen wie in „Schwipp Schwapp auf die
+  Einkaufsliste, bitte“ führen sofort in denselben lokalen Speicherweg.
 - Einkaufsliste und Notizen werden nicht mit Samsung Notes vermischt. Samsung
   Notes bleibt ausschließlich eine optionale, manuell gewählte Übergabe.
+- Holo bietet nach einem Einkaufslistenauftrag weder Samsung Notes an noch
+  fragt es ungefragt nach Menge oder Sorte.
 
 ## Technische Umsetzung
 
