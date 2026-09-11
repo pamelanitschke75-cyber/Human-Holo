@@ -931,6 +931,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "der von dir genannte, eindeutig geprüfte Empfänger. Einen Kontakt oder " +
     "die fest hinterlegte ADAC-Pannenhilfe ruft Human Holo erst nach deiner " +
     "sichtbaren Bestätigung direkt an. 110 und 112 bleiben im Android-Wähler. " +
+    "Nur den einmalig freigegebenen Kontakt darf Human Holo nach dem " +
+    "eindeutigen Befehl „anrufen und mit ihr sprechen“ ohne zweiten Dialog " +
+    "über die verschlüsselte Telefonbrücke anrufen; die Nummer wird " +
+    "nicht angezeigt, protokolliert oder als Erinnerung gespeichert. " +
     "WhatsApp-Nachrichten " +
     "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
     "Bild, Notiz und Health-Wert bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
@@ -942,7 +946,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "hinterlegt; Human Holo hat dadurch keine Upload- oder Verwaltungsrechte.";
 
   document.querySelector("#phoneContactsRow .rowMeta").textContent =
-    "Kontakte und ADAC nach sichtbarer Bestätigung direkt anrufen · WhatsApp ausdrücklich senden";
+    "Direktanruf bestätigt · Holo-Gespräch nur mit dem freigegebenen Kontakt";
 
   const drawerVoiceSettings = document.querySelector("#drawer .drawerVoiceSettings");
   if (drawerVoiceSettings) {
@@ -4994,6 +4998,53 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return name;
   }
 
+  function personalCloneContactCallFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .trim()
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|human\s+holo|holo))\s*[,;:!.-]?\s*/i,
+        ""
+      )
+      .trim();
+    if (
+      isSafetyTriageQuestion(cleanMessage) ||
+      /[?;]/.test(cleanMessage) ||
+      /\b(?:test|probe|fiktiv|spaeter|morgen|irgendwann|wenn)\b/i.test(
+        normalizeLocalPhoneIntent(cleanMessage)
+      )
+    ) {
+      return null;
+    }
+
+    const match = cleanMessage.match(
+      /^ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(.+?)\s+an\s+(?:und|,)\s*(?:sprich|sprech|rede|unterhalte\s+dich)\s+(?:bitte\s+)?mit\s+(?:ihr|ihm|der\s+person)(?:\s+selbst)?[.!]?$/i
+    );
+    const contactName = String(match?.[1] || "")
+      .replace(
+        /[\s\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]+$/gu,
+        ""
+      )
+      .replace(/^[\s:;,–—-]+|[\s:;,–—-]+$/g, "")
+      .trim();
+    if (
+      !contactName ||
+      contactName.split(/\s+/).length > 5 ||
+      !/^[\p{L}\p{M}][\p{L}\p{M} .,'’\-\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]*$/u.test(
+        contactName
+      ) ||
+      /\b(?:adac|pannenhilfe|notfall|polizei|arzt|aerztin)\b/i.test(
+        normalizeLocalPhoneIntent(contactName)
+      )
+    ) {
+      return null;
+    }
+
+    return {
+      contactName,
+      mode: "personal_clone_conversation"
+    };
+  }
+
   async function openServiceDialer(number, label = "") {
     const cleanNumber = String(number || "").replace(/\s+/g, "");
     const expectedLabel = SAFE_SERVICE_DIALERS[cleanNumber];
@@ -5044,6 +5095,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.extractSolHoloServiceDialRequest = serviceDialRequestFromMessage;
   window.extractSolHoloVerifiedHelpServiceCall =
     verifiedHelpServiceCallFromMessage;
+  window.extractSolHoloPersonalCloneContactCall =
+    personalCloneContactCallFromMessage;
   window.extractSolHoloPhoneContactCallName = phoneContactCallNameFromMessage;
   window.openSolHoloServiceDialer = openServiceDialer;
 
@@ -5305,6 +5358,111 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           callStarted: true,
           connectionConfirmed: false,
           answer: `Human Holo hat den Anruf bei ${contact.name} gestartet.`
+        };
+      }
+
+      if (actionName === "start_personal_clone_call") {
+        const identity = requireActivePersonalOwner();
+        if (
+          !identity ||
+          identity.ownerId !== "pam-sol" ||
+          identity.speakerId !== "pam"
+        ) {
+          return {
+            success: false,
+            answer: "Dieser Holo-Gesprächsanruf gehört ausschließlich zu Pam’s Holo."
+          };
+        }
+
+        const ensureTrustedSession =
+          window.SolHoloTrustedSession?.ensure;
+        if (typeof ensureTrustedSession !== "function") {
+          return {
+            success: false,
+            answer: "Die sichere S23-Sitzung ist für den Holo-Gesprächsanruf nicht verfügbar."
+          };
+        }
+
+        // Das normale Entsperren der App erzeugt diese hardwaregebundene
+        // Sitzung bereits. Hier wird absichtlich kein zweiter Dialog geöffnet.
+        const trustedSession = await ensureTrustedSession({
+          interactive: false
+        });
+        if (!trustedSession?.trusted) {
+          return {
+            success: false,
+            answer:
+              "Bitte entsperre Pam’s Holo einmal neu. Danach kann Human Holo " +
+              "den freigegebenen Kontakt ohne einen zweiten Bestätigungsdialog anrufen."
+          };
+        }
+
+        const response = await fetch(
+          `${BACKEND_URL}/personal-clone/calls/start`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(window.SolHoloTrustedSession?.headers?.() || {})
+            },
+            body: JSON.stringify({
+              ownerId: identity.ownerId,
+              selectedSpeakerId: identity.speakerId,
+              ownerCommand: "START_PERSONAL_CLONE_CALL",
+              targetNumber: contact.number
+            }),
+            cache: "no-store",
+            credentials: "omit",
+            referrerPolicy: "no-referrer"
+          }
+        );
+        const responseText = await response.text();
+        let data = {};
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          data = {};
+        }
+
+        if (!response.ok) {
+          const setupMissing = new Set([
+            "PERSONAL_CLONE_CALLS_DISABLED",
+            "PERSONAL_CLONE_PROVIDER_NOT_CONFIGURED",
+            "PERSONAL_CLONE_PUBLIC_URL_INVALID",
+            "PERSONAL_CLONE_FROM_NUMBER_INVALID"
+          ]).has(String(data?.error || ""));
+          return {
+            success: false,
+            setupRequired: setupMissing,
+            answer: setupMissing
+              ? "Der sichere Holo-Gesprächsanruf ist im Update enthalten, aber die einmalige Telefonbrücke ist noch nicht vollständig eingerichtet."
+              : String(
+                  data?.message ||
+                  "Human Holo konnte den freigegebenen Gesprächsanruf gerade nicht starten."
+                )
+          };
+        }
+
+        if (
+          data?.started !== true ||
+          data?.confirmationRequired !== false ||
+          data?.holoConductsConversation !== true ||
+          data?.numberReturned !== false ||
+          data?.identity?.ownerId !== identity.ownerId
+        ) {
+          throw new Error(
+            "Die sichere Rückmeldung des Holo-Gesprächsanrufs ist ungültig."
+          );
+        }
+
+        return {
+          success: true,
+          callStarted: true,
+          confirmationRequired: false,
+          holoConductsConversation: true,
+          answer:
+            `Human Holo ruft ${contact.name} jetzt selbst an und führt das Gespräch ` +
+            "transparent als Pams persönlicher KI-Clone."
         };
       }
 
@@ -6327,6 +6485,22 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
               )
         };
       }
+    }
+
+    const personalCloneCall =
+      personalCloneContactCallFromMessage(cleanMessage);
+    if (personalCloneCall) {
+      const result = await executePhoneTool(
+        "start_personal_clone_call",
+        {
+          contact_name:
+            personalCloneCall.contactName
+        }
+      );
+      return {
+        handled: true,
+        answer: result.answer
+      };
     }
 
     const phoneContactName = phoneContactCallNameFromMessage(cleanMessage);

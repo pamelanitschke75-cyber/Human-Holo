@@ -362,6 +362,23 @@ jobs:
           grep -q 'verifiedHelpServiceCallFromMessage' "$app_ui"
           grep -q 'start_help_service_call' "$app_ui"
 
+      - name: Ownergebundenen Holo-Gesprächsanruf prüfen
+        run: |
+          set -Eeuo pipefail
+          app_ui="android/app/src/main/assets/public/sol-holo-ui.js"
+          bridge="modules/personal-clone-call.mjs"
+          test -s "$bridge"
+          grep -q 'start_personal_clone_call' "$app_ui"
+          grep -q 'interactive: false' "$app_ui"
+          grep -q '/personal-clone/calls/start' "$app_ui"
+          grep -q 'PERSONAL_CLONE_ALLOWED_NUMBER_SHA256' "$bridge"
+          grep -q 'gpt-live-1' "$bridge"
+          grep -q 'confirmationRequired: false' "$bridge"
+          grep -q 'x-twilio-signature' "$bridge"
+          grep -q 'customParameters?.bridgeToken' "$bridge"
+          ! grep -q '?token=' "$bridge"
+          ! grep -Eq '\+49[[:space:]]*1[5-7][0-9]{8,10}' "$bridge" server.mjs "$app_ui"
+
       - name: Kalender-Sofortspeicher und sichtbare Holo-Verknüpfung prüfen
         run: |
           set -Eeuo pipefail

@@ -41,6 +41,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin direkt speichern und kommende Termine im sichtbaren Human-Holo-Kalenderfach anzeigen| Einmalige Android-Freigabe; danach beim Kalenderauftrag oder sichtbaren Aktualisieren| Kein Kalendereintrag und keine Terminanzeige in Human Holo
 👥 Kontakte| Kontakte| Personen auswählen/zuordnen| Bei Kontaktfunktion| Kein Kontaktzugriff
 📞 Telefon| `READ_PHONE_STATE` + `CALL_PHONE`| Während eines Telefonats pausieren; einen erneut geprüften Kontakt oder die fest hinterlegte ADAC-Pannenhilfe nach sichtbarer Bestätigung direkt anrufen| Telefonstatus nach einmaliger Freigabe; `CALL_PHONE` erstmals im bestätigten Anrufablauf| Ohne Freigabe kein direkter Anruf; 110/112 bleiben immer im Android-Wähler
+🗣️ Holo-Gesprächsanruf| lokaler Kontaktzugriff + verschlüsselte Server-/Telefonie-Verbindung| Human Holo führt nach Pams eindeutigem Auftrag ein Gespräch mit genau einem vorab freigegebenen Kontakt| Nur aus Pams entsperrter, hardwaregebundener S23-Sitzung; kein zweites Bestätigungsfenster| Kein Gesprächsanruf; normale Kontakt-, ADAC- und Notrufwege bleiben getrennt
 💬 Nachrichten| Nachrichten-/Share-Funktion| Text an andere Apps übergeben| Bei ausdrücklicher Aktion| Keine Übergabe
 ♿ Bedienungshilfe (optional)| ausschließlich WhatsApp und WhatsApp Business| Empfänger, vollständigen Text und Senden-Schaltfläche prüfen und nach einem ausdrücklichen WhatsApp-Auftrag einmalig Senden auslösen| Einmalige bewusste Aktivierung in Android; danach bei jedem ausdrücklich genannten WhatsApp-Sendeauftrag| WhatsApp wird nur vorbereitet und nicht automatisch gesendet
 📍 Standort| Standortdaten| Ortsbezogene Funktionen| Nur wenn benötigt| Keine Standortfunktionen
@@ -163,9 +164,42 @@ Formulierungen mit „nur ein Test“, „Testfrage“, „fiktiv“ oder einem
 hypothetischen Notfallszenario dürfen weder den ADAC noch einen anderen Anruf
 starten.
 
+Holo-Gesprächsanruf mit einem freigegebenen Kontakt
+
+Der Auftrag **„Ruf Schatz an und sprich mit ihr“** verwendet einen separaten,
+eng begrenzten Weg. Er gilt ausschließlich unter diesen Bedingungen:
+
+- Pams persönliche App ist bereits durch ihre hardwaregebundene S23-Sitzung
+  entsperrt.
+- Pam gibt einen eindeutigen aktuellen Auftrag, anzurufen **und** das Gespräch
+  durch Human Holo führen zu lassen.
+- Der lokal erneut aufgelöste Kontakt stimmt mit genau einem serverseitig
+  hinterlegten SHA-256-Prüfwert überein.
+- Der Auftrag ist weder Test, Zukunftsauftrag, ADAC-, Service- noch Notruf.
+
+Für diesen einen vorab erlaubten Kontakt entfällt das zweite
+Bestätigungsfenster. Human Holo stellt sich zu Gesprächsbeginn ausdrücklich als
+**Pams persönlicher KI-Clone** und als KI vor und fragt die angerufene Person,
+ob sie sprechen möchte. Eine Ablehnung beendet das Gespräch höflich.
+
+Die Telefonnummer wird nicht im Quelltext, in App-Antworten, Logs, Erinnerungen
+oder der Gesprächssitzung gespeichert. Sie wird nur für die technische
+Vermittlung des ausdrücklich gestarteten Anrufs über TLS an den Server und dort
+kurzzeitig an den Telefonanbieter übergeben. Der Anbieter verarbeitet notwendige
+Verbindungsdaten; OpenAI und der Telefonanbieter verarbeiten während des Anrufs
+die Audiodaten. Human Holo zeichnet den Anruf nicht auf und übernimmt ihn nicht
+in das persönliche Gedächtnis.
+
+Dieser Gesprächsweg akzeptiert niemals eine zweite oder vom Modell gelieferte
+Nummer. 110, 112, 116117 und ADAC bleiben technisch getrennt. Für den echten
+Betrieb müssen Telefonie-Anbieter und Server-Geheimnisse bewusst eingerichtet
+werden; dafür ist keine zusätzliche Android-Telefonberechtigung erforderlich.
+
 Quellen: [Android `ACTION_CALL`](https://developer.android.com/reference/android/content/Intent#ACTION_CALL),
 [Android `TelecomManager.placeCall`](https://developer.android.com/reference/android/telecom/TelecomManager#placeCall(android.net.Uri,%20android.os.Bundle)),
-[ADAC Pannenhilfe](https://www.adac.de/services/pannenhilfe/).
+[ADAC Pannenhilfe](https://www.adac.de/services/pannenhilfe/),
+[OpenAI Voice mit SIP](https://developers.openai.com/api/docs/guides/voice-sip),
+[Twilio: ausgehende Anrufe mit OpenAI Realtime](https://www.twilio.com/en-us/blog/developers/tutorials/integrations/outbound-calls-openai-gpt-live-1-node).
 
 ---
 
