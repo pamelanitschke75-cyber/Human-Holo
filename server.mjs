@@ -2843,6 +2843,23 @@ function requireTrustedOwnerIdentity(
   Direktanruf, ADAC und Notrufwege bleiben vollständig getrennt.
 */
 app.post(
+  "/personal-clone/telnyx-events",
+  (_req, res) => {
+    // Telnyx verlangt für die Voice-API-Anwendung einen HTTPS-Webhook.
+    // Human Holo steuert den einmaligen Anruf ausschließlich über den
+    // geschützten Media-WebSocket; Statusereignisse werden daher weder
+    // ausgewertet noch protokolliert oder gespeichert.
+    res.set({
+      "Cache-Control":
+        "no-store, max-age=0",
+      Pragma:
+        "no-cache"
+    });
+    return res.status(204).end();
+  }
+);
+
+app.post(
   "/personal-clone/calls/status",
   (req, res) => {
     res.set({
