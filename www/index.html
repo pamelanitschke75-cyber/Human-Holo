@@ -10314,12 +10314,12 @@ async function sendMessage(
     ){
 
       if(
-        typeof window.openSolHoloCalendarDraft ===
+        typeof window.saveSolHoloCalendarDraft ===
           "function"
       ){
 
         data.calendar =
-          await window.openSolHoloCalendarDraft(
+          await window.saveSolHoloCalendarDraft(
             data.calendar
           );
       }
@@ -11286,12 +11286,12 @@ async function sendLiveTranscriptToMemory(
 
 
       if(
-        typeof window.openSolHoloCalendarDraft ===
+        typeof window.saveSolHoloCalendarDraft ===
           "function"
       ){
 
         calendarResult =
-          await window.openSolHoloCalendarDraft(
+          await window.saveSolHoloCalendarDraft(
             calendarResult
           );
       }
@@ -11315,13 +11315,11 @@ async function sendLiveTranscriptToMemory(
         fallback:
           "Der Kalenderauftrag wurde geprüft.",
         successStatus:
-          calendarResult?.draftOpened
-            ? "Kalenderentwurf auf dem S23 geöffnet."
+          calendarResult?.savedDirectly
+            ? "Kalendertermin sofort gespeichert."
             : "Google Calendar hat den Eintrag bestätigt.",
         failureStatus:
-          calendarResult?.draftOpened
-            ? "Kalenderentwurf auf dem S23 geöffnet."
-            : "Google Calendar hat keinen Eintrag bestätigt."
+          "Kalender hat keinen Eintrag bestätigt."
       });
 
 
@@ -14453,7 +14451,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=70"></script>
+<script src="./sol-holo-ui.js?v=71"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=1"></script>

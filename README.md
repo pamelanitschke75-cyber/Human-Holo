@@ -234,9 +234,14 @@ Details: [Sol-aus-ChatGPT-Gedächtnisbrücke](./HUMAN-HOLO-CHATGPT-SOL-GEDAECHTN
 
 ---
 
-# 📅 Google-Kalender
+# 📅 Kalender – direkt speichern
 
 Die Google-Kalender-Anbindung wurde erfolgreich praktisch getestet.
+
+Auf Android kann Human Holo einen ausdrücklich genannten Termin nach einmaliger
+Kalenderfreigabe zusätzlich direkt über den Calendar Provider speichern. Das
+Kalenderfenster öffnet sich dabei nicht; ein zusätzlicher Tipp auf „Speichern“
+ist nicht nötig.
 
 ✅ Verbindung zum Google-Kalender funktioniert.
 
@@ -253,7 +258,7 @@ Human Holo soll zukünftig beispielsweise verstehen können:
 - „Was steht nächste Woche an?“
 - „Erinnere mich vorher daran.“
 
-Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden, wenn die Kalender-API die Aktion tatsächlich bestätigt hat.
+Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden, wenn Google Calendar oder der Android Calendar Provider die Aktion tatsächlich bestätigt hat.
 
 ---
 

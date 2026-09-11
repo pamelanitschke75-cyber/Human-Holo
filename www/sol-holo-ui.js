@@ -1120,6 +1120,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     allRequestedAccessGranted: false,
     services: {}
   };
+  let deviceCalendarStatus = {
+    supported: false,
+    permissionGranted: false,
+    writableCalendarAvailable: false,
+    directWriteSupported: false
+  };
   let smartThingsStatus = {
     configured: false,
     connected: false,
@@ -2569,7 +2575,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     const listPatterns = [
       {
-        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?[.!?]*$/i,
+        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?(?:\s+bitte\w*)?[.!?]*$/i,
         contentGroup: 1,
         listGroup: 2
       },
@@ -2579,7 +2585,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         listGroup: 1
       },
       {
-        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?[.!?]*$/i,
+        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?(?:\s+bitte\w*)?[.!?]*$/i,
         contentGroup: 1,
         listGroup: 2
       },
@@ -3750,6 +3756,71 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  function renderDeviceCalendarStatus(nextStatus) {
+    deviceCalendarStatus = {
+      supported: Boolean(nextStatus?.supported),
+      permissionGranted: Boolean(nextStatus?.permissionGranted),
+      writableCalendarAvailable: Boolean(
+        nextStatus?.writableCalendarAvailable
+      ),
+      directWriteSupported: Boolean(nextStatus?.directWriteSupported)
+    };
+
+    if (!deviceCalendarStatus.supported) {
+      return false;
+    }
+
+    const todayState = document.getElementById("todayCardMeta");
+    if (
+      deviceCalendarStatus.permissionGranted &&
+      deviceCalendarStatus.writableCalendarAvailable
+    ) {
+      if (todayState) todayState.textContent = "Kalender direkt bereit";
+      renderCalendarAccessState(
+        "Sofortiges Speichern freigegeben ✅️",
+        "Freigegeben",
+        true
+      );
+      return true;
+    }
+
+    if (deviceCalendarStatus.permissionGranted) {
+      if (todayState) todayState.textContent = "Kalender muss eingerichtet werden";
+      renderCalendarAccessState(
+        "Kein beschreibbarer Kalender auf dem S23 gefunden",
+        "Erneut prüfen"
+      );
+      return true;
+    }
+
+    if (todayState) todayState.textContent = "Kalenderfreigabe einmal nötig";
+    renderCalendarAccessState(
+      "Einmal freigeben – danach speichert Holo sofort",
+      "Zugriff freigeben"
+    );
+    return true;
+  }
+
+  async function loadDeviceCalendarStatus() {
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.getCalendarStatus !== "function") {
+      deviceCalendarStatus = {
+        supported: false,
+        permissionGranted: false,
+        writableCalendarAvailable: false,
+        directWriteSupported: false
+      };
+      return false;
+    }
+
+    try {
+      return renderDeviceCalendarStatus(await plugin.getCalendarStatus());
+    } catch (error) {
+      console.error("Android-Kalenderstatus:", error?.code || error?.name);
+      return false;
+    }
+  }
+
   async function loadGoogleStatus() {
     const serviceState = document.getElementById("googleAccountStatus");
     const profileState = document.getElementById("profileGoogleState");
@@ -3866,6 +3937,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         "Kalenderstatus konnte nicht geprüft werden",
         "Erneut prüfen"
       );
+    } finally {
+      await loadDeviceCalendarStatus();
     }
   }
 
@@ -4213,65 +4286,80 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
-  window.openSolHoloCalendarDraft = async (calendarResult) => {
+  window.saveSolHoloCalendarDraft = async (calendarResult) => {
     const draft = calendarResult?.calendarDraft;
     if (calendarResult?.success || !draft) return calendarResult;
-    if (
-      calendarResult?.needsGoogleAuth ||
-      calendarResult?.needsTrustedAppSession
-    ) {
-      const needsDeviceConfirmation =
-        calendarResult?.needsTrustedAppSession === true;
+
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.saveCalendarEvent !== "function") {
       showView("notes");
       renderCalendarAccessState(
-        needsDeviceConfirmation
-          ? "S23-Sicherheit einmal bestätigen"
-          : "Kalenderzugriff noch nicht freigegeben",
-        needsDeviceConfirmation ? "S23 bestätigen" : "Zugriff freigeben"
-      );
-      showToast(
-        needsDeviceConfirmation
-          ? "Bestätige einmal dein S23. Danach speichert Holo direkt."
-          : "Gib den Kalenderzugriff einmal frei. Danach speichert Holo direkt."
+        "Direktes Speichern ist erst nach dem App-Update verfügbar",
+        "App-Update nötig"
       );
       return {
         ...calendarResult,
         accessRequired: true,
-        answer: needsDeviceConfirmation
-          ? "Der Termin wurde noch nicht gespeichert. Tippe im Kalenderbereich auf „S23 bestätigen“."
-          : "Der Termin wurde noch nicht gespeichert. Tippe im Kalenderbereich auf „Zugriff freigeben“."
+        answer:
+          "Der Termin wurde noch nicht gespeichert. Bitte aktualisiere Human Holo für das direkte Speichern."
       };
     }
-
-    const plugin = getPhoneContactsPlugin();
-    if (typeof plugin?.openCalendarEvent !== "function") return calendarResult;
 
     const startMillis = Date.parse(String(draft.start || ""));
     const endMillis = Date.parse(String(draft.end || ""));
     if (!Number.isFinite(startMillis) || !Number.isFinite(endMillis)) {
-      return calendarResult;
+      return {
+        ...calendarResult,
+        answer:
+          "Der Termin wurde nicht gespeichert, weil Datum oder Uhrzeit nicht eindeutig sind."
+      };
     }
 
     try {
-      const opened = await plugin.openCalendarEvent({
+      const saved = await plugin.saveCalendarEvent({
         title: String(draft.title || "Termin"),
         description: String(draft.description || ""),
         startMillis,
         endMillis,
         allDay: Boolean(draft.allDay)
       });
-      if (!opened?.opened) return calendarResult;
+      if (!saved?.saved) {
+        throw new Error("CALENDAR_DIRECT_SAVE_NOT_CONFIRMED");
+      }
+      renderDeviceCalendarStatus(saved);
       void notifyGalaxyWatchSummary("calendar");
       return {
         ...calendarResult,
-        draftOpened: true,
+        success: true,
+        needsGoogleAuth: false,
+        needsTrustedAppSession: false,
+        accessRequired: false,
+        savedDirectly: true,
+        duplicate: Boolean(saved?.duplicate),
+        deviceCalendarEventId: saved?.eventId,
         answer:
-          `Die Kalender-App ist mit „${String(draft.title || "Termin")}“ fertig ausgefüllt. ` +
-          "Tippe dort nur noch auf Speichern."
+          saved?.duplicate
+            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Kalender ✅️`
+            : `„${String(draft.title || "Termin")}“ ist sofort in deinem Kalender gespeichert ✅️`
       };
     } catch (error) {
-      console.error("Android-Kalenderentwurf:", error);
-      return calendarResult;
+      console.error("Android-Kalender direkt speichern:", error?.code || error?.name);
+      const permissionRequired =
+        error?.code === "CALENDAR_PERMISSION_REQUIRED";
+      showView("notes");
+      if (permissionRequired) {
+        renderCalendarAccessState(
+          "Einmal freigeben – danach speichert Holo sofort",
+          "Zugriff freigeben"
+        );
+      }
+      return {
+        ...calendarResult,
+        accessRequired: permissionRequired,
+        answer: permissionRequired
+          ? "Der Termin wurde noch nicht gespeichert. Erlaube einmal den Kalenderzugriff; danach speichert Holo sofort."
+          : "Der Termin konnte nicht direkt gespeichert werden. Die Kalender-App wurde nicht geöffnet."
+      };
     }
   };
 
@@ -6634,9 +6722,37 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   );
 
-  document.getElementById("calendarAccessButton").addEventListener("click", () => {
-    document.getElementById("googleAccountRow")?.click();
-  });
+  document.getElementById("calendarAccessButton").addEventListener(
+    "click",
+    async () => {
+      const plugin = getPhoneContactsPlugin();
+      if (typeof plugin?.requestCalendarAccess !== "function") {
+        document.getElementById("googleAccountRow")?.click();
+        return;
+      }
+
+      showToast("Android fragt jetzt einmal nach dem Kalenderzugriff …");
+      try {
+        const status = await plugin.requestCalendarAccess();
+        renderDeviceCalendarStatus(status);
+        if (
+          status?.permissionGranted &&
+          status?.writableCalendarAvailable
+        ) {
+          showToast("Kalender freigegeben – Holo speichert ab jetzt sofort ✅️");
+          return;
+        }
+        showToast(
+          status?.permissionGranted
+            ? "Bitte richte auf dem S23 zuerst einen beschreibbaren Kalender ein."
+            : "Kalenderzugriff wurde nicht freigegeben. Es wird nichts gespeichert."
+        );
+      } catch (error) {
+        console.error("Android-Kalenderfreigabe:", error?.code || error?.name);
+        showToast("Kalenderzugriff konnte gerade nicht freigegeben werden.");
+      }
+    }
+  );
 
   document.getElementById("googleAccountRow").addEventListener("click", async () => {
     const identity = requireActivePersonalOwner();

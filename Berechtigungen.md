@@ -1,8 +1,8 @@
-SOL HOLO – BERECHTIGUNGEN
+HUMAN HOLO – BERECHTIGUNGEN
 
-Version: 1.2
-Stand: 06.09.2026
-Status: Technische Planung
+Version: 1.3
+Stand: 11.09.2026
+Status: Technisch umgesetzt und fortlaufend geprüft
 
 Grundregel
 
@@ -38,7 +38,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 🖼️ Fotos| ausgewählte Bilder| Bilder an Sol übergeben| Bei Auswahl durch Pam| Kein Bildzugriff
 📁 Dateien| ausgewählte Dateien| Dokumente an Sol übergeben| Bei Auswahl durch Pam| Kein Dateizugriff
 🔔 Benachrichtigungen| Benachrichtigungen| Hinweise und Erinnerungen| Wenn Funktion aktiviert wird| Keine Sol-Mitteilungen
-📅 Kalender| Kalenderdaten| Termine lesen/erstellen| Bei Kalenderfunktion| Kein Kalenderzugriff
+📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin im sichtbaren Hauptkalender direkt speichern| Einmalige Android-Freigabe; danach nur bei Kalenderauftrag| Kein Kalendereintrag
 👥 Kontakte| Kontakte| Personen auswählen/zuordnen| Bei Kontaktfunktion| Kein Kontaktzugriff
 📞 Telefon| Telefonfunktion| Anrufe vorbereiten/starten| Bei entsprechender Aktion| Kein Anruf durch Sol
 💬 Nachrichten| Nachrichten-/Share-Funktion| Text an andere Apps übergeben| Bei ausdrücklicher Aktion| Keine Übergabe
@@ -117,6 +117,20 @@ SOL erhält ausgewählten Inhalt
 
 ---
 
+Kalender
+
+Human Holo fragt den Android-Kalenderzugriff einmal sichtbar ab. Erst nach Pams
+Freigabe darf ein ausdrücklich gesprochener oder geschriebener Kalenderauftrag
+direkt in einen sichtbaren, beschreibbaren Kalender des S23 eingetragen werden.
+
+Der Kalender wird dabei nicht geöffnet. Ein Termin gilt nur dann als
+gespeichert, wenn der Android Calendar Provider die neue Ereignis-ID bestätigt.
+Ohne Freigabe oder ohne beschreibbaren Kalender bleibt die Aktion gestoppt und
+Human Holo behauptet keinen Erfolg. Die Berechtigung kann in den
+Android-Einstellungen jederzeit wieder entzogen werden.
+
+---
+
 Standort
 
 Standortzugriff wird nur für Funktionen verwendet, die ihn tatsächlich benötigen.
@@ -177,7 +191,7 @@ Sie darf dadurch jedoch keine Android-Berechtigung umgehen.
 Beispiel:
 
 KI:
-"Kalender öffnen"
+"Morgen 13 Uhr Tattoo-Termin"
 
         ↓
 
@@ -190,7 +204,8 @@ Kalender freigegeben?
     ↙          ↘
   JA            NEIN
   ↓              ↓
-Aktion           STOP
+sofortiger       STOP
+Kalendereintrag
 
 ---
 

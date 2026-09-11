@@ -107,7 +107,7 @@ test("Routenplaner versteht natürliche Ziele", () => {
   assert.match(ui, /Routenplaner · Google Maps/u);
 });
 
-test("Kalender hat nach der sicheren S23-Prüfung eine Antwort und Android-Fallback", () => {
+test("Kalender speichert nach einmaliger Android-Freigabe ohne Kalenderfenster", () => {
   const endpoint = sourceBetween(
     server,
     'app.post(\n  "/calendar/action"',
@@ -116,11 +116,22 @@ test("Kalender hat nach der sicheren S23-Prüfung eine Antwort und Android-Fallb
   assert.match(endpoint, /answer:\s*\n\s*calendarResult\?\.answer/u);
   assert.match(server, /function calendarDraftForClient/u);
   assert.match(server, /nativeFallbackAvailable:\s*true/u);
+  assert.match(phonePlugin, /Manifest\.permission\.READ_CALENDAR/u);
+  assert.match(phonePlugin, /Manifest\.permission\.WRITE_CALENDAR/u);
+  assert.match(installer, /android\.permission\.READ_CALENDAR/u);
+  assert.match(installer, /android\.permission\.WRITE_CALENDAR/u);
   assert.match(phonePlugin, /CalendarContract\.Events\.CONTENT_URI/u);
-  assert.match(phonePlugin, /public void openCalendarEvent/u);
+  assert.match(phonePlugin, /public void saveCalendarEvent/u);
+  assert.match(phonePlugin, /public void requestCalendarAccess/u);
+  assert.match(phonePlugin, /getContentResolver\(\)\s*\n\s*\.insert/u);
+  assert.match(phonePlugin, /result\.put\("opened", false\)/u);
+  assert.match(phonePlugin, /result\.put\("reviewAndSaveRequired", false\)/u);
+  assert.doesNotMatch(phonePlugin, /Intent\.ACTION_INSERT/u);
   assert.match(phonePlugin, /value instanceof Number/u);
-  assert.match(html, /openSolHoloCalendarDraft/u);
-  assert.match(ui, /window\.openSolHoloCalendarDraft/u);
+  assert.match(html, /saveSolHoloCalendarDraft/u);
+  assert.match(ui, /window\.saveSolHoloCalendarDraft/u);
+  assert.doesNotMatch(html, /draftOpened/u);
+  assert.doesNotMatch(ui, /Tippe dort nur noch auf Speichern/u);
 });
 
 test("Notizen werden wirklich lokal gesucht, geändert und gelöscht", () => {

@@ -7,8 +7,10 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
@@ -51,6 +53,13 @@ import java.util.Set;
         @Permission(
             alias = "phoneState",
             strings = { Manifest.permission.READ_PHONE_STATE }
+        ),
+        @Permission(
+            alias = "calendar",
+            strings = {
+                Manifest.permission.READ_CALENDAR,
+                Manifest.permission.WRITE_CALENDAR
+            }
         )
     }
 )
@@ -73,6 +82,15 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_SHARED_NOTE_TITLE_LENGTH = 160;
     private static final int MAX_MAPS_DESTINATION_LENGTH = 500;
     private static final int MAX_ALARM_LABEL_LENGTH = 160;
+    private static final int MAX_CALENDAR_TITLE_LENGTH = 240;
+    private static final int MAX_CALENDAR_DESCRIPTION_LENGTH = 2000;
+    private static final long CALENDAR_DUPLICATE_WINDOW_MILLIS = 2 * 60 * 1000L;
+    private static final String CALENDAR_PREFERENCES =
+        "human_holo_direct_calendar";
+    private static final String CALENDAR_FINGERPRINT_KEY =
+        "last_event_fingerprint";
+    private static final String CALENDAR_EVENT_ID_KEY = "last_event_id";
+    private static final String CALENDAR_SAVED_AT_KEY = "last_event_saved_at";
     private static final int MAX_SMS_LENGTH = 5000;
     private static final int MAX_WHATSAPP_MESSAGE_LENGTH = 5000;
     private static final int MAX_RECIPIENT_NAME_LENGTH = 160;
@@ -129,6 +147,16 @@ public class PhoneContactsPlugin extends Plugin {
                 ? ""
                 : normalizedNumber;
             this.label = label == null ? "" : label;
+        }
+    }
+
+    private static final class WritableCalendar {
+        final long id;
+        final String displayName;
+
+        WritableCalendar(long id, String displayName) {
+            this.id = id;
+            this.displayName = displayName == null ? "" : displayName;
         }
     }
 
@@ -255,6 +283,96 @@ public class PhoneContactsPlugin extends Plugin {
             getContext(),
             Manifest.permission.READ_PHONE_STATE
         ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean calendarGranted() {
+        return ContextCompat.checkSelfPermission(
+            getContext(),
+            Manifest.permission.READ_CALENDAR
+        ) == PackageManager.PERMISSION_GRANTED &&
+        ContextCompat.checkSelfPermission(
+            getContext(),
+            Manifest.permission.WRITE_CALENDAR
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private WritableCalendar writableCalendar() {
+        if (!calendarGranted()) {
+            return null;
+        }
+
+        String[] projection = new String[] {
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.Calendars.IS_PRIMARY,
+            CalendarContract.Calendars.SYNC_EVENTS
+        };
+        String selection =
+            CalendarContract.Calendars.VISIBLE + " = 1 AND " +
+            CalendarContract.Calendars.SYNC_EVENTS + " = 1 AND " +
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ?";
+        String[] selectionArgs = new String[] {
+            String.valueOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR)
+        };
+
+        WritableCalendar selected = null;
+        int selectedScore = Integer.MIN_VALUE;
+        try (Cursor cursor = getContext().getContentResolver().query(
+            CalendarContract.Calendars.CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )) {
+            if (cursor == null) {
+                return null;
+            }
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(0);
+                String displayName = cursor.getString(1);
+                String accountName = cursor.getString(2);
+                String accountType = cursor.getString(3);
+                boolean primary = !cursor.isNull(4) && cursor.getInt(4) == 1;
+                boolean synced = !cursor.isNull(5) && cursor.getInt(5) == 1;
+                int score = 0;
+                if (primary) score += 1000;
+                if ("com.google".equals(accountType)) score += 500;
+                if (synced) score += 100;
+                if (
+                    accountName != null &&
+                    accountName.toLowerCase(Locale.ROOT).endsWith("@gmail.com")
+                ) {
+                    score += 50;
+                }
+                if ("mein kalender".equalsIgnoreCase(displayName)) score += 25;
+
+                if (selected == null || score > selectedScore) {
+                    selected = new WritableCalendar(id, displayName);
+                    selectedScore = score;
+                }
+            }
+        } catch (SecurityException | IllegalArgumentException error) {
+            return null;
+        }
+        return selected;
+    }
+
+    private JSObject calendarStatus() {
+        boolean permissionGranted = calendarGranted();
+        WritableCalendar calendar = permissionGranted
+            ? writableCalendar()
+            : null;
+        JSObject result = new JSObject();
+        result.put("supported", true);
+        result.put("permissionGranted", permissionGranted);
+        result.put("writableCalendarAvailable", calendar != null);
+        result.put("directWriteSupported", true);
+        result.put("opensExternalApp", false);
+        result.put("reviewAndSaveRequired", false);
+        result.put("accessCanBeRevoked", true);
+        return result;
     }
 
     private ComponentName whatsAppAutoSendComponent() {
@@ -797,12 +915,60 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
-    public void openCalendarEvent(PluginCall call) {
-        String title = call.getString("title", "Termin").trim();
-        String description = call.getString("description", "").trim();
+    public void getCalendarStatus(PluginCall call) {
+        call.resolve(calendarStatus());
+    }
+
+    @PluginMethod
+    public void requestCalendarAccess(PluginCall call) {
+        if (calendarGranted()) {
+            call.resolve(calendarStatus());
+            return;
+        }
+
+        requestPermissionForAliases(
+            new String[] { "calendar" },
+            call,
+            "calendarAccessCallback"
+        );
+    }
+
+    @PermissionCallback
+    private void calendarAccessCallback(PluginCall call) {
+        call.resolve(calendarStatus());
+    }
+
+    @PluginMethod
+    public void saveCalendarEvent(PluginCall call) {
+        if (!validCalendarEvent(call)) {
+            return;
+        }
+        if (!calendarGranted()) {
+            requestPermissionForAliases(
+                new String[] { "calendar" },
+                call,
+                "calendarSavePermissionCallback"
+            );
+            return;
+        }
+        saveCalendarEventNow(call);
+    }
+
+    @PermissionCallback
+    private void calendarSavePermissionCallback(PluginCall call) {
+        if (!calendarGranted()) {
+            call.reject(
+                "Bitte erlaube Human Holo den Kalenderzugriff. Es wurde nichts gespeichert.",
+                "CALENDAR_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+        saveCalendarEventNow(call);
+    }
+
+    private boolean validCalendarEvent(PluginCall call) {
         Long startValue = numericLong(call, "startMillis");
         Long endValue = numericLong(call, "endMillis");
-        boolean allDay = Boolean.TRUE.equals(call.getBoolean("allDay", false));
         if (
             startValue == null ||
             endValue == null ||
@@ -810,39 +976,110 @@ public class PhoneContactsPlugin extends Plugin {
             endValue <= startValue
         ) {
             call.reject("Die Kalenderzeit ist ungültig.", "CALENDAR_TIME_INVALID");
-            return;
+            return false;
+        }
+        return true;
+    }
+
+    private JSObject directCalendarResult(
+        long eventId,
+        WritableCalendar calendar,
+        boolean duplicate
+    ) {
+        JSObject result = calendarStatus();
+        result.put("saved", true);
+        result.put("direct", true);
+        result.put("opened", false);
+        result.put("duplicate", duplicate);
+        result.put("eventId", eventId);
+        result.put("calendarId", calendar.id);
+        result.put("calendarName", calendar.displayName);
+        return result;
+    }
+
+    private void saveCalendarEventNow(PluginCall call) {
+        String title = call.getString("title", "Termin").trim();
+        String description = call.getString("description", "").trim();
+        Long startValue = numericLong(call, "startMillis");
+        Long endValue = numericLong(call, "endMillis");
+        boolean allDay = Boolean.TRUE.equals(call.getBoolean("allDay", false));
+        if (title.length() > MAX_CALENDAR_TITLE_LENGTH) {
+            title = title.substring(0, MAX_CALENDAR_TITLE_LENGTH).trim();
+        }
+        if (description.length() > MAX_CALENDAR_DESCRIPTION_LENGTH) {
+            description = description
+                .substring(0, MAX_CALENDAR_DESCRIPTION_LENGTH)
+                .trim();
         }
 
-        Activity activity = getActivity();
-        if (activity == null) {
+        WritableCalendar calendar = writableCalendar();
+        if (calendar == null) {
             call.reject(
-                "Die Kalender-App konnte gerade nicht geöffnet werden.",
-                "CALENDAR_ACTIVITY_UNAVAILABLE"
+                "Auf diesem Handy ist kein sichtbarer, beschreibbarer Kalender verfügbar.",
+                "WRITABLE_CALENDAR_NOT_FOUND"
             );
             return;
         }
 
-        Intent intent = new Intent(Intent.ACTION_INSERT)
-            .setData(CalendarContract.Events.CONTENT_URI)
-            .putExtra(CalendarContract.Events.TITLE, title.isEmpty() ? "Termin" : title)
-            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startValue)
-            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endValue)
-            .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, allDay);
+        String cleanTitle = title.isEmpty() ? "Termin" : title;
+        String fingerprint = cleanTitle + "\n" + startValue + "\n" + endValue;
+        long now = System.currentTimeMillis();
+        SharedPreferences preferences = getContext().getSharedPreferences(
+            CALENDAR_PREFERENCES,
+            Context.MODE_PRIVATE
+        );
+        if (
+            fingerprint.equals(
+                preferences.getString(CALENDAR_FINGERPRINT_KEY, "")
+            ) &&
+            now - preferences.getLong(CALENDAR_SAVED_AT_KEY, 0L) <=
+                CALENDAR_DUPLICATE_WINDOW_MILLIS
+        ) {
+            call.resolve(directCalendarResult(
+                preferences.getLong(CALENDAR_EVENT_ID_KEY, -1L),
+                calendar,
+                true
+            ));
+            return;
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(CalendarContract.Events.CALENDAR_ID, calendar.id);
+        values.put(CalendarContract.Events.TITLE, cleanTitle);
+        values.put(CalendarContract.Events.DTSTART, startValue);
+        values.put(CalendarContract.Events.DTEND, endValue);
+        values.put(
+            CalendarContract.Events.EVENT_TIMEZONE,
+            allDay ? "UTC" : "Europe/Berlin"
+        );
+        values.put(CalendarContract.Events.ALL_DAY, allDay ? 1 : 0);
         if (!description.isEmpty()) {
-            intent.putExtra(CalendarContract.Events.DESCRIPTION, description);
+            values.put(CalendarContract.Events.DESCRIPTION, description);
         }
 
         try {
-            activity.startActivity(intent);
-            JSObject result = new JSObject();
-            result.put("opened", true);
-            result.put("saved", false);
-            result.put("reviewAndSaveRequired", true);
-            call.resolve(result);
-        } catch (ActivityNotFoundException | SecurityException error) {
+            Uri eventUri = getContext()
+                .getContentResolver()
+                .insert(CalendarContract.Events.CONTENT_URI, values);
+            if (eventUri == null || eventUri.getLastPathSegment() == null) {
+                call.reject(
+                    "Der Kalender hat den Eintrag nicht bestätigt.",
+                    "CALENDAR_INSERT_NOT_CONFIRMED"
+                );
+                return;
+            }
+            long eventId = Long.parseLong(eventUri.getLastPathSegment());
+            preferences
+                .edit()
+                .putString(CALENDAR_FINGERPRINT_KEY, fingerprint)
+                .putLong(CALENDAR_EVENT_ID_KEY, eventId)
+                .putLong(CALENDAR_SAVED_AT_KEY, now)
+                .apply();
+            call.resolve(directCalendarResult(eventId, calendar, false));
+        } catch (SecurityException | IllegalArgumentException error) {
             call.reject(
-                "Auf diesem Handy wurde keine passende Kalender-App gefunden.",
-                "CALENDAR_OPEN_FAILED",
+                "Der Termin konnte nicht direkt im Kalender gespeichert werden.",
+                "CALENDAR_DIRECT_SAVE_FAILED",
                 error
             );
         }
