@@ -9470,7 +9470,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "start_phone_call",
 
             description:
-              `Sucht den Kontakt und öffnet erst nach ${identity.displayName}s sichtbarer Bestätigung die Android-Telefon-App. ${identity.displayName} bestätigt den eigentlichen Anruf dort selbst.`,
+              `Sucht den Kontakt ausschließlich im lokalen Android-Telefonbuch. Nach ${identity.displayName}s sichtbarer Bestätigung startet Human Holo genau diesen Anruf direkt. Verwende das Werkzeug nur für einen ausdrücklichen aktuellen Anrufauftrag; 110, 112 und andere Notrufnummern sind ausgeschlossen.`,
 
             parameters: {
               type:
@@ -9488,6 +9488,42 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
               required: [
                 "contact_name"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "start_help_service_call",
+
+            description:
+              `Startet nach ${identity.displayName}s sichtbarer Bestätigung einen direkten Anruf bei der fest hinterlegten ADAC Pannenhilfe Deutschland. Verwende dieses Werkzeug nur bei einem ausdrücklichen aktuellen Auftrag, den ADAC beziehungsweise die Pannenhilfe anzurufen. Testfragen und hypothetische Szenarien dürfen dieses Werkzeug nie auslösen.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                service_id: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "adac_pannenhilfe_de"
+                  ],
+
+                  description:
+                    "Fest geprüfter Dienst: ADAC Pannenhilfe Deutschland."
+                }
+              },
+
+              required: [
+                "service_id"
               ],
 
               additionalProperties:

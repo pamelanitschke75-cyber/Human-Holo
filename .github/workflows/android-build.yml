@@ -345,6 +345,23 @@ jobs:
           ! grep -q 'SexualActivityRecord' \
             android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
 
+      - name: Bestätigte Kontakt- und ADAC-Anrufe prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          phone_java="android/app/src/main/java/com/solholo/app/PhoneContactsPlugin.java"
+          app_ui="android/app/src/main/assets/public/sol-holo-ui.js"
+          grep -q 'android.permission.CALL_PHONE' "$app_manifest"
+          grep -q 'android.hardware.telephony' "$app_manifest"
+          grep -q 'public void startContactCall' "$phone_java"
+          grep -q 'findContactRecord(contactId, expectedNumber)' "$phone_java"
+          grep -q 'public void startHelpServiceCall' "$phone_java"
+          grep -q 'ADAC_PANNENHILFE_DE_NUMBER' "$phone_java"
+          test "$(grep -c 'Intent.ACTION_CALL' "$phone_java")" -eq 1
+          grep -q 'Intent.ACTION_DIAL' "$phone_java"
+          grep -q 'verifiedHelpServiceCallFromMessage' "$app_ui"
+          grep -q 'start_help_service_call' "$app_ui"
+
       - name: Kalender-Sofortspeicher und sichtbare Holo-Verknüpfung prüfen
         run: |
           set -Eeuo pipefail

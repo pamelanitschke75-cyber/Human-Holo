@@ -282,6 +282,7 @@ for (const permission of [
   '<uses-permission android:name="com.android.alarm.permission.SET_ALARM" />',
   '<uses-permission android:name="android.permission.READ_CONTACTS" />',
   '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
+  '<uses-permission android:name="android.permission.CALL_PHONE" />',
   '<uses-permission android:name="android.permission.READ_CALENDAR" />',
   '<uses-permission android:name="android.permission.WRITE_CALENDAR" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
@@ -352,6 +353,25 @@ if (!manifest.includes('android:name="android.hardware.camera.any"')) {
   manifest = manifest.replace(
     applicationMarker,
     optionalCameraFeature + "\n" + applicationMarker
+  );
+}
+
+if (!manifest.includes('android:name="android.hardware.telephony"')) {
+  const applicationMarker = "    <application";
+  if (!manifest.includes(applicationMarker)) {
+    throw new Error("Application-Tag für die optionale Telefonie nicht gefunden.");
+  }
+
+  const optionalTelephonyFeature = [
+    "    <uses-feature",
+    '        android:name="android.hardware.telephony"',
+    '        android:required="false" />',
+    ""
+  ].join("\n");
+
+  manifest = manifest.replace(
+    applicationMarker,
+    optionalTelephonyFeature + "\n" + applicationMarker
   );
 }
 

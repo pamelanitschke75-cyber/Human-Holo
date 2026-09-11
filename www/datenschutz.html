@@ -16,7 +16,7 @@
 <body>
   <main>
     <article>
-      <p class="meta">Stand: 10.09.2026 · Version 1.0</p>
+      <p class="meta">Stand: 11.09.2026 · Version 1.1</p>
       <h1>Datenschutzerklärung für Human Holo</h1>
       <p>
         Verantwortliches Projekt: <strong>Human Holo</strong><br>
@@ -43,6 +43,7 @@
       <ul>
         <li><strong>Gespräche und Gedächtnis:</strong> eingegebene oder gesprochene Nachrichten, Transkripte, Holo-Antworten, bestätigte Erinnerungen, Notizen und Zeitangaben.</li>
         <li><strong>Profil- und Kontaktdaten:</strong> freiwillig genannte persönliche Angaben sowie ownergebundene Nutzer-, Geräte- und Sitzungskennungen.</li>
+        <li><strong>Lokales Telefonbuch und Anrufziel:</strong> Nach Android-Freigabe werden Kontakte ausschließlich auf dem Gerät gesucht. Für einen ausdrücklich beauftragten Anruf werden Kontakt-ID und Telefonnummer unmittelbar vor der sichtbaren Bestätigung erneut lokal geprüft. Die fest hinterlegte ADAC-Pannenhilfe kann auf demselben Weg gewählt werden.</li>
         <li><strong>Medien:</strong> ausdrücklich ausgewählte Fotos, Videos, Videoframes, Sprach- und Tonaufnahmen sowie Dateien.</li>
         <li><strong>Erinnerung &amp; Vermächtnis:</strong> freiwillig und nach bestätigten Rechten lokal hinzugefügte Fotos, Videos, Sprachaufnahmen, Geschichten und biografische Angaben.</li>
         <li><strong>Gesundheit und Fitness:</strong> freiwillige Gesundheitsfragen sowie ausdrücklich freigegebene, lesbare Health-Connect-Daten.</li>
@@ -68,6 +69,7 @@
         <li><strong>ChatGPT/OpenAI:</strong> erhält die für eine angeforderte Text-, Sprach-, Bild- oder Videofunktion erforderlichen Inhalte zur KI-Verarbeitung. Für besonders gekennzeichnete Gesundheits- und Medikamentenerkennungswege wird die dauerhafte Speicherung des OpenAI-Response-Objekts technisch ausgeschaltet.</li>
         <li><strong>Google:</strong> verarbeitet nach ausdrücklicher OAuth- oder Android-Freigabe die jeweils angeforderten Konto-, Kalender-, Gmail-, Kontakte-, Drive-, Health-Connect- oder Android-Systemfunktionen.</li>
         <li><strong>Android-Kalender:</strong> Nach einmaliger Kalenderfreigabe speichert Human Holo nur ausdrücklich beauftragte Termine direkt in einen sichtbaren, beschreibbaren Kalender auf dem Gerät und zeigt kommende sichtbare Termine aus derselben Quelle unter „Wichtiges → Kalender“ an. Es entsteht keine zweite Terminkopie. Die Kalender-App wird dabei nicht geöffnet; ohne Freigabe wird nichts eingetragen oder in Human Holo angezeigt.</li>
+        <li><strong>Android-Telefon:</strong> Human Holo verwendet <code>CALL_PHONE</code> ausschließlich nach einem ausdrücklichen aktuellen Anrufauftrag und einem sichtbaren Bestätigungsfenster. Die Berechtigung wird erstmals in diesem Ablauf angefragt. Kontakt- und Telefonnummern werden für den Anruf nicht an das Human-Holo-Backend, OpenAI oder den ADAC hochgeladen. 110, 112 und 116117 sind vom direkten Anrufweg ausgeschlossen und werden nur im Android-Wähler vorbereitet.</li>
         <li><strong>Meta/WhatsApp:</strong> erhält eine Nachricht oder ein Medium erst, wenn die Nutzerin den Versand an einen bestimmten Kontakt ausdrücklich anfordert. Der begrenzte Bedienungshilfe-Auftrag bleibt im Arbeitsspeicher.</li>
         <li><strong>Samsung SmartThings:</strong> verarbeitet freiwillig verbundene Gerätebefehle; gespeicherte Tokens sind verschlüsselt und ownergebunden.</li>
       </ul>
@@ -104,6 +106,9 @@
       <p>
         Android-Berechtigungen und verbundene Dienste können in den App-,
         Android- oder jeweiligen Anbietereinstellungen widerrufen werden.
+        Wird die Telefonberechtigung entzogen, kann Human Holo keinen direkten
+        Kontakt- oder ADAC-Anruf mehr starten; die übrigen App-Funktionen
+        bleiben davon unberührt.
         Informationen zur vollständigen Anforderung einer Datenlöschung, zu
         lokal verbleibenden Sicherungen und zu möglichen Aufbewahrungsgrenzen
         stehen auf der
