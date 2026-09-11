@@ -72,6 +72,10 @@ Telefonbrücke erhalten.
 - Automatisierte Tests verwenden ausschließlich ausdrücklich erfundene Nummern.
   Der spätere echte Praxistest ist ausschließlich mit Steffis freigegebener
   Nummer vorgesehen.
+- Für den Belegmodus erlaubt eine dauerhafte Datenbanksperre genau einen
+  Anrufstart. Auch ein Serverneustart setzt diese Sperre nicht zurück.
+- Der Belegmodus beendet Telefon- und GPT-Live-Verbindung automatisch nach
+  spätestens 60 Sekunden und verwendet keine zusätzliche Responses-Delegation.
 
 ## Noch einmalig einzurichten
 
@@ -79,6 +83,7 @@ Für einen echten Anruf benötigt der Server folgende geheime Konfiguration; die
 Werte gehören niemals in Git:
 
 - `PERSONAL_CLONE_CALLS_ENABLED=true`
+- `PERSONAL_CLONE_PROOF_MODE=true`
 - `PERSONAL_CLONE_ALLOWED_NUMBER_SHA256`
 - `PERSONAL_CLONE_PUBLIC_BASE_URL` oder `RENDER_EXTERNAL_URL`
 - `OPENAI_API_KEY`
@@ -95,9 +100,10 @@ werden.
 
 Der Telnyx-Testzugang enthält laut Anbieter 5 US-Dollar Testguthaben. Er erlaubt
 ausgehende Anrufe nur an **eine verifizierte Nummer** und höchstens zehn Minuten
-pro Anruf. Genau diese Grenzen setzt Human Holo zusätzlich im Code. Im
-Testzugang spielt Telnyx vor Holos transparenter Einleitung einen englischen
-Hinweis auf einen automatisierten Anruf ab.
+pro Anruf. Human Holo setzt für den ausdrücklich genehmigten Beweisanruf eine
+strengere Grenze: genau ein Start und höchstens 60 Sekunden. Im Testzugang
+spielt Telnyx vor Holos transparenter Einleitung einen englischen Hinweis auf
+einen automatisierten Anruf ab.
 
 Für den ausschließlich mit Steffi geplanten Test muss Steffi die Verifizierung
 ihrer eigenen Nummer selbst und ausdrücklich bestätigen. Falls der Anbieter
@@ -112,8 +118,12 @@ oder kostenpflichtig hochgestuft. Verlangt der Anbieter vor dem Test eine
 Zahlung statt der ausgewiesenen Testgutschrift, wird angehalten. Unabhängig von
 der Telefonbrücke wird GPT-Live nach Nutzungsdauer berechnet; vorhandenes
 OpenAI-API-Guthaben kann dafür genutzt werden, aber ein Telekom-Vertrag deckt
-diese KI-Verarbeitung nicht ab. Dauerhaft kostenlose KI-Telefonate werden daher
-nicht behauptet.
+diese KI-Verarbeitung nicht ab. Pam hat für genau diesen einen Beweisanruf eine
+Gesamtkostenobergrenze von 5 US-Dollar genehmigt. Die technische 60-Sekunden-
+Grenze hält den aktuellen GPT-Live-Sitzungspreis bei höchstens 0,05 US-Dollar;
+Werkzeuge und kostenpflichtige Responses-Delegation sind im Belegmodus
+deaktiviert. Es wird keine Aufladung oder wiederkehrende Zahlung freigegeben.
+Dauerhaft kostenlose KI-Telefonate werden daher nicht behauptet.
 
 Bis die geheimen Werte bewusst eingerichtet und ein echter Anruf mit Steffi
 bestanden ist, bleibt der Serverweg sicher geschlossen und der Status lautet

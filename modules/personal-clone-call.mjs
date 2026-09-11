@@ -18,6 +18,7 @@ const DEFAULT_COUNTRY_CODE = "49";
 const PENDING_BRIDGE_TTL_MS = 3 * 60 * 1000;
 const ACTIVE_CALL_TTL_MS = 30 * 60 * 1000;
 const TELNYX_CALL_TTL_MS = 10 * 60 * 1000;
+const PROOF_CALL_TTL_MS = 60 * 1000;
 const TELEPHONE_PROVIDER_TIMEOUT_MS = 15 * 1000;
 const PROVIDER_HANDSHAKE_TIMEOUT_MS = 10 * 1000;
 const MAX_PROVIDER_MESSAGE_BYTES = 256 * 1024;
@@ -215,6 +216,12 @@ function selectedTelephoneBridge(environment) {
     : "twilio";
 }
 
+function proofModeEnabled(environment) {
+  return String(
+    environment.PERSONAL_CLONE_PROOF_MODE || ""
+  ) === "true";
+}
+
 function loadConfiguration(environment) {
   if (String(environment.PERSONAL_CLONE_CALLS_ENABLED || "") !== "true") {
     throw new PersonalCloneCallError(
@@ -241,6 +248,14 @@ function loadConfiguration(environment) {
   }
 
   const telephoneBridge = selectedTelephoneBridge(environment);
+  const proofMode = proofModeEnabled(environment);
+  if (proofMode && telephoneBridge !== "telnyx") {
+    throw new PersonalCloneCallError(
+      "PERSONAL_CLONE_PROOF_BRIDGE_INVALID",
+      "Der einmalige Beweisanruf ist ausschließlich über den begrenzten Telnyx-Testweg erlaubt.",
+      503
+    );
+  }
   let providerConfiguration;
 
   if (telephoneBridge === "telnyx") {
@@ -304,6 +319,7 @@ function loadConfiguration(environment) {
       environment.PERSONAL_CLONE_DEFAULT_COUNTRY_CODE
     ),
     publicHost: configuredPublicHost(environment),
+    proofMode,
     openAiModel: "gpt-live-1",
     delegatedModel: "gpt-5.6-terra",
     voice: "marin"
@@ -326,6 +342,10 @@ function publicConfigurationState(environment) {
       telephoneBridge: configuration.telephoneBridge,
       outboundOnly: true,
       oneAllowedRecipient: true,
+      proofMode: configuration.proofMode,
+      oneStartOnly: configuration.proofMode,
+      maximumDurationSeconds:
+        callDurationMs(configuration) / 1000,
       numberStoredInSource: false
     };
   } catch (error) {
@@ -337,6 +357,10 @@ function publicConfigurationState(environment) {
       telephoneBridge,
       outboundOnly: true,
       oneAllowedRecipient: true,
+      proofMode: proofModeEnabled(environment),
+      oneStartOnly: proofModeEnabled(environment),
+      maximumDurationSeconds:
+        proofModeEnabled(environment) ? 60 : null,
       numberStoredInSource: false,
       reason:
         error instanceof PersonalCloneCallError
@@ -401,6 +425,9 @@ function validBase64Audio(value) {
 }
 
 function callDurationMs(configuration) {
+  if (configuration.proofMode) {
+    return PROOF_CALL_TTL_MS;
+  }
   return configuration.telephoneBridge === "telnyx"
     ? Math.min(ACTIVE_CALL_TTL_MS, TELNYX_CALL_TTL_MS)
     : ACTIVE_CALL_TTL_MS;
@@ -422,6 +449,7 @@ function closeSocket(socket, code = 1000, reason = "") {
 
 export function createPersonalCloneCallService({
   environment = process.env,
+  database = null,
   fetchImpl = globalThis.fetch,
   WebSocketImpl = WebSocket,
   now = () => Date.now(),
@@ -434,6 +462,58 @@ export function createPersonalCloneCallService({
 
   const pendingBridges = new Map();
   const activeOwners = new Map();
+  const proofDatabase =
+    database && typeof database.query === "function"
+      ? database
+      : null;
+  let proofStoreInitialized = false;
+
+  async function initialize() {
+    if (!proofDatabase) return;
+    await proofDatabase.query(`
+      CREATE TABLE IF NOT EXISTS human_holo_single_call_proof (
+        owner_id TEXT PRIMARY KEY,
+        consumed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    proofStoreInitialized = true;
+  }
+
+  async function consumeProofAttempt(configuration) {
+    if (!configuration.proofMode) return;
+    if (!proofDatabase || !proofStoreInitialized) {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_PROOF_STORE_NOT_READY",
+        "Die dauerhafte Einmal-Sperre für den Beweisanruf ist nicht bereit.",
+        503
+      );
+    }
+    let result;
+    try {
+      result = await proofDatabase.query(
+        `
+          INSERT INTO human_holo_single_call_proof (owner_id)
+          VALUES ($1)
+          ON CONFLICT (owner_id) DO NOTHING
+          RETURNING owner_id
+        `,
+        [PERSONAL_CLONE_OWNER_ID]
+      );
+    } catch {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_PROOF_STORE_UNAVAILABLE",
+        "Die dauerhafte Einmal-Sperre für den Beweisanruf ist nicht erreichbar.",
+        503
+      );
+    }
+    if (result?.rows?.length !== 1) {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_PROOF_ALREADY_USED",
+        "Der einmalige Beweisanruf wurde bereits gestartet und bleibt gesperrt.",
+        409
+      );
+    }
+  }
 
   function cleanupExpired() {
     const current = now();
@@ -499,6 +579,7 @@ export function createPersonalCloneCallService({
       targetNumber,
       configuration
     );
+    await consumeProofAttempt(configuration);
     const bridgeToken = randomToken();
     const callId = randomToken();
     if (
@@ -624,6 +705,10 @@ export function createPersonalCloneCallService({
         confirmationRequired: false,
         holoConductsConversation: true,
         transparentAiIntroduction: true,
+        proofMode: configuration.proofMode,
+        oneStartOnly: configuration.proofMode,
+        maximumDurationSeconds:
+          callDurationMs(configuration) / 1000,
         recordingEnabled: false,
         numberReturned: false
       };
@@ -784,16 +869,18 @@ export function createPersonalCloneCallService({
             format: { type: "audio/pcmu", rate: 8000 },
             output: { voice: configuration.voice }
           },
-          delegation: {
-            type: "responses",
-            responses: {
-              model: configuration.delegatedModel,
-              instructions:
-                "Führe ein kurzes, freundliches persönliches Gespräch. " +
-                "Beachte strikt die Datenschutz-, Rollen- und Sicherheitsgrenzen der Sprachinstruktionen.",
-              tools: []
-            }
-          }
+          delegation: configuration.proofMode
+            ? { type: "client" }
+            : {
+                type: "responses",
+                responses: {
+                  model: configuration.delegatedModel,
+                  instructions:
+                    "Führe ein kurzes, freundliches persönliches Gespräch. " +
+                    "Beachte strikt die Datenschutz-, Rollen- und Sicherheitsgrenzen der Sprachinstruktionen.",
+                  tools: []
+                }
+              }
         }
       });
     };
@@ -1076,7 +1163,18 @@ export function createPersonalCloneCallService({
   }
 
   return Object.freeze({
-    configurationState: () => publicConfigurationState(environment),
+    initialize,
+    configurationState: () => {
+      const state = publicConfigurationState(environment);
+      if (state.proofMode && !proofStoreInitialized) {
+        return {
+          ...state,
+          configured: false,
+          reason: "PERSONAL_CLONE_PROOF_STORE_NOT_READY"
+        };
+      }
+      return state;
+    },
     startCall,
     claimBridge,
     providerUpgradeContext,

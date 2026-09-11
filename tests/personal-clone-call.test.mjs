@@ -46,6 +46,27 @@ function telnyxEnvironment(overrides = {}) {
   });
 }
 
+function singleCallProofDatabase() {
+  let consumed = false;
+  const statements = [];
+  return {
+    statements,
+    async query(statement, values = []) {
+      const text = String(statement);
+      statements.push({ text, values });
+      if (/CREATE TABLE IF NOT EXISTS human_holo_single_call_proof/u.test(text)) {
+        return { rows: [] };
+      }
+      if (/INSERT INTO human_holo_single_call_proof/u.test(text)) {
+        if (consumed) return { rows: [] };
+        consumed = true;
+        return { rows: [{ owner_id: values[0] }] };
+      }
+      throw new Error("unexpected proof database query");
+    }
+  };
+}
+
 function tokenSequence() {
   const values = [
     `bridge_${"d".repeat(48)}`,
@@ -241,6 +262,102 @@ test("Telnyx-Testweg startet genau einen normalen bidirektionalen Sprachanruf", 
   );
 });
 
+test("Beweismodus erlaubt dauerhaft nur einen Start und höchstens 60 Sekunden", async () => {
+  const capture = {};
+  const proofDatabase = singleCallProofDatabase();
+  let providerRequests = 0;
+  const providerFetch = successfulTelnyxProviderFetch(capture);
+  const service = createPersonalCloneCallService({
+    environment: telnyxEnvironment({
+      PERSONAL_CLONE_PROOF_MODE: "true"
+    }),
+    database: proofDatabase,
+    fetchImpl: async (...args) => {
+      providerRequests += 1;
+      return providerFetch(...args);
+    },
+    randomToken: tokenSequence()
+  });
+
+  assert.equal(service.configurationState().configured, false);
+  assert.equal(
+    service.configurationState().reason,
+    "PERSONAL_CLONE_PROOF_STORE_NOT_READY"
+  );
+  await service.initialize();
+
+  const result = await service.startCall({
+    ownerId: "pam-sol",
+    ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+    targetNumber: TEST_TARGET
+  });
+  const body = JSON.parse(String(capture.options.body));
+  assert.equal(body.time_limit_secs, 60);
+  assert.equal(result.proofMode, true);
+  assert.equal(result.oneStartOnly, true);
+  assert.equal(result.maximumDurationSeconds, 60);
+  assert.equal(service.configurationState().configured, true);
+  assert.equal(service.configurationState().oneStartOnly, true);
+
+  const bridgeToken = [...service._testing.pendingBridges.keys()][0];
+  const session = service.claimBridge(bridgeToken);
+  service.releaseSession(session);
+
+  await assert.rejects(
+    service.startCall({
+      ownerId: "pam-sol",
+      ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+      targetNumber: TEST_TARGET
+    }),
+    (error) =>
+      error?.code === "PERSONAL_CLONE_PROOF_ALREADY_USED" &&
+      error?.status === 409
+  );
+  assert.equal(providerRequests, 1);
+  assert.equal(
+    proofDatabase.statements.filter(({ text }) =>
+      /INSERT INTO human_holo_single_call_proof/u.test(text)
+    ).length,
+    2
+  );
+});
+
+test("Beweismodus lehnt fehlende Dauersperre und andere Telefonbrücken ab", async () => {
+  const withoutDatabase = createPersonalCloneCallService({
+    environment: telnyxEnvironment({
+      PERSONAL_CLONE_PROOF_MODE: "true"
+    }),
+    fetchImpl: successfulTelnyxProviderFetch(),
+    randomToken: tokenSequence()
+  });
+  await assert.rejects(
+    withoutDatabase.startCall({
+      ownerId: "pam-sol",
+      ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+      targetNumber: TEST_TARGET
+    }),
+    (error) => error?.code === "PERSONAL_CLONE_PROOF_STORE_NOT_READY"
+  );
+
+  const wrongBridge = createPersonalCloneCallService({
+    environment: environment({
+      PERSONAL_CLONE_PROOF_MODE: "true"
+    }),
+    database: singleCallProofDatabase(),
+    fetchImpl: successfulProviderFetch(),
+    randomToken: tokenSequence()
+  });
+  await wrongBridge.initialize();
+  await assert.rejects(
+    wrongBridge.startCall({
+      ownerId: "pam-sol",
+      ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+      targetNumber: TEST_TARGET
+    }),
+    (error) => error?.code === "PERSONAL_CLONE_PROOF_BRIDGE_INVALID"
+  );
+});
+
 test("Audio-Brückentoken ist kurzlebig und genau einmal verwendbar", async () => {
   let currentTime = 1_000_000;
   const service = createPersonalCloneCallService({
@@ -389,13 +506,18 @@ class FakeProviderSocket extends EventEmitter {
 
 test("Telnyx-Sprachanruf überträgt Steffis Ton zu GPT-Live und Holos Stimme zurück", async () => {
   FakeOpenAiSocket.instances.length = 0;
+  const proofDatabase = singleCallProofDatabase();
   const service = createPersonalCloneCallService({
-    environment: telnyxEnvironment(),
+    environment: telnyxEnvironment({
+      PERSONAL_CLONE_PROOF_MODE: "true"
+    }),
+    database: proofDatabase,
     fetchImpl: successfulTelnyxProviderFetch(),
     WebSocketImpl: FakeOpenAiSocket,
     randomToken: tokenSequence(),
     logger: { warn() {} }
   });
+  await service.initialize();
   await service.startCall({
     ownerId: "pam-sol",
     ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
@@ -430,6 +552,11 @@ test("Telnyx-Sprachanruf überträgt Steffis Ton zu GPT-Live und Holos Stimme zu
 
   const openAi = FakeOpenAiSocket.instances[0];
   openAi.open();
+  const sessionStart = openAi.sent.find(
+    (event) => event.type === "session.start"
+  );
+  assert.deepEqual(sessionStart.session.delegation, { type: "client" });
+  assert.doesNotMatch(JSON.stringify(sessionStart), /gpt-5\.6-terra/u);
   openAi.emit("message", Buffer.from(JSON.stringify({
     type: "session.started"
   })));

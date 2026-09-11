@@ -199,11 +199,14 @@ Dieser Gesprächsweg akzeptiert niemals eine zweite oder vom Modell gelieferte
 Nummer. 110, 112, 116117 und ADAC bleiben technisch getrennt. Für den echten
 Betrieb müssen Telefonie-Anbieter und Server-Geheimnisse bewusst eingerichtet
 werden; dafür ist keine zusätzliche Android-Telefonberechtigung erforderlich.
-Als Telefonbrücke kann Telnyx oder Twilio ausgewählt werden. Der Telnyx-Testweg
-ist im Code auf genau einen verifizierten Kontakt und höchstens zehn Minuten je
-Anruf begrenzt. Der Testanbieter kündigt maschinell erzeugte Anrufe zusätzlich
-mit einem eigenen Hinweis an. GPT-Live-Sitzungen werden ausdrücklich mit
-`store: false` gestartet.
+Als Telefonbrücke kann Telnyx oder Twilio ausgewählt werden. Für den einmaligen
+Beweisanruf wird zusätzlich `PERSONAL_CLONE_PROOF_MODE=true` gesetzt. Dann
+erlaubt eine dauerhafte Datenbanksperre genau einen einzigen Start und beendet
+Telnyx sowie die GPT-Live-Audiobrücke nach spätestens 60 Sekunden. In diesem
+Modus nutzt GPT-Live keine kostenpflichtige Responses-Delegation. Der
+Testanbieter kündigt maschinell erzeugte Anrufe zusätzlich mit einem eigenen
+Hinweis an. GPT-Live-Sitzungen werden ausdrücklich mit `store: false`
+gestartet.
 
 Quellen: [Android `ACTION_CALL`](https://developer.android.com/reference/android/content/Intent#ACTION_CALL),
 [Android `TelecomManager.placeCall`](https://developer.android.com/reference/android/telecom/TelecomManager#placeCall(android.net.Uri,%20android.os.Bundle)),
