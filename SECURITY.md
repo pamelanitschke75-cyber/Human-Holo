@@ -76,6 +76,8 @@ Telefonanrufe und SMS werden nicht still im Hintergrund ausgeführt. Die App öf
 
 Die aktuelle Health-Connect-Integration ist ausschließlich lesend ausgelegt. Abrufe sind auf einen bestätigten Zweck und einen begrenzten Zeitraum ausgerichtet. Health-Daten werden nicht automatisch als Langzeiterinnerung gespeichert.
 
+Der Datentyp **„Sexuelle Aktivität“** ist von Human Holo vollständig ausgeschlossen: keine Manifest-Berechtigung, keine Android-Freigabeanforderung und kein Lesepfad. Eine Person kann eine solche Angabe ausschließlich bewusst als privaten, ownergebundenen Inhalt manuell hinzufügen; dadurch erhält Human Holo keinen Zugriff auf Health Connect.
+
 ---
 
 ## 4. Noch offene Sicherheitsaufgaben

@@ -316,7 +316,6 @@ for (const permission of [
   '<uses-permission android:name="android.permission.health.READ_POWER" />',
   '<uses-permission android:name="android.permission.health.READ_RESPIRATORY_RATE" />',
   '<uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_SEXUAL_ACTIVITY" />',
   '<uses-permission android:name="android.permission.health.READ_SKIN_TEMPERATURE" />',
   '<uses-permission android:name="android.permission.health.READ_SLEEP" />',
   '<uses-permission android:name="android.permission.health.READ_SPEED" />',

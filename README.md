@@ -341,6 +341,8 @@ Der aktuelle Android-Build erweitert Human Holo um zwei bewusst begrenzte Wege f
 - **Samsung Notes:** Eine einzelne ausgewählte Textnotiz kann über `Teilen → Human Holo` übergeben werden. Vor der dauerhaften Speicherung erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten Notizbuchs findet nicht statt.
 - **Health Connect / Samsung Health:** Human Holo kann die von Android einzeln freigegebenen Kategorien aus Aktivität, Körperwerten, Vitalwerten, Schlaf, Ernährung und reproduktiver Gesundheit ausschließlich lesen. Jeder tatsächliche Abruf wird noch einmal bestätigt, bleibt auf höchstens 30 Tage begrenzt und wird nicht automatisch in das Langzeitgedächtnis übernommen.
 
+Der Health-Connect-Datentyp **„Sexuelle Aktivität“ ist ausdrücklich ausgeschlossen**: Human Holo deklariert diese Berechtigung nicht, fordert sie nicht an und besitzt dafür keinen Lesepfad. Wer eine solche Information für sich selbst festhalten möchte, kann sie ausschließlich bewusst als privaten, ownergebundenen Inhalt manuell hinzufügen; daraus entsteht kein Zugriff auf Health Connect.
+
 Health Connect besitzt in Human Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
 
 Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.

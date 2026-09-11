@@ -338,7 +338,12 @@ jobs:
           test -s android/app/src/main/assets/public/ANDROID_RUNTIME_DEPENDENCIES.txt
 
       - name: Sicheren Fahr- und Weckmodus einbinden
-        run: node scripts/install-whatsapp-driving-mode.mjs
+        run: |
+          set -Eeuo pipefail
+          node scripts/install-whatsapp-driving-mode.mjs
+          ! grep -q 'READ_SEXUAL_ACTIVITY' android/app/src/main/AndroidManifest.xml
+          ! grep -q 'SexualActivityRecord' \
+            android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
 
       - name: Kalender-Sofortspeicher ohne Fremdfenster prüfen
         run: |
