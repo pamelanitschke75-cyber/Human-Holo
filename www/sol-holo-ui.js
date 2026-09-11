@@ -643,8 +643,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             <p>Datum oder „morgen“ plus Uhrzeit kommt hierhin.</p>
           </div>
         </div>
-        <div class="importantComposerFooter" aria-label="Kalenderzugriff">
-          <span id="calendarAccessStatus">Direktes Speichern wird geprüft …</span>
+        <div class="importantComposerFooter" aria-label="Kalenderverknüpfung">
+          <span id="calendarAccessStatus">Kalenderverknüpfung wird geprüft …</span>
           <button id="calendarAccessButton" class="primaryButton" type="button">
             Zugriff prüfen
           </button>
@@ -658,6 +658,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             <button class="primaryButton" type="submit">In Kalender</button>
           </div>
         </form>
+        <div class="importantSectionToolbar">
+          <strong id="calendarCount">0 Termine</strong>
+          <button id="calendarRefreshButton" class="calendarRefreshButton"
+            type="button">Aktualisieren</button>
+        </div>
+        <div id="calendarList" class="notesList calendarList"
+          aria-live="polite"></div>
+        <div id="calendarEmpty" class="notesEmpty importantInlineEmpty">
+          <span aria-hidden="true">📅</span>
+          <strong>Noch kein Termin sichtbar.</strong>
+          <p>Verknüpfe den Handy-Kalender oder trage oben einen Termin ein.</p>
+        </div>
       </section>
 
       <section id="shoppingImportantSection"
@@ -1065,6 +1077,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const calendarComposer = document.getElementById("calendarComposer");
   const calendarTextInput = document.getElementById("calendarTextInput");
   const calendarComposerStatus = document.getElementById("calendarComposerStatus");
+  const calendarList = document.getElementById("calendarList");
+  const calendarEmpty = document.getElementById("calendarEmpty");
+  const calendarCount = document.getElementById("calendarCount");
+  const calendarRefreshButton = document.getElementById("calendarRefreshButton");
   const shoppingComposer = document.getElementById("shoppingComposer");
   const shoppingItemInput = document.getElementById("shoppingItemInput");
   const shoppingList = document.getElementById("shoppingList");
@@ -1195,6 +1211,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   };
   let noteImportRunning = false;
   let noteListenerRegistered = false;
+  let linkedCalendarEvents = [];
   let personalNotes = [];
   let memorialEntries = [];
   let memorialLoadRunning = false;
@@ -2750,6 +2767,185 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  function normalizeLinkedCalendarEvent(event) {
+    const startMillis = Number(event?.startMillis);
+    const endMillis = Number(event?.endMillis);
+    if (!Number.isFinite(startMillis) || startMillis <= 0) {
+      return null;
+    }
+    return {
+      id: `${String(event?.eventId || "event")}-${startMillis}`,
+      eventId: String(event?.eventId || ""),
+      title: String(event?.title || "Termin").trim() || "Termin",
+      startMillis,
+      endMillis:
+        Number.isFinite(endMillis) && endMillis >= startMillis
+          ? endMillis
+          : startMillis,
+      allDay: Boolean(event?.allDay),
+      calendarName:
+        String(event?.calendarName || "Handy-Kalender").trim() ||
+        "Handy-Kalender",
+      location: String(event?.location || "").trim()
+    };
+  }
+
+  function linkedCalendarDateText(event) {
+    const start = new Date(event.startMillis);
+    const end = new Date(event.endMillis);
+    try {
+      if (event.allDay) {
+        return new Intl.DateTimeFormat("de-DE", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }).format(start);
+      }
+      const startText = new Intl.DateTimeFormat("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(start);
+      const endText = new Intl.DateTimeFormat("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(end);
+      return `${startText} bis ${endText}`;
+    } catch {
+      return start.toLocaleString("de-DE");
+    }
+  }
+
+  function buildLinkedCalendarCard(event) {
+    const card = document.createElement("article");
+    card.className = "noteCard calendarCard";
+    card.dataset.calendarEventId = event.id;
+
+    const header = document.createElement("div");
+    header.className = "noteCardHeader";
+    const heading = document.createElement("h3");
+    heading.textContent = event.title;
+    const source = document.createElement("span");
+    source.className = "noteSource";
+    source.textContent = event.calendarName;
+    header.append(heading, source);
+
+    const details = document.createElement("div");
+    details.className = "calendarEventDetails";
+    const time = document.createElement("p");
+    time.className = "calendarEventTime";
+    time.textContent = linkedCalendarDateText(event);
+    details.appendChild(time);
+    if (event.location) {
+      const location = document.createElement("p");
+      location.className = "calendarEventLocation";
+      location.textContent = event.location;
+      details.appendChild(location);
+    }
+
+    const footer = document.createElement("div");
+    footer.className = "noteCardFooter";
+    const linked = document.createElement("span");
+    linked.className = "calendarLinkedLabel";
+    linked.textContent = "Mit Human Holo verknüpft";
+    footer.appendChild(linked);
+    card.append(header, details, footer);
+    return card;
+  }
+
+  function updateImportantQuickMeta() {
+    const shoppingItemCount = personalNotes
+      .filter(isShoppingListNote)
+      .reduce(
+        (total, note) => total + shoppingItemsFromNote(note).length,
+        0
+      );
+    const regularNoteCount = personalNotes.filter(
+      (note) => !isShoppingListNote(note)
+    ).length;
+    const quickMeta = document.getElementById("notesQuickMeta");
+    if (quickMeta) {
+      quickMeta.textContent =
+        `${linkedCalendarEvents.length} Termine · ` +
+        `${shoppingItemCount} Einkäufe · ${regularNoteCount} Notizen`;
+    }
+  }
+
+  function renderLinkedCalendarEvents() {
+    if (!calendarList || !calendarEmpty || !calendarCount) {
+      return;
+    }
+    calendarList.replaceChildren();
+    const eventCount = linkedCalendarEvents.length;
+    calendarCount.textContent =
+      `${eventCount} ${eventCount === 1 ? "Termin" : "Termine"}`;
+    calendarEmpty.hidden = eventCount > 0;
+    const emptyTitle = calendarEmpty.querySelector("strong");
+    const emptyCopy = calendarEmpty.querySelector("p");
+    if (emptyTitle && emptyCopy) {
+      emptyTitle.textContent = deviceCalendarStatus.permissionGranted
+        ? "Keine kommenden Termine gefunden."
+        : "Kalender noch nicht verknüpft.";
+      emptyCopy.textContent = deviceCalendarStatus.permissionGranted
+        ? "Neue Termine erscheinen hier automatisch."
+        : "Gib den Kalenderzugriff einmal frei; danach zeigt Holo die Termine hier.";
+    }
+    linkedCalendarEvents.forEach((event) => {
+      calendarList.appendChild(buildLinkedCalendarCard(event));
+    });
+    updateImportantQuickMeta();
+  }
+
+  async function loadDeviceCalendarEvents() {
+    const plugin = getPhoneContactsPlugin();
+    if (
+      !deviceCalendarStatus.permissionGranted ||
+      typeof plugin?.listCalendarEvents !== "function"
+    ) {
+      linkedCalendarEvents = [];
+      renderLinkedCalendarEvents();
+      if (calendarRefreshButton) calendarRefreshButton.disabled = true;
+      return false;
+    }
+
+    if (calendarRefreshButton) calendarRefreshButton.disabled = true;
+    if (calendarCount) calendarCount.textContent = "Termine werden geladen …";
+    const rangeStart = new Date();
+    rangeStart.setHours(0, 0, 0, 0);
+    const rangeEnd = new Date(rangeStart);
+    rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
+
+    try {
+      const result = await plugin.listCalendarEvents({
+        startMillis: rangeStart.getTime(),
+        endMillis: rangeEnd.getTime(),
+        limit: 50
+      });
+      linkedCalendarEvents = Array.isArray(result?.events)
+        ? result.events
+          .map(normalizeLinkedCalendarEvent)
+          .filter(Boolean)
+          .sort((left, right) => left.startMillis - right.startMillis)
+        : [];
+      renderLinkedCalendarEvents();
+      return true;
+    } catch (error) {
+      console.error("Verknüpften Kalender laden:", error?.code || error?.name);
+      linkedCalendarEvents = [];
+      renderLinkedCalendarEvents();
+      if (calendarCount) calendarCount.textContent = "Kalender nicht erreichbar";
+      return false;
+    } finally {
+      if (calendarRefreshButton) {
+        calendarRefreshButton.disabled =
+          !deviceCalendarStatus.permissionGranted;
+      }
+    }
+  }
+
   function isShoppingListNote(note) {
     return normalizeNoteSearchText(note?.title) === "einkaufsliste";
   }
@@ -2849,11 +3045,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     shoppingCount.textContent = `${shoppingItemCount} Artikel`;
 
-    const quickMeta = document.getElementById("notesQuickMeta");
-    if (quickMeta) {
-      quickMeta.textContent =
-        `Kalender · ${shoppingItemCount} Einkäufe · ${regularNotes.length} Notizen`;
-    }
+    updateImportantQuickMeta();
 
     shoppingEmpty.hidden = shoppingNotes.length > 0;
     shoppingNotes.forEach((note) => {
@@ -3643,6 +3835,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (viewName === "notes") {
       renderPersonalNotes();
+      void loadDeviceCalendarStatus();
     }
 
     if (viewName === "memorial") {
@@ -3797,10 +3990,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       deviceCalendarStatus.permissionGranted &&
       deviceCalendarStatus.writableCalendarAvailable
     ) {
-      if (todayState) todayState.textContent = "Kalender direkt bereit";
+      if (todayState) todayState.textContent = "Kalender in Holo verknüpft";
       renderCalendarAccessState(
-        "Sofortiges Speichern freigegeben ✅️",
-        "Freigegeben",
+        "Mit deinem Handy-Kalender verknüpft ✅️",
+        "Verknüpft",
         true
       );
       return true;
@@ -3820,6 +4013,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       "Einmal freigeben – danach speichert Holo sofort",
       "Zugriff freigeben"
     );
+    linkedCalendarEvents = [];
+    renderLinkedCalendarEvents();
     return true;
   }
 
@@ -3832,11 +4027,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         writableCalendarAvailable: false,
         directWriteSupported: false
       };
+      linkedCalendarEvents = [];
+      renderLinkedCalendarEvents();
       return false;
     }
 
     try {
-      return renderDeviceCalendarStatus(await plugin.getCalendarStatus());
+      const rendered = renderDeviceCalendarStatus(
+        await plugin.getCalendarStatus()
+      );
+      if (deviceCalendarStatus.permissionGranted) {
+        await loadDeviceCalendarEvents();
+      }
+      return rendered;
     } catch (error) {
       console.error("Android-Kalenderstatus:", error?.code || error?.name);
       return false;
@@ -4310,7 +4513,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.saveSolHoloCalendarDraft = async (calendarResult) => {
     const draft = calendarResult?.calendarDraft;
-    if (calendarResult?.success || !draft) return calendarResult;
+    if (calendarResult?.success) {
+      await loadDeviceCalendarStatus();
+      window.setTimeout(() => {
+        void loadDeviceCalendarStatus();
+      }, 1500);
+      return {
+        ...calendarResult,
+        linkedInHumanHolo: true
+      };
+    }
+    if (!draft) return calendarResult;
 
     const plugin = getPhoneContactsPlugin();
     if (typeof plugin?.saveCalendarEvent !== "function") {
@@ -4349,6 +4562,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         throw new Error("CALENDAR_DIRECT_SAVE_NOT_CONFIRMED");
       }
       renderDeviceCalendarStatus(saved);
+      await loadDeviceCalendarEvents();
       void notifyGalaxyWatchSummary("calendar");
       return {
         ...calendarResult,
@@ -4357,12 +4571,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         needsTrustedAppSession: false,
         accessRequired: false,
         savedDirectly: true,
+        linkedInHumanHolo: true,
         duplicate: Boolean(saved?.duplicate),
         deviceCalendarEventId: saved?.eventId,
         answer:
           saved?.duplicate
-            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Kalender ✅️`
-            : `„${String(draft.title || "Termin")}“ ist sofort in deinem Kalender gespeichert ✅️`
+            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Kalender und ist mit Human Holo verknüpft ✅️`
+            : `„${String(draft.title || "Termin")}“ ist gespeichert und jetzt auch in Human Holo sichtbar ✅️`
       };
     } catch (error) {
       console.error("Android-Kalender direkt speichern:", error?.code || error?.name);
@@ -6744,6 +6959,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   );
 
+  calendarRefreshButton.addEventListener("click", async () => {
+    const loaded = await loadDeviceCalendarEvents();
+    showToast(
+      loaded
+        ? "Kalender in Human Holo aktualisiert ✅️"
+        : "Der Handy-Kalender konnte gerade nicht aktualisiert werden."
+    );
+  });
+
   document.getElementById("calendarAccessButton").addEventListener(
     "click",
     async () => {
@@ -6761,7 +6985,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           status?.permissionGranted &&
           status?.writableCalendarAvailable
         ) {
-          showToast("Kalender freigegeben – Holo speichert ab jetzt sofort ✅️");
+          await loadDeviceCalendarEvents();
+          showToast("Handy-Kalender mit Human Holo verknüpft ✅️");
           return;
         }
         showToast(
@@ -7026,6 +7251,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       void loadGoogleStatus();
+      void loadDeviceCalendarStatus();
       void loadWhatsAppStatus();
       void loadWakeStatus(true);
       void loadPhoneStatus();
@@ -7042,6 +7268,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.addEventListener("focus", () => {
     void loadGoogleStatus();
+    void loadDeviceCalendarStatus();
     void loadWhatsAppStatus();
     void loadWakeStatus(true);
     void loadPhoneStatus();

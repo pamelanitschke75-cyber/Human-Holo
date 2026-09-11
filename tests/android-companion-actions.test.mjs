@@ -107,7 +107,7 @@ test("Routenplaner versteht natürliche Ziele", () => {
   assert.match(ui, /Routenplaner · Google Maps/u);
 });
 
-test("Kalender speichert nach einmaliger Android-Freigabe ohne Kalenderfenster", () => {
+test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo", () => {
   const endpoint = sourceBetween(
     server,
     'app.post(\n  "/calendar/action"',
@@ -121,7 +121,9 @@ test("Kalender speichert nach einmaliger Android-Freigabe ohne Kalenderfenster",
   assert.match(installer, /android\.permission\.READ_CALENDAR/u);
   assert.match(installer, /android\.permission\.WRITE_CALENDAR/u);
   assert.match(phonePlugin, /CalendarContract\.Events\.CONTENT_URI/u);
+  assert.match(phonePlugin, /CalendarContract\.Instances\.CONTENT_URI/u);
   assert.match(phonePlugin, /public void saveCalendarEvent/u);
+  assert.match(phonePlugin, /public void listCalendarEvents/u);
   assert.match(phonePlugin, /public void requestCalendarAccess/u);
   assert.match(phonePlugin, /getContentResolver\(\)\s*\n\s*\.insert/u);
   assert.match(phonePlugin, /result\.put\("opened", false\)/u);
@@ -130,6 +132,14 @@ test("Kalender speichert nach einmaliger Android-Freigabe ohne Kalenderfenster",
   assert.match(phonePlugin, /value instanceof Number/u);
   assert.match(html, /saveSolHoloCalendarDraft/u);
   assert.match(ui, /window\.saveSolHoloCalendarDraft/u);
+  assert.match(ui, /plugin\.listCalendarEvents/u);
+  assert.match(ui, /id="calendarList"/u);
+  assert.match(ui, /Mit deinem Handy-Kalender verknüpft/u);
+  assert.match(ui, /linkedInHumanHolo:\s*true/u);
+  assert.match(
+    ui,
+    /document\.addEventListener\("visibilitychange"[\s\S]*?loadDeviceCalendarStatus\(\)/u
+  );
   assert.doesNotMatch(html, /draftOpened/u);
   assert.doesNotMatch(ui, /Tippe dort nur noch auf Speichern/u);
 });

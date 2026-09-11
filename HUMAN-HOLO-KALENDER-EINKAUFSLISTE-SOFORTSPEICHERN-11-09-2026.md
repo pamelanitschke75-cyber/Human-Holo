@@ -25,6 +25,11 @@ den Android Calendar Provider in einen sichtbaren, beschreibbaren Hauptkalender.
 Eine Ereignis-ID ist die notwendige Erfolgsbestätigung. Wiederholungen desselben
 Auftrags innerhalb eines kurzen Zeitfensters werden nicht doppelt angelegt.
 
+Der normale Handy-Kalender ist zusätzlich mit dem sichtbaren Human-Holo-Bereich
+**Wichtiges → Kalender** verknüpft. Holo liest dort die kommenden sichtbaren
+Termine aus derselben Kalenderquelle und zeigt sie direkt an. Dadurch entsteht
+keine doppelte Terminablage.
+
 Der bisherige `ACTION_INSERT`-Entwurfsweg wurde entfernt. Damit kann Human Holo
 kein vorausgefülltes Kalenderfenster mehr als gespeicherten Termin behandeln.
 
@@ -40,4 +45,3 @@ kein allgemeiner Chatweg und kein Samsung-Notes-Weg mehr verwendet.
 - Berechtigung jederzeit über Android widerrufbar.
 - Bestehende Human-Holo-Funktionen bleiben erhalten und werden nur erweitert
   beziehungsweise im fehlerhaften Entwurfsweg gezielt berichtigt.
-

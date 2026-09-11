@@ -243,6 +243,11 @@ Kalenderfreigabe zusätzlich direkt über den Calendar Provider speichern. Das
 Kalenderfenster öffnet sich dabei nicht; ein zusätzlicher Tipp auf „Speichern“
 ist nicht nötig.
 
+Der normale Handy-Kalender ist zugleich mit **Wichtiges → Kalender** verknüpft.
+Kommende Termine erscheinen dadurch direkt in Human Holo, ohne dass eine zweite
+Terminkopie entsteht. Nach einem neuen Eintrag wird die sichtbare Liste sofort
+aktualisiert.
+
 ✅ Verbindung zum Google-Kalender funktioniert.
 
 ✅ Kalendereinträge können erstellt werden.
