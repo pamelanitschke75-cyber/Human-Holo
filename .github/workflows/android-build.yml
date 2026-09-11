@@ -345,7 +345,7 @@ jobs:
           ! grep -q 'SexualActivityRecord' \
             android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
 
-      - name: Kalender-Sofortspeicher ohne Fremdfenster prüfen
+      - name: Kalender-Sofortspeicher und sichtbare Holo-Verknüpfung prüfen
         run: |
           set -Eeuo pipefail
           app_manifest="android/app/src/main/AndroidManifest.xml"
@@ -356,8 +356,13 @@ jobs:
           grep -q 'public void saveCalendarEvent' "$calendar_java"
           grep -q 'getContentResolver()' "$calendar_java"
           grep -q 'CalendarContract.Events.CONTENT_URI' "$calendar_java"
+          grep -q 'public void listCalendarEvents' "$calendar_java"
+          grep -q 'CalendarContract.Instances.CONTENT_URI' "$calendar_java"
           ! grep -q 'Intent.ACTION_INSERT' "$calendar_java"
           grep -q 'window.saveSolHoloCalendarDraft' "$app_ui"
+          grep -q 'listCalendarEvents' "$app_ui"
+          grep -q 'id="calendarList"' "$app_ui"
+          grep -q 'Mit deinem Handy-Kalender verknüpft' "$app_ui"
           ! grep -q 'Tippe dort nur noch auf Speichern' "$app_ui"
 
       - name: Live-Kamera für Realtime prüfen

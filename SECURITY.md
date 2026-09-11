@@ -62,7 +62,7 @@ SmartThings-Zugriffs- und Refresh-Tokens werden vor der Speicherung auf Anwendun
 
 ### Begrenzte Google-Berechtigungen
 
-Der aktuelle Entwicklungsstand fordert für Gmail, Google Kontakte und Google Drive nur Lesezugriffe an. Für Google Calendar wird der Zugriff auf Kalenderereignisse verwendet. Auf Android kann Human Holo nach einmaliger, widerrufbarer `READ_CALENDAR`-/`WRITE_CALENDAR`-Freigabe einen ausdrücklich beauftragten Termin direkt über den Calendar Provider speichern. Die fremde Kalender-App wird dabei nicht geöffnet; ohne bestätigte Ereignis-ID darf kein Erfolg gemeldet werden.
+Der aktuelle Entwicklungsstand fordert für Gmail, Google Kontakte und Google Drive nur Lesezugriffe an. Für Google Calendar wird der Zugriff auf Kalenderereignisse verwendet. Auf Android kann Human Holo nach einmaliger, widerrufbarer `READ_CALENDAR`-/`WRITE_CALENDAR`-Freigabe einen ausdrücklich beauftragten Termin direkt über den Calendar Provider speichern und kommende sichtbare Termine aus derselben Quelle im eigenen Kalenderfach anzeigen. Es entsteht keine zweite Terminkopie. Die fremde Kalender-App wird dabei nicht geöffnet; ohne bestätigte Ereignis-ID darf kein Erfolg gemeldet werden.
 
 ### Voice Setup
 

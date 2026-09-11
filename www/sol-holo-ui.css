@@ -2059,9 +2059,27 @@ body{
 .importantSectionToolbar{
   display:flex;
   align-items:center;
+  justify-content:space-between;
+  gap:10px;
   min-height:24px;
   color:#dce3f4;
   font-size:11px;
+}
+
+.calendarRefreshButton{
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid rgba(102,216,255,.3);
+  border-radius:10px;
+  color:#c8f3ff;
+  background:rgba(24,82,121,.34);
+  font:inherit;
+  font-size:9px;
+}
+
+.calendarRefreshButton:disabled{
+  cursor:not-allowed;
+  opacity:.5;
 }
 
 .importantSection .notesToolbar{
@@ -2082,6 +2100,46 @@ body{
 .importantSection .shoppingCard{
   border-color:rgba(122,230,153,.26);
   background:linear-gradient(145deg,rgba(17,64,54,.32),rgba(8,15,37,.62));
+}
+
+.importantSection .calendarCard{
+  border-color:rgba(102,216,255,.28);
+  background:linear-gradient(145deg,rgba(27,69,104,.34),rgba(8,15,37,.62));
+}
+
+.calendarList{
+  max-height:330px;
+  overflow:auto;
+}
+
+.calendarEventDetails{
+  display:grid;
+  gap:5px;
+}
+
+.calendarEventTime,
+.calendarEventLocation{
+  margin:0;
+  color:#c9dce9;
+  font-size:11px;
+  line-height:1.45;
+}
+
+.calendarEventTime::before{
+  margin-right:6px;
+  color:#66d8ff;
+  content:"◷";
+}
+
+.calendarEventLocation::before{
+  margin-right:6px;
+  color:#8dbdff;
+  content:"⌖";
+}
+
+.calendarLinkedLabel{
+  color:#7fbdd2;
+  font-size:9px;
 }
 
 .shoppingItems{

@@ -7,6 +7,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -917,6 +918,126 @@ public class PhoneContactsPlugin extends Plugin {
     @PluginMethod
     public void getCalendarStatus(PluginCall call) {
         call.resolve(calendarStatus());
+    }
+
+    @PluginMethod
+    public void listCalendarEvents(PluginCall call) {
+        if (!calendarGranted()) {
+            call.reject(
+                "Bitte erlaube Human Holo den Kalenderzugriff.",
+                "CALENDAR_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+
+        Long startValue = numericLong(call, "startMillis");
+        Long endValue = numericLong(call, "endMillis");
+        if (
+            startValue == null ||
+            endValue == null ||
+            startValue <= 0L ||
+            endValue <= startValue
+        ) {
+            call.reject(
+                "Der Zeitraum für die Kalenderverknüpfung ist ungültig.",
+                "CALENDAR_RANGE_INVALID"
+            );
+            return;
+        }
+
+        Integer requestedLimit = call.getInt("limit", 30);
+        int limit = Math.max(
+            1,
+            Math.min(requestedLimit == null ? 30 : requestedLimit, 50)
+        );
+        Uri.Builder instancesBuilder =
+            CalendarContract.Instances.CONTENT_URI.buildUpon();
+        ContentUris.appendId(instancesBuilder, startValue);
+        ContentUris.appendId(instancesBuilder, endValue);
+
+        String[] projection = new String[] {
+            CalendarContract.Instances.EVENT_ID,
+            CalendarContract.Instances.TITLE,
+            CalendarContract.Instances.BEGIN,
+            CalendarContract.Instances.END,
+            CalendarContract.Instances.ALL_DAY,
+            CalendarContract.Instances.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Instances.EVENT_LOCATION
+        };
+        String selection = CalendarContract.Calendars.VISIBLE + " = 1";
+        String sortOrder = CalendarContract.Instances.BEGIN + " ASC";
+        JSArray events = new JSArray();
+
+        try (Cursor cursor = getContext().getContentResolver().query(
+            instancesBuilder.build(),
+            projection,
+            selection,
+            null,
+            sortOrder
+        )) {
+            if (cursor != null) {
+                int eventIdIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.EVENT_ID
+                );
+                int titleIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.TITLE
+                );
+                int beginIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.BEGIN
+                );
+                int endIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.END
+                );
+                int allDayIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.ALL_DAY
+                );
+                int calendarNameIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.CALENDAR_DISPLAY_NAME
+                );
+                int locationIndex = cursor.getColumnIndexOrThrow(
+                    CalendarContract.Instances.EVENT_LOCATION
+                );
+
+                while (cursor.moveToNext() && events.length() < limit) {
+                    long begin = cursor.getLong(beginIndex);
+                    long end = cursor.getLong(endIndex);
+                    JSObject event = new JSObject();
+                    event.put("eventId", cursor.getLong(eventIdIndex));
+                    event.put("title", cursor.getString(titleIndex));
+                    event.put("startMillis", begin);
+                    event.put("endMillis", end > begin ? end : begin);
+                    event.put("allDay", cursor.getInt(allDayIndex) == 1);
+                    event.put(
+                        "calendarName",
+                        cursor.getString(calendarNameIndex)
+                    );
+                    event.put("location", cursor.getString(locationIndex));
+                    events.put(event);
+                }
+            }
+        } catch (SecurityException error) {
+            call.reject(
+                "Android hat die Kalenderverknüpfung nicht freigegeben.",
+                "CALENDAR_PERMISSION_REQUIRED",
+                error
+            );
+            return;
+        } catch (Exception error) {
+            call.reject(
+                "Die verknüpften Termine konnten gerade nicht geladen werden.",
+                "CALENDAR_EVENTS_READ_FAILED",
+                error
+            );
+            return;
+        }
+
+        JSObject result = calendarStatus();
+        result.put("linked", true);
+        result.put("count", events.length());
+        result.put("events", events);
+        result.put("rangeStartMillis", startValue);
+        result.put("rangeEndMillis", endValue);
+        call.resolve(result);
     }
 
     @PluginMethod

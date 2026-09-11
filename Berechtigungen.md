@@ -38,7 +38,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 🖼️ Fotos| ausgewählte Bilder| Bilder an Sol übergeben| Bei Auswahl durch Pam| Kein Bildzugriff
 📁 Dateien| ausgewählte Dateien| Dokumente an Sol übergeben| Bei Auswahl durch Pam| Kein Dateizugriff
 🔔 Benachrichtigungen| Benachrichtigungen| Hinweise und Erinnerungen| Wenn Funktion aktiviert wird| Keine Sol-Mitteilungen
-📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin im sichtbaren Hauptkalender direkt speichern| Einmalige Android-Freigabe; danach nur bei Kalenderauftrag| Kein Kalendereintrag
+📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin direkt speichern und kommende Termine im sichtbaren Human-Holo-Kalenderfach anzeigen| Einmalige Android-Freigabe; danach beim Kalenderauftrag oder sichtbaren Aktualisieren| Kein Kalendereintrag und keine Terminanzeige in Human Holo
 👥 Kontakte| Kontakte| Personen auswählen/zuordnen| Bei Kontaktfunktion| Kein Kontaktzugriff
 📞 Telefon| Telefonfunktion| Anrufe vorbereiten/starten| Bei entsprechender Aktion| Kein Anruf durch Sol
 💬 Nachrichten| Nachrichten-/Share-Funktion| Text an andere Apps übergeben| Bei ausdrücklicher Aktion| Keine Übergabe
@@ -125,6 +125,10 @@ direkt in einen sichtbaren, beschreibbaren Kalender des S23 eingetragen werden.
 
 Der Kalender wird dabei nicht geöffnet. Ein Termin gilt nur dann als
 gespeichert, wenn der Android Calendar Provider die neue Ereignis-ID bestätigt.
+Nach derselben Freigabe liest Human Holo ausschließlich die sichtbaren Termine
+des gewählten Handy-Kalenders für den angezeigten Zeitraum und stellt sie im
+eigenen Bereich **Wichtiges → Kalender** dar. Es entsteht keine zweite Kopie;
+der Handy-Kalender bleibt die gemeinsame, verknüpfte Quelle.
 Ohne Freigabe oder ohne beschreibbaren Kalender bleibt die Aktion gestoppt und
 Human Holo behauptet keinen Erfolg. Die Berechtigung kann in den
 Android-Einstellungen jederzeit wieder entzogen werden.

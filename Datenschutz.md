@@ -402,13 +402,16 @@ können Sol helfen, Pams Kontext besser zu verstehen.
 
 Ob eine Information dauerhaft in Memory übernommen wird, wird von der jeweiligen Funktion und den festgelegten Regeln bestimmt.
 
-Für das Sofortspeichern eines ausdrücklich genannten Termins verwendet die
-Android-App nach einmaliger Freigabe `READ_CALENDAR` und `WRITE_CALENDAR`. Sie
-wählt ausschließlich einen sichtbaren, beschreibbaren Kalender auf dem Gerät
-und übergibt Titel sowie Beginn und Ende direkt an den Android Calendar
-Provider. Dabei wird keine Kalender-App geöffnet. Ohne bestätigte
-Android-Berechtigung wird nichts gespeichert; die Freigabe kann jederzeit in
-den Android-Einstellungen entzogen werden.
+Für das Sofortspeichern eines ausdrücklich genannten Termins und dessen
+sichtbare Anzeige im Human-Holo-Kalenderfach verwendet die Android-App nach
+einmaliger Freigabe `READ_CALENDAR` und `WRITE_CALENDAR`. Sie wählt
+ausschließlich einen sichtbaren, beschreibbaren Kalender auf dem Gerät und
+übergibt Titel sowie Beginn und Ende direkt an den Android Calendar Provider.
+Kommende sichtbare Termine werden für den angezeigten Zeitraum aus derselben
+Quelle gelesen; Human Holo legt dafür keine zweite Terminkopie an. Dabei wird
+keine Kalender-App geöffnet. Ohne bestätigte Android-Berechtigung wird nichts
+gespeichert oder in Human Holo angezeigt; die Freigabe kann jederzeit in den
+Android-Einstellungen entzogen werden.
 
 ---
 
