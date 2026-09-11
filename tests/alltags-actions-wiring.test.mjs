@@ -283,6 +283,11 @@ test("Notizen werden direkt in Human Holo gespeichert und öffnen Samsung nicht 
     /const handoffResult = await prepareSamsungNote\(text\)/u,
     "Der normale Notizweg darf Samsung Notes nicht automatisch öffnen"
   );
+  assert.match(server, /Biete Samsung Notes niemals von dir aus an/u);
+  assert.match(
+    server,
+    /Frage nach einem eindeutigen\s+Einkaufslisteneintrag weder nach Menge noch nach Sorte/u
+  );
   assert.match(android, /directWriteSupported", false/u);
   assert.match(android, /reviewAndSaveInSamsungNotesRequired", true/u);
 });

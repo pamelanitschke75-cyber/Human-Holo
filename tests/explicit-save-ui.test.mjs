@@ -89,6 +89,17 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
   );
 
   assert.deepEqual(
+    extract("Schwipp schwapp auf die Einkaufsliste, bitte"),
+    {
+      category: "Einkaufsliste",
+      content: "Schwipp schwapp",
+      kind: "list-item",
+      listTitle: "Einkaufsliste"
+    },
+    "Ein automatisch gesetztes Komma vor Bitte muss sofort lokal speichern"
+  );
+
+  assert.deepEqual(
     extract("Bitte merke dir, dass der Airfryer später über HomeID eingerichtet wird."),
     {
       category: "Gespeicherter Inhalt",
@@ -244,7 +255,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=72/u);
+  assert.match(html, /sol-holo-ui\.js\?v=73/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {
