@@ -45,7 +45,12 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);
   assert.match(ui, /BY PAMELA NITSCHKE UND STEFANIE HÖRATH/u);
+  assert.match(renderedHome, /BY PAMELA NITSCHKE UND STEFANIE HÖRATH/u);
   assert.match(ui, /DEVELOPED WITH <strong>CHATGPT BY OPENAI<\/strong>/u);
+  assert.match(ui, /<h3 id="aboutHumanHoloTitle">Über Human Holo<\/h3>/u);
+  assert.match(ui, /<strong>Pamela Nitschke und Stefanie Hörath<\/strong>/u);
+  assert.match(ui, /<span>Developed with ChatGPT\/OpenAI<\/span>/u);
+  assert.match(css, /Sichtbare gemeinsame Human-Holo-Zuordnung/u);
   assert.doesNotMatch(ui, /IN COOPERATION WITH/u);
   assert.match(ui, /humanHoloHome\.innerHTML = `/u);
   assert.match(ui, /humanHoloHero[\s\S]*humanHoloPosterCredits/u);
