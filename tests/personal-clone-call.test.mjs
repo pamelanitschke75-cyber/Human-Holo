@@ -17,6 +17,9 @@ const OTHER_TEST_TARGET = "+4915798765432";
 const ACCOUNT_SID = `AC${"a".repeat(32)}`;
 const CALL_SID = `CA${"b".repeat(32)}`;
 const STREAM_SID = `MZ${"c".repeat(32)}`;
+const TELNYX_CALL_CONTROL_ID = `v3:${"f".repeat(64)}`;
+const TELNYX_STREAM_ID = "32de0dea-53cb-4bca-9e18-1c043bc09a4e";
+const TELNYX_API_KEY = `KEY_${"t".repeat(40)}`;
 
 function environment(overrides = {}) {
   return {
@@ -31,6 +34,16 @@ function environment(overrides = {}) {
     OPENAI_API_KEY: "test-openai-key-never-log",
     ...overrides
   };
+}
+
+function telnyxEnvironment(overrides = {}) {
+  return environment({
+    PERSONAL_CLONE_TELEPHONE_BRIDGE: "telnyx",
+    TELNYX_API_KEY,
+    TELNYX_CONNECTION_ID: "726700000000000001",
+    TELNYX_PHONE_NUMBER: "+49301234567",
+    ...overrides
+  });
 }
 
 function tokenSequence() {
@@ -50,6 +63,22 @@ function successfulProviderFetch(capture = {}) {
       status: 201,
       async json() {
         return { sid: CALL_SID };
+      }
+    };
+  };
+}
+
+function successfulTelnyxProviderFetch(capture = {}) {
+  return async (url, options) => {
+    capture.url = String(url);
+    capture.options = options;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          data: { call_control_id: TELNYX_CALL_CONTROL_ID }
+        };
       }
     };
   };
@@ -158,6 +187,60 @@ test("ownergebundener Start gibt weder Zielnummer noch Brückentoken zurück", a
   );
 });
 
+test("Telnyx-Testweg startet genau einen normalen bidirektionalen Sprachanruf", async () => {
+  const capture = {};
+  const service = createPersonalCloneCallService({
+    environment: telnyxEnvironment(),
+    fetchImpl: successfulTelnyxProviderFetch(capture),
+    randomToken: tokenSequence()
+  });
+
+  const result = await service.startCall({
+    ownerId: "pam-sol",
+    ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+    targetNumber: TEST_TARGET
+  });
+  const body = JSON.parse(String(capture.options.body));
+
+  assert.equal(capture.url, "https://api.telnyx.com/v2/calls");
+  assert.equal(capture.options.method, "POST");
+  assert.equal(
+    capture.options.headers.Authorization,
+    `Bearer ${TELNYX_API_KEY}`
+  );
+  assert.equal(body.to, TEST_TARGET);
+  assert.equal(body.from, "+49301234567");
+  assert.equal(body.connection_id, "726700000000000001");
+  assert.equal(
+    body.stream_url,
+    "wss://sol-holo.example/personal-clone/media"
+  );
+  assert.equal(body.stream_track, "inbound_track");
+  assert.equal(body.stream_codec, "PCMU");
+  assert.equal(body.stream_bidirectional_mode, "rtp");
+  assert.equal(body.stream_bidirectional_codec, "PCMU");
+  assert.equal(body.stream_bidirectional_target_legs, "self");
+  assert.equal(body.stream_bidirectional_sampling_rate, 8000);
+  assert.equal(body.stream_auth_token, `bridge_${"d".repeat(48)}`);
+  assert.equal(
+    Buffer.from(body.client_state, "base64").toString("utf8"),
+    body.stream_auth_token
+  );
+  assert.equal(body.sip_region, "Europe");
+  assert.equal(body.time_limit_secs, 10 * 60);
+  assert.doesNotMatch(body.stream_url, /[?&](?:token|key)=/u);
+  assert.equal(Object.hasOwn(body, "record"), false);
+  assert.equal(result.started, true);
+  assert.equal(result.confirmationRequired, false);
+  assert.equal(result.numberReturned, false);
+  assert.doesNotMatch(JSON.stringify(result), /4915123456789/u);
+  assert.doesNotMatch(JSON.stringify(result), /bridge_/u);
+  assert.equal(
+    service.configurationState().telephoneBridge,
+    "telnyx"
+  );
+});
+
 test("Audio-Brückentoken ist kurzlebig und genau einmal verwendbar", async () => {
   let currentTime = 1_000_000;
   const service = createPersonalCloneCallService({
@@ -220,6 +303,41 @@ test("nur ein kryptografisch signierter Twilio-Verbindungsaufbau wird angenommen
   assert.equal(service.validateProviderUpgrade({ headers: {} }), false);
 });
 
+test("Telnyx-Audioverbindung braucht den einmaligen geheimen Streaming-Header", async () => {
+  const service = createPersonalCloneCallService({
+    environment: telnyxEnvironment(),
+    fetchImpl: successfulTelnyxProviderFetch(),
+    randomToken: tokenSequence()
+  });
+  await service.startCall({
+    ownerId: "pam-sol",
+    ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+    targetNumber: TEST_TARGET
+  });
+  const bridgeToken = [...service._testing.pendingBridges.keys()][0];
+
+  assert.deepEqual(
+    service.providerUpgradeContext({
+      headers: {
+        "x-telnyx-streaming-auth-token": bridgeToken
+      }
+    }),
+    {
+      telephoneBridge: "telnyx",
+      bridgeToken
+    }
+  );
+  assert.equal(
+    service.validateProviderUpgrade({
+      headers: {
+        "x-telnyx-streaming-auth-token": "not-a-valid-token"
+      }
+    }),
+    false
+  );
+  assert.equal(service.validateProviderUpgrade({ headers: {} }), false);
+});
+
 class FakeOpenAiSocket extends EventEmitter {
   static CONNECTING = 0;
   static OPEN = 1;
@@ -269,6 +387,137 @@ class FakeProviderSocket extends EventEmitter {
   }
 }
 
+test("Telnyx-Sprachanruf überträgt Steffis Ton zu GPT-Live und Holos Stimme zurück", async () => {
+  FakeOpenAiSocket.instances.length = 0;
+  const service = createPersonalCloneCallService({
+    environment: telnyxEnvironment(),
+    fetchImpl: successfulTelnyxProviderFetch(),
+    WebSocketImpl: FakeOpenAiSocket,
+    randomToken: tokenSequence(),
+    logger: { warn() {} }
+  });
+  await service.startCall({
+    ownerId: "pam-sol",
+    ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+    targetNumber: TEST_TARGET
+  });
+  const bridgeToken = [...service._testing.pendingBridges.keys()][0];
+  const providerContext = service.providerUpgradeContext({
+    headers: {
+      "x-telnyx-streaming-auth-token": bridgeToken
+    }
+  });
+  const provider = new FakeProviderSocket();
+  service.handlePendingMediaConnection(provider, providerContext);
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "connected",
+    version: "1.0.0",
+    "x-telnyx-streaming-auth-token": bridgeToken
+  })));
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "start",
+    stream_id: TELNYX_STREAM_ID,
+    start: {
+      call_control_id: TELNYX_CALL_CONTROL_ID,
+      client_state: Buffer.from(bridgeToken, "utf8").toString("base64"),
+      media_format: {
+        encoding: "PCMU",
+        sample_rate: 8000,
+        channels: 1
+      }
+    }
+  })));
+
+  const openAi = FakeOpenAiSocket.instances[0];
+  openAi.open();
+  openAi.emit("message", Buffer.from(JSON.stringify({
+    type: "session.started"
+  })));
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "media",
+    stream_id: TELNYX_STREAM_ID,
+    media: { track: "inbound", payload: "QUJDRA==" }
+  })));
+  assert.deepEqual(
+    openAi.sent.find((event) => event.type === "session.input_audio.append"),
+    { type: "session.input_audio.append", audio: "QUJDRA==" }
+  );
+
+  openAi.emit("message", Buffer.from(JSON.stringify({
+    type: "session.output_audio.delta",
+    delta: "RUZHSA=="
+  })));
+  assert.deepEqual(provider.sent[0], {
+    event: "media",
+    media: { payload: "RUZHSA==" }
+  });
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "stop",
+    stream_id: TELNYX_STREAM_ID
+  })));
+  assert.equal(service._testing.activeOwners.size, 0);
+});
+
+test("Telnyx-Audio wird nur vom eindeutig gebundenen Eingangsstream angenommen", async () => {
+  FakeOpenAiSocket.instances.length = 0;
+  const service = createPersonalCloneCallService({
+    environment: telnyxEnvironment(),
+    fetchImpl: successfulTelnyxProviderFetch(),
+    WebSocketImpl: FakeOpenAiSocket,
+    randomToken: tokenSequence(),
+    logger: { warn() {} }
+  });
+  await service.startCall({
+    ownerId: "pam-sol",
+    ownerCommand: PERSONAL_CLONE_CALL_COMMAND,
+    targetNumber: TEST_TARGET
+  });
+  const bridgeToken = [...service._testing.pendingBridges.keys()][0];
+  const providerContext = service.providerUpgradeContext({
+    headers: {
+      "x-telnyx-streaming-auth-token": bridgeToken
+    }
+  });
+  const provider = new FakeProviderSocket();
+  service.handlePendingMediaConnection(provider, providerContext);
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "connected",
+    version: "1.0.0",
+    "x-telnyx-streaming-auth-token": bridgeToken
+  })));
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "start",
+    stream_id: TELNYX_STREAM_ID,
+    start: {
+      call_control_id: TELNYX_CALL_CONTROL_ID,
+      client_state: Buffer.from(bridgeToken, "utf8").toString("base64"),
+      media_format: {
+        encoding: "PCMU",
+        sample_rate: 8000,
+        channels: 1
+      }
+    }
+  })));
+
+  const openAi = FakeOpenAiSocket.instances[0];
+  openAi.open();
+  openAi.emit("message", Buffer.from(JSON.stringify({
+    type: "session.started"
+  })));
+  provider.emit("message", Buffer.from(JSON.stringify({
+    event: "media",
+    stream_id: "539b2ede-7bcb-4ad1-ae93-00a6ef147dac",
+    media: { track: "inbound", payload: "QUJDRA==" }
+  })));
+
+  assert.equal(
+    openAi.sent.some((event) => event.type === "session.input_audio.append"),
+    false
+  );
+  assert.equal(provider.readyState, FakeOpenAiSocket.CLOSED);
+  assert.equal(service._testing.activeOwners.size, 0);
+});
+
 test("GPT-Live erhält Telefon-Audio und beginnt mit transparenter KI-Einleitung", async () => {
   FakeOpenAiSocket.instances.length = 0;
   const service = createPersonalCloneCallService({
@@ -305,6 +554,7 @@ test("GPT-Live erhält Telefon-Audio und beginnt mit transparenter KI-Einleitung
 
   const sessionStart = openAi.sent.find((event) => event.type === "session.start");
   assert.equal(sessionStart.session.model, "gpt-live-1");
+  assert.equal(sessionStart.session.store, false);
   assert.deepEqual(
     sessionStart.session.audio.format,
     { type: "audio/pcmu", rate: 8000 }
@@ -314,16 +564,32 @@ test("GPT-Live erhält Telefon-Audio und beginnt mit transparenter KI-Einleitung
   assert.match(sessionStart.session.instructions, /keine privaten Erinnerungen/u);
 
   openAi.emit("message", Buffer.from(JSON.stringify({ type: "session.started" })));
+  const openingInstructions = openAi.sent.find(
+    (event) => event.type === "session.instructions.append"
+  );
+  assert.equal(openingInstructions.event_id, "holo_opening_instructions");
+  assert.equal(
+    openAi.sent.some((event) => event.type === "session.commentary.append"),
+    false
+  );
+  openAi.emit("message", Buffer.from(JSON.stringify({
+    type: "session.instructions.appended",
+    client_event_id: openingInstructions.event_id
+  })));
   const opening = openAi.sent.find(
     (event) => event.type === "session.commentary.append"
-  )?.content;
-  assert.match(opening, /^Hallo Steffi, hier ist Human Holo/u);
-  assert.match(opening, /Pams persönlicher KI-Clone/u);
-  assert.match(opening, /von Human Holo weder aufgezeichnet noch/u);
-  assert.match(opening, /Möchtest du mit mir sprechen\?$/u);
+  );
+  assert.equal(opening.event_id, "holo_opening_commentary");
+  assert.equal(opening.delegation_id, null);
+  const openingContent = opening.content;
+  assert.match(openingContent, /^Hallo Steffi, hier ist Human Holo/u);
+  assert.match(openingContent, /Pams persönlicher KI-Clone/u);
+  assert.match(openingContent, /von Human Holo weder aufgezeichnet noch/u);
+  assert.match(openingContent, /Möchtest du mit mir sprechen\?$/u);
 
   provider.emit("message", Buffer.from(JSON.stringify({
     event: "media",
+    streamSid: STREAM_SID,
     media: { payload: "QUJDRA==" }
   })));
   assert.deepEqual(

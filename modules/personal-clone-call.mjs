@@ -17,12 +17,20 @@ const PERSONAL_CLONE_RECIPIENT_NAME = "Steffi";
 const DEFAULT_COUNTRY_CODE = "49";
 const PENDING_BRIDGE_TTL_MS = 3 * 60 * 1000;
 const ACTIVE_CALL_TTL_MS = 30 * 60 * 1000;
-const TWILIO_TIMEOUT_MS = 15 * 1000;
+const TELNYX_CALL_TTL_MS = 10 * 60 * 1000;
+const TELEPHONE_PROVIDER_TIMEOUT_MS = 15 * 1000;
 const PROVIDER_HANDSHAKE_TIMEOUT_MS = 10 * 1000;
 const MAX_PROVIDER_MESSAGE_BYTES = 256 * 1024;
+const OPENING_INSTRUCTIONS_EVENT_ID = "holo_opening_instructions";
+const OPENING_COMMENTARY_EVENT_ID = "holo_opening_commentary";
 const E164_PATTERN = /^\+[1-9]\d{6,14}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const TWILIO_CALL_SID_PATTERN = /^CA[a-f0-9]{32}$/i;
+const TELNYX_CONNECTION_ID_PATTERN = /^[A-Za-z0-9_-]{6,128}$/;
+const TELNYX_CALL_CONTROL_ID_PATTERN = /^v[23]:[A-Za-z0-9_-]{20,512}$/;
+const TELNYX_STREAM_ID_PATTERN =
+  /^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+const SUPPORTED_TELEPHONE_BRIDGES = new Set(["telnyx", "twilio"]);
 const BLOCKED_SERVICE_NUMBERS = new Set([
   "000",
   "110",
@@ -185,6 +193,28 @@ function configuredPublicHost(environment) {
   return url.host;
 }
 
+function selectedTelephoneBridge(environment) {
+  const explicit = String(
+    environment.PERSONAL_CLONE_TELEPHONE_BRIDGE || ""
+  ).trim().toLowerCase();
+  if (explicit) {
+    if (!SUPPORTED_TELEPHONE_BRIDGES.has(explicit)) {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_TELEPHONE_BRIDGE_INVALID",
+        "Die ausgewählte Telefonbrücke ist nicht unterstützt.",
+        503
+      );
+    }
+    return explicit;
+  }
+
+  // Bestehende Installationen bleiben ohne Konfigurationsänderung auf Twilio.
+  // Der Test ohne neue Telefonie-Zahlung wird ausdrücklich mit `telnyx` aktiviert.
+  return String(environment.TELNYX_API_KEY || "").trim()
+    ? "telnyx"
+    : "twilio";
+}
+
 function loadConfiguration(environment) {
   if (String(environment.PERSONAL_CLONE_CALLS_ENABLED || "") !== "true") {
     throw new PersonalCloneCallError(
@@ -194,16 +224,12 @@ function loadConfiguration(environment) {
     );
   }
 
-  const accountSid = String(environment.TWILIO_ACCOUNT_SID || "").trim();
-  const authToken = String(environment.TWILIO_AUTH_TOKEN || "").trim();
   const openAiApiKey = String(environment.OPENAI_API_KEY || "").trim();
   const allowedNumberSha256 = String(
     environment.PERSONAL_CLONE_ALLOWED_NUMBER_SHA256 || ""
   ).trim().toLowerCase();
 
   if (
-    !/^AC[a-f0-9]{32}$/i.test(accountSid) ||
-    !authToken ||
     !openAiApiKey ||
     !SHA256_PATTERN.test(allowedNumberSha256)
   ) {
@@ -214,14 +240,64 @@ function loadConfiguration(environment) {
     );
   }
 
+  const telephoneBridge = selectedTelephoneBridge(environment);
+  let providerConfiguration;
+
+  if (telephoneBridge === "telnyx") {
+    const apiKey = String(environment.TELNYX_API_KEY || "").trim();
+    const connectionId = String(
+      environment.TELNYX_CONNECTION_ID || ""
+    ).trim();
+    if (
+      apiKey.length < 20 ||
+      apiKey.length > 512 ||
+      !TELNYX_CONNECTION_ID_PATTERN.test(connectionId)
+    ) {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_PROVIDER_NOT_CONFIGURED",
+        "Die einmalige sichere Telefonanbieter-Verbindung ist noch nicht vollständig eingerichtet.",
+        503
+      );
+    }
+    providerConfiguration = {
+      telephoneBridge,
+      apiKey,
+      connectionId,
+      fromNumber: strictE164(
+        environment.TELNYX_PHONE_NUMBER ||
+          environment.TELNYX_FROM_NUMBER,
+        "PERSONAL_CLONE_FROM_NUMBER_INVALID",
+        "Die Absendernummer der Telefonbrücke"
+      )
+    };
+  } else {
+    const accountSid = String(
+      environment.TWILIO_ACCOUNT_SID || ""
+    ).trim();
+    const authToken = String(
+      environment.TWILIO_AUTH_TOKEN || ""
+    ).trim();
+    if (!/^AC[a-f0-9]{32}$/i.test(accountSid) || !authToken) {
+      throw new PersonalCloneCallError(
+        "PERSONAL_CLONE_PROVIDER_NOT_CONFIGURED",
+        "Die einmalige sichere Telefonanbieter-Verbindung ist noch nicht vollständig eingerichtet.",
+        503
+      );
+    }
+    providerConfiguration = {
+      telephoneBridge,
+      accountSid,
+      authToken,
+      fromNumber: strictE164(
+        environment.TWILIO_PHONE_NUMBER,
+        "PERSONAL_CLONE_FROM_NUMBER_INVALID",
+        "Die Absendernummer der Telefonbrücke"
+      )
+    };
+  }
+
   return Object.freeze({
-    accountSid,
-    authToken,
-    fromNumber: strictE164(
-      environment.TWILIO_PHONE_NUMBER,
-      "PERSONAL_CLONE_FROM_NUMBER_INVALID",
-      "Die Absendernummer der Telefonbrücke"
-    ),
+    ...providerConfiguration,
     openAiApiKey,
     allowedNumberSha256,
     defaultCountryCode: cleanDefaultCountryCode(
@@ -235,13 +311,19 @@ function loadConfiguration(environment) {
 }
 
 function publicConfigurationState(environment) {
+  let telephoneBridge = "twilio";
   try {
-    loadConfiguration(environment);
+    telephoneBridge = selectedTelephoneBridge(environment);
+  } catch {
+    telephoneBridge = "unknown";
+  }
+  try {
+    const configuration = loadConfiguration(environment);
     return {
       enabled: true,
       configured: true,
       aiProvider: "openai",
-      telephoneBridge: "twilio",
+      telephoneBridge: configuration.telephoneBridge,
       outboundOnly: true,
       oneAllowedRecipient: true,
       numberStoredInSource: false
@@ -252,7 +334,7 @@ function publicConfigurationState(environment) {
         String(environment.PERSONAL_CLONE_CALLS_ENABLED || "") === "true",
       configured: false,
       aiProvider: "openai",
-      telephoneBridge: "twilio",
+      telephoneBridge,
       outboundOnly: true,
       oneAllowedRecipient: true,
       numberStoredInSource: false,
@@ -316,6 +398,12 @@ function validBase64Audio(value) {
     value.length <= MAX_PROVIDER_MESSAGE_BYTES &&
     /^[A-Za-z0-9+/]+={0,2}$/.test(value)
   );
+}
+
+function callDurationMs(configuration) {
+  return configuration.telephoneBridge === "telnyx"
+    ? Math.min(ACTIVE_CALL_TTL_MS, TELNYX_CALL_TTL_MS)
+    : ACTIVE_CALL_TTL_MS;
 }
 
 function closeSocket(socket, code = 1000, reason = "") {
@@ -433,37 +521,72 @@ export function createPersonalCloneCallService({
       claimed: false,
       configuration,
       expiresAtMillis: now() + PENDING_BRIDGE_TTL_MS,
-      activeUntilMillis: now() + ACTIVE_CALL_TTL_MS
+      activeUntilMillis: now() + callDurationMs(configuration)
     };
     pendingBridges.set(bridgeToken, session);
     activeOwners.set(PERSONAL_CLONE_OWNER_ID, session);
 
     const streamUrl =
       `wss://${configuration.publicHost}${PERSONAL_CLONE_MEDIA_PATH}`;
-    const twiml =
-      `<Response><Connect><Stream url="${streamUrl}">` +
-      `<Parameter name="bridgeToken" value="${bridgeToken}" />` +
-      `</Stream></Connect></Response>`;
-    const body = new URLSearchParams({
-      To: normalizedTarget,
-      From: configuration.fromNumber,
-      Twiml: twiml
-    });
 
     try {
-      const response = await fetchImpl(
-        `https://api.twilio.com/2010-04-01/Accounts/${configuration.accountSid}/Calls.json`,
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              `Basic ${encodeBasicAuth(configuration.accountSid, configuration.authToken)}`,
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body,
-          signal: AbortSignal.timeout(TWILIO_TIMEOUT_MS)
-        }
-      );
+      let response;
+      if (configuration.telephoneBridge === "telnyx") {
+        response = await fetchImpl(
+          "https://api.telnyx.com/v2/calls",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${configuration.apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              to: normalizedTarget,
+              from: configuration.fromNumber,
+              connection_id: configuration.connectionId,
+              client_state: Buffer.from(
+                bridgeToken,
+                "utf8"
+              ).toString("base64"),
+              stream_url: streamUrl,
+              stream_track: "inbound_track",
+              stream_codec: "PCMU",
+              stream_bidirectional_mode: "rtp",
+              stream_bidirectional_codec: "PCMU",
+              stream_bidirectional_target_legs: "self",
+              stream_bidirectional_sampling_rate: 8000,
+              stream_auth_token: bridgeToken,
+              send_silence_when_idle: true,
+              sip_region: "Europe",
+              timeout_secs: 60,
+              time_limit_secs: callDurationMs(configuration) / 1000
+            }),
+            signal: AbortSignal.timeout(TELEPHONE_PROVIDER_TIMEOUT_MS)
+          }
+        );
+      } else {
+        const twiml =
+          `<Response><Connect><Stream url="${streamUrl}">` +
+          `<Parameter name="bridgeToken" value="${bridgeToken}" />` +
+          `</Stream></Connect></Response>`;
+        response = await fetchImpl(
+          `https://api.twilio.com/2010-04-01/Accounts/${configuration.accountSid}/Calls.json`,
+          {
+            method: "POST",
+            headers: {
+              Authorization:
+                `Basic ${encodeBasicAuth(configuration.accountSid, configuration.authToken)}`,
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+              To: normalizedTarget,
+              From: configuration.fromNumber,
+              Twiml: twiml
+            }),
+            signal: AbortSignal.timeout(TELEPHONE_PROVIDER_TIMEOUT_MS)
+          }
+        );
+      }
 
       let providerResult = {};
       try {
@@ -471,17 +594,28 @@ export function createPersonalCloneCallService({
       } catch {
         providerResult = {};
       }
-      if (
-        !response.ok ||
-        !TWILIO_CALL_SID_PATTERN.test(String(providerResult?.sid || ""))
-      ) {
+      const providerCallId = configuration.telephoneBridge === "telnyx"
+        ? String(providerResult?.data?.call_control_id || "")
+        : String(providerResult?.sid || "");
+      const providerCallIdValid =
+        configuration.telephoneBridge === "telnyx"
+          ? TELNYX_CALL_CONTROL_ID_PATTERN.test(providerCallId)
+          : TWILIO_CALL_SID_PATTERN.test(providerCallId);
+      if (!response.ok || !providerCallIdValid) {
         throw new PersonalCloneCallError(
           "PERSONAL_CLONE_PROVIDER_REJECTED",
           "Der Telefonanbieter konnte den Holo-Anruf gerade nicht starten.",
           response.status >= 400 && response.status < 500 ? 502 : 503
         );
       }
-      session.callSid = String(providerResult.sid);
+      if (session.callSid && session.callSid !== providerCallId) {
+        throw new PersonalCloneCallError(
+          "PERSONAL_CLONE_PROVIDER_IDENTITY_MISMATCH",
+          "Der Telefonanbieter hat den Holo-Anruf nicht eindeutig bestätigt.",
+          503
+        );
+      }
+      session.callSid = providerCallId;
 
       return {
         started: true,
@@ -529,19 +663,41 @@ export function createPersonalCloneCallService({
     }
   }
 
-  function validateProviderUpgrade(request) {
+  function providerUpgradeContext(request) {
+    cleanupExpired();
     let configuration;
     try {
       configuration = loadConfiguration(environment);
     } catch {
-      return false;
+      return null;
+    }
+
+    if (configuration.telephoneBridge === "telnyx") {
+      const bridgeToken = String(
+        request?.headers?.["x-telnyx-streaming-auth-token"] || ""
+      ).trim();
+      if (!/^[A-Za-z0-9_-]{32,128}$/.test(bridgeToken)) {
+        return null;
+      }
+      const session = pendingBridges.get(bridgeToken);
+      if (
+        !session ||
+        session.claimed ||
+        session.configuration.telephoneBridge !== "telnyx"
+      ) {
+        return null;
+      }
+      return Object.freeze({
+        telephoneBridge: "telnyx",
+        bridgeToken
+      });
     }
 
     const signature = String(
       request?.headers?.["x-twilio-signature"] || ""
     ).trim();
     if (!signature || signature.length > 128) {
-      return false;
+      return null;
     }
 
     const endpoint =
@@ -552,12 +708,19 @@ export function createPersonalCloneCallService({
       `wss://${endpoint}`,
       `wss://${endpoint}/`
     ];
-    return candidates.some((candidate) =>
+    const valid = candidates.some((candidate) =>
       constantTimeStringEquals(
         signature,
         expectedTwilioSignature(configuration.authToken, candidate)
       )
     );
+    return valid
+      ? Object.freeze({ telephoneBridge: "twilio" })
+      : null;
+  }
+
+  function validateProviderUpgrade(request) {
+    return Boolean(providerUpgradeContext(request));
   }
 
   function handleMediaConnection(
@@ -566,9 +729,10 @@ export function createPersonalCloneCallService({
     initialProviderEvent = null
   ) {
     const configuration = session.configuration;
-    let streamSid = "";
+    let providerStreamId = "";
     let sessionRequested = false;
     let sessionReady = false;
+    let openingCommentaryRequested = false;
     let closed = false;
     let maximumDurationTimer = null;
 
@@ -604,7 +768,7 @@ export function createPersonalCloneCallService({
     const startOpenAiSession = () => {
       if (
         sessionRequested ||
-        !streamSid ||
+        !providerStreamId ||
         openAiSocket.readyState !== WebSocketImpl.OPEN
       ) {
         return;
@@ -614,6 +778,7 @@ export function createPersonalCloneCallService({
         type: "session.start",
         session: {
           model: configuration.openAiModel,
+          store: false,
           instructions: personalCloneVoiceInstructions(),
           audio: {
             format: { type: "audio/pcmu", rate: 8000 },
@@ -648,29 +813,46 @@ export function createPersonalCloneCallService({
         const opening = personalCloneOpening();
         sendOpenAi({
           type: "session.instructions.append",
+          event_id: OPENING_INSTRUCTIONS_EVENT_ID,
           delegation_id: null,
           content:
             `Dein erster gesprochener Satz in diesem Anruf lautet wortgetreu: "${opening}"`
         });
+        return;
+      }
+
+      if (
+        event?.type === "session.instructions.appended" &&
+        event?.client_event_id === OPENING_INSTRUCTIONS_EVENT_ID &&
+        !openingCommentaryRequested
+      ) {
+        openingCommentaryRequested = true;
         sendOpenAi({
           type: "session.commentary.append",
+          event_id: OPENING_COMMENTARY_EVENT_ID,
           delegation_id: null,
-          content: opening
+          content: personalCloneOpening()
         });
         return;
       }
 
       if (
         event?.type === "session.output_audio.delta" &&
-        streamSid &&
+        providerStreamId &&
         providerSocket.readyState === WebSocket.OPEN &&
         validBase64Audio(event.delta)
       ) {
-        providerSocket.send(JSON.stringify({
-          event: "media",
-          streamSid,
-          media: { payload: event.delta }
-        }));
+        const providerMedia = configuration.telephoneBridge === "telnyx"
+          ? {
+              event: "media",
+              media: { payload: event.delta }
+            }
+          : {
+              event: "media",
+              streamSid: providerStreamId,
+              media: { payload: event.delta }
+            };
+        providerSocket.send(JSON.stringify(providerMedia));
         return;
       }
 
@@ -687,8 +869,37 @@ export function createPersonalCloneCallService({
 
     const handleProviderEvent = (event) => {
       if (event?.event === "start") {
+        if (providerStreamId) {
+          closeBoth(1008, "provider_start_repeated");
+          return;
+        }
         const start = event.start || {};
-        if (
+        if (configuration.telephoneBridge === "telnyx") {
+          const streamId = String(event.stream_id || "");
+          const callControlId = String(start.call_control_id || "");
+          const expectedClientState = Buffer.from(
+            session.bridgeToken,
+            "utf8"
+          ).toString("base64");
+          const mediaFormat = start.media_format || {};
+          if (
+            !TELNYX_STREAM_ID_PATTERN.test(streamId) ||
+            !TELNYX_CALL_CONTROL_ID_PATTERN.test(callControlId) ||
+            (session.callSid && callControlId !== session.callSid) ||
+            !constantTimeStringEquals(
+              String(start.client_state || ""),
+              expectedClientState
+            ) ||
+            String(mediaFormat.encoding || "").toUpperCase() !== "PCMU" ||
+            Number(mediaFormat.sample_rate) !== 8000 ||
+            Number(mediaFormat.channels) !== 1
+          ) {
+            closeBoth(1008, "provider_identity_mismatch");
+            return;
+          }
+          if (!session.callSid) session.callSid = callControlId;
+          providerStreamId = streamId;
+        } else if (
           String(start.accountSid || "") !== configuration.accountSid ||
           (
             session.callSid &&
@@ -698,8 +909,9 @@ export function createPersonalCloneCallService({
         ) {
           closeBoth(1008, "provider_identity_mismatch");
           return;
+        } else {
+          providerStreamId = String(start.streamSid);
         }
-        streamSid = String(start.streamSid);
         startOpenAiSession();
         return;
       }
@@ -710,6 +922,15 @@ export function createPersonalCloneCallService({
         openAiSocket.readyState === WebSocketImpl.OPEN &&
         validBase64Audio(event?.media?.payload)
       ) {
+        const expectedMediaStream =
+          configuration.telephoneBridge === "telnyx"
+            ? String(event.stream_id || "") === providerStreamId &&
+              String(event?.media?.track || "") === "inbound"
+            : String(event.streamSid || "") === providerStreamId;
+        if (!expectedMediaStream) {
+          closeBoth(1008, "provider_stream_mismatch");
+          return;
+        }
         sendOpenAi({
           type: "session.input_audio.append",
           audio: event.media.payload
@@ -718,7 +939,21 @@ export function createPersonalCloneCallService({
       }
 
       if (event?.event === "stop") {
+        const expectedStopStream =
+          configuration.telephoneBridge === "telnyx"
+            ? String(event.stream_id || "") === providerStreamId
+            : String(event.streamSid || "") === providerStreamId;
+        if (!expectedStopStream) {
+          closeBoth(1008, "provider_stream_mismatch");
+          return;
+        }
         closeBoth();
+        return;
+      }
+
+      if (event?.event === "error") {
+        logger.warn("Holo-Gespräch: Telefon-Audiositzung beendet.");
+        closeBoth(1011, "provider_audio_error");
       }
     };
 
@@ -742,7 +977,7 @@ export function createPersonalCloneCallService({
 
     maximumDurationTimer = setTimeout(
       () => closeBoth(1000, "maximum_call_duration"),
-      ACTIVE_CALL_TTL_MS
+      callDurationMs(configuration)
     );
     maximumDurationTimer.unref?.();
 
@@ -751,7 +986,10 @@ export function createPersonalCloneCallService({
     }
   }
 
-  function handlePendingMediaConnection(providerSocket) {
+  function handlePendingMediaConnection(
+    providerSocket,
+    providerContext = Object.freeze({ telephoneBridge: "twilio" })
+  ) {
     let connectedEventSeen = false;
     let settled = false;
 
@@ -789,7 +1027,21 @@ export function createPersonalCloneCallService({
       }
 
       if (event?.event === "connected" && !connectedEventSeen) {
+        if (
+          providerContext.telephoneBridge === "telnyx" &&
+          !constantTimeStringEquals(
+            event?.["x-telnyx-streaming-auth-token"],
+            providerContext.bridgeToken
+          )
+        ) {
+          fail(1008, "provider_token_invalid");
+          return;
+        }
         connectedEventSeen = true;
+        return;
+      }
+      if (!connectedEventSeen) {
+        fail(1008, "provider_connected_required");
         return;
       }
       if (event?.event !== "start") {
@@ -797,11 +1049,18 @@ export function createPersonalCloneCallService({
         return;
       }
 
-      const token = String(
-        event?.start?.customParameters?.bridgeToken || ""
-      ).trim();
+      const token = providerContext.telephoneBridge === "telnyx"
+        ? String(providerContext.bridgeToken || "").trim()
+        : String(
+            event?.start?.customParameters?.bridgeToken || ""
+          ).trim();
       const session = claimBridge(token);
-      if (!session) {
+      if (
+        !session ||
+        session.configuration.telephoneBridge !==
+          providerContext.telephoneBridge
+      ) {
+        if (session) releaseSession(session);
         fail(1008, "provider_token_invalid");
         return;
       }
@@ -820,6 +1079,7 @@ export function createPersonalCloneCallService({
     configurationState: () => publicConfigurationState(environment),
     startCall,
     claimBridge,
+    providerUpgradeContext,
     validateProviderUpgrade,
     handlePendingMediaConnection,
     handleMediaConnection,
@@ -877,13 +1137,18 @@ export function attachPersonalCloneMediaBridge(
       return;
     }
 
-    if (url.search || !service.validateProviderUpgrade?.(request)) {
+    const providerContext =
+      service.providerUpgradeContext?.(request);
+    if (url.search || !providerContext) {
       rejectUpgrade(socket, 401);
       return;
     }
 
     mediaServer.handleUpgrade(request, socket, head, (providerSocket) => {
-      service.handlePendingMediaConnection(providerSocket);
+      service.handlePendingMediaConnection(
+        providerSocket,
+        providerContext
+      );
     });
   });
 
