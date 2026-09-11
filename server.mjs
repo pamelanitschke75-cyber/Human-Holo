@@ -144,7 +144,9 @@ const trustedAppSessions =
   });
 
 const personalCloneCalls =
-  createPersonalCloneCallService();
+  createPersonalCloneCallService({
+    database: db
+  });
 
 const openClawAlltagPreview =
   createOpenClawAlltagPreviewService();
@@ -1396,6 +1398,7 @@ async function initializeMemory() {
   await identityMemoryStore.initialize();
   await trustedAppSessions.initialize();
   await humanHoloVoiceProfiles.initialize();
+  await personalCloneCalls.initialize();
 
   console.log("Sol-Holo-Memory ist bereit.");
   console.log("Bestätigtes Sol-Holo-Gedächtnis ist bereit.");
