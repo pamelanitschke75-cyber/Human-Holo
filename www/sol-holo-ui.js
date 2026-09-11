@@ -587,6 +587,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </details>
     `;
     settingsViewRoot.insertBefore(privacySecurityGroup, settingsSystemGroup);
+
+    const aboutHumanHoloGroup = document.createElement("section");
+    aboutHumanHoloGroup.id = "aboutHumanHolo";
+    aboutHumanHoloGroup.className = "settingsGroup glassCard";
+    aboutHumanHoloGroup.setAttribute(
+      "aria-labelledby",
+      "aboutHumanHoloTitle"
+    );
+    aboutHumanHoloGroup.innerHTML = `
+      <div class="settingsGroupHeader">
+        <span class="settingsGroupIcon" aria-hidden="true">∞</span>
+        <div>
+          <h3 id="aboutHumanHoloTitle">Über Human Holo</h3>
+          <p>Forever Together</p>
+        </div>
+      </div>
+      <p class="humanHoloAboutCredit">
+        <strong>Pamela Nitschke und Stefanie Hörath</strong>
+        <span>Developed with ChatGPT/OpenAI</span>
+      </p>
+    `;
+    settingsViewRoot.insertBefore(aboutHumanHoloGroup, settingsSystemGroup);
   }
 
   const notesView = document.createElement("section");
