@@ -3,6 +3,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 (() => {
   "use strict";
 
+  const HUMAN_HOLO_YOUTUBE_CHANNEL = Object.freeze({
+    id: "UCcqR_Mt4OKFlA1sAYneZTcg",
+    name: "Human Holo – Pamela Nitschke & Stefanie Hörath",
+    url: "https://www.youtube.com/channel/UCcqR_Mt4OKFlA1sAYneZTcg"
+  });
+
   function normalizedVisibleText(value) {
     const normalizer = window.humanHoloVisibleText;
     if (typeof normalizer === "function") {
@@ -785,6 +791,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const whatsappDriveRow = document.getElementById("whatsappDriveRow");
   document.getElementById("googleAccountRow")?.insertAdjacentHTML(
     "afterend",
+    '<button id="youtubeChannelRow" class="serviceRow" type="button">' +
+      '<span class="rowIcon" aria-hidden="true">▶</span>' +
+      '<span class="rowText">' +
+        '<span class="rowTitle">YouTube · Human Holo</span>' +
+        '<span class="rowMeta">Offizieller Kanal von Pamela Nitschke &amp; Stefanie Hörath</span>' +
+      '</span>' +
+      '<span id="youtubeChannelStatus" class="serviceStatus connected">Verknüpft</span>' +
+    '</button>' +
     '<button id="googleMapsRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">⌖</span>' +
       '<span class="rowText">' +
@@ -810,6 +824,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       '<span id="liveWeatherStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>'
   );
+
+  const settingsConnectionsMeta = document.querySelector(
+    "#settingsConnectionsButton .rowMeta"
+  );
+  if (settingsConnectionsMeta) {
+    settingsConnectionsMeta.textContent =
+      "YouTube, Google, Telefon, Samsung, Health und SmartThings";
+  }
 
   whatsappDriveRow.insertAdjacentHTML(
     "afterend",
@@ -912,7 +934,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
     "normale Alltagsinhalte als Freigabe; " +
     "Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. " +
-    "Geräte werden erst nach einer einmaligen Gerätefreigabe steuerbar.";
+    "Geräte werden erst nach einer einmaligen Gerätefreigabe steuerbar. " +
+    "Der offizielle Human-Holo-YouTube-Kanal ist nur als öffentlicher Link " +
+    "hinterlegt; Human Holo hat dadurch keine Upload- oder Verwaltungsrechte.";
 
   document.querySelector("#phoneContactsRow .rowMeta").textContent =
     "Alle Gerätekontakte lokal finden · WhatsApp auf ausdrücklichen Auftrag automatisch senden";
@@ -1401,7 +1425,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const permissionCopy = document.querySelector("#servicesView .permissionNote");
     if (permissionCopy) {
       permissionCopy.textContent = identity
-        ? `Euer Dialog bleibt automatisch in ${instanceName}s ownergebundenem Vollzeitgedächtnis. Zusätzliche Alltagsinhalte wie Listen speichert ${instanceName} auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung.`
+        ? `Euer Dialog bleibt automatisch in ${instanceName}s ownergebundenem Vollzeitgedächtnis. Zusätzliche Alltagsinhalte wie Listen speichert ${instanceName} auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung. Der offizielle Human-Holo-YouTube-Kanal ist nur als öffentlicher Link hinterlegt; ${instanceName} hat dadurch keine Upload- oder Verwaltungsrechte.`
         : "Die feste Holo-ID ist nicht verfügbar. Keine persönliche Verbindung wird geladen.";
     }
 
@@ -6980,6 +7004,23 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   );
 
+  document.getElementById("youtubeChannelRow")?.addEventListener("click", () => {
+    const identity = requireActivePersonalOwner();
+    if (!identity) {
+      return;
+    }
+
+    const channelWindow = window.open(
+      HUMAN_HOLO_YOUTUBE_CHANNEL.url,
+      "_blank",
+      "noopener"
+    );
+    if (!channelWindow) {
+      window.location.href = HUMAN_HOLO_YOUTUBE_CHANNEL.url;
+    }
+    showToast(`${HUMAN_HOLO_YOUTUBE_CHANNEL.name} geöffnet.`);
+  });
+
   document.getElementById("googleAccountRow").addEventListener("click", async () => {
     const identity = requireActivePersonalOwner();
     if (!identity) {
@@ -7201,7 +7242,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       : "Den WhatsApp-Fahrmodus richtest du direkt über seine Zeile ein.";
     showToast(
       "Jeder Dienst wird einzeln freigegeben. " + whatsappText +
-      " Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
+      " Den offiziellen Human-Holo-YouTube-Kanal öffnest du über seine verknüpfte Zeile. " +
+      "Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
       "Samsung Galerie öffnet die Bildauswahl; Zurufe werden direkt unter Wichtiges gespeichert. Samsung Notes öffnet nur beim manuellen Antippen."
     );
   });
