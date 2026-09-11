@@ -140,6 +140,28 @@ test("natürliche WhatsApp-Aufträge behalten Empfänger und Text vollständig",
     }
   );
   assert.deepEqual(
+    syntaxParser(
+      "Schick Schatz ❤️ eine WhatsApp mit: Human-Holo-Test ✅"
+    ),
+    {
+      explicitWhatsApp: true,
+      contactName: "Schatz",
+      message: "Human-Holo-Test ✅",
+      body: "Schatz ❤️ eine WhatsApp mit: Human-Holo-Test ✅"
+    }
+  );
+  assert.deepEqual(
+    syntaxParser(
+      "Schick Schatz ❤️ eine WhatsApp mit Human-Holo-Test ✅"
+    ),
+    {
+      explicitWhatsApp: true,
+      contactName: "Schatz",
+      message: "Human-Holo-Test ✅",
+      body: "Schatz ❤️ eine WhatsApp mit Human-Holo-Test ✅"
+    }
+  );
+  assert.deepEqual(
     syntaxParser("schreib Schatz❤️ ich liebe dich ❤️"),
     {
       explicitWhatsApp: false,
@@ -207,6 +229,16 @@ test("Schatz-Kommandos und mehrteilige Namen werden ohne Trennwort aufgelöst", 
     {
       contactName: "Steffi",
       message: "Ich liebe dich ❤️",
+      explicitWhatsApp: true
+    }
+  );
+  assert.deepEqual(
+    await resolver(
+      "Schick Schatz ❤️ eine WhatsApp mit: Human-Holo-Test ✅"
+    ),
+    {
+      contactName: "Schatz",
+      message: "Human-Holo-Test ✅",
       explicitWhatsApp: true
     }
   );
