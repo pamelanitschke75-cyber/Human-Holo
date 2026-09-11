@@ -928,7 +928,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.querySelector("#servicesView .permissionNote").textContent =
     "Nach deiner Android-Freigabe kann Pam’s Holo alle Gerätekontakte lokal " +
     "durchsuchen. Das Telefonbuch wird nicht hochgeladen; verwendet wird nur " +
-    "der von dir genannte, eindeutig geprüfte Empfänger. WhatsApp-Nachrichten " +
+    "der von dir genannte, eindeutig geprüfte Empfänger. Einen Kontakt oder " +
+    "die fest hinterlegte ADAC-Pannenhilfe ruft Human Holo erst nach deiner " +
+    "sichtbaren Bestätigung direkt an. 110 und 112 bleiben im Android-Wähler. " +
+    "WhatsApp-Nachrichten " +
     "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
     "Bild, Notiz und Health-Wert bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
     "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
@@ -939,7 +942,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "hinterlegt; Human Holo hat dadurch keine Upload- oder Verwaltungsrechte.";
 
   document.querySelector("#phoneContactsRow .rowMeta").textContent =
-    "Alle Gerätekontakte lokal finden · WhatsApp auf ausdrücklichen Auftrag automatisch senden";
+    "Kontakte und ADAC nach sichtbarer Bestätigung direkt anrufen · WhatsApp ausdrücklich senden";
 
   const drawerVoiceSettings = document.querySelector("#drawer .drawerVoiceSettings");
   if (drawerVoiceSettings) {
@@ -1199,6 +1202,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     supported: false,
     contactsPermissionGranted: false,
     phoneStatePermissionGranted: false,
+    directCallPermissionGranted: false,
     connected: false,
     whatsAppDirectSendEnabled: false,
     callState: "idle",
@@ -4706,6 +4710,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       phoneStatePermissionGranted: Boolean(
         nextStatus?.phoneStatePermissionGranted
       ),
+      directCallPermissionGranted: Boolean(
+        nextStatus?.directCallPermissionGranted
+      ),
       connected: Boolean(nextStatus?.connected),
       whatsAppDirectSendEnabled: Boolean(
         nextStatus?.whatsAppDirectSendEnabled
@@ -4756,8 +4763,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         const previousState = phoneStatus.callState;
         renderPhoneStatus(status);
 
-        if (status?.callState === "ringing") {
-          showToast(`Eingehender Anruf erkannt. ${activeInstanceName()} pausiert.`);
+        if (
+          status?.callState === "ringing" ||
+          status?.callState === "offhook"
+        ) {
+          showToast(
+            status.callState === "ringing"
+              ? `Eingehender Anruf erkannt. ${activeInstanceName()} pausiert.`
+              : `Telefonat läuft. ${activeInstanceName()} pausiert.`
+          );
           if (typeof stopLiveConversation === "function") {
             stopLiveConversation();
           }
@@ -4843,7 +4857,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       if (status?.contactsPermissionGranted) {
         showToast(
-          "Alle Gerätekontakte sind lokal verfügbar. Automatisches WhatsApp-Senden braucht einen ausdrücklichen Auftrag und seine einmalige Bedienungshilfe." +
+          "Alle Gerätekontakte sind lokal verfügbar. Direkte Anrufe brauchen jedes Mal deine sichtbare Bestätigung; beim ersten Anruf folgt die Android-Telefonfreigabe. Automatisches WhatsApp-Senden braucht einen ausdrücklichen Auftrag und seine einmalige Bedienungshilfe." +
           (status?.phoneStatePermissionGranted
             ? ""
             : " Die optionale Anruferkennung ist noch nicht freigegeben.")
@@ -4867,6 +4881,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "112": "Notruf für Feuerwehr und Rettungsdienst",
     "110": "Polizeinotruf",
     "116117": "Ärztlicher Bereitschaftsdienst"
+  });
+
+  const VERIFIED_HELP_SERVICES = Object.freeze({
+    adac_pannenhilfe_de: "ADAC Pannenhilfe Deutschland"
   });
 
   function normalizeLocalPhoneIntent(value) {
@@ -4917,6 +4935,36 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       : null;
   }
 
+  function verifiedHelpServiceCallFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .trim()
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|holo))\s*[,;:!.-]?\s*/i,
+        ""
+      )
+      .trim();
+    if (isSafetyTriageQuestion(cleanMessage) || /[?;]/.test(cleanMessage)) {
+      return null;
+    }
+
+    const normalized = normalizeLocalPhoneIntent(cleanMessage);
+    const directCommand =
+      /^(?:ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(?:(?:den|die)\s+)?(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?(?:\s+an)?|(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?\s+anrufen)[.!]?$/i.test(
+        normalized
+      );
+    const breakdownCommand =
+      /^(?:(?:wir\s+haben|ich\s+habe|(?:mein|das)\s+auto\s+hat)(?:\s+gerade)?(?:\s+eine)?\s+panne|panne)[,!.\s]+ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(?:(?:den|die)\s+)?(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?(?:\s+an)?[.!]?$/i.test(
+        normalized
+      );
+
+    return directCommand || breakdownCommand
+      ? {
+          serviceId: "adac_pannenhilfe_de",
+          label: VERIFIED_HELP_SERVICES.adac_pannenhilfe_de
+        }
+      : null;
+  }
+
   function phoneContactCallNameFromMessage(message) {
     const cleanMessage = String(message || "").trim();
     if (isSafetyTriageQuestion(cleanMessage) || /[?:;]/.test(cleanMessage)) {
@@ -4937,7 +4985,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       !name ||
       name.split(/\s+/).length > 5 ||
       !/^[\p{L}\p{M}][\p{L}\p{M} .,'’\-]*$/u.test(name) ||
-      /\b(?:ich|du|er|sie|wir|ihr|wer|wen|was|wann|warum|wie|notfall|arzt|aerztin|polizei)\b/i.test(
+      /\b(?:ich|du|er|sie|wir|ihr|wer|wen|was|wann|warum|wie|notfall|arzt|aerztin|polizei|adac|pannenhilfe)\b/i.test(
         normalizeLocalPhoneIntent(name)
       )
     ) {
@@ -4994,6 +5042,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.isSolHoloSafetyTriageQuestion = isSafetyTriageQuestion;
   window.extractSolHoloServiceDialRequest = serviceDialRequestFromMessage;
+  window.extractSolHoloVerifiedHelpServiceCall =
+    verifiedHelpServiceCallFromMessage;
   window.extractSolHoloPhoneContactCallName = phoneContactCallNameFromMessage;
   window.openSolHoloServiceDialer = openServiceDialer;
 
@@ -5160,6 +5210,45 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const contactName = String(args?.contact_name || args?.query || "").trim();
 
     try {
+      if (actionName === "start_help_service_call") {
+        const serviceId = String(args?.service_id || "").trim();
+        if (!VERIFIED_HELP_SERVICES[serviceId]) {
+          return {
+            success: false,
+            answer: "Diese Pannenhilfe ist nicht für einen direkten Anruf freigegeben."
+          };
+        }
+        const ownerId = activePersonalOwner();
+        if (!ownerId) {
+          return {
+            success: false,
+            answer: "Die feste Holo-ID ist nicht verfügbar."
+          };
+        }
+        const plugin = getPhoneContactsPlugin();
+        if (typeof plugin?.startHelpServiceCall !== "function") {
+          return {
+            success: false,
+            answer: "Der direkte ADAC-Anruf ist erst nach dem App-Update verfügbar."
+          };
+        }
+
+        const callResult = await plugin.startHelpServiceCall({
+          serviceId,
+          ownerId,
+          explicitOwnerCommand: true
+        });
+        if (!callResult?.callStarted) {
+          throw new Error("Der direkte ADAC-Anruf wurde nicht bestätigt.");
+        }
+        return {
+          success: true,
+          callStarted: true,
+          connectionConfirmed: false,
+          answer: "Human Holo hat den Anruf bei der ADAC Pannenhilfe gestartet."
+        };
+      }
+
       const result = await findPhoneContact(contactName);
 
       if (actionName === "search_phone_contact") {
@@ -5194,13 +5283,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       }
 
       if (actionName === "start_phone_call") {
-        await getPhoneContactsPlugin().openDialer({
+        const plugin = getPhoneContactsPlugin();
+        if (typeof plugin?.startContactCall !== "function") {
+          return {
+            success: false,
+            answer: "Direkte Kontaktanrufe sind erst nach dem App-Update verfügbar."
+          };
+        }
+        const callResult = await plugin.startContactCall({
+          contactId: String(contact.id),
           number: contact.number,
-          recipientName: contact.name
+          recipientName: contact.name,
+          ownerId: activePersonalOwner(),
+          explicitOwnerCommand: true
         });
+        if (!callResult?.callStarted) {
+          throw new Error("Der direkte Kontaktanruf wurde nicht bestätigt.");
+        }
         return {
           success: true,
-          answer: `${contact.name} ist in der Telefon-App geöffnet. Du bestätigst den Anruf dort.`
+          callStarted: true,
+          connectionConfirmed: false,
+          answer: `Human Holo hat den Anruf bei ${contact.name} gestartet.`
         };
       }
 
@@ -6196,6 +6300,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return { handled: true, answer: result.answer };
     }
 
+    const helpServiceCall = verifiedHelpServiceCallFromMessage(cleanMessage);
+    if (helpServiceCall) {
+      const result = await executePhoneTool("start_help_service_call", {
+        service_id: helpServiceCall.serviceId
+      });
+      return { handled: true, answer: result.answer };
+    }
+
     const aliasBinding = contactAliasBindingFromMessage(cleanMessage);
     if (aliasBinding) {
       try {
@@ -7128,7 +7240,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("phoneContactsRow").addEventListener("click", async () => {
     if (phoneStatus.contactsPermissionGranted) {
       const managePermissions = window.confirm(
-        "Alle Gerätekontakte und die Anruferkennung sind aktiv. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden; SMS und Anrufe bleiben sichtbar bestätigt.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
+        "Alle Gerätekontakte und die Anruferkennung sind aktiv. Kontakte und die fest hinterlegte ADAC-Pannenhilfe werden nur nach deiner sichtbaren Bestätigung direkt angerufen. 110 und 112 bleiben im sicheren Android-Wähler. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden; SMS bleiben sichtbar vorbereitet.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
       );
       if (managePermissions) {
         try {

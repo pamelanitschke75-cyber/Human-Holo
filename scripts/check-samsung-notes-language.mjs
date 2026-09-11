@@ -159,6 +159,10 @@ for (const requiredSource of [
   '"Empfänger: " + recipient',
   '"SMS-Inhalt:\\n" + message',
   "Intent.ACTION_DIAL",
+  "Intent.ACTION_CALL",
+  "Manifest.permission.CALL_PHONE",
+  "public void startContactCall",
+  "public void startHelpServiceCall",
   "Intent.ACTION_SENDTO"
 ]) {
   if (!phonePluginSource.includes(requiredSource)) {
@@ -168,12 +172,54 @@ for (const requiredSource of [
   }
 }
 
+if (phonePluginSource.includes("SmsManager")) {
+  throw new Error(
+    "SMS darf nicht direkt ohne die sichtbare Ziel-App ausgelöst werden."
+  );
+}
+
+const directCallStart = phonePluginSource.indexOf(
+  "private void launchDirectCall"
+);
+const directCallEnd = phonePluginSource.indexOf(
+  "\n    private String normalizedDirectCallNumber",
+  directCallStart
+);
+const directCallSource = phonePluginSource.slice(
+  directCallStart,
+  directCallEnd
+);
 if (
-  phonePluginSource.includes("Intent.ACTION_CALL") ||
-  phonePluginSource.includes("SmsManager")
+  directCallStart < 0 ||
+  directCallEnd < 0 ||
+  !directCallSource.includes("Intent.ACTION_CALL") ||
+  !directCallSource.includes('result.put("callStarted", true)') ||
+  !directCallSource.includes('result.put("emergencyCall", false)')
 ) {
   throw new Error(
-    "Anruf oder SMS darf nicht direkt ohne die sichtbare Ziel-App ausgelöst werden."
+    "Der bestätigte direkte Anrufweg ist nicht vollständig abgesichert."
+  );
+}
+
+const emergencyDialerStart = phonePluginSource.indexOf(
+  "public void openServiceDialer"
+);
+const emergencyDialerEnd = phonePluginSource.indexOf(
+  "\n    @PluginMethod\n    public void prepareSms",
+  emergencyDialerStart
+);
+const emergencyDialerSource = phonePluginSource.slice(
+  emergencyDialerStart,
+  emergencyDialerEnd
+);
+if (
+  emergencyDialerStart < 0 ||
+  emergencyDialerEnd < 0 ||
+  !emergencyDialerSource.includes("Intent.ACTION_DIAL") ||
+  emergencyDialerSource.includes("Intent.ACTION_CALL")
+) {
+  throw new Error(
+    "110, 112 und 116117 müssen im sicheren Android-Wähler bleiben."
   );
 }
 
@@ -182,11 +228,11 @@ const nativeInstallerSource = fs.readFileSync(
   "utf8"
 );
 if (
-  nativeInstallerSource.includes("android.permission.CALL_PHONE") ||
+  !nativeInstallerSource.includes("android.permission.CALL_PHONE") ||
   nativeInstallerSource.includes("android.permission.SEND_SMS")
 ) {
   throw new Error(
-    "Die App darf keine Berechtigung zum direkten Anrufen oder SMS-Senden anfordern."
+    "Direkte bestätigte Anrufe brauchen CALL_PHONE; direktes SMS-Senden bleibt verboten."
   );
 }
 

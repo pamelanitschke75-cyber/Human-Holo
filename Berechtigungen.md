@@ -1,6 +1,6 @@
 HUMAN HOLO – BERECHTIGUNGEN
 
-Version: 1.3
+Version: 1.4
 Stand: 11.09.2026
 Status: Technisch umgesetzt und fortlaufend geprüft
 
@@ -40,7 +40,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 🔔 Benachrichtigungen| Benachrichtigungen| Hinweise und Erinnerungen| Wenn Funktion aktiviert wird| Keine Sol-Mitteilungen
 📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin direkt speichern und kommende Termine im sichtbaren Human-Holo-Kalenderfach anzeigen| Einmalige Android-Freigabe; danach beim Kalenderauftrag oder sichtbaren Aktualisieren| Kein Kalendereintrag und keine Terminanzeige in Human Holo
 👥 Kontakte| Kontakte| Personen auswählen/zuordnen| Bei Kontaktfunktion| Kein Kontaktzugriff
-📞 Telefon| Telefonfunktion| Anrufe vorbereiten/starten| Bei entsprechender Aktion| Kein Anruf durch Sol
+📞 Telefon| `READ_PHONE_STATE` + `CALL_PHONE`| Während eines Telefonats pausieren; einen erneut geprüften Kontakt oder die fest hinterlegte ADAC-Pannenhilfe nach sichtbarer Bestätigung direkt anrufen| Telefonstatus nach einmaliger Freigabe; `CALL_PHONE` erstmals im bestätigten Anrufablauf| Ohne Freigabe kein direkter Anruf; 110/112 bleiben immer im Android-Wähler
 💬 Nachrichten| Nachrichten-/Share-Funktion| Text an andere Apps übergeben| Bei ausdrücklicher Aktion| Keine Übergabe
 ♿ Bedienungshilfe (optional)| ausschließlich WhatsApp und WhatsApp Business| Empfänger, vollständigen Text und Senden-Schaltfläche prüfen und nach einem ausdrücklichen WhatsApp-Auftrag einmalig Senden auslösen| Einmalige bewusste Aktivierung in Android; danach bei jedem ausdrücklich genannten WhatsApp-Sendeauftrag| WhatsApp wird nur vorbereitet und nicht automatisch gesendet
 📍 Standort| Standortdaten| Ortsbezogene Funktionen| Nur wenn benötigt| Keine Standortfunktionen
@@ -132,6 +132,40 @@ der Handy-Kalender bleibt die gemeinsame, verknüpfte Quelle.
 Ohne Freigabe oder ohne beschreibbaren Kalender bleibt die Aktion gestoppt und
 Human Holo behauptet keinen Erfolg. Die Berechtigung kann in den
 Android-Einstellungen jederzeit wieder entzogen werden.
+
+---
+
+Telefon und ADAC-Pannenhilfe
+
+Human Holo startet einen normalen Telefonanruf nur, wenn alle folgenden
+Bedingungen erfüllt sind:
+
+- Pam hat im aktuellen Auftrag ausdrücklich um den Anruf gebeten.
+- Ein Kontakt wurde unmittelbar vor dem Anruf erneut anhand seiner lokalen
+  Android-Kontakt-ID und Telefonnummer geprüft, oder es wurde ausschließlich
+  der fest hinterlegte Dienst `adac_pannenhilfe_de` gewählt.
+- Ein sichtbares Android-Fenster zeigt Name und Nummer, und Pam tippt auf
+  **„Jetzt anrufen“**.
+- Android hat die Laufzeitberechtigung `CALL_PHONE` erteilt.
+
+Die deutsche ADAC-Pannenhilfe ist nativ mit `089 20 20 40 00` hinterlegt. Die
+App übernimmt für diesen Weg keine vom KI-Modell gelieferte Telefonnummer.
+Kontakt- und Anrufdaten werden dafür nicht hochgeladen.
+
+Die Notrufnummern 110 und 112 sowie die 116117 sind ausdrücklich vom direkten
+Anrufweg ausgeschlossen. Sie werden nur im Android-Wähler vorbereitet; der
+Anruf beginnt erst durch Pams Tippen auf die Hörertaste. Ein direkter Notruf
+wäre unter Android nur als ausgewählte Standard-Telefon-App beziehungsweise
+vorinstallierte System-Telefon-App zulässig und ist in dieser Ausbaustufe nicht
+aktiviert.
+
+Formulierungen mit „nur ein Test“, „Testfrage“, „fiktiv“ oder einem
+hypothetischen Notfallszenario dürfen weder den ADAC noch einen anderen Anruf
+starten.
+
+Quellen: [Android `ACTION_CALL`](https://developer.android.com/reference/android/content/Intent#ACTION_CALL),
+[Android `TelecomManager.placeCall`](https://developer.android.com/reference/android/telecom/TelecomManager#placeCall(android.net.Uri,%20android.os.Bundle)),
+[ADAC Pannenhilfe](https://www.adac.de/services/pannenhilfe/).
 
 ---
 

@@ -623,6 +623,25 @@ im
 
 ---
 
+## 📞 Direkte Kontakt- und ADAC-Anrufe
+
+**Status: TECHNISCH UMGESETZT am 11.09.2026 · S23-PRAXISTEST AUSSTEHEND**
+
+Nach einem ausdrücklichen aktuellen Anrufauftrag prüft Human Holo den
+ausgewählten Android-Kontakt unmittelbar erneut und zeigt Name und Nummer in
+einem sichtbaren Bestätigungsfenster. Erst Pams Tipp auf **„Jetzt anrufen“**
+startet genau diesen Anruf. Beim ersten Mal folgt zusätzlich die
+Android-Freigabe `CALL_PHONE`.
+
+„Ruf den ADAC an“ verwendet ausschließlich die nativ fest hinterlegte deutsche
+ADAC-Pannenhilfe `089 20 20 40 00`. Testformulierungen starten keinen Anruf.
+110, 112 und 116117 bleiben bewusst im Android-Wähler; ein direkter Notruf ist
+ohne die systemweite Rolle als Standard-Telefon-App nicht aktiviert.
+
+Details: [Meilenstein Human Holo telefoniert und ruft die ADAC-Pannenhilfe](./MEILENSTEIN-HUMAN-HOLO-TELEFONIEREN-ADAC-11-09-2026.md)
+
+---
+
 ## ⏰ Human-Holo-Wecker auf Handy und Galaxy Watch
 
 **Status: VOLLSTÄNDIGER PRAXISTEST BESTANDEN am 08.09.2026**
