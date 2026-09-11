@@ -182,6 +182,11 @@ Bestätigungsfenster. Human Holo stellt sich zu Gesprächsbeginn ausdrücklich a
 **Pams persönlicher KI-Clone** und als KI vor und fragt die angerufene Person,
 ob sie sprechen möchte. Eine Ablehnung beendet das Gespräch höflich.
 
+Für die angerufene Person ist dies ein gewöhnlicher Sprachanruf auf ihrer
+normalen Telefonnummer. Sie nimmt ihn nur über die Hörertaste an; es gibt keinen
+Link, keine Textnachricht, keinen Textanruf und keine zusätzlich zu
+installierende App.
+
 Die Telefonnummer wird nicht im Quelltext, in App-Antworten, Logs, Erinnerungen
 oder der Gesprächssitzung gespeichert. Sie wird nur für die technische
 Vermittlung des ausdrücklich gestarteten Anrufs über TLS an den Server und dort
@@ -194,11 +199,19 @@ Dieser Gesprächsweg akzeptiert niemals eine zweite oder vom Modell gelieferte
 Nummer. 110, 112, 116117 und ADAC bleiben technisch getrennt. Für den echten
 Betrieb müssen Telefonie-Anbieter und Server-Geheimnisse bewusst eingerichtet
 werden; dafür ist keine zusätzliche Android-Telefonberechtigung erforderlich.
+Als Telefonbrücke kann Telnyx oder Twilio ausgewählt werden. Der Telnyx-Testweg
+ist im Code auf genau einen verifizierten Kontakt und höchstens zehn Minuten je
+Anruf begrenzt. Der Testanbieter kündigt maschinell erzeugte Anrufe zusätzlich
+mit einem eigenen Hinweis an. GPT-Live-Sitzungen werden ausdrücklich mit
+`store: false` gestartet.
 
 Quellen: [Android `ACTION_CALL`](https://developer.android.com/reference/android/content/Intent#ACTION_CALL),
 [Android `TelecomManager.placeCall`](https://developer.android.com/reference/android/telecom/TelecomManager#placeCall(android.net.Uri,%20android.os.Bundle)),
 [ADAC Pannenhilfe](https://www.adac.de/services/pannenhilfe/),
 [OpenAI Voice mit SIP](https://developers.openai.com/api/docs/guides/voice-sip),
+[OpenAI GPT-Live Partner-Integrationen](https://developers.openai.com/api/docs/guides/live-partner-integrations),
+[Telnyx Testgrenzen](https://developers.telnyx.com/docs/account-setup/levels-and-capabilities/trial),
+[Telnyx Media Streaming](https://developers.telnyx.com/docs/voice/programmable-voice/media-streaming),
 [Twilio: ausgehende Anrufe mit OpenAI Realtime](https://www.twilio.com/en-us/blog/developers/tutorials/integrations/outbound-calls-openai-gpt-live-1-node).
 
 ---
