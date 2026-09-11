@@ -402,6 +402,14 @@ können Sol helfen, Pams Kontext besser zu verstehen.
 
 Ob eine Information dauerhaft in Memory übernommen wird, wird von der jeweiligen Funktion und den festgelegten Regeln bestimmt.
 
+Für das Sofortspeichern eines ausdrücklich genannten Termins verwendet die
+Android-App nach einmaliger Freigabe `READ_CALENDAR` und `WRITE_CALENDAR`. Sie
+wählt ausschließlich einen sichtbaren, beschreibbaren Kalender auf dem Gerät
+und übergibt Titel sowie Beginn und Ende direkt an den Android Calendar
+Provider. Dabei wird keine Kalender-App geöffnet. Ohne bestätigte
+Android-Berechtigung wird nichts gespeichert; die Freigabe kann jederzeit in
+den Android-Einstellungen entzogen werden.
+
 ---
 
 16A. WHATSAPP AUTOMATISCH SENDEN

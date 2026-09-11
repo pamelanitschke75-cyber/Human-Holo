@@ -340,6 +340,21 @@ jobs:
       - name: Sicheren Fahr- und Weckmodus einbinden
         run: node scripts/install-whatsapp-driving-mode.mjs
 
+      - name: Kalender-Sofortspeicher ohne Fremdfenster prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          calendar_java="android/app/src/main/java/com/solholo/app/PhoneContactsPlugin.java"
+          app_ui="android/app/src/main/assets/public/sol-holo-ui.js"
+          grep -q 'android.permission.READ_CALENDAR' "$app_manifest"
+          grep -q 'android.permission.WRITE_CALENDAR' "$app_manifest"
+          grep -q 'public void saveCalendarEvent' "$calendar_java"
+          grep -q 'getContentResolver()' "$calendar_java"
+          grep -q 'CalendarContract.Events.CONTENT_URI' "$calendar_java"
+          ! grep -q 'Intent.ACTION_INSERT' "$calendar_java"
+          grep -q 'window.saveSolHoloCalendarDraft' "$app_ui"
+          ! grep -q 'Tippe dort nur noch auf Speichern' "$app_ui"
+
       - name: Live-Kamera für Realtime prüfen
         run: |
           set -Eeuo pipefail

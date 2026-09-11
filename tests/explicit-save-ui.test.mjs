@@ -78,6 +78,17 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
   }
 
   assert.deepEqual(
+    extract("Schwip schwap auf die einkaufsliste bittec"),
+    {
+      category: "Einkaufsliste",
+      content: "Schwip schwap",
+      kind: "list-item",
+      listTitle: "Einkaufsliste"
+    },
+    "Ein vertipptes Schluss-Bitte darf den Sofortspeicher nicht umgehen"
+  );
+
+  assert.deepEqual(
     extract("Bitte merke dir, dass der Airfryer später über HomeID eingerichtet wird."),
     {
       category: "Gespeicherter Inhalt",
@@ -129,9 +140,11 @@ test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", 
   assert.match(ui, /id="calendarAccessStatus"/u);
   assert.match(ui, /id="calendarAccessButton"/u);
   assert.match(ui, /Zugriff freigeben/u);
-  assert.match(ui, /needsGoogleAuth/u);
-  assert.match(ui, /needsTrustedAppSession/u);
+  assert.match(ui, /requestCalendarAccess/u);
+  assert.match(ui, /saveCalendarEvent/u);
+  assert.match(ui, /savedDirectly:\s*true/u);
   assert.match(ui, /accessRequired:\s*true/u);
+  assert.doesNotMatch(ui, /openCalendarEvent/u);
 });
 
 test("Datum oder ‚morgen‘ plus Uhrzeit nimmt den Kalenderweg", () => {
@@ -226,7 +239,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=70/u);
+  assert.match(html, /sol-holo-ui\.js\?v=71/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {
