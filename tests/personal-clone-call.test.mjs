@@ -803,3 +803,24 @@ test("Produktionsquellen enthalten keine fest eingetragene Empfängernummer", as
   assert.match(production, /PERSONAL_CLONE_ALLOWED_NUMBER_SHA256/u);
   assert.match(production, /numberReturned:\s*false/u);
 });
+
+test("Telnyx-Statuswebhook wird ohne Speicherung oder Protokollierung bestätigt", async () => {
+  const server = await readFile(
+    new URL("../server.mjs", import.meta.url),
+    "utf8"
+  );
+  const start = server.indexOf(
+    'app.post(\n  "/personal-clone/telnyx-events"'
+  );
+  const end = server.indexOf(
+    'app.post(\n  "/personal-clone/calls/status"',
+    start
+  );
+  assert.ok(start >= 0 && end > start);
+
+  const webhook = server.slice(start, end);
+  assert.match(webhook, /status\(204\)\.end\(\)/u);
+  assert.match(webhook, /no-store/u);
+  assert.doesNotMatch(webhook, /console\./u);
+  assert.doesNotMatch(webhook, /database|\.query\(/u);
+});
