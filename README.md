@@ -6,7 +6,7 @@
 
 ## Persönliches digitales Ich · Individueller Clone
 
-**Aktueller Entwicklungsstand:** 08.09.2026<br>
+**Aktueller Entwicklungsstand:** 11.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
@@ -625,7 +625,7 @@ im
 
 ## 📞 Direkte Kontakt- und ADAC-Anrufe
 
-**Status: TECHNISCH UMGESETZT am 11.09.2026 · S23-PRAXISTEST AUSSTEHEND**
+**Status: KONTAKTANRUF AUF DEM S23 PRAKTISCH BESTANDEN am 11.09.2026 ✅**
 
 Nach einem ausdrücklichen aktuellen Anrufauftrag prüft Human Holo den
 ausgewählten Android-Kontakt unmittelbar erneut und zeigt Name und Nummer in
@@ -639,6 +639,29 @@ ADAC-Pannenhilfe `089 20 20 40 00`. Testformulierungen starten keinen Anruf.
 ohne die systemweite Rolle als Standard-Telefon-App nicht aktiviert.
 
 Details: [Meilenstein Human Holo telefoniert und ruft die ADAC-Pannenhilfe](./MEILENSTEIN-HUMAN-HOLO-TELEFONIEREN-ADAC-11-09-2026.md)
+
+### Human Holo führt das Gespräch selbst
+
+Der besondere Auftrag **„Ruf Schatz an und sprich mit ihr“** ist von normalen
+Kontakt-, ADAC- und Notrufen getrennt. Nach Pams bereits erfolgter Entsperrung
+der ownergebundenen App startet dieser eng begrenzte Weg ohne ein zweites
+Bestätigungsfenster ausschließlich den einen zuvor freigegebenen Kontakt.
+Human Holo führt das Gespräch über eine Telefonie-Brücke selbst und stellt sich
+zu Beginn wahrheitsgemäß als **Pams persönlicher KI-Clone** vor.
+
+Die freigegebene Telefonnummer steht weder im Repository noch in App-Antworten
+oder Protokollen. Der Server akzeptiert nur ihren SHA-256-Prüfwert und gibt die
+Nummer ausschließlich für den ausdrücklich gestarteten Anruf kurzzeitig an den
+Telefonanbieter weiter. Andere Zielnummern sowie 110, 112, 116117 und ADAC
+werden vor dem Anbieter gesperrt. Aufzeichnungen und Übernahme des Gesprächs in
+Human Holos Erinnerungen sind für diesen Weg deaktiviert.
+
+Der Code und die automatisierten Schutztests sind fertig. Für einen echten
+Gesprächsanruf müssen auf dem Server einmalig ein Telefonie-Anbieter, eine
+ausgehende Nummer und die geheimen Zugangsdaten eingerichtet werden; dabei
+können Anbietergebühren entstehen.
+
+Details: [Meilenstein „Human Holo spricht mit dem freigegebenen Kontakt“](./MEILENSTEIN-HUMAN-HOLO-SPRICHT-MIT-FREIGEGEBENEM-KONTAKT-11-09-2026.md)
 
 ---
 

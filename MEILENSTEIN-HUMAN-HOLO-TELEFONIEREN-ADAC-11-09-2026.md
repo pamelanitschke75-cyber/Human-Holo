@@ -2,7 +2,7 @@
 
 **Datum:** 11.09.2026
 
-**Status:** TECHNISCH UMGESETZT · PRAXISTEST AUF PAMS SAMSUNG GALAXY S23 AUSSTEHEND
+**Status:** KONTAKTANRUF AUF PAMS SAMSUNG GALAXY S23 PRAKTISCH BESTANDEN ✅
 
 **ENTSCHEIDUNG & PROJEKTINHABERIN:** PAMELA CHRISTINA NITSCHKE
 
@@ -57,15 +57,15 @@ Bestätigungsfenster.
 - Verweigert Pam die Freigabe, bleiben die anderen Funktionen von Human Holo
   nutzbar.
 
-## Noch praktisch zu prüfen
+## Bestätigter Praxistest
 
-- Erstinstallation beziehungsweise Update auf Pams Samsung Galaxy S23.
-- Einen normalen Testkontakt anrufen und das Bestätigungsfenster sowie die
-  einmalige Android-Freigabe prüfen.
-- Beim ADAC nur das Bestätigungsfenster prüfen und abbrechen, solange keine
-  echte Panne vorliegt.
-- 110/112 ausschließlich im ausdrücklich gekennzeichneten Testmodus prüfen;
-  dabei darf kein Anruf starten.
+Pam installierte das signierte Update auf ihrem Samsung Galaxy S23. Der normale
+Kontaktanruf zeigte das vorgesehene Bestätigungsfenster; nach Pams Tipp auf
+**„Jetzt anrufen“** öffnete sich der echte ausgehende Anruf zum ausgewählten
+Kontakt. Damit ist dieser Ablauf praktisch bestätigt.
+
+Ein echter ADAC-Anruf wird ohne Panne bewusst nicht als Test durchgeführt. 110,
+112 und 116117 bleiben weiterhin vollständig vom direkten Anrufweg getrennt.
 
 ## Verifizierte Quellen
 

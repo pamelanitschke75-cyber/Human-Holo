@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import { createServer } from "node:http";
 import path from "path";
 import { fileURLToPath } from "url";
 import pg from "pg";
@@ -97,6 +98,11 @@ import {
 import {
   humanHoloNoGoInstructions
 } from "./modules/human-holo-no-go.mjs";
+import {
+  PersonalCloneCallError,
+  attachPersonalCloneMediaBridge,
+  createPersonalCloneCallService
+} from "./modules/personal-clone-call.mjs";
 
 const app = express();
 
@@ -136,6 +142,9 @@ const trustedAppSessions =
   createTrustedAppSessionManager({
     database: db
   });
+
+const personalCloneCalls =
+  createPersonalCloneCallService();
 
 const openClawAlltagPreview =
   createOpenClawAlltagPreviewService();
@@ -2819,6 +2828,154 @@ function requireTrustedOwnerIdentity(
 
   return identity;
 }
+
+/*
+  ==========================================================
+  OWNERGEBUNDENER HOLO-GESPRÄCHSANRUF
+  ==========================================================
+
+  Die Zielnummer kommt ausschließlich aus dem lokalen Android-Telefonbuch,
+  wird serverseitig gegen genau einen geheim konfigurierten SHA-256-Wert
+  geprüft und nie protokolliert oder zurückgegeben. Der normale Android-
+  Direktanruf, ADAC und Notrufwege bleiben vollständig getrennt.
+*/
+app.post(
+  "/personal-clone/calls/status",
+  (req, res) => {
+    res.set({
+      "Cache-Control":
+        "no-store, max-age=0",
+      Pragma:
+        "no-cache"
+    });
+
+    const identity =
+      requireTrustedOwnerIdentity(
+        req,
+        res
+      );
+
+    if (!identity) {
+      return;
+    }
+
+    if (
+      identity.ownerId !== "pam-sol" ||
+      identity.speakerId !== "pam"
+    ) {
+      return res.status(403).json({
+        error:
+          "PERSONAL_CLONE_OWNER_MISMATCH",
+        configured:
+          false
+      });
+    }
+
+    return res.json({
+      ...personalCloneCalls
+        .configurationState(),
+      identity:
+        publicIdentity(identity)
+    });
+  }
+);
+
+app.post(
+  "/personal-clone/calls/start",
+  async (req, res) => {
+    res.set({
+      "Cache-Control":
+        "no-store, max-age=0",
+      Pragma:
+        "no-cache"
+    });
+
+    const identity =
+      requireTrustedOwnerIdentity(
+        req,
+        res
+      );
+
+    if (!identity) {
+      return;
+    }
+
+    if (
+      identity.ownerId !== "pam-sol" ||
+      identity.speakerId !== "pam"
+    ) {
+      return res.status(403).json({
+        error:
+          "PERSONAL_CLONE_OWNER_MISMATCH",
+        started:
+          false
+      });
+    }
+
+    try {
+      const call =
+        await personalCloneCalls
+          .startCall({
+            ownerId:
+              identity.ownerId,
+            ownerCommand:
+              req.body?.ownerCommand,
+            targetNumber:
+              req.body?.targetNumber
+          });
+
+      return res
+        .status(202)
+        .json({
+          ...call,
+          identity:
+            publicIdentity(identity)
+        });
+    } catch (error) {
+      const knownError =
+        error instanceof
+          PersonalCloneCallError;
+      const code = knownError
+        ? error.code
+        : "PERSONAL_CLONE_CALL_FAILED";
+
+      // Telefonnummern, Request-Bodies, Anbieterantworten und Transkripte
+      // gehören ausdrücklich nicht in das Serverprotokoll.
+      console.warn(
+        `Holo-Gesprächsanruf abgelehnt: ${code}`
+      );
+
+      return res
+        .status(
+          knownError
+            ? error.status
+            : 500
+        )
+        .json({
+          error:
+            code,
+          message:
+            knownError
+              ? error.message
+              : "Der Holo-Gesprächsanruf konnte gerade nicht gestartet werden.",
+          started:
+            false,
+          numberReturned:
+            false
+        });
+    } finally {
+      if (
+        req.body &&
+        Object.prototype.hasOwnProperty.call(
+          req.body,
+          "targetNumber"
+        )
+      ) {
+        delete req.body.targetNumber;
+      }
+    }
+  }
+);
 
 /*
   ==========================================================
@@ -9142,8 +9299,16 @@ WICHTIG ZU TELEFON UND KONTAKTEN:
 Wenn ${identity.displayName} einen Telefonkontakt sucht, jemanden anrufen oder
 eine SMS vorbereiten möchte, verwende das passende Telefon-Tool.
 
-Ein Anruf oder eine SMS darf niemals ohne die sichtbare
+Ein gewöhnlicher Direktanruf oder eine SMS darf niemals ohne die sichtbare
 Bestätigung von ${identity.displayName} gestartet oder vorbereitet werden.
+
+Davon strikt getrennt ist der lokale ownergebundene Befehl „Ruf Schatz an und
+sprich mit ihr“: Nur Pams bereits entsperrte, hardwaregebundene S23-Sitzung darf
+damit genau den einmalig freigegebenen Steffi-Kontakt über den separaten
+Holo-Gesprächskanal anrufen. Dort spricht Human Holo selbst und stellt sich
+sofort transparent als Pams persönlicher KI-Clone vor. Dieser Sonderweg zeigt
+keinen zweiten Bestätigungsdialog, akzeptiert keine andere Zielnummer und darf
+niemals für ADAC, 110, 112, 116117 oder einen anderen Notruf genutzt werden.
 
 Behaupte erst dann, dass die Telefon-App oder Nachrichten-App
 geöffnet wurde, wenn das Tool dies wirklich bestätigt hat.
@@ -11677,7 +11842,15 @@ app.use(
 const PORT =
   process.env.PORT || 3000;
 
-app.listen(
+const httpServer =
+  createServer(app);
+
+attachPersonalCloneMediaBridge(
+  httpServer,
+  personalCloneCalls
+);
+
+httpServer.listen(
   PORT,
   "0.0.0.0",
   () => {
