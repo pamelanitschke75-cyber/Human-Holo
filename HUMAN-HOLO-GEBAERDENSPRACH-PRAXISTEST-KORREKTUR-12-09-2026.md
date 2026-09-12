@@ -5,11 +5,14 @@
 
 ## Ehrliches Ergebnis des ersten Tests
 
-Der erste von Steffi durchgeführte DGS-Praxistest ist **nicht bestanden**.
-Die Bildschirmaufnahme zeigte nur einzelne Live-Bilder in ungefähr
-sechssekündigem Abstand. Damit fehlte die zusammenhängende Bewegung, die für
-die Auswertung einer Gebärde wesentlich ist. Ein Einzelbild oder eine
-allgemeine Handbewegung ist kein verlässlicher Nachweis für Gebärdensprache.
+Der erste DGS-Praxistest von Human Holo ist **nicht bestanden**. Steffi kann
+gebärden und hat den Test als gebärdende Testperson korrekt mit einer echten
+DGS-Gebärde durchgeführt. Das negative Ergebnis betrifft ausschließlich Human
+Holo: Die Bildschirmaufnahme zeigte, dass Holo nur einzelne Live-Bilder in
+ungefähr sechssekündigem Abstand erhielt. Dadurch fehlte Holo die
+zusammenhängende Bewegung, die für die Auswertung der gezeigten Gebärde
+wesentlich war. Steffis Gebärde und ihre Fähigkeit waren nicht die
+Fehlerquelle.
 
 ## Verbindliche Sprachwahl
 
