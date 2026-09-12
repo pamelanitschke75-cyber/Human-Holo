@@ -49,6 +49,7 @@ on:
       - "www/human-holo-animal-core.mjs"
       - "www/human-holo-animal-holos.mjs"
       - "www/human-holo-chatgpt-memory-bridge.mjs"
+      - "www/human-holo-durable-memory.mjs"
       - "www/sol-holo-backup.css"
       - "www/sol-holo-backup.mjs"
       - "www/human-holo-theme.css"
@@ -463,6 +464,7 @@ jobs:
           test -s "$public_assets/human-holo-animal-core.mjs"
           test -s "$public_assets/human-holo-animal-holos.mjs"
           test -s "$public_assets/human-holo-chatgpt-memory-bridge.mjs"
+          test -s "$public_assets/human-holo-durable-memory.mjs"
           grep -q "SPDX-License-Identifier: MIT" "$public_assets/human-holo-animal-core.mjs"
           grep -q "Kinder und Tiere niemals allein oder unbeaufsichtigt" "$public_assets/human-holo-animal-core.mjs"
           grep -q "fulltime/history/append" "$public_assets/human-holo-animal-holos.mjs"
@@ -685,6 +687,7 @@ jobs:
           unzip -l "$apk" | grep -F "assets/public/human-holo-animal-core.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-animal-holos.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-chatgpt-memory-bridge.mjs"
+          unzip -l "$apk" | grep -F "assets/public/human-holo-durable-memory.mjs"
           unzip -p "$apk" assets/public/human-holo-animal-core.mjs \
             | grep -q "SPDX-License-Identifier: MIT"
           unzip -l "$apk" | grep -F "assets/public/third-party/HeadAudio-LICENSE.txt"

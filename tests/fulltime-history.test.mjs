@@ -27,6 +27,10 @@ const ownerBackup = fs.readFileSync(
   new URL("../modules/owner-memory-backup.mjs", import.meta.url),
   "utf8"
 );
+const durableMemory = fs.readFileSync(
+  new URL("../www/human-holo-durable-memory.mjs", import.meta.url),
+  "utf8"
+);
 
 function routeBlock(path, nextPath) {
   const start = server.indexOf(path);
@@ -47,6 +51,18 @@ test("Vollzeitgedächtnis bleibt additiv und idempotent", () => {
   assert.match(
     server,
     /CREATE UNIQUE INDEX IF NOT EXISTS sol_fulltime_memory_event_uidx[\s\S]*?WHERE source_event_id IS NOT NULL/u
+  );
+  assert.match(
+    server,
+    /ADD COLUMN IF NOT EXISTS event_occurred_on DATE/u
+  );
+  assert.match(
+    server,
+    /ADD COLUMN IF NOT EXISTS content_sha256 TEXT/u
+  );
+  assert.match(
+    server,
+    /CREATE INDEX IF NOT EXISTS sol_fulltime_memory_occurrence_idx/u
   );
   assert.match(
     server,
@@ -171,8 +187,35 @@ test("lokale App-Antworten warten verlustfrei auf die sichere Synchronisierung",
   assert.match(html, /queueFulltimeDialog\(/u);
   assert.match(html, /flushPendingFulltimeDialogs\(/u);
   assert.match(html, /\/fulltime\/history\/append/u);
+  assert.match(html, /human-holo-durable-memory\.mjs\?v=1/u);
+  assert.match(html, /acknowledgedSourceEventId/u);
+  assert.match(html, /acknowledgedRevision/u);
+  assert.match(durableMemory, /indexedDBFactory\.open/u);
+  assert.doesNotMatch(durableMemory, /slice\(-?200\)|length\s*>\s*200/u);
   assert.doesNotMatch(html, /localStorage\.clear\s*\(/u);
   assert.doesNotMatch(html, /indexedDB\.deleteDatabase\s*\(/u);
+});
+
+test("jede Remote-Nachricht wird vor dem Netzaufruf vorgemerkt und erst nach exakter Quittung entfernt", () => {
+  const sendStart = html.indexOf("async function sendMessage(");
+  const sendEnd = html.indexOf("sendButton.addEventListener", sendStart);
+  const sendMessage = html.slice(sendStart, sendEnd);
+  assert.ok(sendStart >= 0 && sendEnd > sendStart);
+  assert.ok(
+    sendMessage.indexOf("await queueFulltimeDialog(") <
+      sendMessage.indexOf("`${BACKEND_URL}/sol`")
+  );
+  assert.match(sendMessage, /sourceEventId:\s*\n\s*`\$\{fulltimeEventId\}:user`/u);
+  assert.match(sendMessage, /sourceEventId:\s*\n\s*`\$\{fulltimeEventId\}:assistant`/u);
+
+  const appendRoute = routeBlock(
+    '"/fulltime/history/append"',
+    '"/memory/import-confirmed"'
+  );
+  assert.match(appendRoute, /acknowledgedSourceEventId/u);
+  assert.match(appendRoute, /acknowledgedRevision/u);
+  assert.match(appendRoute, /durable:\s*\n\s*true/u);
+  assert.match(appendRoute, /entry\?\.sourceEventId/u);
 });
 
 test("persönliche Rückfragen durchsuchen bestätigte und vollständige Historie", () => {
@@ -187,12 +230,31 @@ test("persönliche Rückfragen durchsuchen bestätigte und vollständige Histori
   assert.match(searchRoute, /contextualPersonalRecallSearch/u);
   assert.match(server, /loadOwnerRelativeDayFulltimeRows/u);
   assert.match(server, /AT TIME ZONE 'Europe\/Berlin'/u);
+  assert.match(server, /COALESCE\(\s*event_occurred_on,[\s\S]*?created_at AT TIME ZONE 'Europe\/Berlin'/u);
   assert.match(server, /matching_term_count DESC/u);
   assert.match(server, /latest_current_row/u);
   assert.match(
     server,
     /PASSENDE EINTRÄGE AUS BESTÄTIGTEN ERINNERUNGEN UND VOLLZEITGEDÄCHTNIS/u
   );
+});
+
+test("erzählte relative Tage werden als Ereignistag und nicht nur als Speicherzeit festgehalten", () => {
+  const saveStart = server.indexOf("async function saveFulltimeMemory");
+  const saveEnd = server.indexOf("function normalizeHumanHoloMemoryImport", saveStart);
+  const save = server.slice(saveStart, saveEnd);
+  assert.match(save, /personalMemoryRelativeDayOffset\(/u);
+  assert.match(save, /event_occurred_on/u);
+  assert.match(save, /CURRENT_TIMESTAMP AT TIME ZONE 'Europe\/Berlin'/u);
+  assert.match(save, /content_sha256/u);
+  assert.match(save, /prepareDurableMemoryContent/u);
+});
+
+test("ausdrücklich genannte Zugangsdaten gelangen weder ins Vollzeit- noch Bestätigungsgedächtnis", () => {
+  assert.match(server, /prepareDurableMemoryContent/u);
+  assert.match(identityStore, /prepareDurableMemoryContent/u);
+  assert.match(durableMemory, /\[NICHT GESPEICHERT\]/u);
+  assert.match(durableMemory, /Passwort\|Password\|PIN\|TAN\|OTP/u);
 });
 
 test("relative Tagesfragen mischen niemals ältere Erinnerungen in gestern hinein", () => {

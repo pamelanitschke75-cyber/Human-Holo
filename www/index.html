@@ -9744,104 +9744,114 @@ let fulltimePendingFlushPromise =
   null;
 
 
-function readPendingFulltimeDialogs(){
-
-  try{
-
-    const parsed =
-      JSON.parse(
-        localStorage.getItem(
-          SOL_FULLTIME_PENDING_KEY
-        ) ||
-        "[]"
-      );
-
-    return Array.isArray(parsed)
-      ? parsed.slice(0,200)
-      : [];
-
-  }catch{
-
-    return [];
-  }
-}
+const durableMemoryOutboxes =
+  new Map();
 
 
-function writePendingFulltimeDialogs(
-  dialogs
-){
+async function getDurableMemoryOutbox(){
 
-  try{
+  const identity =
+    selectedIdentity();
 
-    if(
-      dialogs.length ===
-      0
-    ){
-
-      localStorage.removeItem(
-        SOL_FULLTIME_PENDING_KEY
-      );
-
-      return;
-    }
-
-    localStorage.setItem(
-      SOL_FULLTIME_PENDING_KEY,
-      JSON.stringify(
-        dialogs.slice(-200)
-      )
-    );
-
-  }catch{}
-}
-
-
-function queueFulltimeDialog(
-  messages,
-  sourceEventId = createFulltimeEventId()
-){
-
-  const cleanMessages =
-    messages
-      .map(
-        entry => ({
-          role:
-            entry?.role ===
-            "assistant"
-              ? "assistant"
-              : "user",
-          content:
-            String(
-              entry?.content ||
-              ""
-            )
-        })
-      )
-      .filter(
-        entry =>
-          entry.content.trim()
-      );
 
   if(
-    cleanMessages.length ===
-    0
+    !identity
   ){
 
-    return;
+    throw new Error(
+      "Für das Dauergedächtnis ist eine feste Identität erforderlich."
+    );
   }
 
-  const pending =
-    readPendingFulltimeDialogs();
 
-  pending.push({
-    sourceEventId,
-    messages:
-      cleanMessages
-  });
+  const scopeKey =
+    `${identity.ownerId}:${identity.speakerId}`;
 
-  writePendingFulltimeDialogs(
-    pending
+
+  if(
+    !durableMemoryOutboxes.has(
+      scopeKey
+    )
+  ){
+
+    const outboxPromise =
+      import(
+        "./human-holo-durable-memory.mjs?v=1"
+      )
+        .then(
+          module =>
+            module.openBrowserDurableMemoryOutbox({
+              ownerId:
+                identity.ownerId,
+              speakerId:
+                identity.speakerId,
+              indexedDBFactory:
+                window.indexedDB,
+              localStorageObject:
+                window.localStorage
+            })
+        );
+
+
+    durableMemoryOutboxes.set(
+      scopeKey,
+      outboxPromise
+    );
+  }
+
+
+  return durableMemoryOutboxes.get(
+    scopeKey
   );
+}
+
+
+async function readPendingFulltimeDialogs(){
+
+  const outbox =
+    await getDurableMemoryOutbox();
+
+
+  return outbox.list();
+}
+
+
+async function queueFulltimeDialog(
+  messages,
+  sourceEventId = createFulltimeEventId(),
+  sourceModalities = ["text"]
+){
+
+  try{
+
+    const outbox =
+      await getDurableMemoryOutbox();
+
+
+    await outbox.enqueue(
+      messages,
+      sourceEventId,
+      sourceModalities
+    );
+
+
+    return true;
+
+  }catch(error){
+
+    console.error(
+      "Dauergedächtnis lokal vormerken:",
+      error?.name ||
+      "Fehler"
+    );
+
+
+    memoryStatus.textContent =
+      "⚠️ Dauergedächtnis konnte lokal nicht vorgemerkt werden.";
+
+
+    return false;
+  }
 }
 
 
@@ -9879,13 +9889,22 @@ async function flushPendingFulltimeDialogs(){
         return false;
       }
 
-      const pending =
-        readPendingFulltimeDialogs();
+      const outbox =
+        await getDurableMemoryOutbox();
 
-      while(
-        pending.length >
-        0
-      ){
+      while(true){
+
+        const pending =
+          await outbox.list();
+
+
+        if(
+          pending.length ===
+          0
+        ){
+
+          return true;
+        }
 
         const dialog =
           pending[0];
@@ -9905,6 +9924,8 @@ async function flushPendingFulltimeDialogs(){
                     identity.ownerId,
                   sourceEventId:
                     dialog.sourceEventId,
+                  revision:
+                    dialog.revision,
                   messages:
                     dialog.messages
                 }),
@@ -9919,14 +9940,45 @@ async function flushPendingFulltimeDialogs(){
           return false;
         }
 
-        pending.shift();
+        let receipt = null;
 
-        writePendingFulltimeDialogs(
-          pending
+
+        try{
+
+          receipt =
+            await response.json();
+
+        }catch{
+
+          return false;
+        }
+
+
+        const exactAcknowledgement =
+          receipt?.saved ===
+            true &&
+          receipt?.durable ===
+            true &&
+          receipt
+            ?.acknowledgedSourceEventId ===
+            dialog.sourceEventId &&
+          receipt
+            ?.acknowledgedRevision ===
+            dialog.revision;
+
+
+        if(
+          !exactAcknowledgement
+        ){
+
+          return false;
+        }
+
+        await outbox.acknowledge(
+          dialog.sourceEventId,
+          dialog.revision
         );
       }
-
-      return true;
     })()
       .catch(
         error => {
@@ -9954,13 +10006,24 @@ async function flushPendingFulltimeDialogs(){
 
 async function persistFulltimeDialog(
   messages,
-  sourceEventId
+  sourceEventId,
+  sourceModalities = ["text"]
 ){
 
-  queueFulltimeDialog(
+  const queued =
+    await queueFulltimeDialog(
     messages,
-    sourceEventId
-  );
+    sourceEventId,
+    sourceModalities
+    );
+
+
+  if(
+    !queued
+  ){
+
+    return false;
+  }
 
   return flushPendingFulltimeDialogs();
 }
@@ -10612,6 +10675,59 @@ async function sendMessage(
             "Ton technisch nicht verfügbar · Pam’s Holo analysiert die Bildfolge ...";
     }
 
+
+    const fulltimeMediaLabel =
+      videoFramesToSend.length >
+        0
+        ? `[Video gesendet${
+            videoDurationToSend
+              ? ` · ${Math.round(videoDurationToSend)} Sekunden`
+              : ""
+          }]`
+        : imageToSend
+          ? "[Foto gesendet]"
+          : "";
+
+
+    const fulltimeUserContent =
+      [
+        message,
+        fulltimeMediaLabel
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+
+    const fulltimeSourceModalities =
+      videoFramesToSend.length >
+        0
+        ? [
+            "text",
+            "video",
+            videoTranscriptToSend
+              ? "audio_transcript"
+              : null
+          ].filter(Boolean)
+        : imageToSend
+          ? ["text", "image"]
+          : ["text"];
+
+
+    await queueFulltimeDialog(
+        [{
+          role:
+            "user",
+          content:
+            fulltimeUserContent,
+          sourceEventId:
+            `${fulltimeEventId}:user`,
+          sourceModalities:
+            fulltimeSourceModalities
+        }],
+        fulltimeEventId,
+        fulltimeSourceModalities
+      );
+
     const response =
       await fetch(
         `${BACKEND_URL}/sol`,
@@ -10917,6 +11033,22 @@ async function sendMessage(
     );
 
 
+    await persistFulltimeDialog(
+      [{
+        role:
+          "assistant",
+        content:
+          answer,
+        sourceEventId:
+          `${fulltimeEventId}:assistant`,
+        sourceModalities:
+          fulltimeSourceModalities
+      }],
+      fulltimeEventId,
+      fulltimeSourceModalities
+    );
+
+
     if(
       !isForcedMessage &&
       (
@@ -10945,6 +11077,8 @@ async function sendMessage(
   }catch(
     error
   ){
+
+    void flushPendingFulltimeDialogs();
 
     if(
       error?.name ===
@@ -15781,7 +15915,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=283",
+          "./service-worker.js?v=285",
           {
             updateViaCache:"none"
           }

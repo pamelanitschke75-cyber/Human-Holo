@@ -431,6 +431,26 @@ test("Store schreibt bestaetigte Inhalte kanonisch und liest owner-scoped", asyn
   assert.match(listCall.sql, /confirmed IS TRUE/u);
 });
 
+test("Store entfernt Zugangsdaten auch aus ausdrücklich bestätigten Erinnerungen", async () => {
+  const database = createRecordingDatabase();
+  const store = createIdentityMemoryStore({ database });
+  const decision = evaluateIdentityMemoryWrite(
+    directMemoryInput({
+      content:
+        "Sol, merke dir dauerhaft: Mein Passwort ist SuperGeheim123 und Gurke ist meine Katze."
+    })
+  );
+
+  const saved = await store.saveConfirmed(decision);
+  const insertCall = database.calls.find(({ sql }) =>
+    /INSERT INTO sol_identity_memory/u.test(sql)
+  );
+  assert.equal(saved.secretRedacted, true);
+  assert.doesNotMatch(insertCall.parameters[4], /SuperGeheim123/u);
+  assert.match(insertCall.parameters[4], /\[NICHT GESPEICHERT\]/u);
+  assert.match(insertCall.parameters[4], /Gurke ist meine Katze/u);
+});
+
 test("Fehler eines optionalen Audits veraendern einen bestaetigten Write nicht", async () => {
   const database = createRecordingDatabase();
   const store = createIdentityMemoryStore({

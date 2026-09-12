@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-284-multimodales-ereignisgedaechtnis";
+const CACHE_VERSION = "human-holo-285-ownergebundenes-dauergedächtnis";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
