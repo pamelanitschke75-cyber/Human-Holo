@@ -19,6 +19,37 @@ Dieser Vertrag gilt für alle künftigen Human-Holo-Versionen.
   zugehörige Person selbst durch einen eindeutigen, authentifizierten und
   ausdrücklich bestätigten Vorgang auslösen.
 
+## Modalitätsübergreifende Ereignisse
+
+- Foto, Video, Live-Bild, Gebärdensprache, gesprochene Sprache und Text werden
+  nicht als voneinander getrennte Gedächtnisinseln behandelt. Der
+  ownergebundene Beitrag, die verwendeten Modalitäten und Holos damalige
+  semantische Auswertung erhalten eine gemeinsame Ereignis-ID.
+- Eindeutige spätere Ergänzungen und Korrekturen werden mit dem passenden
+  Ereignis verknüpft. Die jüngste Aussage der Ownerin hat bei einem
+  Widerspruch Vorrang; ältere Aussagen bleiben historisch erhalten.
+- Diese Regel gilt ohne Themenbegrenzung – unter anderem für Essen, Tiere,
+  Menschen, Haushalt, Reisen, Dokumente und alle künftigen Alltagsthemen.
+- Wenn mehrere Ereignisse als Bezug infrage kommen, fragt Holo kurz nach,
+  statt eine Verbindung zu erfinden.
+- Rohbilder, Rohvideos und Audioaufnahmen werden nicht in der
+  Gedächtnisdatenbank abgelegt. Erinnerbar sind der gespeicherte Dialog, die
+  Modalitäten und Holos klar als damalige Auswertung gekennzeichnete Antwort.
+- Gebärdensprache wird als visuelle Sprache behandelt, nicht als beliebige
+  Handbewegung. Für blinde und sehbehinderte Menschen ist gesprochene Ein- und
+  Ausgabe der Hauptweg; sichtbarer Inhalt kann auf einen Sprachbefehl hin als
+  gesprochene Audiobeschreibung wiedergegeben werden. Beides gilt für Kinder
+  und Erwachsene; unsichere Wahrnehmungen werden nie als sichere Übersetzung
+  oder Beschreibung gespeichert.
+- Bei sprachgeführter Handyhilfe nennt Holo genau einen nächsten Schritt,
+  fragt vor einer neuen Aktion ausdrücklich nach und handelt erst nach einem
+  eindeutigen Ja. Eine ausgeführte Aktion wird nur bei technischer Bestätigung
+  als Erfolg benannt.
+- Unter jeder geschriebenen Holo-Antwort steht sichtbar `🔊 Vorlesen`. Ein
+  erneuter Tipp beendet die Wiedergabe. Auf Android nutzt diese reine
+  Barrierefreiheitsfunktion die lokale deutsche Gerätestimme und keinen
+  zusätzlichen KI- oder Telefondienst.
+
 ## Eine Identität pro Person
 
 - Human Holo bleibt ein allgemeines System, das künftig jeder Mensch mit

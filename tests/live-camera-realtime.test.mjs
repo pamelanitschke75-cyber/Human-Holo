@@ -183,7 +183,7 @@ test(
 
 
 test(
-  "Realtime-Anweisung behandelt Live-Bilder als Momentaufnahmen ohne Gedächtnisimport",
+  "Realtime speichert keine Rohbilder, aber den semantischen Live-Bild-Dialog",
   () => {
 
     assert.match(
@@ -198,7 +198,76 @@ test(
 
     assert.match(
       server,
-      /nicht Teil des[\s\S]*Vollzeitgedächtnisses oder der bestätigten Langzeiterinnerungen/u
+      /rohen Kamerabilder werden nicht im[\s\S]*Vollzeitgedächtnis[\s\S]*gespeichert/u
+    );
+
+    assert.match(
+      server,
+      /Sprachdialog, die Modalität „Live-Bild“ und deine damalige[\s\S]*semantische Auswertung[\s\S]*gemeinsames Ereignis/u
+    );
+
+    assert.match(
+      html,
+      /liveCameraIsActive\(\)[\s\S]*?"voice",[\s\S]*?"live_image"/u
+    );
+
+    assert.match(
+      html,
+      /currentRealtimeMemoryEventId[\s\S]*?sendLiveTranscriptToMemory\([\s\S]*?"assistant",[\s\S]*?sourceTurnEventId/u
+    );
+  }
+);
+
+
+test(
+  "blinde Menschen können die Kamerabeschreibung vollständig per Sprache starten",
+  () => {
+
+    assert.match(
+      html,
+      /function isVoiceCameraDescriptionRequest\([\s\S]*?erklär[\s\S]*?was du \(\?:da \)\?siehst/u
+    );
+
+    assert.match(
+      html,
+      /async function handleRealtimeUserTranscript\([\s\S]*?!liveCameraIsActive\(\)[\s\S]*?isVoiceCameraDescriptionRequest\([\s\S]*?await startLiveCamera\(\)[\s\S]*?reason:"voice_turn"/u
+    );
+
+    assert.match(
+      server,
+      /blinde und sehbehinderte Kinder und Erwachsene[\s\S]*?gesprochene Eingabe[\s\S]*?gesprochene Ausgabe[\s\S]*?Gefahren zuerst/u
+    );
+
+    assert.match(
+      server,
+      /Setze niemals voraus, dass die Person den Bildschirm sehen kann/u
+    );
+  }
+);
+
+
+test(
+  "Human Holo erklärt den eigenen Handybildschirm hörbar und ohne Fremd-App-Zugriff",
+  () => {
+
+    assert.match(
+      html,
+      /function isCurrentHoloScreenDescriptionRequest\([\s\S]*?meinen bildschirm[\s\S]*?auf dem handy/u
+    );
+
+    assert.match(
+      html,
+      /function describeCurrentHoloScreen\(\)[\s\S]*?Sprachgespräch mit Human Holo[\s\S]*?Soll ich dir den nächsten Schritt erklären/u
+    );
+
+    assert.match(
+      html,
+      /screenDescriptionRequested[\s\S]*?\[LOKALE_BILDSCHIRMBESCHREIBUNG\][\s\S]*?localHandled/u
+    );
+
+    assert.match(
+      server,
+      /\[LOKALE_BILDSCHIRMBESCHREIBUNG\][\s\S]*?ohne Zugriff auf eine andere\s+App[\s\S]*?keine Aktion aus/u
     );
   }
 );

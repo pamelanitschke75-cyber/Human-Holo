@@ -63,6 +63,16 @@ import {
   resolvePersonalRecallContextQuery
 } from "./modules/personal-memory-context.mjs";
 import {
+  formatMultimodalEventRows,
+  mayReferToRecentMultimodalEvent,
+  mentionsSignLanguage,
+  memoryEventIdFromRow,
+  memoryRowHasVisualContext,
+  normalizeMemoryModalities,
+  selectReferencedMultimodalEventId,
+  shouldAssociateWithRecentMultimodalEvent
+} from "./modules/multimodal-event-memory.mjs";
+import {
   OpenClawAlltagPreviewError,
   createOpenClawAlltagPreviewService,
   openClawAlltagPreviewHttpStatus
@@ -1247,6 +1257,8 @@ async function initializeMemory() {
       role TEXT NOT NULL,
       content TEXT NOT NULL,
       source_event_id TEXT,
+      memory_event_id TEXT,
+      source_modalities TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
@@ -1254,6 +1266,17 @@ async function initializeMemory() {
   await db.query(`
     ALTER TABLE sol_fulltime_memory
     ADD COLUMN IF NOT EXISTS source_event_id TEXT
+  `);
+
+  await db.query(`
+    ALTER TABLE sol_fulltime_memory
+    ADD COLUMN IF NOT EXISTS memory_event_id TEXT
+  `);
+
+  await db.query(`
+    ALTER TABLE sol_fulltime_memory
+    ADD COLUMN IF NOT EXISTS source_modalities TEXT[]
+      NOT NULL DEFAULT ARRAY[]::TEXT[]
   `);
 
   /*
@@ -1276,6 +1299,16 @@ async function initializeMemory() {
       source_event_id
     )
     WHERE source_event_id IS NOT NULL
+  `);
+
+  await db.query(`
+    CREATE INDEX IF NOT EXISTS sol_fulltime_memory_multimodal_event_idx
+    ON sol_fulltime_memory (
+      clone_id,
+      memory_event_id,
+      id DESC
+    )
+    WHERE memory_event_id IS NOT NULL
   `);
 
   await db.query(`
@@ -6346,8 +6379,10 @@ async function saveFulltimeMemory(
   role,
   content,
   {
+    memoryEventId = null,
     ownerId = "pam-sol",
-    sourceEventId = null
+    sourceEventId = null,
+    sourceModalities = ["text"]
   } = {}
 ) {
   if (
@@ -6371,15 +6406,42 @@ async function saveFulltimeMemory(
       ""
     ).trim() || null;
 
+  const eventIdCandidate =
+    String(
+      memoryEventId ||
+      memoryEventIdFromRow({
+        source_event_id:
+          cleanSourceEventId
+      }) ||
+      ""
+    ).trim();
+
+  const cleanMemoryEventId =
+    /^[a-zA-Z0-9:_-]{16,160}$/.test(
+      eventIdCandidate
+    )
+      ? eventIdCandidate
+      : null;
+
+  const cleanSourceModalities =
+    normalizeMemoryModalities(
+      sourceModalities,
+      {
+        fallback: "text"
+      }
+    );
+
   const result = await db.query(
     `
       INSERT INTO sol_fulltime_memory (
         clone_id,
         role,
         content,
-        source_event_id
+        source_event_id,
+        memory_event_id,
+        source_modalities
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5, $6::text[])
       ON CONFLICT DO NOTHING
       RETURNING id
     `,
@@ -6387,7 +6449,9 @@ async function saveFulltimeMemory(
       cloneIdForOwner(ownerId),
       safeRole,
       originalContent,
-      cleanSourceEventId
+      cleanSourceEventId,
+      cleanMemoryEventId,
+      cleanSourceModalities
     ]
   );
 
@@ -6622,6 +6686,17 @@ async function loadRelevantOwnerFulltimeContextRows(
         SELECT
           id,
           role,
+          COALESCE(
+            NULLIF(memory_event_id, ''),
+            NULLIF(
+              REGEXP_REPLACE(
+                COALESCE(source_event_id, ''),
+                '(:[0-9]+)?:(user|assistant)$',
+                ''
+              ),
+              ''
+            )
+          ) AS event_key,
           (
             SELECT COUNT(*)
             FROM UNNEST($2::text[]) AS search_pattern(value)
@@ -6648,26 +6723,65 @@ async function loadRelevantOwnerFulltimeContextRows(
           history.id,
           history.role,
           history.content,
+          history.source_event_id,
+          history.memory_event_id,
+          history.source_modalities,
           history.created_at,
           MIN(
-            ABS(history.id - matching.id)
+            CASE
+              WHEN matching.event_key IS NOT NULL
+                AND COALESCE(
+                  NULLIF(history.memory_event_id, ''),
+                  NULLIF(
+                    REGEXP_REPLACE(
+                      COALESCE(history.source_event_id, ''),
+                      '(:[0-9]+)?:(user|assistant)$',
+                      ''
+                    ),
+                    ''
+                  )
+                ) = matching.event_key
+              THEN 0
+              ELSE ABS(history.id - matching.id)
+            END
           ) AS match_distance
         FROM sol_fulltime_memory AS history
         INNER JOIN matching_rows AS matching
-          ON history.id BETWEEN
-            matching.id - $4::bigint AND
-            matching.id + $4::bigint
+          ON (
+            history.id BETWEEN
+              matching.id - $4::bigint AND
+              matching.id + $4::bigint
+          ) OR (
+            matching.event_key IS NOT NULL
+            AND COALESCE(
+              NULLIF(history.memory_event_id, ''),
+              NULLIF(
+                REGEXP_REPLACE(
+                  COALESCE(history.source_event_id, ''),
+                  '(:[0-9]+)?:(user|assistant)$',
+                  ''
+                ),
+                ''
+              )
+            ) = matching.event_key
+          )
         WHERE history.clone_id = $1
         GROUP BY
           history.id,
           history.role,
           history.content,
+          history.source_event_id,
+          history.memory_event_id,
+          history.source_modalities,
           history.created_at
       )
       SELECT
         id,
         role,
         content,
+        source_event_id,
+        memory_event_id,
+        source_modalities,
         created_at,
         'fulltime' AS source,
         match_distance
@@ -6752,6 +6866,9 @@ async function loadOwnerRelativeDayFulltimeRows(
           id,
           role,
           content,
+          source_event_id,
+          memory_event_id,
+          source_modalities,
           created_at,
           'fulltime-relative-day' AS source,
           100 AS match_distance
@@ -6775,6 +6892,204 @@ async function loadOwnerRelativeDayFulltimeRows(
     );
 
   return result.rows;
+}
+
+async function loadRecentOwnerMultimodalRows(
+  identity,
+  eventLimit = 4
+) {
+  const safeEventLimit =
+    Math.min(
+      8,
+      Math.max(1, Number(eventLimit) || 4)
+    );
+  const safeRowLimit =
+    safeEventLimit * 8;
+  const result =
+    await db.query(
+      `
+        WITH multimodal_event_keys AS (
+          SELECT
+            COALESCE(
+              NULLIF(memory_event_id, ''),
+              NULLIF(
+                REGEXP_REPLACE(
+                  COALESCE(source_event_id, ''),
+                  '(:[0-9]+)?:(user|assistant)$',
+                  ''
+                ),
+                ''
+              )
+            ) AS event_key,
+            MAX(id) AS latest_id
+          FROM sol_fulltime_memory
+          WHERE clone_id = $1
+            AND (
+              source_modalities &&
+                ARRAY['image', 'video', 'live_image', 'sign_language']::TEXT[]
+              OR content ILIKE '%[Foto gesendet]%'
+              OR content ILIKE '%[Video gesendet%'
+              OR content ILIKE '%[Live-Kamerabild]%'
+            )
+          GROUP BY event_key
+          HAVING COALESCE(
+            NULLIF(memory_event_id, ''),
+            NULLIF(
+              REGEXP_REPLACE(
+                COALESCE(source_event_id, ''),
+                '(:[0-9]+)?:(user|assistant)$',
+                ''
+              ),
+              ''
+            )
+          ) IS NOT NULL
+          ORDER BY latest_id DESC
+          LIMIT $2
+        )
+        SELECT
+          history.id,
+          history.role,
+          history.content,
+          history.source_event_id,
+          history.memory_event_id,
+          history.source_modalities,
+          history.created_at,
+          'multimodal-recent' AS source
+        FROM sol_fulltime_memory AS history
+        INNER JOIN multimodal_event_keys AS event
+          ON COALESCE(
+            NULLIF(history.memory_event_id, ''),
+            NULLIF(
+              REGEXP_REPLACE(
+                COALESCE(history.source_event_id, ''),
+                '(:[0-9]+)?:(user|assistant)$',
+                ''
+              ),
+              ''
+            )
+          ) = event.event_key
+        WHERE history.clone_id = $1
+        ORDER BY event.latest_id DESC, history.id ASC
+        LIMIT $3
+      `,
+      [
+        cloneIdForOwner(
+          identity.ownerId
+        ),
+        safeEventLimit,
+        safeRowLimit
+      ]
+    );
+
+  return result.rows;
+}
+
+function uniqueMemoryRows(rows) {
+  const seen = new Set();
+
+  return (Array.isArray(rows) ? rows : []).filter(row => {
+    const id = String(row?.id || "");
+
+    if (!id || seen.has(id)) {
+      return false;
+    }
+
+    seen.add(id);
+    return true;
+  });
+}
+
+async function loadMultimodalReferenceContext(
+  identity,
+  message,
+  conversationRows = []
+) {
+  if (!mayReferToRecentMultimodalEvent(message)) {
+    return {
+      eventId: "",
+      rows: []
+    };
+  }
+
+  const referenceText =
+    [
+      ...(Array.isArray(conversationRows)
+        ? conversationRows.slice(-6).map(
+            row => String(row?.content || "").trim()
+          )
+        : []),
+      String(message || "").trim()
+    ]
+      .filter(Boolean)
+      .join("\n")
+      .slice(-4000);
+
+  const [matchedRows, recentRows] =
+    await Promise.all([
+      loadRelevantOwnerFulltimeContextRows(
+        identity,
+        referenceText,
+        48
+      ),
+      loadRecentOwnerMultimodalRows(
+        identity,
+        4
+      )
+    ]);
+  const rows = uniqueMemoryRows([
+    ...matchedRows,
+    ...recentRows
+  ]);
+
+  return {
+    eventId:
+      shouldAssociateWithRecentMultimodalEvent(
+        message
+      )
+        ? selectReferencedMultimodalEventId(
+            rows,
+            referenceText
+          )
+        : "",
+    rows
+  };
+}
+
+async function loadExistingTurnMemoryAssociation(
+  identity,
+  fulltimeEventId
+) {
+  const cleanEventId =
+    String(fulltimeEventId || "").trim();
+
+  if (
+    !/^[a-zA-Z0-9:_-]{16,160}$/.test(
+      cleanEventId
+    )
+  ) {
+    return null;
+  }
+
+  const result = await db.query(
+    `
+      SELECT
+        memory_event_id,
+        source_modalities
+      FROM sol_fulltime_memory
+      WHERE clone_id = $1
+        AND source_event_id = $2
+      ORDER BY id DESC
+      LIMIT 1
+    `,
+    [
+      cloneIdForOwner(
+        identity.ownerId
+      ),
+      `${cleanEventId}:user`
+    ]
+  );
+
+  return result.rows[0] || null;
 }
 
 async function loadRelevantOwnerRecallHistory(
@@ -6867,6 +7182,23 @@ async function loadRelevantOwnerRecallHistory(
       100,
       Math.max(1, Number(limit) || 36)
     );
+  const explicitRecall =
+    Boolean(
+      personalRecallSearchQuery(
+        recallMessage
+      )
+    );
+  const visualEventIds =
+    new Set(
+      rows
+        .filter(
+          memoryRowHasVisualContext
+        )
+        .map(
+          memoryEventIdFromRow
+        )
+        .filter(Boolean)
+    );
 
   return {
     groundedRows:
@@ -6874,17 +7206,24 @@ async function loadRelevantOwnerRecallHistory(
         rows
       ).slice(0, safeLimit),
     assistantRows:
-      isAssistantHistoryRecallRequest(
-        recallMessage
-      )
-        ? rows
-            .filter(
-              row =>
-                row?.role ===
-                "assistant"
+      rows
+        .filter(
+          row =>
+            row?.role ===
+              "assistant" &&
+            (
+              explicitRecall ||
+              isAssistantHistoryRecallRequest(
+                recallMessage
+              ) ||
+              visualEventIds.has(
+                memoryEventIdFromRow(
+                  row
+                )
+              )
             )
-            .slice(0, safeLimit)
-        : []
+        )
+        .slice(0, safeLimit)
   };
 }
 
@@ -7754,7 +8093,8 @@ async function buildPersonalRecallResult(
     confirmedMemories,
     fulltimeHistory,
     legacyMemories,
-    legacyLongTermMemories
+    legacyLongTermMemories,
+    recentMultimodalRows
   ] =
     await Promise.all([
       identityMemoryStore.searchConfirmed({
@@ -7785,7 +8125,17 @@ async function buildPersonalRecallResult(
         identity,
         query,
         16
+      ),
+      mayReferToRecentMultimodalEvent(
+        message
       )
+        ? loadRecentOwnerMultimodalRows(
+            identity,
+            4
+          )
+        : Promise.resolve(
+            []
+          )
     ]);
 
   const fulltimeMemories =
@@ -7815,6 +8165,17 @@ async function buildPersonalRecallResult(
         ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
             assistantHistory,
             instanceName
+          )}`
+        : "",
+      recentMultimodalRows.length > 0
+        ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+            recentMultimodalRows,
+            {
+              displayName:
+                identity.displayName,
+              assistantName:
+                instanceName
+            }
           )}`
         : ""
     ]
@@ -7847,7 +8208,8 @@ async function buildPersonalRecallResult(
       fulltimeMemories.length +
       legacyMemories.length +
       legacyLongTermMemories.length +
-      assistantHistory.length,
+      assistantHistory.length +
+      recentMultimodalRows.length,
     contextual:
       recallContext.contextual,
     followUpKind:
@@ -8014,10 +8376,15 @@ app.post(
             role,
             content,
             {
+              memoryEventId:
+                sourceEventId,
               ownerId:
                 identity.ownerId,
               sourceEventId:
-                `${sourceEventId}:${index}:${role}`
+                `${sourceEventId}:${index}:${role}`,
+              sourceModalities:
+                req.body?.sourceModalities ||
+                ["text"]
             }
           )
         );
@@ -8224,7 +8591,8 @@ app.post(
         confirmedMemories,
         fulltimeHistory,
         legacyMemories,
-        legacyLongTermMemories
+        legacyLongTermMemories,
+        recentMultimodalRows
       ] =
         await Promise.all([
           identityMemoryStore.searchConfirmed({
@@ -8262,7 +8630,15 @@ app.post(
             tokenIdentity,
             searchQuery,
             16
+          ),
+          mayReferToRecentMultimodalEvent(
+            query
           )
+            ? loadRecentOwnerMultimodalRows(
+                tokenIdentity,
+                4
+              )
+            : Promise.resolve([])
         ]);
 
       const fulltimeMemories =
@@ -8291,6 +8667,19 @@ app.post(
                   tokenIdentity
                 )
               )}`
+            : "",
+          recentMultimodalRows.length > 0
+            ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+                recentMultimodalRows,
+                {
+                  displayName:
+                    tokenIdentity.displayName,
+                  assistantName:
+                    instanceNameForIdentity(
+                      tokenIdentity
+                    )
+                }
+              )}`
             : ""
         ]
           .filter(Boolean)
@@ -8301,7 +8690,8 @@ app.post(
         fulltimeMemories.length +
         legacyMemories.length +
         legacyLongTermMemories.length +
-        assistantHistory.length;
+        assistantHistory.length +
+        recentMultimodalRows.length;
 
       return res
         .set({
@@ -8512,15 +8902,129 @@ app.post(
           ? requestedFulltimeEventId
           : `realtime-${randomUUID()}`;
 
+      let liveSourceModalities =
+        normalizeMemoryModalities(
+          [
+            "voice",
+            ...(
+              Array.isArray(
+                req.body?.sourceModalities
+              )
+                ? req.body.sourceModalities
+                : []
+            )
+          ],
+          {
+            fallback: "voice"
+          }
+        );
+
+      const requestedMemoryEventId =
+        String(
+          req.body?.memoryEventId ||
+          ""
+        ).trim();
+      const cleanRequestedMemoryEventId =
+        /^[a-zA-Z0-9:_-]{16,160}$/.test(
+          requestedMemoryEventId
+        )
+          ? requestedMemoryEventId
+          : "";
+      let memoryEventId =
+        cleanRequestedMemoryEventId ||
+        fulltimeEventId;
+
+      if (role === "assistant") {
+        const existingAssociation =
+          await loadExistingTurnMemoryAssociation(
+            identity,
+            fulltimeEventId
+          );
+
+        memoryEventId =
+          cleanRequestedMemoryEventId ||
+          String(
+            existingAssociation
+              ?.memory_event_id ||
+            ""
+          ).trim() ||
+          fulltimeEventId;
+        liveSourceModalities =
+          normalizeMemoryModalities(
+            [
+              ...liveSourceModalities,
+              ...(
+                Array.isArray(
+                  existingAssociation
+                    ?.source_modalities
+                )
+                  ? existingAssociation
+                      .source_modalities
+                  : []
+              )
+            ],
+            {
+              fallback: "voice"
+            }
+          );
+      } else if (
+        !liveSourceModalities.some(
+          modality =>
+            modality === "image" ||
+            modality === "video" ||
+            modality === "live_image" ||
+            modality === "sign_language"
+        )
+      ) {
+        const multimodalReference =
+          await loadMultimodalReferenceContext(
+            identity,
+            transcript,
+            getConversationMessages(
+              conversation.conversationId,
+              identity
+            )
+          );
+
+        memoryEventId =
+          multimodalReference.eventId ||
+          fulltimeEventId;
+      }
+
+      if (
+        liveSourceModalities.some(
+          modality =>
+            modality === "image" ||
+            modality === "video" ||
+            modality === "live_image"
+        ) &&
+        mentionsSignLanguage(transcript)
+      ) {
+        liveSourceModalities =
+          normalizeMemoryModalities(
+            [
+              ...liveSourceModalities,
+              "sign_language"
+            ],
+            {
+              fallback: "voice"
+            }
+          );
+      }
+
       const fulltimeSaved =
         await saveFulltimeMemory(
           role,
           transcript,
           {
+            memoryEventId:
+              memoryEventId,
             ownerId:
               identity.ownerId,
             sourceEventId:
-              `${fulltimeEventId}:${role}`
+              `${fulltimeEventId}:${role}`,
+            sourceModalities:
+              liveSourceModalities
           }
         );
 
@@ -9108,8 +9612,28 @@ erst auf ${identity.displayName}s Frage oder Aufforderung.
 Die Bilder sind zeitlich geordnete Momentaufnahmen und kein lückenloses Video.
 Erfinde deshalb keine Bewegung, kein Geräusch und nichts, was zwischen zwei
 Bildern nicht sichtbar ist. Nach [LIVE_KAMERA_STOP] ist kein früheres Bild mehr
-als aktueller Kamerablick zu behandeln. Die Kamerabilder sind nicht Teil des
-Vollzeitgedächtnisses oder der bestätigten Langzeiterinnerungen.
+als aktueller Kamerablick zu behandeln. Die rohen Kamerabilder werden nicht im
+Vollzeitgedächtnis und nicht als bestätigte Langzeiterinnerung gespeichert.
+Der ownergebundene Sprachdialog, die Modalität „Live-Bild“ und deine damalige
+gesprochene semantische Auswertung werden jedoch als ein gemeinsames Ereignis
+gespeichert. Behaupte später niemals, das Rohbild erneut sehen zu können.
+
+Gebärdensprache ist visueller Sprachinhalt und kann bei Kindern wie Erwachsenen
+Teil dieses Ereignisses sein. Unterscheide eine Gebärdensprache von alltäglicher
+Gestik. Gebärdensprachen sind nicht universell: Benenne etwa DGS nur bei klarem
+Kontext. Deute nur über die tatsächlich sichtbaren Einzelbilder hinweg und
+frage bei fehlender Bewegung, verdeckten Händen oder anderer Unsicherheit kurz
+nach, statt eine Übersetzung zu erfinden.
+
+Für blinde und sehbehinderte Kinder und Erwachsene sind gesprochene Eingabe
+und gesprochene Ausgabe der Hauptweg. Wenn sie um eine Beschreibung des
+Kamerablicks bitten, antworte als klare Audiobeschreibung: mögliche unmittelbare
+Gefahren zuerst, danach wichtige Gegenstände, Positionen und lesbaren Text.
+Setze niemals voraus, dass die Person den Bildschirm sehen kann.
+Wenn sie Hilfe bei der Bedienung des Handys möchte, erkläre hörbar genau einen
+verständlichen nächsten Schritt. Frage vor einer neuen Aktion klar, ob du sie
+öffnen oder ausführen sollst. Handle erst nach einem eindeutigen Ja und benenne
+danach nur den technisch bestätigten Erfolg.
 
 WICHTIG ZUM GEDÄCHTNIS:
 
@@ -9125,7 +9649,10 @@ Du besitzt dabei drei Gedächtnisbereiche:
 2. Vollzeitgedächtnis:
    ${identity.displayName}s und Pam’s Holos Sprachtranskripte sowie geschriebene
    Nachrichten werden Wort für Wort automatisch gespeichert. Dafür ist
-   kein besonderer Speicherbefehl nötig.
+   kein besonderer Speicherbefehl nötig. Foto, Video, Live-Bild,
+   Gebärdensprache, gesprochene Sprache und Text werden über eine gemeinsame
+   Ereignis-ID zusammengeführt; gespeichert werden die Modalitäten, der Dialog
+   und deine semantische Auswertung, niemals die rohen Medien oder Audiostreams.
 
 3. Bestätigte Langzeiterinnerungen:
    Bereits vorhandene ausdrücklich gespeicherte
@@ -9139,6 +9666,12 @@ Verwende Erinnerungen nur dann, wenn sie für die
 aktuelle Unterhaltung wirklich relevant sind.
 
 Erfinde keine Erinnerungen.
+
+Behandle eindeutige spätere Ergänzungen und Korrekturen von
+${identity.displayName} als Fortsetzung des passenden multimodalen Ereignisses.
+Diese Regel ist nicht auf bestimmte Themen beschränkt. Die jüngste
+ownerbelegte Korrektur hat Vorrang, ohne ältere Aussagen zu löschen. Wenn
+mehrere Ereignisse als Bezug infrage kommen, frage kurz nach.
 
 Wenn ${identity.displayName} nach einer persönlichen früheren Information,
 Person, einem Tier, Ereignis, Ort, Namen, Testwort oder
@@ -9313,6 +9846,11 @@ Wenn eine Nutzernachricht mit [LOKALES_WECKERERGEBNIS] beginnt, stammt der
 nachfolgende Satz aus der bereits ausgeführten Android-Weckeraktion. Sprich
 diesen Satz kurz und unverändert aus. Behaupte bei einer Fehlermeldung nicht,
 der Wecker sei gestellt worden, und führe die Aktion nicht ein zweites Mal aus.
+
+Wenn eine Nutzernachricht mit [LOKALE_BILDSCHIRMBESCHREIBUNG] beginnt, hat die
+App ihren eigenen aktuellen Bildschirm lokal und ohne Zugriff auf eine andere
+App beschrieben. Sprich den nachfolgenden Satz klar und unverändert aus. Führe
+dadurch keine Aktion aus und behaupte keinen Zugriff auf andere App-Inhalte.
 
 WICHTIG ZU TELEFON UND KONTAKTEN:
 
@@ -10596,6 +11134,37 @@ app.post("/sol", async (req, res) => {
       hasImage ||
       hasVideo;
 
+    const turnSourceModalities =
+      normalizeMemoryModalities(
+        [
+          message
+            ? "text"
+            : null,
+          hasImage
+            ? "image"
+            : null,
+          hasVideo
+            ? "video"
+            : null,
+          hasVideo &&
+          videoTranscript
+            ? "voice"
+            : null,
+          hasVisualMedia &&
+          mentionsSignLanguage(message)
+            ? "sign_language"
+            : null
+        ],
+        {
+          fallback:
+            hasImage
+              ? "image"
+              : hasVideo
+                ? "video"
+                : "text"
+        }
+      );
+
     const medicationRecognitionRequested =
       isMedicationRecognitionRequest(
         message,
@@ -10692,6 +11261,24 @@ app.post("/sol", async (req, res) => {
         ? requestedFulltimeEventId
         : `server-${randomUUID()}`;
 
+    const multimodalReference =
+      hasVisualMedia
+        ? {
+            eventId: "",
+            rows: []
+          }
+        : await loadMultimodalReferenceContext(
+            identity,
+            message,
+            getConversationMessages(
+              conversation.conversationId,
+              identity
+            )
+          );
+    const memoryEventId =
+      multimodalReference.eventId ||
+      fulltimeEventId;
+
     const mediaMemoryLabel =
       hasVideo
         ? `[Video gesendet${
@@ -10715,25 +11302,48 @@ app.post("/sol", async (req, res) => {
       "user",
       userMemoryMessage,
       {
+        memoryEventId:
+          memoryEventId,
         ownerId:
           identity.ownerId,
         sourceEventId:
-          `${fulltimeEventId}:user`
+          `${fulltimeEventId}:user`,
+        sourceModalities:
+          turnSourceModalities
       }
     );
 
     const saveFulltimeAssistant =
-      answer =>
-        saveFulltimeMemory(
+      answer => {
+        const assistantModalities =
+          normalizeMemoryModalities(
+            [
+              ...turnSourceModalities,
+              hasVisualMedia &&
+              mentionsSignLanguage(answer)
+                ? "sign_language"
+                : null
+            ],
+            {
+              fallback: "text"
+            }
+          );
+
+        return saveFulltimeMemory(
           "assistant",
           answer,
           {
+            memoryEventId:
+              memoryEventId,
             ownerId:
               identity.ownerId,
             sourceEventId:
-              `${fulltimeEventId}:assistant`
+              `${fulltimeEventId}:assistant`,
+            sourceModalities:
+              assistantModalities
           }
         );
+      };
 
     const memoryDecision =
       evaluateIdentityMemoryWrite({
@@ -11349,6 +11959,17 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
               assistantHistory,
               instanceName
             )}`
+          : "",
+        multimodalReference.rows.length > 0
+          ? `Passende modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+              multimodalReference.rows,
+              {
+                displayName:
+                  identity.displayName,
+                assistantName:
+                  instanceName
+              }
+            )}`
           : ""
       ]
         .filter(Boolean)
@@ -11361,7 +11982,8 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
           longTermMemories.length > 0 ||
           legacyMemories.length > 0 ||
           legacyLongTermMemories.length > 0 ||
-          assistantHistory.length > 0
+          assistantHistory.length > 0 ||
+          multimodalReference.rows.length > 0
           ? `
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
 Beantworte sie jetzt klar und unmittelbar aus den passenden historischen
@@ -11396,7 +12018,7 @@ Erfinde keine Antwort und bitte nicht automatisch um eine erneute Speicherung.
                   "no_speech"
                 ? "Die Tonspur wurde serverseitig auf Sprache geprüft; es wurde keine verständliche Sprache erkannt. Erfinde keine Geräusche oder Wörter."
                 : "Die Tonspur konnte technisch nicht ausgewertet werden. Mache deshalb keine Aussagen über Geräusche oder gesprochene Wörter."
-          }\n\n${identity.displayName} fragt: ${promptMessage}`
+          }\n\nWenn die Bildfolge Gebärdensprache zeigen könnte, unterscheide sie von alltäglicher Gestik. Gebärdensprachen sind nicht universell; benenne DGS oder eine andere Sprache nur bei klarem Beleg. Übersetze nur sicher sichtbare Bedeutung über die vorhandenen Ausschnitte hinweg. Frage bei fehlenden Bewegungsphasen, verdeckten Händen oder Unsicherheit nach, statt Inhalt zu erfinden. Diese Regel gilt für Kinder und Erwachsene. Für blinde oder sehbehinderte Menschen antworte auf Wunsch als verständliche gesprochene Audiobeschreibung: mögliche unmittelbare Gefahren zuerst, dann wichtige Gegenstände, Positionen und lesbaren Text. Setze nicht voraus, dass die Person den Bildschirm sehen kann.\n\n${identity.displayName} fragt: ${promptMessage}`
         : hasImage
           ? medicationRecognitionRequested
             ? `Die Nutzerin hat nach sichtbarer Einzelfreigabe ein Foto zur Medikamentenerkennung gesendet. Werte nur die bedruckte Originalverpackung oder den beschrifteten Blister aus.\n\nFrage: ${promptMessage}`
@@ -11503,7 +12125,12 @@ Du besitzt drei klar getrennte Kontextbereiche:
 2. Vollzeitgedächtnis:
    Der vollständige Dialog zwischen ${identity.displayName} und Pam’s Holo wird
    Wort für Wort ownergebunden gespeichert. Textnachrichten,
-   Sprachtranskripte und Holo-Antworten gehören automatisch dazu.
+   Sprachtranskripte und Holo-Antworten gehören automatisch dazu. Bei Foto,
+   Video, Live-Bild oder Gebärdensprache werden zusätzlich die verwendeten
+   Modalitäten und deine damalige semantische Auswertung mit demselben Ereignis
+   verbunden.
+   Rohbilder, Rohvideos und Audiostreams werden dabei nicht in der
+   Gedächtnisdatenbank gespeichert.
    Dafür ist kein besonderer Speicherbefehl nötig.
 
 3. Bestätigte Langzeiterinnerungen:
@@ -11530,6 +12157,36 @@ dass sie eine dauerhafte Persönlichkeitseigenschaft ist.
 
 Wenn eine Information nicht im Gedächtnis steht,
 behaupte nicht, dass du dich daran erinnerst.
+
+Behandle ein Erlebnis modalitätsübergreifend: Foto, Video, Live-Bild,
+Gebärdensprache, gesprochener oder geschriebener Beitrag sowie deine zugehörige
+Antwort können Teile desselben Ereignisses sein. Das gilt ohne
+Themenbegrenzung für Essen, Tiere, Menschen, Haushalt, Reisen, Dokumente und
+jedes andere Thema. Eine spätere eindeutige Ergänzung oder Korrektur von
+${identity.displayName} gehört inhaltlich zu diesem Ereignis. Überschreibe
+ältere Aussagen nicht; bei einem Widerspruch hat ${identity.displayName}s
+jüngste Aussage Vorrang. Wenn der Bezug zwischen mehreren Ereignissen nicht
+eindeutig ist, frage kurz nach. Behaupte nie, ein früheres Rohbild, Rohvideo
+oder eine Audioaufnahme erneut sehen oder hören zu können; verfügbar sind nur
+der gespeicherte Dialog, die Modalitäten und deine klar gekennzeichnete
+damalige Auswertung.
+
+Gebärdensprache ist eine visuelle Sprache und kann bei Kindern wie Erwachsenen
+verwendet werden. Verwechsle sie nicht mit alltäglicher Gestik und behaupte
+nicht, Gebärdensprachen seien universell. Benenne DGS oder eine andere
+Gebärdensprache nur bei klarem Kontext. Wenn Bildfolge, Hände, Gesichtsausdruck
+oder Bewegung für eine sichere Deutung nicht ausreichen, sage das offen und
+bitte um eine kurze Wiederholung oder ein besser sichtbares Video.
+
+Für blinde und sehbehinderte Kinder und Erwachsene sind gesprochene Eingabe
+und gesprochene Ausgabe der Hauptweg. Wenn sie um eine Beschreibung eines
+Fotos, Videos oder Kamerablicks bitten, formuliere eine klare hörbare
+Audiobeschreibung. Nenne mögliche unmittelbare Gefahren zuerst, danach wichtige
+Gegenstände, Positionen und lesbaren Text. Setze nie voraus, dass die Person
+den Bildschirm sehen kann. Bei Hilfe zur Handybedienung erkläre genau einen
+verständlichen nächsten Schritt, frage vor einer neuen Aktion, ob du sie
+öffnen oder ausführen sollst, und handle erst nach einem eindeutigen Ja. Sage
+anschließend nur, was die Technik tatsächlich bestätigt hat.
 
 Wenn in den passenden historischen Erinnerungen eine
 Aussage von ${identity.displayName} zu einer persönlichen Person, einem Tier,

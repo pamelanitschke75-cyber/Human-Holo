@@ -21,6 +21,18 @@ Die sichtbare Antwort enthielt:
 
 Pam bestätigte den vollständigen Ablauf im realen Nutzungskontext ausdrücklich mit **„Bestanden ✅“**.
 
+## Praxisergänzung vom 12.09.2026
+
+Pam ergänzte nach der Zubereitung, dass der Fisch tatsächlich etwas länger
+gebraucht hat, weil Pam und Steffi ihn krosser wollten. Genau solche späteren
+Erfahrungswerte müssen in Human Holo künftig mit dem ursprünglichen
+Foto-, Sprach- und Textkontext verbunden bleiben.
+
+Pam bewertet den praktischen Ablauf weiterhin ausdrücklich als bestanden. Zur
+technischen Einordnung: Der aktuelle Fotoanalyseweg der App verarbeitet Bild
+und Antwort über ChatGPT/OpenAI; dabei wird keine Google-Websuche ausgelöst.
+Diese Quellenpräzisierung ändert nichts am bestätigten praktischen Ergebnis.
+
 ## Bedeutung für Human Holo
 
 Dieser Praxistest erweitert den bereits bestätigten Meilenstein zur Essens- und Zutatenerkennung: Human Holo kann einen sichtbaren Lebensmittelkontext nicht nur beschreiben, sondern daraus auch eine konkrete, verständliche und sicherheitsbewusste Unterstützung für die Zubereitung ableiten.

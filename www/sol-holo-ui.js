@@ -1417,7 +1417,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
+        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Foto, Video, Live-Bild, Gebärdensprache, gesprochene Sprache und Text können dabei als ein zusammengehöriges Ereignis erinnert werden. Die Bild-, Video- und Audiodateien selbst werden nicht in diesem Gedächtnis gespeichert, sondern nur die jeweilige Medienart, der Gesprächszusammenhang und Holos klar gekennzeichnete Beschreibung. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
     }
 

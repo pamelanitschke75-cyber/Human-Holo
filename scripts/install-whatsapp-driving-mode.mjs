@@ -64,6 +64,7 @@ for (const fileName of [
   "WhatsAppAutoSendCommand.java",
   "WhatsAppAutoSendAccessibilityService.java",
   "SolAudioRoutePlugin.java",
+  "SolReadAloudPlugin.java",
   "WhatsAppDrivingModePlugin.java",
   "WhatsAppNotificationListener.java"
 ]) {
@@ -175,6 +176,18 @@ if (!mainActivity.includes("registerPlugin(SolAudioRoutePlugin.class)")) {
   mainActivity = mainActivity.replace(
     registrationMarker,
     registrationMarker + "\n        registerPlugin(SolAudioRoutePlugin.class);"
+  );
+}
+
+if (!mainActivity.includes("registerPlugin(SolReadAloudPlugin.class)")) {
+  const registrationMarker = "        registerPlugin(SolAudioRoutePlugin.class);";
+  if (!mainActivity.includes(registrationMarker)) {
+    throw new Error("Audio-Plugin-Registrierung für Vorlesen nicht gefunden.");
+  }
+
+  mainActivity = mainActivity.replace(
+    registrationMarker,
+    registrationMarker + "\n        registerPlugin(SolReadAloudPlugin.class);"
   );
 }
 
@@ -595,5 +608,5 @@ if (!manifest.includes(".HealthPrivacyActivity")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
 );
