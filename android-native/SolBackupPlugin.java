@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 public final class SolBackupPlugin extends Plugin {
     private static final String MIME_TYPE = "application/octet-stream";
     private static final String FILE_SUFFIX = ".solholo-backup";
-    private static final int MAX_BACKUP_BYTES = 12 * 1024 * 1024;
+    private static final int MAX_BACKUP_BYTES = 128 * 1024 * 1024;
 
     @PluginMethod
     public void saveEncryptedBackup(PluginCall call) {
@@ -43,7 +43,7 @@ public final class SolBackupPlugin extends Plugin {
         }
         byte[] bytes = contents.getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_BACKUP_BYTES) {
-            call.reject("Die Sicherungsdatei ist größer als 12 MB.", "BACKUP_TOO_LARGE");
+            call.reject("Die Sicherungsdatei ist größer als 128 MB.", "BACKUP_TOO_LARGE");
             return;
         }
 
@@ -123,7 +123,7 @@ public final class SolBackupPlugin extends Plugin {
             while ((count = input.read(buffer)) != -1) {
                 total += count;
                 if (total > MAX_BACKUP_BYTES) {
-                    call.reject("Die Sicherungsdatei ist größer als 12 MB.", "BACKUP_TOO_LARGE");
+                    call.reject("Die Sicherungsdatei ist größer als 128 MB.", "BACKUP_TOO_LARGE");
                     return;
                 }
                 output.write(buffer, 0, count);

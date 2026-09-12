@@ -166,6 +166,65 @@ test("Wiederherstellung ist owner-fest, additiv und berührt nur erlaubte Schlü
   );
 });
 
+test("neue Sicherung schließt das vollständige ownergebundene Servergedächtnis verschlüsselt ein", async () => {
+  const ownerMemory = {
+    format: "human-holo-owner-memory",
+    version: 1,
+    ownerId: BACKUP_OWNER_ID,
+    speakerId: "pam",
+    cloneId: "pam-sol-001",
+    createdAt: "2026-09-12T20:00:00.000Z",
+    data: {
+      fulltimeHistory: [{ content: "Privater Testverlauf" }],
+      confirmedMemories: [{ content: "Bestätigte private Testangabe" }],
+      supersessions: [{ content: "Historische Testkorrektur" }],
+      legacyConversation: [],
+      legacyLongTerm: []
+    },
+    integrity: {
+      algorithm: "SHA-256",
+      counts: {
+        fulltimeHistory: 1,
+        confirmedMemories: 1,
+        supersessions: 1,
+        legacyConversation: 0,
+        legacyLongTerm: 0
+      },
+      contentDigest: "a".repeat(64)
+    }
+  };
+  const memorialArchive = {
+    format: "human-holo-memorial-archive",
+    version: 1,
+    ownerId: BACKUP_OWNER_ID,
+    speakerId: "pam",
+    createdAt: "2026-09-12T20:00:30.000Z",
+    entries: [],
+    counts: {
+      entries: 0,
+      media: 0,
+      mediaBytes: 0
+    }
+  };
+  const snapshot = createBackupSnapshot(
+    new MemoryStorage(),
+    "2026-09-12T20:01:00.000Z",
+    ownerMemory,
+    memorialArchive
+  );
+
+  assert.equal(snapshot.version, 3);
+  assert.equal(snapshot.data.ownerMemory.integrity.counts.fulltimeHistory, 1);
+  const encrypted = await encryptBackup(snapshot, password, webcrypto);
+  assert.doesNotMatch(encrypted, /Privater Testverlauf/u);
+
+  const restored = await decryptBackup(encrypted, password, webcrypto);
+  const plan = planBackupRestore(new MemoryStorage(), restored);
+  assert.equal(plan.ownerMemory.ownerId, BACKUP_OWNER_ID);
+  assert.deepEqual(plan.ownerMemory.integrity.counts, ownerMemory.integrity.counts);
+  assert.equal(plan.memorialArchive.counts.entries, 0);
+});
+
 test("Dateiname ist stabil, lesbar und hat die eigene Endung", () => {
   assert.equal(
     backupFileName(new Date(2026, 8, 4, 9, 7)),
@@ -215,11 +274,11 @@ test("Android-Dateibrücke nutzt den Systempicker und speichert nur Chiffretext"
 
   assert.match(source, /Intent\.ACTION_CREATE_DOCUMENT/u);
   assert.match(source, /Intent\.ACTION_OPEN_DOCUMENT/u);
-  assert.match(source, /MAX_BACKUP_BYTES = 12 \* 1024 \* 1024/u);
+  assert.match(source, /MAX_BACKUP_BYTES = 128 \* 1024 \* 1024/u);
   assert.doesNotMatch(source, /READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE/u);
   assert.match(installer, /registerPlugin\(SolBackupPlugin\.class\)/u);
   assert.match(installer, /sol_holo_access_security_v1_pam-sol\.xml/u);
   assert.match(installer, /sol_holo_speaker_identity\.xml/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=4/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /sol-holo-backup\.css\?v=2/u);
 });

@@ -29,6 +29,11 @@ import {
   createIdentityMemoryStore
 } from "./modules/identity-memory-store.mjs";
 import {
+  OWNER_MEMORY_BACKUP_MAX_BYTES,
+  OwnerMemoryBackupError,
+  createOwnerMemoryBackupStore
+} from "./modules/owner-memory-backup.mjs";
+import {
   ConversationContextError,
   buildIdentityRequiredPayload,
   createVolatileConversationStore
@@ -178,6 +183,11 @@ const PENDING_ECOSYSTEM_TTL_MS =
 
 const identityMemoryStore =
   createIdentityMemoryStore({
+    database: db
+  });
+
+const ownerMemoryBackups =
+  createOwnerMemoryBackupStore({
     database: db
   });
 
@@ -1248,6 +1258,28 @@ async function initializeMemory() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `);
+
+  await db.query(`
+    ALTER TABLE sol_memory
+    ADD COLUMN IF NOT EXISTS source_backup_id TEXT
+  `);
+
+  await db.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS sol_memory_backup_uidx
+    ON sol_memory (source_backup_id)
+    WHERE source_backup_id IS NOT NULL
+  `);
+
+  await db.query(`
+    ALTER TABLE sol_long_term_memory
+    ADD COLUMN IF NOT EXISTS source_backup_id TEXT
+  `);
+
+  await db.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS sol_long_term_memory_backup_uidx
+    ON sol_long_term_memory (source_backup_id)
+    WHERE source_backup_id IS NOT NULL
   `);
 
   await db.query(`
@@ -8232,6 +8264,187 @@ async function buildPersonalRecallResult(
   Der vollständige 1:1-Verlauf wird nur nach der signierten
   App-Sitzungsprüfung an das gebundene Gerät ausgegeben.
 */
+
+app.post(
+  "/memory/backup/export",
+  async (req, res) => {
+    try {
+      const identity =
+        requireTrustedOwnerIdentity(
+          req,
+          res
+        );
+
+      if (!identity) {
+        return;
+      }
+
+      const backup =
+        await ownerMemoryBackups
+          .exportSnapshot({
+            ownerId:
+              identity.ownerId,
+            speakerId:
+              identity.speakerId,
+            cloneId:
+              cloneIdForOwner(
+                identity.ownerId
+              )
+          });
+
+      return res
+        .set({
+          "Cache-Control":
+            "no-store, max-age=0",
+          Pragma:
+            "no-cache"
+        })
+        .json({
+          exported:
+            true,
+          complete:
+            true,
+          backup,
+          maximumBytes:
+            OWNER_MEMORY_BACKUP_MAX_BYTES,
+          identity:
+            publicIdentity(
+              identity
+            )
+        });
+    } catch (error) {
+      console.error(
+        "Ownergebundene Gedächtnissicherung exportieren:",
+        error?.code ||
+        error?.name ||
+        "Fehler"
+      );
+
+      const tooLarge =
+        error instanceof
+          OwnerMemoryBackupError &&
+        error.code ===
+          "BACKUP_TOO_LARGE";
+
+      return res
+        .status(
+          tooLarge
+            ? 413
+            : 500
+        )
+        .set({
+          "Cache-Control":
+            "no-store, max-age=0",
+          Pragma:
+            "no-cache"
+        })
+        .json({
+          error:
+            tooLarge
+              ? "Das vollständige Gedächtnis ist für eine einzelne Sicherungsdatei zu groß. Es wurde keine unvollständige Kopie erzeugt."
+              : "Die vollständige private Gedächtnissicherung konnte gerade nicht erstellt werden."
+        });
+    }
+  }
+);
+
+app.post(
+  "/memory/backup/restore-chunk",
+  async (req, res) => {
+    try {
+      const identity =
+        requireTrustedOwnerIdentity(
+          req,
+          res
+        );
+
+      if (!identity) {
+        return;
+      }
+
+      if (
+        req.body
+          ?.restoreConfirmation !==
+        true
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Die vollständige Wiederherstellung wurde nicht bestätigt."
+          });
+      }
+
+      const result =
+        await ownerMemoryBackups
+          .restoreChunk({
+            metadata:
+              req.body?.metadata,
+            category:
+              req.body?.category,
+            entries:
+              req.body?.entries,
+            ownerId:
+              identity.ownerId,
+            speakerId:
+              identity.speakerId,
+            cloneId:
+              cloneIdForOwner(
+                identity.ownerId
+              )
+          });
+
+      return res
+        .set({
+          "Cache-Control":
+            "no-store, max-age=0",
+          Pragma:
+            "no-cache"
+        })
+        .json({
+          restored:
+            true,
+          additive:
+            true,
+          ...result,
+          identity:
+            publicIdentity(
+              identity
+            )
+        });
+    } catch (error) {
+      console.error(
+        "Ownergebundene Gedächtnissicherung wiederherstellen:",
+        error?.code ||
+        error?.name ||
+        "Fehler"
+      );
+
+      const rejected =
+        error instanceof
+          OwnerMemoryBackupError;
+
+      return res
+        .status(
+          rejected
+            ? 400
+            : 500
+        )
+        .set({
+          "Cache-Control":
+            "no-store, max-age=0",
+          Pragma:
+            "no-cache"
+        })
+        .json({
+          error:
+            rejected
+              ? "Diese Sicherung gehört nicht zur aktiven Human-Holo-Identität oder ist unvollständig."
+              : "Die private Gedächtnissicherung konnte gerade nicht additiv wiederhergestellt werden."
+        });
+    }
+  }
+);
 
 app.post(
   "/fulltime/history",

@@ -13,7 +13,7 @@ test("Sol aus ChatGPT erhält einen sichtbaren, separaten Erinnerungsweg", async
   ]);
 
   assert.match(html, /human-holo-chatgpt-memory-bridge\.mjs\?v=1/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=4/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(bridge, /Sol aus ChatGPT verbinden/u);
   assert.match(bridge, /#memoryView \.actionList/u);
   assert.match(bridge, /HumanHoloConfirmedMemoryImport/u);

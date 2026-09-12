@@ -10,6 +10,7 @@ const theme = readText("www/human-holo-theme.css");
 const html = readText("www/index.html");
 const serviceWorker = readText("www/service-worker.js");
 const server = readText("server.mjs");
+const backup = readText("www/sol-holo-backup.mjs");
 
 function functionSource(name, nextName) {
   const start = ui.indexOf(`function ${name}`);
@@ -88,6 +89,28 @@ test("lokale Medien werden begrenzt und nur in sicheren Formaten angenommen", ()
   assert.doesNotMatch(ui, /indexedDB\.deleteDatabase\s*\(/u);
 });
 
+test("Erinnerung & Vermächtnis gehört vollständig zur verschlüsselten Gesamtsicherung", () => {
+  const exportSource = functionSource(
+    "exportMemorialArchive",
+    "restoreMemorialArchive"
+  );
+  const restoreSource = functionSource(
+    "restoreMemorialArchive",
+    "cleanExplicitSaveContent"
+  );
+
+  assert.match(exportSource, /\.getAll\(ownerId\)/u);
+  assert.match(exportSource, /await blob\.arrayBuffer\(\)/u);
+  assert.match(exportSource, /dataBase64: memorialBytesToBase64/u);
+  assert.match(restoreSource, /archive\?\.ownerId !== ownerId/u);
+  assert.match(restoreSource, /existingIds\.has\(record\.storageId\)/u);
+  assert.match(restoreSource, /store\.add\(record\)/u);
+  assert.doesNotMatch(restoreSource, /\.clear\s*\(|\.delete\s*\(/u);
+  assert.match(ui, /HumanHoloMemorialBackup = Object\.freeze/u);
+  assert.match(backup, /fetchCompleteMemorialArchive/u);
+  assert.match(backup, /restoreCompleteMemorialArchive/u);
+});
+
 test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung", () => {
   assert.match(css, /#memorialView/u);
   assert.match(css, /\.memorialBoundary/u);
@@ -96,6 +119,6 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(theme, /#memoryView,#memorialView,#medicationView,#servicesView/u);
   assert.match(html, /sol-holo-ui\.css\?v=51/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=77/u);
+  assert.match(html, /sol-holo-ui\.js\?v=78/u);
   assert.match(serviceWorker, /human-holo-284-multimodales-ereignisgedaechtnis/u);
 });

@@ -2210,6 +2210,237 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  const memorialBackupFormat = "human-holo-memorial-archive";
+  const memorialBackupVersion = 1;
+  const maxMemorialBackupTotalBytes = 64 * 1024 * 1024;
+
+  function memorialBytesToBase64(bytes) {
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    }
+    return btoa(binary);
+  }
+
+  function memorialBase64ToBytes(value) {
+    let binary;
+    try {
+      binary = atob(String(value || ""));
+    } catch {
+      throw new Error("MEMORIAL_BACKUP_MEDIA_INVALID");
+    }
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
+  }
+
+  async function exportMemorialArchive(ownerId) {
+    const identity = window.SolHoloIdentity?.selected?.();
+    if (!identity || identity.ownerId !== ownerId || identity.speakerId !== "pam") {
+      throw new Error("MEMORIAL_BACKUP_OWNER_MISMATCH");
+    }
+    const database = await openMemorialDatabase();
+    try {
+      const transaction = database.transaction(memorialStoreName, "readonly");
+      const done = memorialTransactionDone(transaction);
+      const request = transaction
+        .objectStore(memorialStoreName)
+        .index("ownerId")
+        .getAll(ownerId);
+      const records = await memorialRequestResult(request);
+      await done;
+      const entries = [];
+      let mediaCount = 0;
+      let mediaBytes = 0;
+      for (const supplied of Array.isArray(records) ? records : []) {
+        const entry = normalizeMemorialEntry(supplied, ownerId);
+        if (!entry) continue;
+        if (!entry.id || entry.storageId !== `${ownerId}:${entry.id}`) {
+          throw new Error("MEMORIAL_BACKUP_ENTRY_INVALID");
+        }
+        const media = [];
+        for (const item of entry.media) {
+          const blob = item?.blob;
+          if (!(blob instanceof Blob) || blob.size > maxMemorialMediaBytes) {
+            throw new Error("MEMORIAL_BACKUP_MEDIA_INVALID");
+          }
+          mediaBytes += blob.size;
+          if (mediaBytes > maxMemorialBackupTotalBytes) {
+            throw new Error("MEMORIAL_BACKUP_TOO_LARGE");
+          }
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          media.push({
+            id: cleanMemorialText(item.id, 200),
+            name: cleanMemorialText(item.name, 160),
+            type: String(item.type || blob.type || "application/octet-stream")
+              .toLocaleLowerCase("de-DE")
+              .slice(0, 120),
+            size: bytes.byteLength,
+            lastModified: Number(item.lastModified || 0),
+            dataBase64: memorialBytesToBase64(bytes)
+          });
+          mediaCount += 1;
+        }
+        entries.push({
+          storageId: entry.storageId,
+          id: entry.id,
+          ownerId: entry.ownerId,
+          personName: entry.personName,
+          relationship: entry.relationship,
+          story: entry.story,
+          media,
+          rightsConfirmed: true,
+          rightsConfirmedAt: entry.rightsConfirmedAt,
+          identityBoundary: memorialIdentityBoundary,
+          impersonationAllowed: false,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt
+        });
+      }
+      return {
+        format: memorialBackupFormat,
+        version: memorialBackupVersion,
+        ownerId,
+        speakerId: identity.speakerId,
+        createdAt: new Date().toISOString(),
+        entries,
+        counts: {
+          entries: entries.length,
+          media: mediaCount,
+          mediaBytes
+        }
+      };
+    } finally {
+      database.close();
+    }
+  }
+
+  async function restoreMemorialArchive(archive, ownerId) {
+    const identity = window.SolHoloIdentity?.selected?.();
+    if (
+      !identity ||
+      identity.ownerId !== ownerId ||
+      identity.speakerId !== "pam" ||
+      archive?.format !== memorialBackupFormat ||
+      archive?.version !== memorialBackupVersion ||
+      archive?.ownerId !== ownerId ||
+      archive?.speakerId !== identity.speakerId ||
+      !Array.isArray(archive?.entries)
+    ) {
+      throw new Error("MEMORIAL_BACKUP_OWNER_MISMATCH");
+    }
+
+    const restoredRecords = [];
+    let mediaCount = 0;
+    let mediaBytes = 0;
+    for (const supplied of archive.entries) {
+      const id = String(supplied?.id || "").trim().slice(0, 200);
+      const personName = cleanMemorialText(supplied?.personName, 120);
+      const story = cleanMemorialText(supplied?.story, 10_000);
+      const suppliedMedia = Array.isArray(supplied?.media)
+        ? supplied.media.slice(0, maxMemorialMediaFiles)
+        : [];
+      if (
+        !id ||
+        supplied?.storageId !== `${ownerId}:${id}` ||
+        supplied?.ownerId !== ownerId ||
+        supplied?.rightsConfirmed !== true ||
+        supplied?.impersonationAllowed !== false ||
+        supplied?.identityBoundary !== memorialIdentityBoundary ||
+        !personName ||
+        (!story && suppliedMedia.length === 0)
+      ) {
+        throw new Error("MEMORIAL_BACKUP_ENTRY_INVALID");
+      }
+      const media = suppliedMedia.map((item, index) => {
+        const bytes = memorialBase64ToBytes(item?.dataBase64);
+        const statedSize = Number(item?.size);
+        if (
+          bytes.byteLength < 1 ||
+          bytes.byteLength > maxMemorialMediaBytes ||
+          statedSize !== bytes.byteLength
+        ) {
+          throw new Error("MEMORIAL_BACKUP_MEDIA_INVALID");
+        }
+        mediaBytes += bytes.byteLength;
+        mediaCount += 1;
+        if (mediaBytes > maxMemorialBackupTotalBytes) {
+          throw new Error("MEMORIAL_BACKUP_TOO_LARGE");
+        }
+        const type = String(item?.type || "application/octet-stream")
+          .toLocaleLowerCase("de-DE")
+          .slice(0, 120);
+        return {
+          id: cleanMemorialText(item?.id, 200) || `${id}-media-${index + 1}`,
+          name: cleanMemorialText(item?.name, 160) || `Datei ${index + 1}`,
+          type,
+          size: bytes.byteLength,
+          lastModified: Number(item?.lastModified || 0),
+          blob: new Blob([bytes], { type })
+        };
+      });
+      restoredRecords.push({
+        storageId: `${ownerId}:${id}`,
+        id,
+        ownerId,
+        speakerId: identity.speakerId,
+        personName,
+        relationship: cleanMemorialText(supplied?.relationship, 120),
+        story,
+        media,
+        rightsConfirmed: true,
+        rightsConfirmedAt: Number(supplied?.rightsConfirmedAt || 0),
+        identityBoundary: memorialIdentityBoundary,
+        impersonationAllowed: false,
+        createdAt: Number(supplied?.createdAt || Date.now()),
+        updatedAt: Number(supplied?.updatedAt || supplied?.createdAt || Date.now())
+      });
+    }
+    if (
+      Number(archive?.counts?.entries) !== restoredRecords.length ||
+      Number(archive?.counts?.media) !== mediaCount ||
+      Number(archive?.counts?.mediaBytes) !== mediaBytes
+    ) {
+      throw new Error("MEMORIAL_BACKUP_COUNTS_INVALID");
+    }
+
+    const database = await openMemorialDatabase();
+    try {
+      const transaction = database.transaction(memorialStoreName, "readwrite");
+      const store = transaction.objectStore(memorialStoreName);
+      const done = memorialTransactionDone(transaction);
+      const existingRequest = store.index("ownerId").getAll(ownerId);
+      const existing = await memorialRequestResult(existingRequest);
+      const existingIds = new Set(
+        (Array.isArray(existing) ? existing : []).map(entry => entry.storageId)
+      );
+      let inserted = 0;
+      for (const record of restoredRecords) {
+        if (existingIds.has(record.storageId)) continue;
+        store.add(record);
+        existingIds.add(record.storageId);
+        inserted += 1;
+      }
+      await done;
+      return {
+        accepted: restoredRecords.length,
+        inserted,
+        alreadyStored: restoredRecords.length - inserted,
+        media: mediaCount
+      };
+    } finally {
+      database.close();
+    }
+  }
+
+  window.HumanHoloMemorialBackup = Object.freeze({
+    exportOwner: exportMemorialArchive,
+    restoreOwner: restoreMemorialArchive
+  });
+
   function cleanExplicitSaveContent(value) {
     return String(value || "")
       .replace(/^[\s:,-]+|[\s.!?]+$/g, "")

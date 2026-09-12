@@ -13,8 +13,11 @@ export const BACKUP_VERSION = 1;
 export const BACKUP_OWNER_ID = "pam-sol";
 export const BACKUP_PACKAGE_NAME = "com.solholo.app";
 export const BACKUP_KDF_ITERATIONS = 310_000;
-export const BACKUP_MAX_BYTES = 12 * 1024 * 1024;
+export const BACKUP_MAX_BYTES = 128 * 1024 * 1024;
 export const BACKUP_MIN_PASSWORD_LENGTH = 12;
+
+const OWNER_MEMORY_BACKUP_FORMAT = "human-holo-owner-memory";
+const OWNER_MEMORY_BACKUP_VERSION = 1;
 
 export const BACKUP_STORAGE_KEYS = Object.freeze({
   notes: "pams-holo-original-notes-v1",
@@ -28,7 +31,7 @@ export const EXCLUDED_BACKUP_CATEGORIES = Object.freeze([
   "Android- und Signierschlüssel",
   "Passwörter, Tokens und Sitzungen",
   "Stimmprofile und Sprecher-Embeddings",
-  "Fotos, Gesichtsdaten und Original-Full-Sync-Geometrie",
+  "Klonfotos, Gesichtsdaten und Original-Full-Sync-Geometrie",
   "Tierfotos, Tierstimmen und nicht ausdrücklich freigegebene Tiermedien",
   "nicht eindeutig zugeordnete Quarantänedaten"
 ]);
@@ -122,7 +125,62 @@ function readStorage(storage, key) {
   }
 }
 
-export function createBackupSnapshot(storage, now = new Date()) {
+function normalizeOwnerMemoryBackup(value) {
+  if (
+    value?.format !== OWNER_MEMORY_BACKUP_FORMAT ||
+    value?.version !== OWNER_MEMORY_BACKUP_VERSION ||
+    value?.ownerId !== BACKUP_OWNER_ID ||
+    value?.speakerId !== "pam" ||
+    value?.cloneId !== "pam-sol-001" ||
+    value?.integrity?.algorithm !== "SHA-256" ||
+    !/^[a-f0-9]{64}$/u.test(String(value?.integrity?.contentDigest || "")) ||
+    !Array.isArray(value?.data?.fulltimeHistory) ||
+    !Array.isArray(value?.data?.confirmedMemories) ||
+    !Array.isArray(value?.data?.supersessions) ||
+    !Array.isArray(value?.data?.legacyConversation) ||
+    !Array.isArray(value?.data?.legacyLongTerm)
+  ) {
+    throw new Error("Die vollständige private Gedächtniskopie ist ungültig.");
+  }
+
+  const counts = value.integrity?.counts || {};
+  if (
+    Number(counts.fulltimeHistory) !== value.data.fulltimeHistory.length ||
+    Number(counts.confirmedMemories) !== value.data.confirmedMemories.length ||
+    Number(counts.supersessions) !== value.data.supersessions.length ||
+    Number(counts.legacyConversation) !== value.data.legacyConversation.length ||
+    Number(counts.legacyLongTerm) !== value.data.legacyLongTerm.length
+  ) {
+    throw new Error("Die vollständige private Gedächtniskopie ist unvollständig.");
+  }
+
+  return value;
+}
+
+function normalizeMemorialArchive(value) {
+  if (
+    value?.format !== "human-holo-memorial-archive" ||
+    value?.version !== 1 ||
+    value?.ownerId !== BACKUP_OWNER_ID ||
+    value?.speakerId !== "pam" ||
+    !Array.isArray(value?.entries) ||
+    Number(value?.counts?.entries) !== value.entries.length ||
+    !Number.isSafeInteger(Number(value?.counts?.media)) ||
+    Number(value?.counts?.media) < 0 ||
+    !Number.isSafeInteger(Number(value?.counts?.mediaBytes)) ||
+    Number(value?.counts?.mediaBytes) < 0
+  ) {
+    throw new Error("Der private Bereich Erinnerung & Vermächtnis ist unvollständig.");
+  }
+  return value;
+}
+
+export function createBackupSnapshot(
+  storage,
+  now = new Date(),
+  ownerMemoryBackup = null,
+  memorialArchive = null
+) {
   const createdAt = new Date(now);
   if (Number.isNaN(createdAt.getTime())) {
     throw new Error("Der Sicherungszeitpunkt ist ungültig.");
@@ -142,9 +200,9 @@ export function createBackupSnapshot(storage, now = new Date()) {
   ).toLowerCase();
   const introSeen = readStorage(storage, BACKUP_STORAGE_KEYS.introSeen) === "1";
 
-  return {
+  const snapshot = {
     format: "sol-holo-local-data",
-    version: 1,
+    version: memorialArchive ? 3 : ownerMemoryBackup ? 2 : 1,
     ownerId: BACKUP_OWNER_ID,
     packageName: BACKUP_PACKAGE_NAME,
     createdAt: createdAt.toISOString(),
@@ -161,12 +219,25 @@ export function createBackupSnapshot(storage, now = new Date()) {
     },
     exclusions: [...EXCLUDED_BACKUP_CATEGORIES]
   };
+
+  if (ownerMemoryBackup) {
+    snapshot.data.ownerMemory = normalizeOwnerMemoryBackup(ownerMemoryBackup);
+  }
+
+  if (memorialArchive) {
+    if (!ownerMemoryBackup) {
+      throw new Error("Der vollständige Serverbestand fehlt in dieser Sicherung.");
+    }
+    snapshot.data.memorialArchive = normalizeMemorialArchive(memorialArchive);
+  }
+
+  return snapshot;
 }
 
 export function validateBackupSnapshot(snapshot) {
   if (
     snapshot?.format !== "sol-holo-local-data" ||
-    snapshot?.version !== 1 ||
+    ![1, 2, 3].includes(snapshot?.version) ||
     snapshot?.ownerId !== BACKUP_OWNER_ID ||
     snapshot?.packageName !== BACKUP_PACKAGE_NAME
   ) {
@@ -178,7 +249,7 @@ export function validateBackupSnapshot(snapshot) {
     throw new Error("Die Sicherungsdatei enthält keinen gültigen Zeitpunkt.");
   }
 
-  return {
+  const validated = {
     ...snapshot,
     createdAt: createdAt.toISOString(),
     data: {
@@ -198,6 +269,20 @@ export function validateBackupSnapshot(snapshot) {
     },
     exclusions: [...EXCLUDED_BACKUP_CATEGORIES]
   };
+
+  if (snapshot.version >= 2) {
+    validated.data.ownerMemory = normalizeOwnerMemoryBackup(
+      snapshot.data?.ownerMemory
+    );
+  }
+
+  if (snapshot.version === 3) {
+    validated.data.memorialArchive = normalizeMemorialArchive(
+      snapshot.data?.memorialArchive
+    );
+  }
+
+  return validated;
 }
 
 function bytesToBase64(bytes) {
@@ -267,7 +352,7 @@ export async function encryptBackup(snapshot, password, cryptoOverride) {
   const validated = validateBackupSnapshot(snapshot);
   const plaintext = TEXT_ENCODER.encode(JSON.stringify(validated));
   if (plaintext.byteLength > BACKUP_MAX_BYTES) {
-    throw new Error("Die lokale Sicherung ist größer als 12 MB.");
+    throw new Error("Die vollständige Sicherung ist größer als 128 MB.");
   }
 
   const salt = api.getRandomValues(new Uint8Array(16));
@@ -303,7 +388,7 @@ export async function encryptBackup(snapshot, password, cryptoOverride) {
     ciphertextBase64: bytesToBase64(ciphertext)
   });
   if (TEXT_ENCODER.encode(serialized).byteLength > BACKUP_MAX_BYTES) {
-    throw new Error("Die verschlüsselte Sicherungsdatei ist größer als 12 MB.");
+    throw new Error("Die verschlüsselte Sicherungsdatei ist größer als 128 MB.");
   }
   return serialized;
 }
@@ -313,7 +398,7 @@ export async function decryptBackup(serializedEnvelope, password, cryptoOverride
   const cleanPassword = validatePassword(password);
   const text = String(serializedEnvelope || "");
   if (!text || TEXT_ENCODER.encode(text).byteLength > BACKUP_MAX_BYTES) {
-    throw new Error("Die Sicherungsdatei ist leer oder größer als 12 MB.");
+    throw new Error("Die Sicherungsdatei ist leer oder größer als 128 MB.");
   }
 
   let envelope;
@@ -446,6 +531,8 @@ export function planBackupRestore(storage, snapshot) {
   return {
     ownerId: validated.ownerId,
     createdAt: validated.createdAt,
+    ownerMemory: validated.data.ownerMemory || null,
+    memorialArchive: validated.data.memorialArchive || null,
     writes,
     summary: {
       notesAdded: notes.added,

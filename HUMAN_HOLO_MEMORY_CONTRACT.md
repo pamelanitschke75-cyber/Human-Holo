@@ -84,4 +84,34 @@ Genau diese sieben Punkte bilden den verbindlichen Gedächtnisstandard für Huma
 
 Unsichere oder widersprüchliche Inhalte werden gekennzeichnet und getrennt gehalten, statt als Wahrheit übernommen zu werden. Bestätigte Korrekturen ersetzen die frühere Aussage nachvollziehbar, löschen aber nicht heimlich die Historie.
 
+## Verbindliche vollständige Gedächtnissicherung – bestätigt am 12.09.2026
+
+- Die verschlüsselte persönliche Sicherung gilt nicht für einzelne Personen,
+  Tiere oder Themen, sondern für das **gesamte ownergebundene Gedächtnis**.
+- Sie enthält den wortgetreuen Vollzeitverlauf beider Rollen, bestätigte
+  persönliche Erinnerungen, gesperrte beziehungsweise in den Hintergrund
+  gesetzte historische Zustände, die Korrektur- und Ersetzungshistorie,
+  weiterhin abrufbare ältere Gesprächs- und Langzeitbestände,
+  lokale Notizen, noch nicht synchronisierte Dialoge, Tier-Holo-Profile,
+  bestätigte Tierbeobachtungen, ausdrücklich angelegte Einträge und
+  freigegebene Dateien aus „Erinnerung & Vermächtnis“ sowie die dafür
+  erlaubten lokalen Einstellungen.
+- Die Serverdaten werden in einer konsistenten, nur lesenden Transaktion
+  vollständig erfasst. Eine Größenüberschreitung oder ein Fehler bricht den
+  Export ab; es wird niemals still eine unvollständige Kopie als vollständige
+  Sicherung ausgegeben.
+- Die Datei wird auf Pams Gerät verschlüsselt. Inhalt, Passwort und private
+  Erinnerungen gehören nicht in das öffentliche Repository.
+- Wiederherstellung ist ownergebunden, ausdrücklich bestätigt, additiv,
+  idempotent und transaktional pro Teilstapel. Bestehende Daten werden weder
+  gelöscht noch zurückgesetzt. Ein unterbrochener Vorgang kann mit derselben
+  Datei gefahrlos erneut gestartet werden.
+- Der SHA-256-Inhaltsnachweis und die erwarteten Datensatzanzahlen erkennen
+  unvollständige oder veränderte Sicherungsstände zusätzlich zur
+  authentifizierten AES-GCM-Verschlüsselung.
+- Geräteschlüssel, APK-Signierschlüssel, Passwörter, Tokens, Sitzungen,
+  biometrische Sprecher- oder Gesichtsprofile sowie nicht freigegebene
+  Rohmedien bleiben ausgeschlossen. Diese Sicherheitsbindungen müssen auf
+  einem neuen Gerät bewusst und sicher neu eingerichtet werden.
+
 Und weiterhin gilt: Jede persönliche Human-Holo-Identität besitzt ihren eigenen geschützten Speicher – **verbunden, aber nicht vermischt**. 💜♾️🌎

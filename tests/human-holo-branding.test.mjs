@@ -40,7 +40,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
-  assert.match(html, /sol-holo-ui\.js\?v=77/u);
+  assert.match(html, /sol-holo-ui\.js\?v=78/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
   assert.match(ui, /Pam’s Holo/u);
   assert.match(ui, /Chat mit Pam’s Holo/u);

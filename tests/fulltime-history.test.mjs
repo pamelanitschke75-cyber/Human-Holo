@@ -23,6 +23,10 @@ const identityStore = fs.readFileSync(
   new URL("../modules/identity-memory-store.mjs", import.meta.url),
   "utf8"
 );
+const ownerBackup = fs.readFileSync(
+  new URL("../modules/owner-memory-backup.mjs", import.meta.url),
+  "utf8"
+);
 
 function routeBlock(path, nextPath) {
   const start = server.indexOf(path);
@@ -119,6 +123,35 @@ test("privater Verlauf wird nur der signierten App-Sitzung paginiert geliefert",
     server,
     /WHERE clone_id = \$1[\s\S]*?id < \$2::bigint[\s\S]*?ORDER BY id DESC/u
   );
+});
+
+test("vollständige Gedächtnissicherung ist ownergebunden, geprüft und nur additiv wiederherstellbar", () => {
+  const exportRoute = routeBlock(
+    '"/memory/backup/export"',
+    '"/memory/backup/restore-chunk"'
+  );
+  const restoreRoute = routeBlock(
+    '"/memory/backup/restore-chunk"',
+    '"/fulltime/history"'
+  );
+
+  assert.match(exportRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(exportRoute, /ownerMemoryBackups[\s\S]*?\.exportSnapshot/u);
+  assert.match(exportRoute, /complete:\s*\n\s*true/u);
+  assert.match(restoreRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(restoreRoute, /restoreConfirmation[\s\S]*?true/u);
+  assert.match(restoreRoute, /ownerMemoryBackups[\s\S]*?\.restoreChunk/u);
+  assert.match(restoreRoute, /additive:\s*\n\s*true/u);
+  assert.doesNotMatch(restoreRoute, /\b(?:DELETE|DROP|TRUNCATE)\b/iu);
+  assert.match(backup, /\/memory\/backup\/export/u);
+  assert.match(backup, /\/memory\/backup\/restore-chunk/u);
+  assert.match(backup, /vollständige verschlüsselte Kopie/iu);
+  assert.match(ownerBackup, /BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY/u);
+  assert.match(ownerBackup, /sol_memory[\s\S]*?legacyConversation/u);
+  assert.match(ownerBackup, /sol_long_term_memory[\s\S]*?legacyLongTerm/u);
+  assert.match(server, /ALTER TABLE sol_memory[\s\S]*?source_backup_id/u);
+  assert.match(server, /ALTER TABLE sol_long_term_memory[\s\S]*?source_backup_id/u);
+  assert.doesNotMatch(ownerBackup, /\b(?:DELETE|DROP|TRUNCATE)\b/iu);
 });
 
 test("App lädt sämtliche Seiten chronologisch zurück in den sichtbaren Chat", () => {

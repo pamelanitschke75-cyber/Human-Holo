@@ -21,6 +21,8 @@ const state = {
 
 const HUMAN_HOLO_BACKEND_URL = "https://sol-holo.onrender.com";
 const MEMORY_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
+const OWNER_MEMORY_RESTORE_CHUNK_ITEMS = 200;
+const OWNER_MEMORY_RESTORE_CHUNK_BYTES = 1_500_000;
 
 function currentIdentity() {
   const identity = window.SolHoloIdentity?.selected?.();
@@ -29,6 +31,10 @@ function currentIdentity() {
 
 function backupPlugin() {
   return window.Capacitor?.Plugins?.SolBackup || null;
+}
+
+function memorialBackupApi() {
+  return window.HumanHoloMemorialBackup || null;
 }
 
 function setStatus(message, kind = "info") {
@@ -126,6 +132,177 @@ async function saveEncryptedFile(fileName, contents) {
   browserDownload(fileName, contents);
 }
 
+async function trustedMemorySession() {
+  const trustedSession = await window.SolHoloTrustedSession?.ensure?.({
+    interactive: true
+  });
+  if (!trustedSession?.trusted) {
+    throw new Error("Die sichere App-Sitzung wurde nicht bestätigt.");
+  }
+  return trustedSession;
+}
+
+async function fetchCompleteOwnerMemoryBackup(identity) {
+  await trustedMemorySession();
+  const response = await fetch(
+    `${HUMAN_HOLO_BACKEND_URL}/memory/backup/export`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...window.SolHoloTrustedSession.headers()
+      },
+      body: JSON.stringify({
+        selectedSpeakerId: identity.speakerId,
+        ownerId: identity.ownerId
+      }),
+      cache: "no-store"
+    }
+  );
+  const data = await response.json().catch(() => ({}));
+  if (
+    !response.ok ||
+    data?.exported !== true ||
+    data?.complete !== true ||
+    !data?.backup
+  ) {
+    throw new Error(
+      String(
+        data?.error ||
+        "Das vollständige private Gedächtnis konnte nicht gesichert werden."
+      )
+    );
+  }
+  return data.backup;
+}
+
+async function fetchCompleteMemorialArchive(identity) {
+  const api = memorialBackupApi();
+  if (typeof api?.exportOwner !== "function") {
+    throw new Error(
+      "Der private Bereich Erinnerung & Vermächtnis ist noch nicht vollständig geladen."
+    );
+  }
+  return api.exportOwner(identity.ownerId);
+}
+
+function ownerMemoryChunks(entries) {
+  const result = [];
+  let current = [];
+  let currentBytes = 2;
+  for (const entry of entries) {
+    const entryBytes = new TextEncoder().encode(JSON.stringify(entry)).byteLength + 1;
+    if (
+      current.length > 0 &&
+      (
+        current.length >= OWNER_MEMORY_RESTORE_CHUNK_ITEMS ||
+        currentBytes + entryBytes > OWNER_MEMORY_RESTORE_CHUNK_BYTES
+      )
+    ) {
+      result.push(current);
+      current = [];
+      currentBytes = 2;
+    }
+    current.push(entry);
+    currentBytes += entryBytes;
+  }
+  if (current.length) result.push(current);
+  return result;
+}
+
+async function restoreCompleteOwnerMemory(identity, ownerMemory) {
+  if (!ownerMemory) {
+    return {
+      accepted: 0,
+      inserted: 0,
+      alreadyStored: 0,
+      restored: false
+    };
+  }
+  await trustedMemorySession();
+  const metadata = {
+    format: ownerMemory.format,
+    version: ownerMemory.version,
+    ownerId: ownerMemory.ownerId,
+    speakerId: ownerMemory.speakerId,
+    cloneId: ownerMemory.cloneId,
+    createdAt: ownerMemory.createdAt,
+    integrity: ownerMemory.integrity
+  };
+  const totals = {
+    accepted: 0,
+    inserted: 0,
+    alreadyStored: 0,
+    restored: true
+  };
+  for (const category of [
+    "fulltimeHistory",
+    "confirmedMemories",
+    "supersessions",
+    "legacyConversation",
+    "legacyLongTerm"
+  ]) {
+    const entries = ownerMemory.data?.[category] || [];
+    for (const chunk of ownerMemoryChunks(entries)) {
+      const response = await fetch(
+        `${HUMAN_HOLO_BACKEND_URL}/memory/backup/restore-chunk`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...window.SolHoloTrustedSession.headers()
+          },
+          body: JSON.stringify({
+            metadata,
+            category,
+            entries: chunk,
+            restoreConfirmation: true,
+            selectedSpeakerId: identity.speakerId,
+            ownerId: identity.ownerId
+          }),
+          cache: "no-store"
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.restored !== true || data?.additive !== true) {
+        throw new Error(
+          String(
+            data?.error ||
+            "Die vollständige Gedächtniskopie konnte nicht wiederhergestellt werden. Du kannst denselben Vorgang sicher erneut starten."
+          )
+        );
+      }
+      totals.accepted += Number(data.accepted || 0);
+      totals.inserted += Number(data.inserted || 0);
+      totals.alreadyStored += Number(data.alreadyStored || 0);
+    }
+  }
+  return totals;
+}
+
+async function restoreCompleteMemorialArchive(identity, memorialArchive) {
+  if (!memorialArchive) {
+    return {
+      accepted: 0,
+      inserted: 0,
+      alreadyStored: 0,
+      media: 0,
+      restored: false
+    };
+  }
+  const api = memorialBackupApi();
+  if (typeof api?.restoreOwner !== "function") {
+    throw new Error(
+      "Der private Bereich Erinnerung & Vermächtnis kann gerade nicht wiederhergestellt werden."
+    );
+  }
+  const result = await api.restoreOwner(memorialArchive, identity.ownerId);
+  return {
+    ...result,
+    restored: true
+  };
+}
+
 async function createEncryptedBackup() {
   const identity = currentIdentity();
   if (!identity) {
@@ -139,16 +316,29 @@ async function createEncryptedBackup() {
   }
 
   setBusy(true);
-  setStatus("Lokale Daten werden verschlüsselt …");
+  setStatus("Das vollständige private Gedächtnis wird geprüft und verschlüsselt …");
   try {
-    const snapshot = createBackupSnapshot(localStorage);
+    const ownerMemory = await fetchCompleteOwnerMemoryBackup(identity);
+    const memorialArchive = await fetchCompleteMemorialArchive(identity);
+    const snapshot = createBackupSnapshot(
+      localStorage,
+      new Date(),
+      ownerMemory,
+      memorialArchive
+    );
     const encrypted = await encryptBackup(snapshot, password);
     const fileName = backupFileName();
     await saveEncryptedFile(fileName, encrypted);
     clearPasswords();
+    const counts = ownerMemory.integrity.counts;
     setStatus(
-      `Sicherung gespeichert: ${snapshot.data.notes.length} Notizen, ` +
-      `${snapshot.data.pendingDialogs.length} noch nicht synchronisierte Dialoge.`,
+      `Vollständige Sicherung gespeichert: ${counts.fulltimeHistory} Dialogeinträge, ` +
+      `${counts.confirmedMemories} bestätigte Erinnerungen, ` +
+      `${counts.supersessions} historische Ersetzungen, ` +
+      `${counts.legacyConversation + counts.legacyLongTerm} ältere Erinnerungsbestände, ` +
+      `${snapshot.data.notes.length} Notizen und ` +
+      `${snapshot.data.pendingDialogs.length} noch nicht synchronisierte Dialoge sowie ` +
+      `${memorialArchive.counts.entries} Einträge mit ${memorialArchive.counts.media} freigegebenen Dateien aus Erinnerung & Vermächtnis.`,
       "success"
     );
   } finally {
@@ -159,7 +349,7 @@ async function createEncryptedBackup() {
 function readBrowserFile(file) {
   if (!file) return Promise.reject(new Error("Keine Sicherungsdatei ausgewählt."));
   if (file.size > BACKUP_MAX_BYTES) {
-    return Promise.reject(new Error("Die Sicherungsdatei ist größer als 12 MB."));
+    return Promise.reject(new Error("Die Sicherungsdatei ist größer als 128 MB."));
   }
   return file.text().then((contents) => ({
     fileName: file.name,
@@ -212,7 +402,7 @@ async function selectRestoreFile() {
   try {
     const file = await chooseBackupFile();
     if (new TextEncoder().encode(file.contents).byteLength > BACKUP_MAX_BYTES) {
-      throw new Error("Die Sicherungsdatei ist größer als 12 MB.");
+      throw new Error("Die Sicherungsdatei ist größer als 128 MB.");
     }
     state.selectedFileName = file.fileName;
     state.selectedFileContents = file.contents;
@@ -227,6 +417,7 @@ async function selectRestoreFile() {
 
 function restoreSummaryText(plan) {
   const summary = plan.summary;
+  const ownerCounts = plan.ownerMemory?.integrity?.counts;
   const date = new Intl.DateTimeFormat("de-DE", {
     dateStyle: "medium",
     timeStyle: "short"
@@ -237,6 +428,12 @@ function restoreSummaryText(plan) {
     `${summary.pendingAdded} noch nicht synchronisierte Dialoge ergänzt`,
     `${summary.animalProfilesAdded} neue Tier-Holo-Profile und ${summary.animalObservationsAdded} Beobachtungen ergänzt`,
     `${summary.settingsRestored} lokale Einstellungen`,
+    ownerCounts
+      ? `${ownerCounts.fulltimeHistory} Dialogeinträge, ${ownerCounts.confirmedMemories} bestätigte Erinnerungen, ${ownerCounts.supersessions} historische Ersetzungen und ${ownerCounts.legacyConversation + ownerCounts.legacyLongTerm} ältere Erinnerungsbestände aus dem Servergedächtnis`
+      : "Ältere lokale Sicherung ohne Kopie des Servergedächtnisses",
+    plan.memorialArchive
+      ? `${plan.memorialArchive.counts.entries} Einträge und ${plan.memorialArchive.counts.media} freigegebene Dateien aus Erinnerung & Vermächtnis`
+      : "Ältere Sicherung ohne separaten Bereich Erinnerung & Vermächtnis",
     "Bestehende Einträge werden nicht gelöscht."
   ].join("\n");
 }
@@ -261,9 +458,26 @@ async function verifyAndRestore() {
       setStatus("Sicherung geprüft. Es wurde noch nichts verändert.");
       return;
     }
+    const identity = currentIdentity();
+    if (!identity) {
+      throw new Error("Pams feste Holo-ID ist nicht aktiv.");
+    }
+    const ownerRestore = await restoreCompleteOwnerMemory(
+      identity,
+      plan.ownerMemory
+    );
+    const memorialRestore = await restoreCompleteMemorialArchive(
+      identity,
+      plan.memorialArchive
+    );
     applyBackupRestore(localStorage, plan);
     clearPasswords();
-    setStatus("Wiederherstellung abgeschlossen. Pam’s Holo startet neu …", "success");
+    setStatus(
+      ownerRestore.restored
+        ? `Wiederherstellung abgeschlossen: ${ownerRestore.inserted} Servereinträge und ${memorialRestore.inserted} Vermächtnis-Einträge ergänzt; ${ownerRestore.alreadyStored + memorialRestore.alreadyStored} waren bereits sicher vorhanden. Pam’s Holo startet neu …`
+        : "Lokale Wiederherstellung abgeschlossen. Pam’s Holo startet neu …",
+      "success"
+    );
     window.setTimeout(() => window.location.reload(), 700);
   } finally {
     setBusy(false);
@@ -470,10 +684,12 @@ function markup() {
         </header>
 
         <p class="solBackupLead">
-          Erzeugt eine verschlüsselte Kopie deiner lokalen Notizen,
-          noch nicht synchronisierten Dialoge, Tier-Holo-Profile,
-          bestätigten Tierbeobachtungen und App-Auswahl. Dein
-          owner-gebundenes Servergedächtnis bleibt davon unberührt erhalten.
+          Erzeugt eine vollständige verschlüsselte Kopie deines
+          owner-gebundenen Vollzeitverlaufs, bestätigter Erinnerungen,
+          historischer Korrekturen, lokaler Notizen, noch nicht
+          synchronisierter Dialoge, Tier-Holo-Profile, bestätigter
+          Tierbeobachtungen, App-Auswahl sowie deiner ausdrücklich angelegten
+          Einträge und Dateien unter Erinnerung &amp; Vermächtnis.
         </p>
 
         <section class="solBackupCard" aria-labelledby="solBackupCreateTitle">
@@ -571,7 +787,7 @@ function installUi() {
     <span class="rowIcon" aria-hidden="true">⇩</span>
     <span class="rowText">
       <span class="rowTitle">Sicherung &amp; Wiederherstellung</span>
-      <span class="rowMeta">Verschlüsselte Kopie inklusive Tier-Holo-Gedächtnis</span>
+      <span class="rowMeta">Vollständige verschlüsselte Gedächtniskopie</span>
     </span>
     <span class="rowChevron" aria-hidden="true">›</span>`;
   actionList.appendChild(button);
