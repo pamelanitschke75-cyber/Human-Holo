@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-283-wichtiges-drei-kisten";
+const CACHE_VERSION = "human-holo-284-multimodales-ereignisgedaechtnis";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

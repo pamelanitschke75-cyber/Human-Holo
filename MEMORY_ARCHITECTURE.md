@@ -33,6 +33,46 @@ der strengere Bereich der ausdrücklich bestätigten persönlichen Erinnerungen.
 Ein Eintrag im Vollzeitverlauf wird niemals automatisch zu einem bestätigten
 persönlichen Fakt.
 
+### Modalitätsübergreifendes Ereignisgedächtnis – Stand 12. September 2026
+
+Das Vollzeitgedächtnis verbindet Text, transkribierte Sprache, Foto, Video,
+Live-Kamerakontext und darin sicher erkannten Gebärdensprachkontext über eine
+gemeinsame `memory_event_id`. In
+`source_modalities` wird ausschließlich festgehalten, welche Modalitäten zu
+dem Ereignis gehörten. Der tatsächliche Gedächtnisinhalt besteht aus dem
+ownergebundenen Dialog und Holos damaliger semantischer Auswertung.
+
+Rohbilder, Videodateien, Videoframes und Audiostreams werden nicht in
+`sol_fulltime_memory` geschrieben. Holo darf daher später wiedergeben, was im
+gespeicherten Dialog beschrieben oder damals von ihr ausgewertet wurde, aber
+nicht behaupten, das ursprüngliche Medium erneut sehen oder hören zu können.
+
+Gebärdensprache erhält zusätzlich die Modalität `sign_language`, bleibt aber
+an das zugehörige Video oder Live-Bild gebunden. Eine bloße Handbewegung darf
+nicht automatisch als Sprache gelten. Gebärdensprachen sind nicht universell;
+eine konkrete Sprache wie DGS wird nur bei klarem Kontext benannt. Für blinde
+und sehbehinderte Menschen bleiben Spracheingabe und Sprachausgabe der
+Hauptweg. Wird die optionale Kamera ausdrücklich per Sprache für eine
+Beschreibung angefordert, ist Holos damalige gesprochene Audiobeschreibung
+Teil desselben ownergebundenen Dialogereignisses. Diese Regeln gelten für
+Kinder und Erwachsene.
+
+Jede geschriebene Holo-Antwort bietet zusätzlich die sichtbare Aktion
+`🔊 Vorlesen`. In der Android-App wird der bereits dargestellte Antworttext
+über die lokale deutsche Android-Sprachausgabe wiedergegeben; ein erneuter
+Tipp stoppt sie. Im Browser greift ausschließlich dann die lokale Web-
+Sprachausgabe ein, wenn kein nativer Android-Kanal vorhanden ist. Dafür wird
+kein zweiter KI-Anbieter aufgerufen. Die Android-App akzeptiert für diese
+Funktion ausschließlich eine bereits auf dem Gerät verfügbare deutsche
+Offline-Stimme; Holos Code sendet den Text dabei nicht an einen zusätzlichen
+Server.
+
+Eine eindeutige spätere Ergänzung bekommt dieselbe `memory_event_id`, behält
+aber ihre eigene idempotente `source_event_id`. Dadurch bleibt sie selbst dann
+mit dem Ursprungserlebnis verbunden, wenn dazwischen viele weitere Gespräche
+liegen. Bei mehreren möglichen Bezügen wird nicht geraten. Das Verfahren ist
+themenneutral und gilt für sämtliche aktuellen und künftigen Inhalte.
+
 Die verbindliche technische Reihenfolge lautet:
 
 1. Eine Nachricht kommt als Text oder als transkribierte Sprache an. Die

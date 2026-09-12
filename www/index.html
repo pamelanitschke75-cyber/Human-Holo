@@ -1926,7 +1926,7 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=50">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=51">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
@@ -3594,6 +3594,12 @@ let lastAssistantMemoryTranscript =
 
 let lastAssistantMemoryTranscriptAt =
   0;
+
+let currentRealtimeMemoryEventId =
+  "";
+
+let currentRealtimeMemoryModalities =
+  ["voice"];
 
 
 /*
@@ -8886,6 +8892,376 @@ function humanHoloVisibleText(value){
 window.humanHoloVisibleText =
   humanHoloVisibleText;
 
+
+let activeHoloReadAloudButton =
+  null;
+
+
+let activeHoloReadAloudUtterance =
+  null;
+
+
+let holoReadAloudGeneration =
+  0;
+
+
+let holoReadAloudNativeListenerPromise =
+  null;
+
+
+function getSolReadAloudPlugin(){
+
+  return window.Capacitor?.Plugins?.SolReadAloud || null;
+}
+
+
+function humanHoloSpokenText(
+  value
+){
+
+  return String(value || "")
+    .replace(
+      /\[([^\]]{1,180})\]\((https:\/\/[^\s)]+)\)/giu,
+      "$1"
+    )
+    .replace(
+      /https:\/\/[^\s]+/giu,
+      " Link "
+    )
+    .replace(
+      /(^|\n)\s{0,3}(?:#{1,6}|[-*•])\s+/gu,
+      "$1"
+    )
+    .replace(
+      /[*_`~]+/gu,
+      ""
+    )
+    .replace(
+      /[ \t]+/gu,
+      " "
+    )
+    .replace(
+      /\n{3,}/gu,
+      "\n\n"
+    )
+    .trim();
+}
+
+
+function resetHoloReadAloudButton(){
+
+  if(
+    activeHoloReadAloudButton
+  ){
+
+    activeHoloReadAloudButton.dataset.speaking =
+      "false";
+
+
+    activeHoloReadAloudButton.setAttribute(
+      "aria-pressed",
+      "false"
+    );
+
+
+    activeHoloReadAloudButton.textContent =
+      "🔊 Vorlesen";
+  }
+
+
+  activeHoloReadAloudButton =
+    null;
+
+
+  activeHoloReadAloudUtterance =
+    null;
+}
+
+
+function setHoloReadAloudButtonActive(
+  button
+){
+
+  resetHoloReadAloudButton();
+
+
+  activeHoloReadAloudButton =
+    button;
+
+
+  button.dataset.speaking =
+    "true";
+
+
+  button.setAttribute(
+    "aria-pressed",
+    "true"
+  );
+
+
+  button.textContent =
+    "■ Stoppen";
+}
+
+
+async function ensureHoloReadAloudNativeListener(){
+
+  const plugin =
+    getSolReadAloudPlugin();
+
+
+  if(
+    !plugin?.addListener
+  ){
+
+    return false;
+  }
+
+
+  if(
+    !holoReadAloudNativeListenerPromise
+  ){
+
+    holoReadAloudNativeListenerPromise =
+      Promise.resolve(
+        plugin.addListener(
+          "readAloudState",
+          state => {
+
+            if(
+              state?.speaking ===
+              false
+            ){
+
+              resetHoloReadAloudButton();
+            }
+          }
+        )
+      )
+        .then(() => true)
+        .catch(() => false);
+  }
+
+
+  return holoReadAloudNativeListenerPromise;
+}
+
+
+async function stopHoloReadAloud(){
+
+  holoReadAloudGeneration +=
+    1;
+
+
+  try{
+
+    window.speechSynthesis?.cancel();
+
+  }catch{}
+
+
+  try{
+
+    await getSolReadAloudPlugin()?.stop?.();
+
+  }catch{}
+
+
+  resetHoloReadAloudButton();
+}
+
+
+function startBrowserHoloReadAloud(
+  spokenText,
+  button,
+  generation
+){
+
+  if(
+    !("speechSynthesis" in window) ||
+    !("SpeechSynthesisUtterance" in window)
+  ){
+
+    resetHoloReadAloudButton();
+
+
+    chatStatus.textContent =
+      "Vorlesen ist auf diesem Gerät nicht verfügbar.";
+
+
+    return false;
+  }
+
+
+  const utterance =
+    new SpeechSynthesisUtterance(
+      spokenText
+    );
+
+
+  utterance.lang =
+    "de-DE";
+
+
+  utterance.rate =
+    1;
+
+
+  utterance.pitch =
+    1;
+
+
+  utterance.volume =
+    Math.max(
+      0,
+      Math.min(1, solVolume)
+    );
+
+
+  const finish = () => {
+
+    if(
+      generation ===
+      holoReadAloudGeneration &&
+      activeHoloReadAloudButton ===
+        button
+    ){
+
+      resetHoloReadAloudButton();
+    }
+  };
+
+
+  utterance.onend =
+    finish;
+
+
+  utterance.onerror =
+    finish;
+
+
+  setHoloReadAloudButtonActive(
+    button
+  );
+
+
+  activeHoloReadAloudUtterance =
+    utterance;
+
+
+  window.speechSynthesis.cancel();
+
+
+  window.speechSynthesis.speak(
+    utterance
+  );
+
+
+  return true;
+}
+
+
+async function toggleHoloReadAloud(
+  spokenText,
+  button
+){
+
+  if(
+    activeHoloReadAloudButton ===
+      button
+  ){
+
+    await stopHoloReadAloud();
+    return;
+  }
+
+
+  await stopHoloReadAloud();
+
+
+  const generation =
+    ++holoReadAloudGeneration;
+
+
+  setHoloReadAloudButtonActive(
+    button
+  );
+
+
+  const plugin =
+    getSolReadAloudPlugin();
+
+
+  if(
+    plugin?.speak
+  ){
+
+    try{
+
+      await ensureHoloReadAloudNativeListener();
+
+
+      const result =
+        await plugin.speak({
+          text:spokenText,
+          rate:1,
+          volume:Math.max(
+            0,
+            Math.min(1, solVolume)
+          )
+        });
+
+
+      if(
+        generation !==
+        holoReadAloudGeneration
+      ){
+
+        await plugin.stop?.();
+        return;
+      }
+
+
+      if(
+        result?.started !==
+        false
+      ){
+
+        return;
+      }
+
+    }catch{
+
+      if(
+        window.Capacitor?.isNativePlatform?.()
+      ){
+
+        resetHoloReadAloudButton();
+
+
+        chatStatus.textContent =
+          "Für Vorlesen muss auf diesem Handy eine deutsche Offline-Stimme installiert sein.";
+
+
+        return;
+      }
+    }
+  }
+
+
+  if(
+    generation ===
+    holoReadAloudGeneration
+  ){
+
+    startBrowserHoloReadAloud(
+      spokenText,
+      button,
+      generation
+    );
+  }
+}
+
 function addMessage(
   speaker,
   text,
@@ -8928,6 +9304,15 @@ function addMessage(
     ).trim();
 
 
+  const displayText =
+    className === "sol-message"
+      ? cleanText.replace(
+          /\[([^\]]{1,180})\]\((https:\/\/[^\s)]+)\)/giu,
+          "$1"
+        )
+      : cleanText;
+
+
   if(
     cleanText
   ){
@@ -8939,12 +9324,7 @@ function addMessage(
 
 
     content.textContent =
-      className === "sol-message"
-        ? cleanText.replace(
-            /\[([^\]]{1,180})\]\((https:\/\/[^\s)]+)\)/giu,
-            "$1"
-          )
-        : cleanText;
+      displayText;
 
 
     element.appendChild(
@@ -9031,6 +9411,69 @@ function addMessage(
 
     element.appendChild(
       sourceList
+    );
+  }
+
+
+  const spokenText =
+    humanHoloSpokenText(
+      displayText
+    );
+
+
+  if(
+    className === "sol-message" &&
+    spokenText
+  ){
+
+    const readAloudButton =
+      document.createElement(
+        "button"
+      );
+
+
+    readAloudButton.type =
+      "button";
+
+
+    readAloudButton.className =
+      "messageReadAloud";
+
+
+    readAloudButton.dataset.speaking =
+      "false";
+
+
+    readAloudButton.setAttribute(
+      "aria-label",
+      "Diese Holo-Antwort vorlesen"
+    );
+
+
+    readAloudButton.setAttribute(
+      "aria-pressed",
+      "false"
+    );
+
+
+    readAloudButton.textContent =
+      "🔊 Vorlesen";
+
+
+    readAloudButton.addEventListener(
+      "click",
+      () => {
+
+        void toggleHoloReadAloud(
+          spokenText,
+          readAloudButton
+        );
+      }
+    );
+
+
+    element.appendChild(
+      readAloudButton
     );
   }
 
@@ -11028,7 +11471,8 @@ async function sendLiveTranscriptToMemory(
   transcript,
   role = "user",
   fulltimeEventId = "",
-  suppressAssistantResponse = false
+  suppressAssistantResponse = false,
+  sourceModalities = ["voice"]
 ){
 
   const identity =
@@ -11049,6 +11493,29 @@ async function sendLiveTranscriptToMemory(
     String(
       transcript || ""
     ).trim();
+
+
+  const cleanSourceModalities =
+    [...new Set(
+      [
+        "voice",
+        ...(
+          Array.isArray(sourceModalities)
+            ? sourceModalities
+            : []
+        )
+      ].filter(
+        modality =>
+          [
+            "text",
+            "voice",
+            "image",
+            "video",
+            "live_image",
+            "sign_language"
+          ].includes(modality)
+      )
+    )];
 
 
   if(
@@ -11137,6 +11604,9 @@ async function sendLiveTranscriptToMemory(
 
               source:
                 "voice",
+
+              sourceModalities:
+                cleanSourceModalities,
 
               suppressAssistantResponse:
                 suppressAssistantResponse ===
@@ -11537,8 +12007,51 @@ async function handleRealtimeLocalNoteTranscript(
 
 async function handleRealtimeUserTranscript(
   transcript,
-  fulltimeEventId = ""
+  fulltimeEventId = "",
+  sourceModalities = ["voice"]
 ){
+
+  const screenDescriptionRequested =
+    isCurrentHoloScreenDescriptionRequest(
+      transcript
+    );
+
+
+  if(
+    screenDescriptionRequested
+  ){
+
+    const screenDescription =
+      describeCurrentHoloScreen();
+
+
+    addMessage(
+      HOLO_CHAT_SPEAKER,
+      screenDescription,
+      "sol-message"
+    );
+
+
+    chatStatus.textContent =
+      "Aktuellen Human-Holo-Bildschirm per Sprache erklärt.";
+
+
+    speakExecutedRealtimeResult(
+      "[LOKALE_BILDSCHIRMBESCHREIBUNG]",
+      screenDescription
+    );
+  }
+
+  if(
+    !liveCameraIsActive() &&
+    !screenDescriptionRequested &&
+    isVoiceCameraDescriptionRequest(
+      transcript
+    )
+  ){
+
+    await startLiveCamera();
+  }
 
   await sendCurrentLiveCameraFrame({
     force:true,
@@ -11547,6 +12060,7 @@ async function handleRealtimeUserTranscript(
 
 
   const localHandled =
+    screenDescriptionRequested ||
     await handleRealtimeLocalNoteTranscript(
       transcript
     );
@@ -11557,7 +12071,8 @@ async function handleRealtimeUserTranscript(
       transcript,
       "user",
       fulltimeEventId,
-      localHandled
+      localHandled,
+      sourceModalities
     );
 
 
@@ -11576,6 +12091,115 @@ async function handleRealtimeUserTranscript(
 LIVE-KAMERA → REALTIME-BILDER
 ==========================================================
 */
+
+function isCurrentHoloScreenDescriptionRequest(
+  value
+){
+
+  const text =
+    String(
+      value ||
+      ""
+    )
+      .toLocaleLowerCase(
+        "de-DE"
+      )
+      .replace(
+        /\s+/gu,
+        " "
+      )
+      .trim();
+
+
+  return (
+    /\b(?:erklär(?:e|st)?|erklaer(?:e|st)?|beschreib(?:e|st)?|lies|lese|sag|sage)\b[^.!?]{0,72}\b(?:meinen bildschirm|meinem bildschirm|den bildschirm|dem bildschirm|handybildschirm|auf dem handy)\b/u.test(
+      text
+    ) ||
+    /\bwas (?:steht|siehst du|ist)\b[^.!?]{0,48}\b(?:auf meinem bildschirm|auf dem bildschirm|auf dem handy)\b/u.test(
+      text
+    )
+  );
+}
+
+
+function describeCurrentHoloScreen(){
+
+  if(
+    document.body.classList.contains(
+      "voice-open"
+    )
+  ){
+
+    return liveCameraIsActive()
+      ? "Du bist im Sprachgespräch mit Human Holo. Die Live-Kamera ist eingeschaltet. Du kannst weiter sprechen, die Kamera wechseln oder den Live-Bildmodus beenden. Soll ich dir den nächsten Schritt erklären?"
+      : "Du bist im Sprachgespräch mit Human Holo. Holo hört dir zu und antwortet hörbar. Die Live-Kamera ist ausgeschaltet; du kannst sie mit einem Sprachbefehl für eine Beschreibung öffnen. Soll ich dir den nächsten Schritt erklären?";
+  }
+
+
+  const viewName =
+    String(
+      app?.dataset?.activeView ||
+      "home"
+    );
+
+
+  const descriptions = {
+    home:
+      "Du bist auf der Human-Holo-Startseite. Hier findest du die Alltagsbereiche und unten die Navigation zu Start, Chat, Erinnerungen, Diensten und Profil.",
+    chat:
+      "Du bist im Chat mit Human Holo. Hier kannst du sprechen, schreiben, ein Foto aufnehmen oder ein vorhandenes Foto beziehungsweise Video auswählen.",
+    notes:
+      "Du bist im Bereich Wichtiges mit Notizen, Einkaufsliste und Kalender.",
+    memory:
+      "Du bist im Bereich Erinnerungen. Hier wird erklärt, wie dein ownergebundenes Vollzeitgedächtnis arbeitet.",
+    memorial:
+      "Du bist im geschützten Bereich Erinnerung und Vermächtnis.",
+    medication:
+      "Du bist bei der Medikamentenerkennung. Ein Foto wird nur nach deiner ausdrücklichen Freigabe ausgewertet; Human Holo gibt keine persönliche Dosierung vor.",
+    services:
+      "Du bist im Bereich Dienste. Hier werden einzelne Verbindungen wie Telefon, Kalender, Karten und Smart Home verwaltet.",
+    profile:
+      "Du bist im persönlichen Human-Holo-Profil.",
+    settings:
+      "Du bist in den Einstellungen deines persönlichen Human Holo."
+  };
+
+
+  return descriptions[viewName] ||
+    descriptions.home;
+}
+
+function isVoiceCameraDescriptionRequest(
+  value
+){
+
+  const text =
+    String(
+      value ||
+      ""
+    )
+      .toLocaleLowerCase(
+        "de-DE"
+      )
+      .replace(
+        /\s+/gu,
+        " "
+      )
+      .trim();
+
+
+  return (
+    /\b(?:starte|start|öffne|oeffne|aktiviere|schalte)\b[^.!?]{0,48}\b(?:kamera|live[ -]?bild)\b/u.test(
+      text
+    ) ||
+    /\b(?:beschreib(?:e|st)?|erklär(?:e|st)?|erklaer(?:e|st)?|sag|sage|zeig|erkennst|siehst|was ist)\b[^.!?]{0,72}\b(?:was du (?:da )?siehst|vor mir|um mich|auf dem bild|durch die kamera|in der kamera)\b/u.test(
+      text
+    ) ||
+    /\b(?:lies|lese)\b[^.!?]{0,72}\b(?:vor mir|durch die kamera|auf dem schild|auf der packung|auf dem etikett)\b/u.test(
+      text
+    )
+  );
+}
 
 function liveCameraIsActive(){
 
@@ -12734,6 +13358,12 @@ function stopLiveConversation({
   lastAssistantMemoryTranscriptAt =
     0;
 
+  currentRealtimeMemoryEventId =
+    "";
+
+  currentRealtimeMemoryModalities =
+    ["voice"];
+
 stopLipSync();
 
 
@@ -13421,12 +14051,36 @@ function saveRealtimeAssistantTranscript(
   lastAssistantMemoryTranscript = transcript;
   lastAssistantMemoryTranscriptAt = now;
 
-  sendLiveTranscriptToMemory(
+  const sourceTurnEventId =
+    currentRealtimeMemoryEventId ||
+    realtimeEvent?.event_id ||
+    realtimeEvent?.item_id ||
+    createFulltimeEventId();
+
+  const sourceModalities =
+    [...currentRealtimeMemoryModalities];
+
+  void sendLiveTranscriptToMemory(
     transcript,
     "assistant",
-    realtimeEvent?.event_id ||
-      realtimeEvent?.item_id ||
-      ""
+    sourceTurnEventId,
+    false,
+    sourceModalities
+  ).finally(
+    () => {
+
+      if(
+        currentRealtimeMemoryEventId ===
+          sourceTurnEventId
+      ){
+
+        currentRealtimeMemoryEventId =
+          "";
+
+        currentRealtimeMemoryModalities =
+          ["voice"];
+      }
+    }
   );
 }
 
@@ -13491,6 +14145,9 @@ async function startLiveConversation(){
 
     return;
   }
+
+
+  await stopHoloReadAloud();
 
 
   if(
@@ -14021,7 +14678,24 @@ async function startLiveConversation(){
               const transcriptEventId =
                 realtimeEvent?.event_id ||
                 realtimeEvent?.item_id ||
-                "";
+                createFulltimeEventId();
+
+
+              const transcriptModalities =
+                liveCameraIsActive()
+                  ? [
+                      "voice",
+                      "live_image"
+                    ]
+                  : ["voice"];
+
+
+              currentRealtimeMemoryEventId =
+                transcriptEventId;
+
+
+              currentRealtimeMemoryModalities =
+                [...transcriptModalities];
 
 
               if(
@@ -14030,7 +14704,8 @@ async function startLiveConversation(){
 
                 void handleRealtimeUserTranscript(
                   transcript,
-                  transcriptEventId
+                  transcriptEventId,
+                  transcriptModalities
                 );
 
               }else{
@@ -14038,7 +14713,9 @@ async function startLiveConversation(){
                 sendLiveTranscriptToMemory(
                   transcript,
                   "user",
-                  transcriptEventId
+                  transcriptEventId,
+                  false,
+                  transcriptModalities
                 );
 
 
@@ -14452,7 +15129,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=76"></script>
+<script src="./sol-holo-ui.js?v=77"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=1"></script>
