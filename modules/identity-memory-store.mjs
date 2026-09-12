@@ -4,6 +4,9 @@ import {
   resolveCanonicalOwnerId,
   toSafeIdentityMemoryAuditEvent
 } from "./identity-memory.mjs";
+import {
+  prepareDurableMemoryContent
+} from "../www/human-holo-durable-memory.mjs";
 
 export class IdentityMemoryStoreError extends Error {
   constructor(code) {
@@ -74,7 +77,10 @@ function confirmedBatchValues(
   const seen = new Set();
 
   for (const value of values) {
-    const content = String(value ?? "").normalize("NFKC").trim();
+    const content = prepareDurableMemoryContent(value)
+      .content
+      .normalize("NFKC")
+      .trim();
     const key = content.toLocaleLowerCase("de-DE");
 
     if (!content || content.length > 10_000 || seen.has(key)) {
@@ -248,6 +254,19 @@ export function createIdentityMemoryStore({
         throw new IdentityMemoryStoreError("IDENTITY_MISMATCH");
       }
 
+      const preparedContent =
+        prepareDurableMemoryContent(
+          memory.content
+        );
+
+      if (!preparedContent.content.trim()) {
+        await emitSafeAudit(audit, {
+          kind: MEMORY_DECISION.REJECT,
+          reason: "empty_after_secret_protection"
+        });
+        throw new IdentityMemoryStoreError("MEMORY_CONTENT_EMPTY");
+      }
+
       const result = await query(
         `
           INSERT INTO sol_identity_memory (
@@ -278,7 +297,7 @@ export function createIdentityMemoryStore({
           memory.speakerId,
           memory.role,
           memory.sourceType,
-          memory.content,
+          preparedContent.content,
           memory.confirmedBy,
           memory.confirmationMethod,
           legacySource?.table ?? null,
@@ -287,7 +306,15 @@ export function createIdentityMemoryStore({
       );
 
       await emitSafeAudit(audit, decision);
-      return result.rows[0] ?? null;
+      return result.rows[0]
+        ? {
+            ...result.rows[0],
+            content:
+              preparedContent.content,
+            secretRedacted:
+              preparedContent.changed
+          }
+        : null;
     },
 
     async listConfirmed({ ownerId, speakerId, limit = 50 }) {

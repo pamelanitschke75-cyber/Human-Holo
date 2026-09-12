@@ -68,6 +68,9 @@ import {
   resolvePersonalRecallContextQuery
 } from "./modules/personal-memory-context.mjs";
 import {
+  prepareDurableMemoryContent
+} from "./www/human-holo-durable-memory.mjs";
+import {
   formatMultimodalEventRows,
   mayReferToRecentMultimodalEvent,
   mentionsSignLanguage,
@@ -1311,6 +1314,16 @@ async function initializeMemory() {
       NOT NULL DEFAULT ARRAY[]::TEXT[]
   `);
 
+  await db.query(`
+    ALTER TABLE sol_fulltime_memory
+    ADD COLUMN IF NOT EXISTS event_occurred_on DATE
+  `);
+
+  await db.query(`
+    ALTER TABLE sol_fulltime_memory
+    ADD COLUMN IF NOT EXISTS content_sha256 TEXT
+  `);
+
   /*
     Vollzeitgedächtnis: Die Daten werden NICHT rotiert oder
     nach 50 Einträgen gelöscht. Diese Indizes beschleunigen
@@ -1341,6 +1354,16 @@ async function initializeMemory() {
       id DESC
     )
     WHERE memory_event_id IS NOT NULL
+  `);
+
+  await db.query(`
+    CREATE INDEX IF NOT EXISTS sol_fulltime_memory_occurrence_idx
+    ON sol_fulltime_memory (
+      clone_id,
+      event_occurred_on,
+      id DESC
+    )
+    WHERE event_occurred_on IS NOT NULL
   `);
 
   await db.query(`
@@ -6427,6 +6450,18 @@ async function saveFulltimeMemory(
   const originalContent =
     String(content);
 
+  const preparedContent =
+    prepareDurableMemoryContent(
+      originalContent
+    );
+
+  const durableContent =
+    preparedContent.content;
+
+  if (!durableContent.trim()) {
+    return false;
+  }
+
   const safeRole =
     role === "assistant"
       ? "assistant"
@@ -6463,6 +6498,21 @@ async function saveFulltimeMemory(
       }
     );
 
+  const relativeDayOffset =
+    safeRole === "user"
+      ? personalMemoryRelativeDayOffset(
+          originalContent
+        ) ?? 0
+      : null;
+
+  const contentSha256 =
+    createHash("sha256")
+      .update(
+        durableContent,
+        "utf8"
+      )
+      .digest("hex");
+
   const result = await db.query(
     `
       INSERT INTO sol_fulltime_memory (
@@ -6471,19 +6521,51 @@ async function saveFulltimeMemory(
         content,
         source_event_id,
         memory_event_id,
-        source_modalities
+        source_modalities,
+        event_occurred_on,
+        content_sha256
       )
-      VALUES ($1, $2, $3, $4, $5, $6::text[])
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6::text[],
+        CASE
+          WHEN $2 = 'user' THEN
+            (
+              CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
+            )::date + COALESCE($7::integer, 0)
+          ELSE COALESCE(
+            (
+              SELECT event_occurred_on
+              FROM sol_fulltime_memory
+              WHERE clone_id = $1
+                AND memory_event_id = $5
+                AND role = 'user'
+              ORDER BY id DESC
+              LIMIT 1
+            ),
+            (
+              CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
+            )::date
+          )
+        END,
+        $8
+      )
       ON CONFLICT DO NOTHING
       RETURNING id
     `,
     [
       cloneIdForOwner(ownerId),
       safeRole,
-      originalContent,
+      durableContent,
       cleanSourceEventId,
       cleanMemoryEventId,
-      cleanSourceModalities
+      cleanSourceModalities,
+      relativeDayOffset,
+      contentSha256
     ]
   );
 
@@ -6901,14 +6983,18 @@ async function loadOwnerRelativeDayFulltimeRows(
           source_event_id,
           memory_event_id,
           source_modalities,
+          event_occurred_on,
           created_at,
           'fulltime-relative-day' AS source,
           100 AS match_distance
         FROM sol_fulltime_memory
         WHERE clone_id = $1
-          AND (
-            created_at AT TIME ZONE 'Europe/Berlin'
-          )::date = (
+          AND COALESCE(
+            event_occurred_on,
+            (
+              created_at AT TIME ZONE 'Europe/Berlin'
+            )::date
+          ) = (
             CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin'
           )::date + $2::integer
         ORDER BY id DESC
@@ -8642,6 +8728,18 @@ app.post(
           ? req.body.messages
           : [];
 
+      const requestedRevision =
+        Number(
+          req.body?.revision
+        );
+
+      const revision =
+        Number.isSafeInteger(
+          requestedRevision
+        ) && requestedRevision > 0
+          ? requestedRevision
+          : null;
+
       if (
         !/^[a-zA-Z0-9:_-]{16,160}$/.test(
           sourceEventId
@@ -8678,6 +8776,30 @@ app.post(
             ""
           );
 
+        const requestedEntrySourceEventId =
+          String(
+            entry?.sourceEventId ||
+            ""
+          ).trim();
+
+        const derivedEntrySourceEventId =
+          entries.length === 1
+            ? `${sourceEventId}:${role}`
+            : `${sourceEventId}:${index}:${role}`;
+
+        const entrySourceEventId =
+          /^[a-zA-Z0-9:_-]{16,160}$/.test(
+            requestedEntrySourceEventId
+          ) &&
+          requestedEntrySourceEventId.startsWith(
+            `${sourceEventId}:`
+          ) &&
+          requestedEntrySourceEventId.endsWith(
+            `:${role}`
+          )
+            ? requestedEntrySourceEventId
+            : derivedEntrySourceEventId;
+
         if (
           !role ||
           !content.trim() ||
@@ -8699,8 +8821,9 @@ app.post(
               ownerId:
                 identity.ownerId,
               sourceEventId:
-                `${sourceEventId}:${index}:${role}`,
+                entrySourceEventId,
               sourceModalities:
+                entry?.sourceModalities ||
                 req.body?.sourceModalities ||
                 ["text"]
             }
@@ -8718,9 +8841,19 @@ app.post(
         .json({
           saved:
             true,
+          durable:
+            true,
+          acknowledgedSourceEventId:
+            sourceEventId,
+          acknowledgedRevision:
+            revision,
           inserted,
           alreadyStored:
             entries.length - inserted,
+          storedRoles:
+            entries.map(
+              entry => entry.role
+            ),
           identity:
             publicIdentity(
               identity
@@ -11781,9 +11914,14 @@ app.post("/sol", async (req, res) => {
       const persisted =
         Boolean(savedMemory);
       const rememberContent =
-        memoryDecision.memory.content;
+        savedMemory?.content ||
+        prepareDurableMemoryContent(
+          memoryDecision.memory.content
+        ).content;
       const answer = persisted
-        ? `Ja, ${identity.displayName}. Das habe ich dauerhaft gespeichert: ${rememberContent}`
+        ? savedMemory?.secretRedacted
+          ? `${identity.displayName}, den persönlichen Inhalt habe ich dauerhaft gespeichert. Ausdrücklich genannte Zugangsdaten habe ich zu deinem Schutz nicht ins Gedächtnis übernommen.`
+          : `Ja, ${identity.displayName}. Das habe ich dauerhaft gespeichert: ${rememberContent}`
         : `${identity.displayName}, diese bestätigte Erinnerung ist bereits gespeichert.`;
 
       await saveFulltimeAssistant(

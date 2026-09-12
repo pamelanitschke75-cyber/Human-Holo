@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 
 import {
   OWNER_MEMORY_BACKUP_FORMAT,
@@ -14,6 +15,10 @@ const ownerId = "pam-sol";
 const speakerId = "pam";
 const cloneId = "pam-sol-001";
 
+function sha256(content) {
+  return createHash("sha256").update(content, "utf8").digest("hex");
+}
+
 function sourceRows() {
   return {
     fulltime: [{
@@ -22,6 +27,8 @@ function sourceRows() {
       source_event_id: "backup-test-event-0001:user",
       memory_event_id: "backup-test-event-0001",
       source_modalities: ["text"],
+      event_occurred_on: "2026-09-11",
+      content_sha256: sha256("Private Testangabe für das ownergebundene Gedächtnis."),
       created_at: "2026-09-12T20:00:00.000Z"
     }, {
       role: "assistant",
@@ -29,6 +36,8 @@ function sourceRows() {
       source_event_id: null,
       memory_event_id: "backup-test-event-0001",
       source_modalities: ["text"],
+      event_occurred_on: "2026-09-11",
+      content_sha256: sha256("Privat gespeichert, nicht öffentlich dokumentiert."),
       created_at: "2026-09-12T20:00:01.000Z"
     }],
     confirmed: [{
@@ -129,6 +138,8 @@ test("Export erfasst alle aktiven und älteren Gedächtnisbereiche vollständig"
   });
   assert.match(backup.integrity.contentDigest, /^[a-f0-9]{64}$/u);
   assert.ok(backup.data.fulltimeHistory.every(row => row.backupEntryId));
+  assert.ok(backup.data.fulltimeHistory.every(row => row.eventOccurredOn === "2026-09-11"));
+  assert.ok(backup.data.fulltimeHistory.every(row => /^[a-f0-9]{64}$/u.test(row.contentSha256)));
   assert.match(client.calls[0].sql, /REPEATABLE READ READ ONLY/u);
   assert.equal(client.calls.at(-1).sql, "COMMIT");
   assert.equal(client.released, true);
@@ -159,7 +170,11 @@ test("Manipulation und fremde Owner-Bindung werden abgewiesen", () => {
         }, ...backup.data.fulltimeHistory.slice(1)]
       }
     }),
-    error => error instanceof OwnerMemoryBackupError && error.code === "BACKUP_INTEGRITY_INVALID"
+    error =>
+      error instanceof OwnerMemoryBackupError &&
+      ["BACKUP_INTEGRITY_INVALID", "BACKUP_CONTENT_DIGEST_INVALID"].includes(
+        error.code
+      )
   );
   assert.throws(
     () => validateOwnerMemoryBackup(backup, { ownerId: "steffi-sol" }),
@@ -215,6 +230,37 @@ test("Wiederherstellung erfolgt stückweise, transaktional, additiv und idempote
   assert.match(sql, /BEGIN ISOLATION LEVEL SERIALIZABLE/u);
   assert.match(sql, /ON CONFLICT DO NOTHING/u);
   assert.match(sql, /WHERE NOT EXISTS/u);
+  assert.match(sql, /event_occurred_on/u);
+  assert.match(sql, /content_sha256/u);
   assert.doesNotMatch(sql, /\b(?:DELETE|DROP|TRUNCATE)\b/iu);
   assert.equal((sql.match(/COMMIT/gu) || []).length, 5);
+});
+
+test("ältere Sicherungen ohne Ereignistag und Inhaltshash bleiben gültig", () => {
+  const legacyFulltime = sourceRows().fulltime.map(row => {
+    const {
+      event_occurred_on: ignoredEventDate,
+      content_sha256: ignoredDigest,
+      ...legacyRow
+    } = row;
+    void ignoredEventDate;
+    void ignoredDigest;
+    return legacyRow;
+  });
+  const backup = buildOwnerMemoryBackup({
+    ownerId,
+    speakerId,
+    cloneId,
+    createdAt: "2026-09-12T20:05:00.000Z",
+    fulltimeHistory: legacyFulltime
+  });
+
+  const validated = validateOwnerMemoryBackup(backup, {
+    ownerId,
+    speakerId,
+    cloneId
+  });
+  assert.equal(validated.data.fulltimeHistory.length, 2);
+  assert.equal("eventOccurredOn" in validated.data.fulltimeHistory[0], false);
+  assert.equal("contentSha256" in validated.data.fulltimeHistory[0], false);
 });

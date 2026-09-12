@@ -55,6 +55,28 @@ function cleanTimestamp(value) {
   return date.toISOString();
 }
 
+function cleanOptionalDate(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const clean = String(value).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(clean)) {
+    throw new OwnerMemoryBackupError("BACKUP_EVENT_DATE_INVALID");
+  }
+  const date = new Date(`${clean}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== clean) {
+    throw new OwnerMemoryBackupError("BACKUP_EVENT_DATE_INVALID");
+  }
+  return clean;
+}
+
+function cleanOptionalDigest(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const clean = String(value).trim().toLocaleLowerCase("en-US");
+  if (!DIGEST_PATTERN.test(clean)) {
+    throw new OwnerMemoryBackupError("BACKUP_CONTENT_DIGEST_INVALID");
+  }
+  return clean;
+}
+
 function cleanPositiveInteger(value) {
   const number = Number(value);
   return Number.isSafeInteger(number) && number > 0 ? number : null;
@@ -91,21 +113,47 @@ function normalizeFulltimeRow(row, ownerId) {
   const sourceModalities = cleanModalities(
     row?.sourceModalities ?? row?.source_modalities
   );
-  return {
-    backupEntryId: stableEntryId("fulltime", [
-      ownerId,
-      role,
-      content,
-      sourceEventId,
-      memoryEventId,
-      sourceModalities,
-      createdAt
-    ]),
+  const hasEventOccurredOn = Object.prototype.hasOwnProperty.call(
+    row || {},
+    "eventOccurredOn"
+  ) || Object.prototype.hasOwnProperty.call(row || {}, "event_occurred_on");
+  const hasContentSha256 = Object.prototype.hasOwnProperty.call(
+    row || {},
+    "contentSha256"
+  ) || Object.prototype.hasOwnProperty.call(row || {}, "content_sha256");
+  const eventOccurredOn = cleanOptionalDate(
+    row?.eventOccurredOn ?? row?.event_occurred_on
+  );
+  const contentSha256 = cleanOptionalDigest(
+    row?.contentSha256 ?? row?.content_sha256
+  );
+  if (
+    contentSha256 &&
+    createHash("sha256").update(content, "utf8").digest("hex") !== contentSha256
+  ) {
+    throw new OwnerMemoryBackupError("BACKUP_CONTENT_DIGEST_INVALID");
+  }
+  const stableFields = [
+    ownerId,
     role,
     content,
     sourceEventId,
     memoryEventId,
     sourceModalities,
+    createdAt
+  ];
+  if (hasEventOccurredOn || hasContentSha256) {
+    stableFields.push(eventOccurredOn, contentSha256);
+  }
+  return {
+    backupEntryId: stableEntryId("fulltime", stableFields),
+    role,
+    content,
+    sourceEventId,
+    memoryEventId,
+    sourceModalities,
+    ...(hasEventOccurredOn ? { eventOccurredOn } : {}),
+    ...(hasContentSha256 ? { contentSha256 } : {}),
     createdAt
   };
 }
@@ -505,6 +553,8 @@ async function restoreFulltimeChunk(query, chunk) {
               COALESCE(item->'sourceModalities', '["text"]'::jsonb)
             )
           ) AS source_modalities,
+          NULLIF(item->>'eventOccurredOn', '')::date AS event_occurred_on,
+          NULLIF(item->>'contentSha256', '') AS content_sha256,
           (item->>'createdAt')::timestamptz AS created_at
         FROM jsonb_array_elements($2::jsonb) AS source(item)
       )
@@ -515,6 +565,8 @@ async function restoreFulltimeChunk(query, chunk) {
         source_event_id,
         memory_event_id,
         source_modalities,
+        event_occurred_on,
+        content_sha256,
         created_at
       )
       SELECT
@@ -527,6 +579,11 @@ async function restoreFulltimeChunk(query, chunk) {
         ),
         incoming.memory_event_id,
         incoming.source_modalities,
+        COALESCE(
+          incoming.event_occurred_on,
+          (incoming.created_at AT TIME ZONE 'Europe/Berlin')::date
+        ),
+        incoming.content_sha256,
         incoming.created_at
       FROM incoming
       WHERE NOT EXISTS (
@@ -719,6 +776,8 @@ export function createOwnerMemoryBackupStore({ database }) {
                 source_event_id,
                 memory_event_id,
                 source_modalities,
+                event_occurred_on,
+                content_sha256,
                 created_at
               FROM sol_fulltime_memory
               WHERE clone_id = $1
