@@ -140,6 +140,10 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
     "was hast du uns gestern zum essen empfohlen"
   );
   assert.equal(
+    serverDetector("Was haben wir gestern gegessen?"),
+    "was haben wir gestern gegessen"
+  );
+  assert.equal(
     clientDetector("Was hast du uns gestern zum Essen empfohlen?"),
     "was hast du uns gestern zum essen empfohlen"
   );

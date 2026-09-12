@@ -195,6 +195,70 @@ test("persönliche Rückfragen durchsuchen bestätigte und vollständige Histori
   );
 });
 
+test("relative Tagesfragen mischen niemals ältere Erinnerungen in gestern hinein", () => {
+  const loaderStart = server.indexOf(
+    "async function loadRelevantOwnerRecallHistory"
+  );
+  const loaderEnd = server.indexOf(
+    "async function loadRecentFulltimeMemory",
+    loaderStart
+  );
+  const loader = server.slice(loaderStart, loaderEnd);
+
+  assert.notEqual(loaderStart, -1);
+  assert.ok(loaderEnd > loaderStart);
+  assert.match(
+    loader,
+    /loadRelativeDay[\s\S]*?\? Promise\.resolve\(\[\]\)[\s\S]*?: loadRelevantOwnerFulltimeContextRows/u
+  );
+  assert.match(
+    loader,
+    /loadRelativeDay[\s\S]*?\? relativeDayRows[\s\S]*?: matchedRows/u
+  );
+  assert.match(loader, /strictRelativeDay:[\s\S]*?loadRelativeDay/u);
+  assert.match(loader, /scopedRows:/u);
+  assert.match(
+    server,
+    /Ersetze einen fehlenden Tagesbeleg niemals durch „zuletzt[\s\S]*?gespeicherte“ Angaben von einem anderen Datum/u
+  );
+});
+
+test("der relative Tagesabruf übergibt jedes gespeicherte Wort chronologisch", () => {
+  const formatterStart = server.indexOf(
+    "function formatChronologicalFulltimeRows"
+  );
+  const formatterEnd = server.indexOf(
+    "function formatConfirmedMemoryRows",
+    formatterStart
+  );
+  const formatter = new Function(
+    `${server.slice(formatterStart, formatterEnd)}\n` +
+    "return formatChronologicalFulltimeRows;"
+  )();
+  const result = formatter(
+    [
+      {
+        id: 2,
+        role: "assistant",
+        content: "Das ist panierter Fisch; im Airfryer wird er knusprig.",
+        created_at: "2026-09-11T18:02:00.000Z"
+      },
+      {
+        id: 1,
+        role: "user",
+        content: "Wie bereite ich den zu?\n[Foto gesendet]",
+        created_at: "2026-09-11T18:01:00.000Z"
+      }
+    ],
+    "Pam",
+    "Pam’s Holo"
+  );
+
+  assert.ok(result.indexOf("Wie bereite ich den zu?") < result.indexOf("Das ist panierter Fisch"));
+  assert.match(result, /\[Foto gesendet\]/u);
+  assert.match(result, /Pam’s Holo \(damalige Antwort, kein eigenständiger Beleg\)/u);
+});
+
 test("Holo-Antworten bleiben abrufbar, gelten aber niemals als persönliche Fakten", () => {
   assert.match(
     server,

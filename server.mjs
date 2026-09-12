@@ -7142,31 +7142,40 @@ async function loadRelevantOwnerRecallHistory(
     personalMemoryRelativeDayOffset(
       recallMessage
     );
-  const loadRelativeDay =
-    relativeDayOffset !== null &&
+  const explicitRecall =
     Boolean(
       personalRecallSearchQuery(
         recallMessage
       ) ||
+      personalRecallSearchQuery(
+        message
+      )
+    );
+  const loadRelativeDay =
+    relativeDayOffset !== null &&
+    Boolean(
+      explicitRecall ||
       isAssistantHistoryRecallRequest(
         recallMessage
       )
     );
   const [matchedRows, relativeDayRows] =
     await Promise.all([
-      loadRelevantOwnerFulltimeContextRows(
-        identity,
-        message,
-        limit,
-        {
-          currentMessage
-        }
-      ),
+      loadRelativeDay
+        ? Promise.resolve([])
+        : loadRelevantOwnerFulltimeContextRows(
+            identity,
+            message,
+            limit,
+            {
+              currentMessage
+            }
+          ),
       loadRelativeDay
         ? loadOwnerRelativeDayFulltimeRows(
             identity,
             relativeDayOffset,
-            48
+            80
           )
         : Promise.resolve([])
     ]);
@@ -7179,10 +7188,11 @@ async function loadRelevantOwnerRecallHistory(
   const seen =
     new Set();
   const rows =
-    [
-      ...matchedRows,
-      ...relativeDayRows
-    ].filter(
+    (
+      loadRelativeDay
+        ? relativeDayRows
+        : matchedRows
+    ).filter(
       row => {
         const id =
           String(row?.id || "");
@@ -7210,16 +7220,12 @@ async function loadRelevantOwnerRecallHistory(
       }
     );
   const safeLimit =
-    Math.min(
-      100,
-      Math.max(1, Number(limit) || 36)
-    );
-  const explicitRecall =
-    Boolean(
-      personalRecallSearchQuery(
-        recallMessage
-      )
-    );
+    loadRelativeDay
+      ? 80
+      : Math.min(
+          100,
+          Math.max(1, Number(limit) || 36)
+        );
   const visualEventIds =
     new Set(
       rows
@@ -7233,6 +7239,17 @@ async function loadRelevantOwnerRecallHistory(
     );
 
   return {
+    strictRelativeDay:
+      loadRelativeDay,
+    relativeDayOffset:
+      loadRelativeDay
+        ? relativeDayOffset
+        : null,
+    scopedRows:
+      rows.slice(
+        0,
+        safeLimit
+      ),
     groundedRows:
       ownerGroundedPersonalMemoryRows(
         rows
@@ -7949,6 +7966,51 @@ function formatPersonalMemoryRows(
     .join("\n");
 }
 
+function formatChronologicalFulltimeRows(
+  rows,
+  displayName = "Pam",
+  instanceName = "Pam’s Holo",
+  maximumCharacters = 16_000
+) {
+  return [...(Array.isArray(rows) ? rows : [])]
+    .sort(
+      (first, second) =>
+        Number(first?.id || 0) -
+        Number(second?.id || 0)
+    )
+    .map(row => {
+      const createdAt =
+        new Date(
+          row?.created_at ||
+          ""
+        );
+      const timestamp =
+        !Number.isNaN(
+          createdAt.getTime()
+        )
+          ? new Intl.DateTimeFormat(
+              "de-DE",
+              {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Europe/Berlin"
+              }
+            ).format(
+              createdAt
+            )
+          : "Zeitpunkt unbekannt";
+      const speaker =
+        row?.role === "assistant"
+          ? `${instanceName} (damalige Antwort, kein eigenständiger Beleg)`
+          : displayName;
+
+      return `${timestamp} · ${speaker}: ${String(row?.content || "")}`;
+    })
+    .filter(line => line.split(": ")[1])
+    .join("\n")
+    .slice(0, maximumCharacters);
+}
+
 function formatConfirmedMemoryRows(
   rows,
   displayName
@@ -8105,6 +8167,19 @@ async function buildPersonalRecallResult(
   const explicitQuery =
     recallContext.query;
 
+  const relativeDayOffset =
+    personalMemoryRelativeDayOffset(
+      message
+    );
+  const strictRelativeDayRecall =
+    relativeDayOffset !== null &&
+    Boolean(
+      explicitQuery ||
+      isAssistantHistoryRecallRequest(
+        message
+      )
+    );
+
   const query =
     String(
       explicitQuery ||
@@ -8129,16 +8204,18 @@ async function buildPersonalRecallResult(
     recentMultimodalRows
   ] =
     await Promise.all([
-      identityMemoryStore.searchConfirmed({
-        ownerId:
-          identity.ownerId,
-        speakerId:
-          identity.speakerId,
-        searchText:
-          query,
-        limit:
-          8
-      }),
+      strictRelativeDayRecall
+        ? Promise.resolve([])
+        : identityMemoryStore.searchConfirmed({
+            ownerId:
+              identity.ownerId,
+            speakerId:
+              identity.speakerId,
+            searchText:
+              query,
+            limit:
+              8
+          }),
       loadRelevantOwnerRecallHistory(
         identity,
         query,
@@ -8148,16 +8225,21 @@ async function buildPersonalRecallResult(
             message
         }
       ),
-      loadLegacyPamMemoryEvidence(
-        identity,
-        query,
-        16
-      ),
-      loadLegacyPamLongTermMemoryEvidence(
-        identity,
-        query,
-        16
-      ),
+      strictRelativeDayRecall
+        ? Promise.resolve([])
+        : loadLegacyPamMemoryEvidence(
+            identity,
+            query,
+            16
+          ),
+      strictRelativeDayRecall
+        ? Promise.resolve([])
+        : loadLegacyPamLongTermMemoryEvidence(
+            identity,
+            query,
+            16
+          ),
+      !strictRelativeDayRecall &&
       mayReferToRecentMultimodalEvent(
         message
       )
@@ -8179,41 +8261,58 @@ async function buildPersonalRecallResult(
       identity
     );
 
+  const memoryEvidenceText =
+    strictRelativeDayRecall
+      ? formatChronologicalFulltimeRows(
+          fulltimeHistory.scopedRows,
+          identity.displayName,
+          instanceName
+        )
+      : [
+          formatConfirmedMemoryRows(
+            confirmedMemories,
+            identity.displayName
+          ),
+          formatPersonalMemoryRows(
+            [
+              ...fulltimeMemories,
+              ...legacyMemories,
+              ...legacyLongTermMemories
+            ],
+            identity.displayName
+          ),
+          assistantHistory.length > 0
+            ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+                assistantHistory,
+                instanceName
+              )}`
+            : "",
+          recentMultimodalRows.length > 0
+            ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+                recentMultimodalRows,
+                {
+                  displayName:
+                    identity.displayName,
+                  assistantName:
+                    instanceName
+                }
+              )}`
+            : ""
+        ]
+          .filter(Boolean)
+          .join("\n")
+          .slice(0, 16_000);
+
   const memoryText =
     [
-      formatConfirmedMemoryRows(
-        confirmedMemories,
-        identity.displayName
-      ),
-      formatPersonalMemoryRows(
-        [
-          ...fulltimeMemories,
-          ...legacyMemories,
-          ...legacyLongTermMemories
-        ],
-        identity.displayName
-      ),
-      assistantHistory.length > 0
-        ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
-            assistantHistory,
-            instanceName
-          )}`
+      strictRelativeDayRecall &&
+      memoryEvidenceText
+        ? "Verbindliche Zeitgrenze: Die folgenden Einträge stammen ausschließlich vom ausdrücklich erfragten relativen Kalendertag in Europe/Berlin. Ältere oder jüngere Erinnerungen wurden serverseitig ausgeschlossen."
         : "",
-      recentMultimodalRows.length > 0
-        ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
-            recentMultimodalRows,
-            {
-              displayName:
-                identity.displayName,
-              assistantName:
-                instanceName
-            }
-          )}`
-        : ""
+      memoryEvidenceText
     ]
       .filter(Boolean)
-      .join("\n")
-      .slice(0, 16_000);
+      .join("\n");
 
   return {
     alwaysOn:
@@ -8230,10 +8329,10 @@ async function buildPersonalRecallResult(
         : "context",
     contextAvailable:
       Boolean(
-        memoryText
+        memoryEvidenceText
       ),
     found:
-      Boolean(memoryText),
+      Boolean(memoryEvidenceText),
     query,
     count:
       confirmedMemories.length +
@@ -8252,6 +8351,12 @@ async function buildPersonalRecallResult(
         : "",
     assistantHistoryCount:
       assistantHistory.length,
+    strictRelativeDay:
+      strictRelativeDayRecall,
+    relativeDayOffset:
+      strictRelativeDayRecall
+        ? relativeDayOffset
+        : null,
     memoryText
   };
 }
@@ -8799,6 +8904,21 @@ app.post(
       const searchQuery =
         recallContext.query ||
         query;
+      const relativeDayOffset =
+        personalMemoryRelativeDayOffset(
+          query
+        );
+      const strictRelativeDayRecall =
+        relativeDayOffset !== null &&
+        Boolean(
+          recallContext.query ||
+          personalRecallSearchQuery(
+            query
+          ) ||
+          isAssistantHistoryRecallRequest(
+            query
+          )
+        );
 
       const [
         confirmedMemories,
@@ -8808,42 +8928,42 @@ app.post(
         recentMultimodalRows
       ] =
         await Promise.all([
-          identityMemoryStore.searchConfirmed({
-            ownerId:
-              tokenSession.ownerId,
-            speakerId:
-              tokenSession.speakerId,
-            searchText:
-              searchQuery,
-            limit:
-              8
-          }),
+          strictRelativeDayRecall
+            ? Promise.resolve([])
+            : identityMemoryStore.searchConfirmed({
+                ownerId:
+                  tokenSession.ownerId,
+                speakerId:
+                  tokenSession.speakerId,
+                searchText:
+                  searchQuery,
+                limit:
+                  8
+              }),
           loadRelevantOwnerRecallHistory(
             tokenIdentity,
             searchQuery,
             16,
             {
               currentMessage:
-                [...conversationRows]
-                  .reverse()
-                  .find(
-                    row =>
-                      row?.role ===
-                      "user"
-                  )?.content ||
                 query
             }
           ),
-          loadLegacyPamMemoryEvidence(
-            tokenIdentity,
-            searchQuery,
-            16
-          ),
-          loadLegacyPamLongTermMemoryEvidence(
-            tokenIdentity,
-            searchQuery,
-            16
-          ),
+          strictRelativeDayRecall
+            ? Promise.resolve([])
+            : loadLegacyPamMemoryEvidence(
+                tokenIdentity,
+                searchQuery,
+                16
+              ),
+          strictRelativeDayRecall
+            ? Promise.resolve([])
+            : loadLegacyPamLongTermMemoryEvidence(
+                tokenIdentity,
+                searchQuery,
+                16
+              ),
+          !strictRelativeDayRecall &&
           mayReferToRecentMultimodalEvent(
             query
           )
@@ -8859,41 +8979,60 @@ app.post(
       const assistantHistory =
         fulltimeHistory.assistantRows;
 
-      const memoryText =
-        [
-          formatConfirmedMemoryRows(
-            confirmedMemories,
-            tokenIdentity.displayName
-          ),
-          formatPersonalMemoryRows(
-            [
-              ...fulltimeMemories,
-              ...legacyMemories,
-              ...legacyLongTermMemories
-            ],
-            tokenIdentity.displayName
-          ),
-          assistantHistory.length > 0
-            ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
-                assistantHistory,
-                instanceNameForIdentity(
-                  tokenIdentity
-                )
-              )}`
-            : "",
-          recentMultimodalRows.length > 0
-            ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
-                recentMultimodalRows,
-                {
-                  displayName:
-                    tokenIdentity.displayName,
-                  assistantName:
+      const memoryEvidenceText =
+        strictRelativeDayRecall
+          ? formatChronologicalFulltimeRows(
+              fulltimeHistory.scopedRows,
+              tokenIdentity.displayName,
+              instanceNameForIdentity(
+                tokenIdentity
+              )
+            )
+          : [
+              formatConfirmedMemoryRows(
+                confirmedMemories,
+                tokenIdentity.displayName
+              ),
+              formatPersonalMemoryRows(
+                [
+                  ...fulltimeMemories,
+                  ...legacyMemories,
+                  ...legacyLongTermMemories
+                ],
+                tokenIdentity.displayName
+              ),
+              assistantHistory.length > 0
+                ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+                    assistantHistory,
                     instanceNameForIdentity(
                       tokenIdentity
                     )
-                }
-              )}`
-            : ""
+                  )}`
+                : "",
+              recentMultimodalRows.length > 0
+                ? `Letzte modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+                    recentMultimodalRows,
+                    {
+                      displayName:
+                        tokenIdentity.displayName,
+                      assistantName:
+                        instanceNameForIdentity(
+                          tokenIdentity
+                        )
+                    }
+                  )}`
+                : ""
+            ]
+              .filter(Boolean)
+              .join("\n");
+
+      const memoryText =
+        [
+          strictRelativeDayRecall &&
+          memoryEvidenceText
+            ? "Verbindliche Zeitgrenze: ausschließlich der ausdrücklich erfragte relative Kalendertag in Europe/Berlin; andere Tage wurden serverseitig ausgeschlossen."
+            : "",
+          memoryEvidenceText
         ]
           .filter(Boolean)
           .join("\n");
@@ -8919,6 +9058,12 @@ app.post(
           assistantHistory.length,
         contextual:
           recallContext.contextual,
+        strict_relative_day:
+          strictRelativeDayRecall,
+        relative_day_offset:
+          strictRelativeDayRecall
+            ? relativeDayOffset
+            : null,
         conversationId:
           tokenSession.conversationId,
         identity:
@@ -11992,6 +12137,22 @@ app.post("/sol", async (req, res) => {
           );
     const explicitPersonalRecallQuery =
       personalRecallContext.query;
+    const relativeDayOffset =
+      personalMemoryRelativeDayOffset(
+        message
+      );
+    const strictRelativeDayRecall =
+      relativeDayOffset !== null &&
+      Boolean(
+        explicitPersonalRecallQuery ||
+        isAssistantHistoryRecallRequest(
+          message
+        )
+      );
+    const scopedMultimodalReferenceRows =
+      strictRelativeDayRecall
+        ? []
+        : multimodalReference.rows;
 
     const ecosystemTurn =
       !medicationRecognitionRequested &&
@@ -12116,17 +12277,19 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
             []
           ]
         : await Promise.all([
-            identityMemoryStore
-              .searchConfirmed({
-                ownerId:
-                  identity.ownerId,
-                speakerId:
-                  identity.speakerId,
-                searchText:
-                  memorySearchText,
-                limit:
-                  36
-              }),
+            strictRelativeDayRecall
+              ? Promise.resolve([])
+              : identityMemoryStore
+                  .searchConfirmed({
+                    ownerId:
+                      identity.ownerId,
+                    speakerId:
+                      identity.speakerId,
+                    searchText:
+                      memorySearchText,
+                    limit:
+                      36
+                  }),
             loadRelevantOwnerRecallHistory(
               identity,
               memorySearchText,
@@ -12136,16 +12299,20 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
                   message
               }
             ),
-            loadLegacyPamMemoryEvidence(
-              identity,
-              memorySearchText,
-              40
-            ),
-            loadLegacyPamLongTermMemoryEvidence(
-              identity,
-              memorySearchText,
-              30
-            )
+            strictRelativeDayRecall
+              ? Promise.resolve([])
+              : loadLegacyPamMemoryEvidence(
+                  identity,
+                  memorySearchText,
+                  40
+                ),
+            strictRelativeDayRecall
+              ? Promise.resolve([])
+              : loadLegacyPamLongTermMemoryEvidence(
+                  identity,
+                  memorySearchText,
+                  30
+                )
           ]);
 
     const fulltimeMemories =
@@ -12163,39 +12330,48 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
       "Keine passenden bestätigten Langzeiterinnerungen gefunden.";
 
     const historicalMemoryText =
-      [
-        formatConfirmedMemoryRows(
-          longTermMemories,
-          identity.displayName
-        ),
-        formatPersonalMemoryRows(
-          [
-            ...fulltimeMemories,
-            ...legacyMemories,
-            ...legacyLongTermMemories
-          ],
-          identity.displayName
-        ),
-        assistantHistory.length > 0
-          ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
-              assistantHistory,
-              instanceName
-            )}`
-          : "",
-        multimodalReference.rows.length > 0
-          ? `Passende modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
-              multimodalReference.rows,
-              {
-                displayName:
-                  identity.displayName,
-                assistantName:
-                  instanceName
-              }
-            )}`
-          : ""
-      ]
-        .filter(Boolean)
-        .join("\n") ||
+      (
+        strictRelativeDayRecall
+          ? formatChronologicalFulltimeRows(
+              fulltimeHistory.scopedRows,
+              identity.displayName,
+              instanceName,
+              24_000
+            )
+          : [
+              formatConfirmedMemoryRows(
+                longTermMemories,
+                identity.displayName
+              ),
+              formatPersonalMemoryRows(
+                [
+                  ...fulltimeMemories,
+                  ...legacyMemories,
+                  ...legacyLongTermMemories
+                ],
+                identity.displayName
+              ),
+              assistantHistory.length > 0
+                ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
+                    assistantHistory,
+                    instanceName
+                  )}`
+                : "",
+              scopedMultimodalReferenceRows.length > 0
+                ? `Passende modalitätsübergreifende Ereignisse (Rohmedien wurden nicht gespeichert):\n${formatMultimodalEventRows(
+                    scopedMultimodalReferenceRows,
+                    {
+                      displayName:
+                        identity.displayName,
+                      assistantName:
+                        instanceName
+                    }
+                  )}`
+                : ""
+            ]
+              .filter(Boolean)
+              .join("\n")
+      ) ||
       "Keine passenden Einträge im Vollzeitgedächtnis gefunden.";
 
     const explicitPersonalRecallInstruction =
@@ -12205,7 +12381,7 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
           legacyMemories.length > 0 ||
           legacyLongTermMemories.length > 0 ||
           assistantHistory.length > 0 ||
-          multimodalReference.rows.length > 0
+          scopedMultimodalReferenceRows.length > 0
           ? `
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
 Beantworte sie jetzt klar und unmittelbar aus den passenden historischen
@@ -12223,6 +12399,19 @@ ${personalRecallContext.contextual
 DIES IST EINE DIREKTE PERSÖNLICHE RÜCKFRAGE:
 Im ownergebundenen Gedächtnis wurde dazu kein passender Eintrag gefunden.
 Erfinde keine Antwort und bitte nicht automatisch um eine erneute Speicherung.
+`
+        : "";
+
+    const relativeDayRecallInstruction =
+      strictRelativeDayRecall
+        ? `
+VERBINDLICHE ZEITGRENZE FÜR DIESE RÜCKFRAGE:
+Die bereitgestellten historischen Einträge stammen ausschließlich von dem
+relativen Kalendertag, den ${identity.displayName} ausdrücklich genannt hat
+(heute, gestern oder vorgestern; Zeitzone Europe/Berlin). Verwende nur diese
+Einträge. Ersetze einen fehlenden Tagesbeleg niemals durch „zuletzt
+gespeicherte“ Angaben von einem anderen Datum. Wenn der Tagesverlauf die
+Antwort nicht trägt, sage das klar.
 `
         : "";
 
@@ -12498,6 +12687,8 @@ Vollimport des Handys. Verwende nur die konkrete Funktion,
 die ${identity.displayName} gerade ausdrücklich angefordert hat.
 
 ${explicitPersonalRecallInstruction}
+
+${relativeDayRecallInstruction}
 
 LANGZEITGEDÄCHTNIS:
 
