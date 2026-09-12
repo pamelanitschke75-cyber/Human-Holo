@@ -22,10 +22,56 @@ const androidInstaller =
 const server =
   readText("server.mjs");
 
+const privacy =
+  readText("Datenschutz.md");
+
 const workflow =
   readText(
     ".github/workflows/android-build.yml"
   );
+
+
+function createSignLanguageRequestHarness(){
+
+  const optionsSource =
+    html.match(
+      /const SIGN_LANGUAGE_OPTIONS\s*=\s*Object\.freeze\(\[[\s\S]*?\n  \]\);/u
+    )?.[0];
+
+  const parserSource =
+    html.match(
+      /function normalizeSignLanguageRequestText\([\s\S]*?(?=\nfunction liveCameraIsActive\()/u
+    )?.[0];
+
+
+  assert.ok(
+    optionsSource,
+    "Gebärdensprach-Liste muss aus dem Client ladbar sein."
+  );
+
+  assert.ok(
+    parserSource,
+    "Gebärdensprach-Anfrageparser muss aus dem Client ladbar sein."
+  );
+
+
+  return Function(
+    `"use strict";
+      let pendingSignLanguageSelection = false;
+      let activeSignLanguage = null;
+      ${optionsSource}
+      ${parserSource}
+      return {
+        parse: value => signLanguageSequenceRequest(value),
+        selectPending: value => {
+          pendingSignLanguageSelection = value === true;
+        },
+        selectLanguage: value => {
+          activeSignLanguage = explicitlyNamedSignLanguage(value);
+        }
+      };`
+  )();
+}
 
 
 test(
@@ -268,6 +314,189 @@ test(
     assert.match(
       server,
       /\[LOKALE_BILDSCHIRMBESCHREIBUNG\][\s\S]*?ohne Zugriff auf eine andere\s+App[\s\S]*?keine Aktion aus/u
+    );
+  }
+);
+
+
+test(
+  "Gebärdensprachtests verlangen eine konkrete Sprache statt einer universellen Annahme",
+  () => {
+
+    assert.match(
+      html,
+      /SIGN_LANGUAGE_OPTIONS[\s\S]*?Deutsche Gebärdensprache \(DGS\)[\s\S]*?American Sign Language \(ASL\)[\s\S]*?British Sign Language \(BSL\)/u
+    );
+
+    assert.match(
+      html,
+      /function signLanguageSequenceRequest\([\s\S]*?pendingSignLanguageSelection[\s\S]*?explicitLanguage/u
+    );
+
+    assert.match(
+      html,
+      /Welche Gebärdensprache soll ich prüfen\? Gebärdensprachen sind nicht universell/u
+    );
+
+    assert.match(
+      server,
+      /Die dort genannte Gebärdensprache ist für[\s\S]*?genau diese Folge verbindlich/u
+    );
+
+    assert.match(
+      server,
+      /Übertrage keine Bedeutung aus[\s\S]*?einer anderen Gebärdensprache/u
+    );
+  }
+);
+
+
+test(
+  "Gebärdensprach-Anfrageparser trennt DGS, ÖGS und ASL praktisch",
+  () => {
+
+    const parser =
+      createSignLanguageRequestHarness();
+
+    const unspecified =
+      parser.parse(
+        "Starte den Gebärdensprach-Test mit Steffi."
+      );
+
+
+    assert.equal(
+      unspecified.requested,
+      true
+    );
+
+    assert.equal(
+      unspecified.language,
+      null
+    );
+
+
+    parser.selectPending(
+      true
+    );
+
+
+    assert.equal(
+      parser.parse(
+        "DGS"
+      ).language.code,
+      "DGS"
+    );
+
+    assert.equal(
+      parser.parse(
+        "Bitte übersetze diese Österreichische Gebärdensprache."
+      ).language.code,
+      "ÖGS"
+    );
+
+    assert.equal(
+      parser.parse(
+        "Starte den ASL-Test."
+      ).language.code,
+      "ASL"
+    );
+
+
+    parser.selectPending(
+      false
+    );
+
+    parser.selectLanguage(
+      "DGS"
+    );
+
+
+    assert.equal(
+      parser.parse(
+        "Teste die Gebärdensprache noch einmal."
+      ).language.code,
+      "DGS"
+    );
+
+    assert.equal(
+      parser.parse(
+        "Steffi macht eine Handbewegung."
+      ).requested,
+      false
+    );
+  }
+);
+
+
+test(
+  "DGS-Praxistest sendet eine kompakte zeitlich geordnete Bewegungsfolge",
+  () => {
+
+    assert.match(
+      html,
+      /SIGN_LANGUAGE_CAPTURE_FRAME_COUNT\s*=\s*10/u
+    );
+
+    assert.match(
+      html,
+      /SIGN_LANGUAGE_MIN_FRAME_COUNT\s*=\s*6/u
+    );
+
+    assert.match(
+      html,
+      /SIGN_LANGUAGE_CAPTURE_INTERVAL_MS\s*=\s*350/u
+    );
+
+    assert.match(
+      html,
+      /SIGN_LANGUAGE_MAX_DATA_URL_CHARS\s*=\s*65000/u
+    );
+
+    assert.match(
+      html,
+      /async function captureSignLanguageSequenceImages\([\s\S]*?SIGN_LANGUAGE_CAPTURE_FRAME_COUNT[\s\S]*?SIGN_LANGUAGE_CAPTURE_INTERVAL_MS/u
+    );
+
+    assert.match(
+      html,
+      /async function sendSignLanguageSequence\([\s\S]*?GEBAERDENSPRACHE_SEQUENZ_START[\s\S]*?GEBAERDENSPRACHE_FRAME[\s\S]*?input_image[\s\S]*?GEBAERDENSPRACHE_SEQUENZ_ENDE/u
+    );
+
+    assert.match(
+      html,
+      /Handform, Ausführungsort, Richtung, Bewegung, Körperhaltung und Mimik/u
+    );
+
+    assert.match(
+      html,
+      /Ich konnte die Gebärde nicht sicher erkennen/u
+    );
+  }
+);
+
+
+test(
+  "Gebärdensprachfolge wird semantisch erinnert, Rohbilder werden nicht gespeichert",
+  () => {
+
+    assert.match(
+      html,
+      /signLanguageSequenceSent[\s\S]*?"live_image"[\s\S]*?"sign_language"[\s\S]*?currentRealtimeMemoryModalities/u
+    );
+
+    assert.match(
+      privacy,
+      /Vor der Aufnahme muss eine konkrete Gebärdensprache wie DGS gewählt sein/u
+    );
+
+    assert.match(
+      privacy,
+      /bis zu zehn komprimierte, zeitlich[\s\S]*?geordnete Bewegungsbilder/u
+    );
+
+    assert.match(
+      privacy,
+      /Human Holo übernimmt diese Live-Bilder weder in das Vollzeitgedächtnis/u
     );
   }
 );

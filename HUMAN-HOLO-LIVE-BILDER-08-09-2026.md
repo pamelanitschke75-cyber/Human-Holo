@@ -25,6 +25,10 @@ einzelnes Foto muss dafür nicht mehr jedes Mal ausgewählt und gesendet werden.
 - Während des Live-Modus wird regelmäßig alle sechs Sekunden ein Bild ergänzt.
 - Zu jedem gesprochenen Beitrag wird unmittelbar vor der Antwort ein frisches
   Kamerabild als visueller Kontext übertragen.
+- Ein ausdrücklich gestarteter Gebärdensprachtest ist davon getrennt: Nach der
+  verbindlichen Auswahl der konkreten Gebärdensprache wird eine kurze,
+  zeitlich geordnete Bewegungsfolge übertragen. Einzelbilder im
+  Sechs-Sekunden-Takt gelten dafür ausdrücklich nicht als ausreichend.
 - Die Bildgröße passt sich zusätzlich an die ausgehandelte maximale Größe des
   WebRTC-Datenkanals an.
 - Die Kameraspur enthält kein zweites Audiosignal.

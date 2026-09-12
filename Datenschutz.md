@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.2
-Stand: 10.09.2026
+Version: 1.3
+Stand: 12.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -375,6 +375,15 @@ komprimierte Einzelbilder und übergibt sie als visuellen Kontext an die laufend
 OpenAI-Realtime-Unterhaltung. Es handelt sich nicht um eine ununterbrochene
 Videoübertragung. Unmittelbar vor einer gesprochenen Antwort wird ein aktuelles
 Bild ergänzt, damit Pam nicht jedes Foto einzeln auswählen muss.
+
+Ein ausdrücklich gestarteter Gebärdensprachtest ist ein eigener Sonderfall:
+Vor der Aufnahme muss eine konkrete Gebärdensprache wie DGS gewählt sein. Die
+App nimmt anschließend für wenige Sekunden bis zu zehn komprimierte, zeitlich
+geordnete Bewegungsbilder auf und übergibt sie gemeinsam zur Auswertung an die
+laufende OpenAI-Realtime-Unterhaltung. Es wird kein vollständiges Video
+übertragen. Ohne ausdrücklich gewählte Gebärdensprache beginnt keine
+Übersetzung; bei unvollständiger Folge oder unsicherer Erkennung darf Human Holo
+nur um Wiederholung bitten und keine Bedeutung erfinden.
 
 Human Holo übernimmt diese Live-Bilder weder in das Vollzeitgedächtnis noch in
 bestätigte Langzeiterinnerungen. Der Modus bleibt durch Vorschau und

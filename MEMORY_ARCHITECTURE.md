@@ -50,7 +50,11 @@ nicht behaupten, das ursprüngliche Medium erneut sehen oder hören zu können.
 Gebärdensprache erhält zusätzlich die Modalität `sign_language`, bleibt aber
 an das zugehörige Video oder Live-Bild gebunden. Eine bloße Handbewegung darf
 nicht automatisch als Sprache gelten. Gebärdensprachen sind nicht universell;
-eine konkrete Sprache wie DGS wird nur bei klarem Kontext benannt. Für blinde
+eine konkrete Sprache wie DGS wird nur bei klarem Kontext benannt. Im
+Live-Praxistest muss die konkrete Gebärdensprache vor der zeitlich geordneten
+Bewegungsfolge ausdrücklich gewählt werden. Der Sprachname bleibt im
+ownergebundenen Dialog erhalten; die komprimierten Sequenzbilder selbst werden
+nicht in der Gedächtnisdatenbank gespeichert. Für blinde
 und sehbehinderte Menschen bleiben Spracheingabe und Sprachausgabe der
 Hauptweg. Wird die optionale Kamera ausdrücklich per Sprache für eine
 Beschreibung angefordert, ist Holos damalige gesprochene Audiobeschreibung

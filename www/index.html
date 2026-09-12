@@ -3547,6 +3547,70 @@ const LIVE_CAMERA_MAX_EDGE_PX =
 const LIVE_CAMERA_MAX_DATA_URL_CHARS =
   180000;
 
+const SIGN_LANGUAGE_CAPTURE_FRAME_COUNT =
+  10;
+
+const SIGN_LANGUAGE_MIN_FRAME_COUNT =
+  6;
+
+const SIGN_LANGUAGE_CAPTURE_INTERVAL_MS =
+  350;
+
+const SIGN_LANGUAGE_CAPTURE_START_DELAY_MS =
+  700;
+
+const SIGN_LANGUAGE_MAX_DATA_URL_CHARS =
+  65000;
+
+const SIGN_LANGUAGE_OPTIONS =
+  Object.freeze([
+    Object.freeze({
+      code:"DGS",
+      label:"Deutsche Gebärdensprache (DGS)",
+      pattern:/\b(?:dgs|deutsche gebärdensprache|deutsche gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"ÖGS",
+      label:"Österreichische Gebärdensprache (ÖGS)",
+      pattern:/(?:^|[^\p{L}\p{N}_])(?:ögs|oegs|österreichische gebärdensprache|oesterreichische gebaerdensprache)(?=$|[^\p{L}\p{N}_])/u
+    }),
+    Object.freeze({
+      code:"DSGS",
+      label:"Deutschschweizer Gebärdensprache (DSGS)",
+      pattern:/\b(?:dsgs|deutschschweizer gebärdensprache|deutschschweizer gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"ASL",
+      label:"American Sign Language (ASL)",
+      pattern:/\b(?:asl|american sign language|amerikanische gebärdensprache|amerikanische gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"BSL",
+      label:"British Sign Language (BSL)",
+      pattern:/\b(?:bsl|british sign language|britische gebärdensprache|britische gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"LSF",
+      label:"Langue des signes française (LSF)",
+      pattern:/\b(?:lsf|langue des signes française|langue des signes francaise|französische gebärdensprache|franzoesische gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"LIS",
+      label:"Lingua dei Segni Italiana (LIS)",
+      pattern:/\b(?:lis|lingua dei segni italiana|italienische gebärdensprache|italienische gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"LSE",
+      label:"Lengua de Signos Española (LSE)",
+      pattern:/\b(?:lse|lengua de signos española|lengua de signos espanola|spanische gebärdensprache|spanische gebaerdensprache)\b/u
+    }),
+    Object.freeze({
+      code:"LIBRAS",
+      label:"Língua Brasileira de Sinais (Libras)",
+      pattern:/\b(?:libras|língua brasileira de sinais|lingua brasileira de sinais|brasilianische gebärdensprache|brasilianische gebaerdensprache)\b/u
+    })
+  ]);
+
 let liveCameraStream =
   null;
 
@@ -3570,6 +3634,15 @@ let liveCameraStarting =
 
 let liveCameraGeneration =
   0;
+
+let liveCameraSignCaptureActive =
+  false;
+
+let pendingSignLanguageSelection =
+  false;
+
+let activeSignLanguage =
+  null;
 
 let externalConversationReturn = {
   action:"",
@@ -12016,6 +12089,20 @@ async function handleRealtimeUserTranscript(
       transcript
     );
 
+  const signLanguageRequest =
+    signLanguageSequenceRequest(
+      transcript
+    );
+
+  let signLanguageSelectionRequired =
+    false;
+
+  let signLanguageSequenceSent =
+    false;
+
+  let signLanguageSequenceFailed =
+    false;
+
 
   if(
     screenDescriptionRequested
@@ -12043,27 +12130,101 @@ async function handleRealtimeUserTranscript(
   }
 
   if(
-    !liveCameraIsActive() &&
-    !screenDescriptionRequested &&
-    isVoiceCameraDescriptionRequest(
-      transcript
-    )
+    signLanguageRequest.requested
   ){
 
-    await startLiveCamera();
+    if(
+      !signLanguageRequest.language
+    ){
+
+      pendingSignLanguageSelection =
+        true;
+
+      signLanguageSelectionRequired =
+        true;
+
+    }else{
+
+      pendingSignLanguageSelection =
+        false;
+
+      activeSignLanguage =
+        signLanguageRequest.language;
+
+
+      if(
+        !liveCameraIsActive()
+      ){
+
+        await startLiveCamera();
+      }
+
+
+      if(
+        liveCameraIsActive()
+      ){
+
+        signLanguageSequenceSent =
+          await sendSignLanguageSequence(
+            activeSignLanguage
+          );
+      }
+
+
+      signLanguageSequenceFailed =
+        !signLanguageSequenceSent;
+    }
+
+  }else{
+
+    if(
+      !liveCameraIsActive() &&
+      !screenDescriptionRequested &&
+      isVoiceCameraDescriptionRequest(
+        transcript
+      )
+    ){
+
+      await startLiveCamera();
+    }
+
+
+    await sendCurrentLiveCameraFrame({
+      force:true,
+      reason:"voice_turn"
+    });
   }
 
-  await sendCurrentLiveCameraFrame({
-    force:true,
-    reason:"voice_turn"
-  });
+
+  const effectiveSourceModalities =
+    signLanguageSequenceSent
+      ? [...new Set([
+          ...sourceModalities,
+          "live_image",
+          "sign_language"
+        ])]
+      : sourceModalities;
 
 
-  const localHandled =
-    screenDescriptionRequested ||
+  if(
+    signLanguageSequenceSent
+  ){
+
+    currentRealtimeMemoryModalities =
+      [...effectiveSourceModalities];
+  }
+
+
+  const localNoteHandled =
     await handleRealtimeLocalNoteTranscript(
       transcript
     );
+
+  const localHandled =
+    screenDescriptionRequested ||
+    signLanguageSelectionRequired ||
+    signLanguageSequenceFailed ||
+    localNoteHandled;
 
 
   const memoryHandled =
@@ -12071,9 +12232,79 @@ async function handleRealtimeUserTranscript(
       transcript,
       "user",
       fulltimeEventId,
-      localHandled,
-      sourceModalities
+      localHandled ||
+        signLanguageSequenceSent,
+      effectiveSourceModalities
     );
+
+
+  if(
+    signLanguageSelectionRequired
+  ){
+
+    const answer =
+      signLanguageSelectionQuestion();
+
+
+    addMessage(
+      HOLO_CHAT_SPEAKER,
+      answer,
+      "sol-message"
+    );
+
+
+    chatStatus.textContent =
+      "Gebärdensprache muss vor dem Test ausdrücklich gewählt werden.";
+
+
+    speakExecutedRealtimeResult(
+      "[LOKALE_GEBAERDENSPRACHE_AUSWAHL]",
+      answer
+    );
+
+
+    return;
+  }
+
+
+  if(
+    signLanguageSequenceFailed
+  ){
+
+    const answer =
+      "Ich konnte die Gebärdenfolge technisch nicht vollständig aufnehmen. Bitte lass Hände, Gesicht und Oberkörper sichtbar und starte den Test noch einmal.";
+
+
+    addMessage(
+      HOLO_CHAT_SPEAKER,
+      answer,
+      "sol-message"
+    );
+
+
+    chatStatus.textContent =
+      "Gebärdensprachsequenz nicht vollständig aufgenommen.";
+
+
+    speakExecutedRealtimeResult(
+      "[LOKALE_GEBAERDENSPRACHE_AUFNAHME_FEHLER]",
+      answer
+    );
+
+
+    return;
+  }
+
+
+  if(
+    signLanguageSequenceSent
+  ){
+
+    requestRealtimeResponse();
+
+
+    return;
+  }
 
 
   if(
@@ -12199,6 +12430,120 @@ function isVoiceCameraDescriptionRequest(
       text
     )
   );
+}
+
+
+function normalizeSignLanguageRequestText(
+  value
+){
+
+  return String(
+    value ||
+    ""
+  )
+    .normalize(
+      "NFKC"
+    )
+    .toLocaleLowerCase(
+      "de-DE"
+    )
+    .replace(
+      /\s+/gu,
+      " "
+    )
+    .trim();
+}
+
+
+function explicitlyNamedSignLanguage(
+  value
+){
+
+  const text =
+    normalizeSignLanguageRequestText(
+      value
+    );
+
+
+  return SIGN_LANGUAGE_OPTIONS.find(
+    option =>
+      option.pattern.test(
+        text
+      )
+  ) ||
+    null;
+}
+
+
+function signLanguageSequenceRequest(
+  value
+){
+
+  const text =
+    normalizeSignLanguageRequestText(
+      value
+    );
+
+  const explicitLanguage =
+    explicitlyNamedSignLanguage(
+      text
+    );
+
+  const mentionsSignLanguage =
+    Boolean(
+      explicitLanguage
+    ) ||
+    /\b(?:gebärdensprache|gebärdensprachen|gebärdensprach|gebaerdensprache|gebaerdensprachen|gebaerdensprach|sign language)\b/u.test(
+      text
+    );
+
+  const requestsRecognition =
+    /(?:^|[^\p{L}\p{N}_])(?:starte|start|beginne|beginn|teste|test|prüfe|pruefe|erkenne|erkenn|übersetze|uebersetze|verstehe|versteh|analysiere|analysier|auswerten|auswerte|auswert|was gebärdet|was gebaerdet|was bedeutet)(?=$|[^\p{L}\p{N}_])/u.test(
+      text
+    );
+
+  const requested =
+    (
+      mentionsSignLanguage &&
+      requestsRecognition
+    ) ||
+    (
+      pendingSignLanguageSelection &&
+      Boolean(
+        explicitLanguage
+      )
+    );
+
+
+  if(
+    !requested
+  ){
+
+    return {
+      requested:false,
+      language:null,
+      explicitlySelected:false
+    };
+  }
+
+
+  return {
+    requested:true,
+    language:
+      explicitLanguage ||
+      activeSignLanguage ||
+      null,
+    explicitlySelected:
+      Boolean(
+        explicitLanguage
+      )
+  };
+}
+
+
+function signLanguageSelectionQuestion(){
+
+  return "Welche Gebärdensprache soll ich prüfen? Gebärdensprachen sind nicht universell. Sag zum Beispiel: Starte den DGS-Test.";
 }
 
 function liveCameraIsActive(){
@@ -12536,6 +12881,346 @@ function captureCurrentLiveCameraImage(
 }
 
 
+function liveCameraDataUrlLimit(
+  requestedLimit =
+    LIVE_CAMERA_MAX_DATA_URL_CHARS
+){
+
+  const negotiatedMessageSize =
+    Number(
+      pc?.sctp?.maxMessageSize ||
+      0
+    );
+
+
+  return negotiatedMessageSize >
+    0
+    ? Math.min(
+        requestedLimit,
+        Math.max(
+          4000,
+          negotiatedMessageSize -
+            8000
+        )
+      )
+    : requestedLimit;
+}
+
+
+function waitForLiveCameraMilliseconds(
+  milliseconds
+){
+
+  return new Promise(
+    resolve =>
+      window.setTimeout(
+        resolve,
+        milliseconds
+      )
+  );
+}
+
+
+async function captureSignLanguageSequenceImages(
+  language
+){
+
+  const captureGeneration =
+    liveCameraGeneration;
+
+  const frames = [];
+
+
+  liveCameraStatus.textContent =
+    `${language?.code || "Gebärdensprache"} · Bitte jetzt gebärden …`;
+
+
+  await waitForLiveCameraMilliseconds(
+    SIGN_LANGUAGE_CAPTURE_START_DELAY_MS
+  );
+
+
+  const startedAt =
+    Date.now();
+
+
+  for(
+    let index = 0;
+    index <
+      SIGN_LANGUAGE_CAPTURE_FRAME_COUNT;
+    index +=
+      1
+  ){
+
+    if(
+      captureGeneration !==
+        liveCameraGeneration ||
+      !liveCameraIsActive() ||
+      !dc ||
+      dc.readyState !==
+        "open"
+    ){
+
+      break;
+    }
+
+
+    const imageDataUrl =
+      captureCurrentLiveCameraImage(
+        liveCameraDataUrlLimit(
+          SIGN_LANGUAGE_MAX_DATA_URL_CHARS
+        )
+      );
+
+
+    if(
+      imageDataUrl
+    ){
+
+      frames.push({
+        imageDataUrl,
+        offsetMs:
+          Date.now() -
+          startedAt
+      });
+    }
+
+
+    liveCameraStatus.textContent =
+      `${language?.code || "Gebärdensprache"} · Bewegungsbild ${index + 1}/${SIGN_LANGUAGE_CAPTURE_FRAME_COUNT}`;
+
+
+    if(
+      index +
+        1 <
+      SIGN_LANGUAGE_CAPTURE_FRAME_COUNT
+    ){
+
+      await waitForLiveCameraMilliseconds(
+        SIGN_LANGUAGE_CAPTURE_INTERVAL_MS
+      );
+    }
+  }
+
+
+  return frames;
+}
+
+
+async function waitForRealtimeCameraBuffer(){
+
+  const deadline =
+    Date.now() +
+    3000;
+
+
+  while(
+    dc &&
+    dc.readyState ===
+      "open" &&
+    Number(
+      dc.bufferedAmount ||
+      0
+    ) >
+      400000 &&
+    Date.now() <
+      deadline
+  ){
+
+    await waitForLiveCameraMilliseconds(
+      40
+    );
+  }
+
+
+  return Boolean(
+    dc &&
+    dc.readyState ===
+      "open" &&
+    Number(
+      dc.bufferedAmount ||
+      0
+    ) <=
+      750000
+  );
+}
+
+
+async function sendSignLanguageSequence(
+  language
+){
+
+  if(
+    liveCameraSignCaptureActive ||
+    !language ||
+    !liveCameraIsActive() ||
+    !dc ||
+    dc.readyState !==
+      "open"
+  ){
+
+    return false;
+  }
+
+
+  liveCameraSignCaptureActive =
+    true;
+
+
+  try{
+
+    const frames =
+      await captureSignLanguageSequenceImages(
+        language
+      );
+
+
+    if(
+      frames.length <
+        SIGN_LANGUAGE_MIN_FRAME_COUNT
+    ){
+
+      liveCameraStatus.textContent =
+        "Die Gebärdenfolge konnte nicht vollständig aufgenommen werden.";
+
+
+      return false;
+    }
+
+
+    announceLiveCameraToRealtime(
+      dc
+    );
+
+
+    const sequenceStarted =
+      sendLiveCameraMarker(
+        dc,
+        `[GEBAERDENSPRACHE_SEQUENZ_START] Ausdrücklich gewählte Sprache: ${language.label}. Die folgenden ${frames.length} Bilder gehören zu genau einer zeitlich geordneten Bewegungssequenz. Werte sie gemeinsam und ausschließlich in der gewählten Gebärdensprache aus. Verwechsle sie nicht mit allgemeiner Gestik und ersetze sie nicht durch eine andere Gebärdensprache.`
+      );
+
+
+    if(
+      !sequenceStarted
+    ){
+
+      return false;
+    }
+
+
+    for(
+      let index = 0;
+      index <
+        frames.length;
+      index +=
+        1
+    ){
+
+      const bufferReady =
+        await waitForRealtimeCameraBuffer();
+
+
+      if(
+        !bufferReady
+      ){
+
+        liveCameraStatus.textContent =
+          `Die ${language.code}-Bildfolge konnte nicht vollständig übertragen werden.`;
+
+
+        return false;
+      }
+
+
+      const sequence =
+        liveCameraFrameSequence +
+        1;
+
+      const frame =
+        frames[index];
+
+
+      dc.send(
+        JSON.stringify({
+          type:
+            "conversation.item.create",
+          item:{
+            type:
+              "message",
+            role:
+              "user",
+            content:[
+              {
+                type:
+                  "input_text",
+                text:
+                  `[GEBAERDENSPRACHE_FRAME ${index + 1}/${frames.length} | ${language.code} | +${frame.offsetMs} ms] Dieses Bild ist nur eine Phase der geordneten Sequenz. Noch nicht einzeln übersetzen.`
+              },
+              {
+                type:
+                  "input_image",
+                image_url:
+                  frame.imageDataUrl
+              }
+            ]
+          }
+        })
+      );
+
+
+      liveCameraFrameSequence =
+        sequence;
+
+      liveCameraLastSentAt =
+        Date.now();
+    }
+
+
+    const sequenceCompleted =
+      sendLiveCameraMarker(
+        dc,
+        `[GEBAERDENSPRACHE_SEQUENZ_ENDE] Prüfe jetzt die gesamte Bildfolge in ${language.label}. Berücksichtige Handform, Ausführungsort, Richtung, Bewegung, Körperhaltung und Mimik. Nenne eine Bedeutung nur, wenn sie in dieser Sprache über die sichtbare Folge sicher erkennbar ist. Wenn Bilder fehlen, Hände oder Gesicht verdeckt sind oder mehrere Bedeutungen möglich bleiben, sage ausdrücklich: „Ich konnte die Gebärde nicht sicher erkennen“, und bitte um eine kurze Wiederholung. Behaupte niemals, damit die vollständige Gebärdensprache zu beherrschen.`
+      );
+
+
+    if(
+      !sequenceCompleted
+    ){
+
+      return false;
+    }
+
+
+    liveCameraStatus.textContent =
+      `${language.code} · ${frames.length} Bewegungsbilder gemeinsam zur Prüfung gesendet.`;
+
+
+    return true;
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Gebärdensprachsequenz:",
+      error
+    );
+
+
+    liveCameraStatus.textContent =
+      "Die Gebärdensprachsequenz konnte gerade nicht geprüft werden.";
+
+
+    return false;
+
+  }finally{
+
+    liveCameraSignCaptureActive =
+      false;
+  }
+}
+
+
 async function sendCurrentLiveCameraFrame({
   force = false,
   reason = "interval"
@@ -12546,6 +13231,16 @@ async function sendCurrentLiveCameraFrame({
     !dc ||
     dc.readyState !==
       "open"
+  ){
+
+    return false;
+  }
+
+
+  if(
+    liveCameraSignCaptureActive &&
+    reason ===
+      "interval"
   ){
 
     return false;
@@ -12578,24 +13273,8 @@ async function sendCurrentLiveCameraFrame({
   }
 
 
-  const negotiatedMessageSize =
-    Number(
-      pc?.sctp?.maxMessageSize ||
-      0
-    );
-
   const maximumDataUrlLength =
-    negotiatedMessageSize >
-      0
-      ? Math.min(
-          LIVE_CAMERA_MAX_DATA_URL_CHARS,
-          Math.max(
-            4000,
-            negotiatedMessageSize -
-              8000
-          )
-        )
-      : LIVE_CAMERA_MAX_DATA_URL_CHARS;
+    liveCameraDataUrlLimit();
 
   const imageDataUrl =
     captureCurrentLiveCameraImage(
@@ -13103,6 +13782,9 @@ function stopLiveCamera({
   liveCameraStarting =
     false;
 
+  liveCameraSignCaptureActive =
+    false;
+
 
   if(
     liveCameraTimer
@@ -13349,6 +14031,12 @@ function stopLiveConversation({
 
   realtimeManualResponseRouting =
     false;
+
+  pendingSignLanguageSelection =
+    false;
+
+  activeSignLanguage =
+    null;
 
   handledRealtimeMemoryToolCalls.clear();
 
