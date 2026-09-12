@@ -30,6 +30,26 @@ Fehlt die Auswahl, fragt Holo zuerst nach der Gebärdensprache. Eine früher im
 laufenden Gespräch ausdrücklich ausgewählte Sprache kann für den nächsten Test
 beibehalten werden; beim Gesprächsende wird diese Auswahl zurückgesetzt.
 
+## Haltung der Projektinhaberin
+
+Pamela Christina Nitschke weist ausdrücklich darauf hin, dass gehörlose
+Menschen in der Gesellschaft noch immer zu wenig anerkannt und teilweise
+sogar fälschlich als „Deppen“ abgestempelt werden. Sie empfindet diese
+Abwertung als sehr schade und inakzeptabel.
+
+Für Human Holo folgt daraus verbindlich:
+
+- Gebärdensprachen sind vollwertige eigenständige Sprachen und keine bloßen
+  Handbewegungen.
+- Aus Gehörlosigkeit, Lautsprache, Schreibweise oder einer notwendigen
+  Kommunikationshilfe darf niemals auf Intelligenz, Fähigkeiten oder
+  Selbstständigkeit eines Menschen geschlossen werden.
+- Kommunikationsbarrieren sind als Barrieren der Umgebung und des Systems zu
+  behandeln, nicht als persönliches Versagen gehörloser Menschen.
+- Eine unsichere Erkennung benennt ausschließlich eine Grenze von Human Holo
+  und niemals eine angeblich fehlerhafte Gebärde oder mangelnde Fähigkeit der
+  gebärdenden Person.
+
 ## Technische Korrektur
 
 - Der normale Live-Bildmodus mit Einzelbildern bleibt unverändert erhalten.
