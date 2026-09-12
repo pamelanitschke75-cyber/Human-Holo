@@ -2436,10 +2436,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
-  window.HumanHoloMemorialBackup = Object.freeze({
-    exportOwner: exportMemorialArchive,
-    restoreOwner: restoreMemorialArchive
-  });
+  if (typeof window !== "undefined") {
+    window.HumanHoloMemorialBackup = Object.freeze({
+      exportOwner: exportMemorialArchive,
+      restoreOwner: restoreMemorialArchive
+    });
+  }
 
   function cleanExplicitSaveContent(value) {
     return String(value || "")
