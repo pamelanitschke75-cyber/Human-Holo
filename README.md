@@ -6,7 +6,7 @@
 
 ## Persönliches digitales Ich · Individueller Clone
 
-**Aktueller Entwicklungsstand:** 11.09.2026<br>
+**Aktueller Entwicklungsstand:** 13.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
@@ -418,6 +418,16 @@ Automatische Spracherkennung, Erkennung der gesprochenen Sprache, Übersetzung,
 Vorlesen und Untertitel gehören als übergreifende Bedienfunktionen zu Claws
 Alltag und Verständigung, nicht als künstlicher zwölfter Bereich zum
 Ökosystem.
+
+Der produktive OpenAI-Realtime-Sprachweg ist nicht mehr auf Deutsch
+festgelegt: Er erkennt die Sprache jedes aktuellen Beitrags automatisch,
+antwortet in derselben Sprache, wechselt ohne vorherigen Sprachbefehl mit und
+verarbeitet Mischsprache. Es gibt keine feste Zehnerliste oder Sprach-Whitelist;
+Deutsch bleibt nur Bedienoberfläche und Rückfall. Gebärdensprachen laufen
+weiterhin getrennt über den bewusst gestarteten Kamerapfad.
+
+Details:
+[Automatische Sprachen ohne feste Liste](./HUMAN-HOLO-AUTOMATISCHE-SPRACHEN-13-09-2026.md)
 
 ---
 

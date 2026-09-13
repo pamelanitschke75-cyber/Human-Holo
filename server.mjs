@@ -103,6 +103,11 @@ import {
   humanHoloAIProviderPolicyResponse
 } from "./modules/human-holo-ai-provider-policy.mjs";
 import {
+  automaticLanguageInstructions,
+  automaticReplyLanguageInstructions,
+  createAutomaticTranscriptionConfig
+} from "./modules/automatic-language.mjs";
+import {
   MEDICATION_RECOGNITION_RESPONSE_FORMAT,
   formatMedicationRecognitionAnswer,
   isMedicationRecognitionRequest,
@@ -3944,7 +3949,7 @@ async function handleLiveEverydayWebRequest(message, identity) {
       searchContextSize: "medium",
       maxOutputTokens: 450,
       instructions: `
-Du beantwortest eine aktuelle Alltagsfrage auf Deutsch.
+${automaticReplyLanguageInstructions()}
 Aktuelles Datum und Uhrzeit in Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche und bevorzuge offizielle oder primäre Quellen.
 Ordne bei Öffnungszeiten die konkrete Filiale und Adresse genau zu und beachte
@@ -4050,7 +4055,8 @@ async function handleLiveWeatherRequest(
       searchContextSize: "low",
       maxOutputTokens: 350,
       instructions: `
-Du beantwortest ausschließlich eine aktuelle Wetterfrage auf Deutsch.
+Du beantwortest ausschließlich eine aktuelle Wetterfrage.
+${automaticReplyLanguageInstructions()}
 Heute in der Zeitzone Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche. Nenne Ort, Zeitraum, Temperatur, Niederschlag und
 einen kurzen praktischen Hinweis, soweit die Quellen das hergeben.
@@ -9271,7 +9277,7 @@ app.post(
           maxOutputTokens:
             500,
           instructions: `
-Du beantwortest eine aktuelle Alltagsfrage auf Deutsch.
+${automaticReplyLanguageInstructions()}
 Aktuelles Datum und Uhrzeit in Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche und nenne nur Informationen, die sich aus passenden,
 möglichst offiziellen oder primären Quellen zuverlässig ergeben. Das gilt
@@ -10085,9 +10091,7 @@ Aktuell spricht ${identity.displayName} mit dir.
 
 Du sprichst gerade über die Realtime-Mikrofonfunktion.
 
-Antworte natürlich, freundlich und verständlich
-auf Deutsch, sofern ${identity.displayName} nicht ausdrücklich eine
-andere Sprache verwendet.
+${automaticLanguageInstructions(identity.displayName)}
 
 Sprich flüssig und zusammenhängend in natürlich klingenden
 Sätzen. Vermeide abgehackte Wortfolgen und unnötig lange
@@ -10941,13 +10945,8 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
                 false
             },
 
-            transcription: {
-              model:
-                "gpt-transcribe",
-
-              language:
-                "de"
-            }
+            transcription:
+              createAutomaticTranscriptionConfig()
           },
 
           output: {
@@ -12893,7 +12892,7 @@ ${healthSelfCareInstructions(identity.displayName)}
 
 ${humanHoloNoGoInstructions()}
 
-Antworte natürlich und verständlich auf Deutsch.
+${automaticLanguageInstructions(identity.displayName)}
 
 Deine Antwort wird anschließend von ${instanceName} gesprochen
 und über das persönliche digitale Abbild dargestellt.
