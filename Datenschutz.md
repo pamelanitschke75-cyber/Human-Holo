@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.3
-Stand: 12.09.2026
+Version: 1.5
+Stand: 13.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -397,6 +397,56 @@ das Foto einmalig zur Bildanalyse frei.
 
 ---
 
+15A. PRIVATE WIEDERERKENNUNG DER OWNERIN
+
+Human Holo kann nach einer getrennten, ausdrücklichen und jederzeit
+widerrufbaren Einwilligung auf einem von Pam bewusst gesendeten einzelnen Foto
+prüfen, ob die einzige klar sichtbare Person Pam selbst ist.
+
+Dabei gelten verbindlich:
+
+- ausschließlich Pams feste Owner-ID `pam-sol` und ihre sicher bestätigte
+  App-Sitzung,
+- ausschließlich Pams eigenes, bereits ownergebunden auf ihrem Gerät
+  gespeichertes Profilbild als Referenz,
+- genau ein manuell gesendetes Prüffoto, keine Live-Kamera, kein Video und
+  keine öffentliche Überwachung,
+- ein privater 1:1-Abgleich über ChatGPT/OpenAI; keine Suche in einer
+  Gesichtsdatenbank und keine Benennung unbekannter Personen,
+- keine Ableitung von Herkunft, Gesundheit, Emotionen oder anderen sensiblen
+  Eigenschaften,
+- ein Name nur bei genau einem klar sichtbaren Gesicht in beiden Bildern und
+  hoher Übereinstimmung; andernfalls muss Human Holo offen unsicher bleiben,
+- `store: false` gegen die normale Speicherung des OpenAI-Response-
+  Anwendungszustands und keine Übernahme von Referenz- oder Prüffoto in das
+  Vollzeitgedächtnis,
+- keine Aufnahme der Einwilligung oder des Referenzbildes in die
+  Human-Holo-Sicherungsdatei.
+
+Der 1:1-Abgleich ist eine Verarbeitung biometrischer Daten zur eindeutigen
+Bestätigung der betroffenen Person. Rechtsgrundlage soll ausschließlich Pams
+ausdrückliche, zweckgebundene Einwilligung nach Art. 6 Abs. 1 Buchst. a und
+Art. 9 Abs. 2 Buchst. a DSGVO sein. Die Funktion bleibt freiwillig und alle
+anderen Funktionen bleiben ohne diese Einwilligung nutzbar.
+
+`store: false` ist keine Zusage, dass OpenAI überhaupt keine Sicherheitskopie
+verarbeitet. Nach den aktuell veröffentlichten API-Datenkontrollen werden
+API-Daten standardmäßig nicht zum Modelltraining verwendet; Inhalte können
+jedoch bis zu 30 Tage in Missbrauchsschutz-Protokollen aufbewahrt werden, sofern
+für das verwendete Projekt keine bestätigte Zero Data Retention gilt. Eine
+längere Aufbewahrung kann gesetzlich oder in besonderen Sicherheitsfällen nötig
+sein. Diese Grenze muss unmittelbar vor der Einwilligung sichtbar bleiben.
+
+Die Einwilligung kann unter „Verbindungen“ mit einem Antippen ausgeschaltet
+werden. Beim Austausch oder Löschen des Profilbildes erlischt sie ebenfalls.
+Der Widerruf stoppt künftige Abgleiche; bereits entstandene OpenAI-
+Missbrauchsschutz-Protokolle kann Human Holo nicht rückwirkend löschen. Das
+Ausschalten verändert weder das persönliche Holo-Bild noch andere Funktionen.
+Weitere Personen dürfen erst nach ihrer jeweils eigenen ausdrücklichen
+Einwilligung und einer getrennten sicheren Umsetzung ergänzt werden.
+
+---
+
 16. KALENDER, KONTAKTE UND STANDORT
 
 Freigegebene Informationen aus:
@@ -705,6 +755,18 @@ STATUS
 
 🟨 Datenschutzarchitektur dokumentiert
 
-Die konkreten Regeln für einzelne Anbieter, APIs, Cloud-Dienste und Speicherorte werden ergänzt, sobald diese tatsächlich implementiert werden.
+Vor einer Veröffentlichung über Google Play müssen die tatsächlich aktive
+OpenAI-Aufbewahrung, die vertraglichen Datenschutz- und Drittlandgrundlagen und
+die Play-Datensicherheitsangaben abschließend bestätigt werden. Im Play-Formular
+sind jedenfalls die freiwillig übertragenen Kategorien „Fotos“ und „Name“, die
+optionale Verarbeitung sowie der Zweck „App-Funktionalität“ wahrheitsgemäß zu
+prüfen. Ohne diese Prüfung gibt es keine öffentliche Produktionsfreigabe der
+Wiedererkennung.
 
-Vor einer Veröffentlichung für andere Personen wird zusätzlich geprüft, welche gesetzlichen Datenschutzinformationen und Einwilligungen für die tatsächlich umgesetzte Version erforderlich sind.
+Weitere Personen werden erst nach ihrer eigenen ausdrücklichen Einwilligung und
+einer getrennten Datenschutz- und Sicherheitsprüfung ergänzt.
+
+Quellen: [DSGVO, insbesondere Art. 5, 7, 9 und 13](https://eur-lex.europa.eu/eli/reg/2016/679/oj),
+[OpenAI API-Datenkontrollen](https://developers.openai.com/api/docs/guides/your-data),
+[Google Play User Data](https://support.google.com/googleplay/android-developer/answer/10144311?hl=de),
+[Google Play Data safety](https://support.google.com/googleplay/android-developer/answer/10787469?hl=de).

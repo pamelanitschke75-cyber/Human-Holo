@@ -119,6 +119,6 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(theme, /#memoryView,#memorialView,#medicationView,#servicesView/u);
   assert.match(html, /sol-holo-ui\.css\?v=51/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=78/u);
-  assert.match(serviceWorker, /human-holo-285-ownergebundenes-dauergedächtnis/u);
+  assert.match(html, /sol-holo-ui\.js\?v=79/u);
+  assert.match(serviceWorker, /human-holo-286-private-owner-wiedererkennung/u);
 });

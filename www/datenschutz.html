@@ -16,7 +16,7 @@
 <body>
   <main>
     <article>
-      <p class="meta">Stand: 11.09.2026 · Version 1.1</p>
+      <p class="meta">Stand: 13.09.2026 · Version 1.3</p>
       <h1>Datenschutzerklärung für Human Holo</h1>
       <p>
         Verantwortliches Projekt: <strong>Human Holo</strong><br>
@@ -45,16 +45,18 @@
         <li><strong>Profil- und Kontaktdaten:</strong> freiwillig genannte persönliche Angaben sowie ownergebundene Nutzer-, Geräte- und Sitzungskennungen.</li>
         <li><strong>Lokales Telefonbuch und Anrufziel:</strong> Nach Android-Freigabe werden Kontakte ausschließlich auf dem Gerät gesucht. Für einen ausdrücklich beauftragten Anruf werden Kontakt-ID und Telefonnummer unmittelbar vor der sichtbaren Bestätigung erneut lokal geprüft. Die fest hinterlegte ADAC-Pannenhilfe kann auf demselben Weg gewählt werden.</li>
         <li><strong>Medien:</strong> ausdrücklich ausgewählte Fotos, Videos, Videoframes, Sprach- und Tonaufnahmen sowie Dateien.</li>
+        <li><strong>Optionale Wiedererkennung der Ownerin:</strong> Pams ausdrücklich freigegebenes, nur auf ihrem Gerät gespeichertes Profilbild und ein von ihr bewusst gesendetes einzelnes Prüffoto. Diese besondere Funktion bleibt ohne separate ausdrückliche Einwilligung ausgeschaltet.</li>
         <li><strong>Erinnerung &amp; Vermächtnis:</strong> freiwillig und nach bestätigten Rechten lokal hinzugefügte Fotos, Videos, Sprachaufnahmen, Geschichten und biografische Angaben.</li>
         <li><strong>Gesundheit und Fitness:</strong> freiwillige Gesundheitsfragen sowie ausdrücklich freigegebene, lesbare Health-Connect-Daten.</li>
         <li><strong>Optionale verbundene Dienste:</strong> Google-Konto, Kalender, Gmail, Google Kontakte, Google Drive, Samsung SmartThings und WhatsApp.</li>
-        <li><strong>Technische Sicherheit:</strong> öffentliche Geräteschlüssel, Registrierungsstatus und begrenzte technische Fehlerangaben. Rohe Fingerabdruck-, Gesichts- oder PIN-Daten erhält Human Holo nicht.</li>
+        <li><strong>Technische Sicherheit:</strong> öffentliche Geräteschlüssel, Registrierungsstatus und begrenzte technische Fehlerangaben. Rohe biometrische Entsperrdaten von Android – Fingerabdruck, Geräte-Gesichtsscan oder PIN – erhält Human Holo nicht. Davon getrennt sind freiwillig ausgewählte Fotos für die beschriebenen Bildfunktionen.</li>
       </ul>
 
       <h2>3. Zwecke</h2>
       <p>Die Daten werden ausschließlich verwendet, um:</p>
       <ul>
         <li>die von der Nutzerin angeforderten App-, Sprach-, Bild- und Assistenzfunktionen bereitzustellen,</li>
+        <li>nach gesonderter ausdrücklicher Einwilligung ausschließlich zu prüfen, ob die einzelne Person auf einem bewusst gesendeten Foto Pam selbst ist,</li>
         <li>Antworten und bestätigte Erinnerungen ownergebunden zu personalisieren,</li>
         <li>freiwillig verbundene Dienste im ausdrücklich angeforderten Umfang auszuführen,</li>
         <li>Identität, Gerätesitzung, Einwilligungen und Datenzugriffe zu schützen,</li>
@@ -64,9 +66,9 @@
 
       <h2>4. Speicherorte und Empfänger</h2>
       <ul>
-        <li><strong>Auf dem Gerät:</strong> Einstellungen, ausgewählte Medien, lokale Erinnerungsinhalte, Notizen und verschlüsselte Exportdateien können lokal gespeichert werden.</li>
+        <li><strong>Auf dem Gerät:</strong> Einstellungen, ausgewählte Medien, lokale Erinnerungsinhalte, Notizen und verschlüsselte Exportdateien können lokal gespeichert werden. Pams ownergebundenes Profilbild bleibt auf ihrem Gerät; die freiwillige Einwilligung zur Selbstwiedererkennung wird dort getrennt gespeichert und nicht in eine Human-Holo-Sicherungsdatei übernommen.</li>
         <li><strong>Human-Holo-Backend:</strong> Render stellt die technische Serververbindung bereit. Ownergebundene Gespräche, bestätigte Erinnerungen und notwendige Dienst-Tokens werden in der angebundenen PostgreSQL-Datenbank verarbeitet.</li>
-        <li><strong>ChatGPT/OpenAI:</strong> erhält die für eine angeforderte Text-, Sprach-, Bild- oder Videofunktion erforderlichen Inhalte zur KI-Verarbeitung. Für besonders gekennzeichnete Gesundheits- und Medikamentenerkennungswege wird die dauerhafte Speicherung des OpenAI-Response-Objekts technisch ausgeschaltet.</li>
+        <li><strong>ChatGPT/OpenAI:</strong> erhält die für eine angeforderte Text-, Sprach-, Bild- oder Videofunktion erforderlichen Inhalte zur KI-Verarbeitung. Bei der freiwilligen Selbstwiedererkennung werden genau das freigegebene Referenzbild und das manuell gesendete Prüffoto für einen privaten 1:1-Abgleich übertragen. Für diesen Weg sowie für besonders gekennzeichnete Gesundheits- und Medikamentenerkennungswege wird mit <code>store: false</code> die normale Speicherung des OpenAI-Response-Anwendungszustands ausgeschaltet. OpenAI verwendet API-Daten standardmäßig nicht zum Modelltraining. Ohne bestätigte Zero Data Retention können Eingaben und Antworten nach den aktuell veröffentlichten API-Regeln jedoch bis zu 30 Tage für Missbrauchsschutz aufbewahrt werden; gesetzlich oder aus besonderen Sicherheitsgründen kann eine längere Aufbewahrung nötig sein.</li>
         <li><strong>Google:</strong> verarbeitet nach ausdrücklicher OAuth- oder Android-Freigabe die jeweils angeforderten Konto-, Kalender-, Gmail-, Kontakte-, Drive-, Health-Connect- oder Android-Systemfunktionen.</li>
         <li><strong>Android-Kalender:</strong> Nach einmaliger Kalenderfreigabe speichert Human Holo nur ausdrücklich beauftragte Termine direkt in einen sichtbaren, beschreibbaren Kalender auf dem Gerät und zeigt kommende sichtbare Termine aus derselben Quelle unter „Wichtiges → Kalender“ an. Es entsteht keine zweite Terminkopie. Die Kalender-App wird dabei nicht geöffnet; ohne Freigabe wird nichts eingetragen oder in Human Holo angezeigt.</li>
         <li><strong>Android-Telefon:</strong> Human Holo verwendet <code>CALL_PHONE</code> ausschließlich nach einem ausdrücklichen aktuellen Anrufauftrag und einem sichtbaren Bestätigungsfenster. Die Berechtigung wird erstmals in diesem Ablauf angefragt. Kontakt- und Telefonnummern werden für den Anruf nicht an das Human-Holo-Backend, OpenAI oder den ADAC hochgeladen. 110, 112 und 116117 sind vom direkten Anrufweg ausgeschlossen und werden nur im Android-Wähler vorbereitet.</li>
@@ -96,6 +98,7 @@
       <h2>6. Speicherdauer</h2>
       <ul>
         <li>Lokale Daten bleiben bis zur Löschung in der App, zum Löschen der App-Daten oder zur Deinstallation erhalten.</li>
+        <li>Die lokale Einwilligung zur Selbstwiedererkennung bleibt nur bis zum Widerruf, Austausch oder Löschen des Referenzbildes bestehen. Referenz- und Prüffoto werden nicht in das Vollzeitgedächtnis oder eine Human-Holo-Sicherungsdatei übernommen. Die mögliche Aufbewahrung in OpenAI-Missbrauchsschutz-Protokollen richtet sich nach dem vorstehend beschriebenen API-Rahmen.</li>
         <li>Ownergebundene Gespräche und Erinnerungen besitzen derzeit keinen automatischen Ablaufzeitpunkt. Sie bleiben bis zu einem bestätigten Löschanliegen oder bis sie für die Funktion nicht mehr erforderlich sind gespeichert.</li>
         <li>Google- und SmartThings-Verbindungstokens bleiben bis zum Widerruf der Verbindung oder einem bestätigten Löschanliegen gespeichert.</li>
         <li>Selbst exportierte Sicherungsdateien bleiben am gewählten Speicherort, bis die Nutzerin sie dort selbst löscht.</li>
@@ -109,6 +112,12 @@
         Wird die Telefonberechtigung entzogen, kann Human Holo keinen direkten
         Kontakt- oder ADAC-Anruf mehr starten; die übrigen App-Funktionen
         bleiben davon unberührt.
+        Die Einwilligung zur privaten Selbstwiedererkennung kann unter
+        „Verbindungen“ mit einem Antippen ausgeschaltet werden. Danach wird
+        kein Referenzbild mehr für diesen Zweck übertragen. Der Widerruf stoppt
+        künftige Abgleiche; bereits entstandene OpenAI-Sicherheitsprotokolle
+        kann Human Holo nicht rückwirkend löschen. Das persönliche Holo-Bild
+        und die übrigen App-Funktionen bleiben unverändert.
         Informationen zur vollständigen Anforderung einer Datenlöschung, zu
         lokal verbleibenden Sicherungen und zu möglichen Aufbewahrungsgrenzen
         stehen auf der
@@ -116,6 +125,23 @@
       </p>
 
       <h2>8. Besondere Funktionshinweise</h2>
+      <p>
+        Die optionale Wiedererkennung ist auf Pams eigene, fest gebundene
+        Instanz, eine sichere App-Sitzung und einzelne manuell gesendete Fotos
+        begrenzt. Sie wird weder für Live-Bilder noch für öffentliche
+        Überwachung verwendet. Unbekannte Personen werden nicht benannt;
+        bei Unsicherheit nennt Human Holo keinen Namen.
+      </p>
+      <p>
+        Weil dieser 1:1-Abgleich biometrische Daten zur eindeutigen Bestätigung
+        verarbeitet, stützt sich die Funktion ausschließlich auf Pams
+        ausdrückliche, zweckgebundene Einwilligung nach Art. 6 Abs. 1 Buchst. a
+        und Art. 9 Abs. 2 Buchst. a DSGVO. Die Einwilligung ist freiwillig und
+        so einfach zu widerrufen wie zu erteilen. Vor einer öffentlichen
+        Produktionsfreigabe müssen außerdem die für das eingesetzte OpenAI-
+        Projekt geltenden Aufbewahrungs- und Drittlandbedingungen sowie die
+        Angaben im Google-Play-Datensicherheitsformular bestätigt sein.
+      </p>
       <p>
         Ergänzend gelten die ausführlichen Hinweise zur
         <a href="./datenschutz-gesundheitsbegleitung.html">Gesundheitsbegleitung</a>

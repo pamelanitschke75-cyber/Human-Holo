@@ -114,6 +114,14 @@ import {
   isHealthSelfCareRequest
 } from "./modules/health-self-care.mjs";
 import {
+  KNOWN_PERSON_SELF_CONSENT_VERSION,
+  createOwnerSelfRecognitionRequest,
+  formatOwnerSelfRecognitionAnswer,
+  hasValidOwnerSelfConsent,
+  isOwnerSelfRecognitionRequest,
+  parseKnownPersonRecognitionResult
+} from "./modules/known-person-recognition.mjs";
+import {
   humanHoloNoGoInstructions
 } from "./modules/human-holo-no-go.mjs";
 import {
@@ -11634,6 +11642,16 @@ app.post("/sol", async (req, res) => {
       hasImage ||
       hasVideo;
 
+    const ownerSelfRecognitionRequested =
+      isOwnerSelfRecognitionRequest(
+        message,
+        {
+          hasImage,
+          hasVideo,
+          live: false
+        }
+      );
+
     const turnSourceModalities =
       normalizeMemoryModalities(
         [
@@ -11720,6 +11738,117 @@ app.post("/sol", async (req, res) => {
 
     if (!identity) {
       return;
+    }
+
+    let ownerSelfReferenceImage =
+      null;
+
+    if (ownerSelfRecognitionRequested) {
+      const trustedRecognitionSession =
+        trustedAppSessions
+          .validateRequest(
+            req
+          );
+
+      res.set({
+        "Cache-Control":
+          "no-store, max-age=0",
+        Pragma:
+          "no-cache"
+      });
+
+      if (
+        !trustedRecognitionSession
+      ) {
+        return res.status(401).json({
+          error:
+            "TRUSTED_APP_SESSION_REQUIRED",
+          message:
+            "Die private Personen-Wiedererkennung wird nur in Pams sicher bestätigter App-Sitzung ausgeführt.",
+          persisted:
+            false,
+          knownPersonRecognition: {
+            handled:
+              true,
+            needsTrustedAppSession:
+              true,
+            performed:
+              false
+          }
+        });
+      }
+
+      if (
+        trustedRecognitionSession
+          .ownerId !==
+          identity.ownerId ||
+        identity.ownerId !== "pam-sol" ||
+        identity.speakerId !== "pam"
+      ) {
+        return res.status(403).json({
+          error:
+            "OWNER_SELF_RECOGNITION_SCOPE_MISMATCH",
+          message:
+            "Die Referenz darf ausschließlich Pams eigener, ownergebundener Holo-Instanz zugeordnet werden.",
+          persisted:
+            false,
+          knownPersonRecognition: {
+            handled:
+              true,
+            performed:
+              false
+          }
+        });
+      }
+
+      if (
+        !hasValidOwnerSelfConsent(
+          req.body?.knownPersonSelfConsent,
+          identity
+        )
+      ) {
+        return res.status(409).json({
+          error:
+            "KNOWN_PERSON_EXPLICIT_CONSENT_REQUIRED",
+          message:
+            "Vor der privaten Wiedererkennung ist Pams ausdrückliche, jederzeit widerrufbare Einwilligung erforderlich.",
+          persisted:
+            false,
+          knownPersonRecognition: {
+            consentVersion:
+              KNOWN_PERSON_SELF_CONSENT_VERSION,
+            handled:
+              true,
+            needsExplicitConsent:
+              true,
+            performed:
+              false
+          }
+        });
+      }
+
+      ownerSelfReferenceImage =
+        normalizeMediaDataUrl(
+          req.body
+            ?.ownerSelfReferenceImage,
+          "Pams freigegebenes Referenzbild"
+        );
+
+      if (
+        image.length +
+          ownerSelfReferenceImage.length >
+        2 * MAX_MEDIA_DATA_URL_LENGTH
+      ) {
+        throw createMediaInputError(
+          "Prüffoto und Referenzbild sind zusammen zu groß."
+        );
+      }
+
+      delete req.body
+        .ownerSelfReferenceImage;
+      delete req.body
+        .knownPersonSelfConsent;
+      delete req.body.image;
     }
 
     const instanceName =
@@ -11844,6 +11973,126 @@ app.post("/sol", async (req, res) => {
           }
         );
       };
+
+    if (ownerSelfRecognitionRequested) {
+      let recognitionResult;
+
+      try {
+        const recognitionResponse =
+          await openai.responses.create(
+            createOwnerSelfRecognitionRequest({
+              candidateImage:
+                image,
+              model:
+                String(
+                  process.env
+                    .OPENAI_KNOWN_PERSON_MODEL ||
+                  "gpt-5"
+                ).trim(),
+              referenceImage:
+                ownerSelfReferenceImage
+            })
+          );
+
+        recognitionResult =
+          parseKnownPersonRecognitionResult(
+            recognitionResponse
+              .output_text
+          );
+      } catch (error) {
+        console.warn(
+          "Private Owner-Selbstwiedererkennung nicht verfügbar:",
+          error?.name ||
+            "Fehler"
+        );
+
+        recognitionResult = {
+          candidateFaceCount:
+            0,
+          confidence:
+            "low",
+          decision:
+            "uncertain",
+          referenceFaceCount:
+            0,
+          technicalUnavailable:
+            true,
+          verifiedMatch:
+            false
+        };
+      } finally {
+        ownerSelfReferenceImage =
+          null;
+      }
+
+      const answer =
+        formatOwnerSelfRecognitionAnswer(
+          recognitionResult,
+          identity.displayName
+        );
+
+      await saveFulltimeAssistant(
+        answer
+      );
+
+      appendConversationMessage(
+        conversation.conversationId,
+        identity,
+        "user",
+        userMemoryMessage
+      );
+      appendConversationMessage(
+        conversation.conversationId,
+        identity,
+        "assistant",
+        answer
+      );
+
+      return res.json({
+        answer,
+        persisted:
+          false,
+        conversationId:
+          conversation.conversationId,
+        identity:
+          publicIdentity(identity),
+        knownPersonRecognition: {
+          candidateFaceCount:
+            recognitionResult
+              .candidateFaceCount,
+          confidence:
+            recognitionResult
+              .confidence,
+          consentVersion:
+            KNOWN_PERSON_SELF_CONSENT_VERSION,
+          handled:
+            true,
+          manualPhotoOnly:
+            true,
+          matched:
+            recognitionResult
+              .verifiedMatch,
+          performed:
+            !recognitionResult
+              .technicalUnavailable,
+          provider:
+            "openai",
+          providerAbuseMonitoringRetentionPossibleDays:
+            30,
+          providerApplicationStateStorageDisabled:
+            true,
+          publicOrLiveRecognition:
+            false,
+          rawImagesStoredInFulltimeMemory:
+            false,
+          referenceFaceCount:
+            recognitionResult
+              .referenceFaceCount,
+          subject:
+            "owner-self"
+        }
+      });
+    }
 
     const memoryDecision =
       evaluateIdentityMemoryWrite({

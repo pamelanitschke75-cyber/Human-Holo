@@ -1,7 +1,7 @@
 HUMAN HOLO – BERECHTIGUNGEN
 
-Version: 1.4
-Stand: 11.09.2026
+Version: 1.5
+Stand: 13.09.2026
 Status: Technisch umgesetzt und fortlaufend geprüft
 
 Grundregel
@@ -36,6 +36,7 @@ Bereich| Zugriff| Warum benötigt?| Wann?| Ohne Freigabe
 🎙️ Mikrofon| Mikrofon| Mit Sol sprechen| Bei Sprachfunktion| Texteingabe bleibt möglich
 📷 Kamera| Kamera| Human Holo einzelne Fotos oder aktuelle Live-Bilder zeigen / AR| Erst beim sichtbaren Start der Kamerafunktion| Keine Kamera; Schreiben und Sprechen bleiben möglich
 🖼️ Fotos| ausgewählte Bilder| Bilder an Sol übergeben| Bei Auswahl durch Pam| Kein Bildzugriff
+◉ Private Selbstwiedererkennung| Pams lokales Referenzbild + genau ein manuell gesendetes Foto| Nur prüfen, ob die einzelne Person Pam selbst ist| Erst nach gesonderter ausdrücklicher Einwilligung und in Pams sicherer Sitzung| Keine Personenprüfung; alle übrigen Bild-, Chat- und Holo-Funktionen bleiben nutzbar
 📁 Dateien| ausgewählte Dateien| Dokumente an Sol übergeben| Bei Auswahl durch Pam| Kein Dateizugriff
 🔔 Benachrichtigungen| Benachrichtigungen| Hinweise und Erinnerungen| Wenn Funktion aktiviert wird| Keine Sol-Mitteilungen
 📅 Kalender| `READ_CALENDAR` + `WRITE_CALENDAR`| Einen ausdrücklich genannten Termin direkt speichern und kommende Termine im sichtbaren Human-Holo-Kalenderfach anzeigen| Einmalige Android-Freigabe; danach beim Kalenderauftrag oder sichtbaren Aktualisieren| Kein Kalendereintrag und keine Terminanzeige in Human Holo
@@ -115,6 +116,25 @@ PAM
 Bild / Datei auswählen
  ↓
 SOL erhält ausgewählten Inhalt
+
+Private Selbstwiedererkennung
+
+Die private Selbstwiedererkennung ist keine allgemeine Kamera- oder
+Galerieberechtigung. Sie verwendet ausschließlich Pams bereits ownergebundenes
+lokales Profilbild und genau ein von Pam bewusst gesendetes Prüffoto. Vor der
+ersten Nutzung zeigt Human Holo getrennt und unmittelbar sichtbar, dass beide
+Fotos verschlüsselt an ChatGPT/OpenAI übertragen werden, dass Human Holo sie
+nicht ins Vollzeitgedächtnis übernimmt und dass OpenAI sie ohne bestätigte Zero
+Data Retention nach den veröffentlichten API-Regeln bis zu 30 Tage für
+Missbrauchsschutz aufbewahren kann.
+
+Die Freigabe gilt nur für Pam selbst. Sie kann unter „Verbindungen“ mit einem
+Antippen widerrufen werden und erlischt beim Austausch oder Löschen des
+Referenzbildes. Gruppenbilder, Live-Kamera, Video, öffentliche Überwachung,
+unbekannte Personen und sensible Eigenschaftsableitungen sind ausgeschlossen.
+Vor einem Google-Play-Produktionsrollout müssen die Datenschutzerklärung und das
+Datensicherheitsformular mit der tatsächlich aktiven Verarbeitung
+übereinstimmen.
 
 ---
 
