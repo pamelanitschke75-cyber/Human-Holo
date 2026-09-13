@@ -429,7 +429,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=6/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=7/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
@@ -457,7 +457,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-292-animal-human-holo-glass/u);
+  assert.match(worker, /human-holo-293-animal-floating-dock/u);
 });
 
 test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
@@ -482,6 +482,12 @@ test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
   assert.match(ui, /--human-holo-glass-edge:rgba\(211,232,255,\.78\)/u);
   assert.match(ui, /backdrop-filter:blur\(20px\) saturate\(1\.3\)/u);
   assert.match(ui, /linear-gradient\(145deg,rgba\(151,78,233,\.74\),rgba\(48,91,197,\.67\)\)/u);
+  assert.match(ui, /Build 293: unterer Tier-Holo-Bereich wie Holos schwebende Hauptnavigation/u);
+  assert.match(ui, /width:min\(calc\(100% - 20px\),740px\)/u);
+  assert.match(ui, /bottom:calc\(8px \+ env\(safe-area-inset-bottom\)\)/u);
+  assert.match(ui, /border-radius:23px/u);
+  assert.match(ui, /animalHoloDockButton\[data-selected=true\]:after/u);
+  assert.match(ui, /padding-bottom:calc\(104px \+ env\(safe-area-inset-bottom\)\)/u);
 });
 
 test("freigegebene Tierbilder sind im App-Build sichtbar, aber nicht MIT-lizenziert", async () => {

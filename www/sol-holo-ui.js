@@ -258,7 +258,23 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     <section class="memorialIntro memorialHero glassCard"
       aria-labelledby="memorialIntroTitle">
-      <span class="memorialHeroInfinity" aria-hidden="true">∞</span>
+      <span class="memorialHeroInfinity" aria-hidden="true">
+        <svg viewBox="0 0 64 36" focusable="false">
+          <defs>
+            <linearGradient id="memorialInfinityGradient" x1="3" y1="4" x2="61" y2="32"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#d44dff"/>
+              <stop offset="0.24" stop-color="#ad5cff"/>
+              <stop offset="0.52" stop-color="#756dff"/>
+              <stop offset="0.76" stop-color="#31c8ff"/>
+              <stop offset="1" stop-color="#66efff"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 18C25.4 8.2 21.2 4 14.7 4 6.6 4 2 10.2 2 18s4.6 14 12.7 14c6.5 0 10.7-4.2 17.3-14C38.6 8.2 42.8 4 49.3 4 57.4 4 62 10.2 62 18s-4.6 14-12.7 14C42.8 32 38.6 27.8 32 18Z"
+            fill="none" stroke="url(#memorialInfinityGradient)" stroke-width="5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
       <div class="memorialHeroCopy">
         <p class="eyebrow">Human Holo · Forever Together</p>
         <h2 id="memorialIntroTitle">Erinnerungen bewahren.<strong>Würde schützen.</strong></h2>
@@ -276,8 +292,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         <summary>
           <span class="memorialDetailIcon" aria-hidden="true">＋</span>
           <span class="memorialDetailCopy">
-            <strong>Neue Erinnerung</strong>
-            <small>Text, Foto, Video oder Stimme bewahren</small>
+            <strong>Foto oder Erinnerung hinzufügen</strong>
+            <small>Foto · Video · Stimme · Text</small>
           </span>
           <span class="memorialDetailChevron" aria-hidden="true">›</span>
         </summary>
@@ -387,8 +403,27 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </details>
     </div>
 
+    <input id="memorialAppendPhotoInput" type="file" accept="image/*" multiple hidden>
+
     <p class="memorialPageFooter">♾️ Forever Together · in Würde bewahrt</p>
   `;
+
+  // Omas bewahrte Erinnerung steht bewusst vor dem Eingabebereich. Dadurch
+  // bleibt das private Bild sichtbar, ohne von der schwebenden Navigation
+  // verdeckt zu werden; die Bedien- und Fokusreihenfolge folgt der Darstellung.
+  const memorialSections = memorialView.querySelector(".memorialSections");
+  const memorialCollectionForLayout = memorialView.querySelector(
+    "#memorialCollectionPanel"
+  );
+  const memorialCreateForLayout = memorialView.querySelector(
+    "#memorialCreatePanel"
+  );
+  if (memorialSections && memorialCollectionForLayout && memorialCreateForLayout) {
+    memorialSections.insertBefore(
+      memorialCollectionForLayout,
+      memorialCreateForLayout
+    );
+  }
   solApp.insertBefore(memorialView, currentHeader);
 
   const medicationView = document.createElement("section");
@@ -1150,6 +1185,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const memorialStory = document.getElementById("memorialStory");
   const memorialMediaInput = document.getElementById("memorialMediaInput");
   const memorialMediaStatus = document.getElementById("memorialMediaStatus");
+  const memorialAppendPhotoInput = document.getElementById(
+    "memorialAppendPhotoInput"
+  );
   const memorialRightsConfirmation = document.getElementById(
     "memorialRightsConfirmation"
   );
@@ -1272,6 +1310,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   let personalNotes = [];
   let memorialEntries = [];
   let memorialLoadRunning = false;
+  let memorialAppendPhotoTargetId = "";
   const memorialObjectUrls = new Set();
 
   function activePersonalOwner() {
@@ -2075,6 +2114,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       .slice(0, maxLength);
   }
 
+  function isGrandmotherMemorial(entry) {
+    const relationship = normalizeNoteSearchText(entry?.relationship)
+      .replace(/ß/g, "ss")
+      .replace(/[^a-z]+/g, " ")
+      .trim();
+    return relationship
+      .split(/\s+/u)
+      .some((word) => word === "oma" || word === "omi" || word === "grossmutter");
+  }
+
   function validateMemorialMedia(fileList) {
     const files = Array.from(fileList || []);
     if (files.length > maxMemorialMediaFiles) {
@@ -2279,6 +2328,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       const card = document.createElement("article");
       card.className = "memorialCard glassCard";
       card.dataset.memorialId = entry.id;
+      if (isGrandmotherMemorial(entry)) {
+        card.classList.add("memorialCard--grandmotherPortrait");
+      }
 
       const header = document.createElement("div");
       header.className = "memorialCardHeader";
@@ -2334,7 +2386,21 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         "aria-label",
         `Bewahrte Erinnerung an ${entry.personName} löschen`
       );
-      footer.append(boundary, deleteButton);
+      const footerActions = document.createElement("div");
+      footerActions.className = "memorialCardActions";
+      const addPhotoButton = document.createElement("button");
+      addPhotoButton.className = "memorialAddPhotoButton";
+      addPhotoButton.type = "button";
+      addPhotoButton.dataset.memorialAction = "add-photo";
+      addPhotoButton.dataset.memorialId = entry.id;
+      addPhotoButton.textContent = "＋ Foto";
+      addPhotoButton.setAttribute(
+        "aria-label",
+        `Foto zu ${entry.personName} hinzufügen`
+      );
+      footerActions.append(addPhotoButton);
+      footerActions.append(deleteButton);
+      footer.append(boundary, footerActions);
       card.append(footer);
       memorialList.append(card);
     }
@@ -2505,6 +2571,77 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     } finally {
       memorialSaveButton.disabled = false;
       memorialSaveButton.textContent = "Erinnerung sicher anlegen";
+    }
+  }
+
+  async function appendMemorialPhotos(entryId, fileList) {
+    const identity = requireActivePersonalOwner();
+    const entry = memorialEntries.find((item) => item.id === entryId);
+    const files = Array.from(fileList || []);
+    if (!identity || !entry || entry.ownerId !== identity.ownerId || !files.length) {
+      return false;
+    }
+
+    if (files.some((file) => !String(file?.type || "").startsWith("image/"))) {
+      showToast("Bitte hier nur Fotos auswählen.");
+      return false;
+    }
+
+    const mediaResult = validateMemorialMedia(files);
+    const existingBytes = entry.media.reduce(
+      (total, item) => total + Number(item?.size || item?.blob?.size || 0),
+      0
+    );
+    if (!mediaResult.valid) {
+      showToast(mediaResult.error);
+      return false;
+    }
+    if (entry.media.length + mediaResult.files.length > maxMemorialMediaFiles) {
+      showToast(`Zu einer Erinnerung passen höchstens ${maxMemorialMediaFiles} Dateien.`);
+      return false;
+    }
+    if (existingBytes + mediaResult.totalBytes > maxMemorialTotalBytes) {
+      showToast("Die Dateien dieser Erinnerung dürfen zusammen höchstens 64 MB groß sein.");
+      return false;
+    }
+
+    const now = Date.now();
+    const appendedMedia = mediaResult.files.map((file, index) => ({
+      id: `${entry.id}-media-${now}-${index + 1}`,
+      name: cleanMemorialText(file.name, 160) || `Foto ${index + 1}`,
+      type: String(file.type || "").toLocaleLowerCase("de-DE"),
+      size: Number(file.size),
+      lastModified: Number(file.lastModified || 0),
+      blob: file
+    }));
+    const record = {
+      ...entry,
+      storageId: `${identity.ownerId}:${entry.id}`,
+      speakerId: identity.speakerId,
+      media: [...entry.media, ...appendedMedia],
+      updatedAt: now
+    };
+
+    try {
+      const database = await openMemorialDatabase();
+      const transaction = database.transaction(memorialStoreName, "readwrite");
+      const done = memorialTransactionDone(transaction);
+      transaction.objectStore(memorialStoreName).put(record);
+      await done;
+      database.close();
+      await loadMemorialEntries();
+      if (memorialCollectionPanel) memorialCollectionPanel.open = true;
+      showToast(
+        `${files.length === 1 ? "Foto" : `${files.length} Fotos`} privat hinzugefügt ✅️`
+      );
+      return true;
+    } catch (error) {
+      console.error(
+        "Erinnerung-und-Vermächtnis-Foto hinzufügen:",
+        error?.name || "Fehler"
+      );
+      showToast("Das Foto konnte nicht sicher hinzugefügt werden.");
+      return false;
     }
   }
 
@@ -7784,6 +7921,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     renderMemorialMediaSelection();
   });
 
+  memorialAppendPhotoInput.addEventListener("change", (event) => {
+    const entryId = memorialAppendPhotoTargetId;
+    memorialAppendPhotoTargetId = "";
+    const files = [...(event.currentTarget.files || [])];
+    event.currentTarget.value = "";
+    if (entryId && files.length) {
+      void appendMemorialPhotos(entryId, files);
+    }
+  });
+
   memorialForm.addEventListener("submit", (event) => {
     event.preventDefault();
     void saveMemorialEntry();
@@ -7794,6 +7941,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (!actionButton) return;
     if (actionButton.dataset.memorialAction === "delete") {
       void deleteMemorialEntry(actionButton.dataset.memorialId);
+    } else if (actionButton.dataset.memorialAction === "add-photo") {
+      memorialAppendPhotoTargetId = actionButton.dataset.memorialId || "";
+      memorialAppendPhotoInput.value = "";
+      memorialAppendPhotoInput.click();
     }
   });
 

@@ -1556,7 +1556,17 @@ function installStyle() {
     ".animalHoloDockButton{color:rgba(232,238,255,.78);text-shadow:none}",
     ".animalHoloDockButton:before{background:linear-gradient(145deg,rgba(255,255,255,.035),transparent 48%,rgba(255,128,239,.025))}",
     ".animalHoloDockIcon{color:#b9edff;filter:drop-shadow(0 0 7px rgba(120,217,255,.3))}",
-    ".animalHoloDockButton[data-selected=true]{color:#fff;background:radial-gradient(circle at 50% 0,rgba(255,255,255,.2),transparent 38%),linear-gradient(145deg,rgba(151,78,233,.74),rgba(48,91,197,.67));box-shadow:0 0 13px rgba(77,222,255,.3),0 0 25px rgba(164,77,255,.37),inset 0 1px 0 rgba(255,255,255,.17)}"
+    ".animalHoloDockButton[data-selected=true]{color:#fff;background:radial-gradient(circle at 50% 0,rgba(255,255,255,.2),transparent 38%),linear-gradient(145deg,rgba(151,78,233,.74),rgba(48,91,197,.67));box-shadow:0 0 13px rgba(77,222,255,.3),0 0 25px rgba(164,77,255,.37),inset 0 1px 0 rgba(255,255,255,.17)}",
+    /* Build 293: unterer Tier-Holo-Bereich wie Holos schwebende Hauptnavigation. */
+    ".animalHoloDialog{padding-bottom:calc(104px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(104px + env(safe-area-inset-bottom))}",
+    ".animalHoloProfileFooter{min-height:30px;margin:13px 0 15px;padding:3px 8px}",
+    ".animalHoloProfiles{bottom:calc(8px + env(safe-area-inset-bottom));width:min(calc(100% - 20px),740px);min-height:0;padding:7px 5px;border-radius:23px;gap:3px;overflow:hidden;box-shadow:0 0 12px rgba(67,211,255,.28),0 0 27px rgba(143,79,255,.32),0 15px 35px rgba(0,6,55,.27),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -12px 28px rgba(21,16,89,.21)}",
+    ".animalHoloDockButton{position:relative;min-height:60px;gap:5px;border:0;border-right:0;border-radius:14px;color:rgba(232,238,255,.62);font-size:clamp(9px,2.65vw,11px);font-weight:650;transition:color .2s ease,background .2s ease,box-shadow .2s ease}",
+    ".animalHoloDockButton:before{border-radius:inherit}",
+    ".animalHoloDockButton[data-selected=true]{color:#fff;font-weight:800}",
+    ".animalHoloDockButton[data-selected=true]:after{content:'';position:absolute;top:2px;left:50%;width:20px;height:2px;transform:translateX(-50%);border-radius:999px;background:linear-gradient(90deg,#a763ff,#48deff);box-shadow:0 0 10px rgba(102,226,255,.55)}",
+    ".animalHoloMoreMenu{bottom:calc(92px + env(safe-area-inset-bottom));width:min(calc(100% - 20px),736px)}",
+    "@media (max-width:520px){.animalHoloDialog{padding-bottom:calc(98px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(98px + env(safe-area-inset-bottom))}.animalHoloProfiles{min-height:0}.animalHoloDockButton{min-height:56px;font-size:10px}.animalHoloMoreMenu{bottom:calc(88px + env(safe-area-inset-bottom))}}"
   ].join("\n");
   document.head.append(style);
 }
