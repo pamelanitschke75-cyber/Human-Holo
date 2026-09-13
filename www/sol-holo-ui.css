@@ -4970,11 +4970,12 @@ body.voice-open #onboardingScreen{
 
 /*
 ==========================================================
-BUILD 293 · OMA-PORTRAIT UND UNENDLICHKEIT IN HOLO-GLAS
+BUILD 294 · OMAS ZWEI FOTOS RUHIG UND OHNE DATEINAMEN
 ==========================================================
-Das private Erinnerungsfoto bleibt ownergebunden. Die Darstellung fokussiert
-bei einer als Oma markierten Erinnerung den oberen Bildbereich, sodass nur
-Oma im sichtbaren Porträt bleibt.
+Die privaten Erinnerungsfotos bleiben ownergebunden. Das zuletzt hinzugefuegte
+Oma-Foto wird zum grossen Titelbild; aeltere Fotos bleiben als fokussierte
+Galeriebilder erhalten. Der Ausschnitt des zweiten Bildes blendet stoerende
+Raender aus, ohne die Originaldatei zu veraendern.
 */
 #memorialView .memorialHeroInfinity{
   overflow:hidden;
@@ -5020,18 +5021,31 @@ Oma im sichtbaren Porträt bleibt.
     4px 0 8px rgba(61,220,255,.78);
 }
 
-#memorialView .memorialCard--grandmotherPortrait .memorialMediaGrid figure:first-child{
+#memorialView .memorialCard--grandmotherPortrait .memorialMediaFigure--grandmotherCover{
+  grid-column:1 / -1;
   background:rgba(6,12,53,.66);
 }
 
-#memorialView .memorialCard--grandmotherPortrait .memorialMediaGrid figure:first-child img{
-  height:clamp(160px,42vw,225px);
+#memorialView .memorialCard--grandmotherPortrait .memorialMediaFigure--grandmotherCover img{
+  height:clamp(250px,64vw,340px);
   object-fit:cover;
-  object-position:center 7%;
+  object-position:center 44%;
 }
 
-#memorialView .memorialCard--grandmotherPortrait .memorialMediaGrid figure:first-child figcaption{
-  display:none;
+#memorialView .memorialCard--grandmotherPortrait .memorialMediaFigure--grandmotherSecondary{
+  grid-column:1 / -1;
+  width:min(52%,250px);
+  aspect-ratio:1 / 1;
+  justify-self:start;
+  background:rgba(6,12,53,.66);
+}
+
+#memorialView .memorialCard--grandmotherPortrait .memorialMediaFigure--grandmotherSecondary img{
+  height:100%;
+  object-fit:cover;
+  object-position:65% 45%;
+  transform:scale(1.14);
+  transform-origin:65% 45%;
 }
 
 #memorialView .memorialMediaGrid figure{

@@ -2318,6 +2318,22 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return mediaElement;
   }
 
+  function memorialDisplayMedia(entry) {
+    const media = Array.isArray(entry?.media) ? entry.media : [];
+    if (!isGrandmotherMemorial(entry)) return media;
+
+    const photos = media.filter((item) =>
+      String(item?.type || "").startsWith("image/")
+    );
+    const otherMedia = media.filter((item) =>
+      !String(item?.type || "").startsWith("image/")
+    );
+
+    // Neu hinzugefuegte Oma-Fotos sind das Titelbild. Aeltere Bilder bleiben
+    // privat erhalten und erscheinen darunter als ruhige, fokussierte Galerie.
+    return [...photos].reverse().concat(otherMedia);
+  }
+
   function renderMemorialEntries() {
     releaseMemorialObjectUrls();
     memorialList.replaceChildren();
@@ -2328,7 +2344,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       const card = document.createElement("article");
       card.className = "memorialCard glassCard";
       card.dataset.memorialId = entry.id;
-      if (isGrandmotherMemorial(entry)) {
+      const isGrandmother = isGrandmotherMemorial(entry);
+      if (isGrandmother) {
         card.classList.add("memorialCard--grandmotherPortrait");
       }
 
@@ -2356,16 +2373,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         card.append(story);
       }
 
-      if (entry.media.length) {
+      const displayMedia = memorialDisplayMedia(entry);
+      if (displayMedia.length) {
         const mediaGrid = document.createElement("div");
         mediaGrid.className = "memorialMediaGrid";
-        for (const item of entry.media) {
+        for (const [mediaIndex, item] of displayMedia.entries()) {
           const figure = document.createElement("figure");
+          const isPhoto = String(item?.type || "").startsWith("image/");
+          if (isGrandmother && isPhoto) {
+            figure.classList.add(
+              mediaIndex === 0
+                ? "memorialMediaFigure--grandmotherCover"
+                : "memorialMediaFigure--grandmotherSecondary"
+            );
+          }
           const mediaElement = memorialMediaElement(item);
           if (!mediaElement) continue;
-          const caption = document.createElement("figcaption");
-          caption.textContent = cleanMemorialText(item.name, 160);
-          figure.append(mediaElement, caption);
+          figure.append(mediaElement);
+          if (!(isGrandmother && isPhoto)) {
+            const caption = document.createElement("figcaption");
+            caption.textContent = cleanMemorialText(item.name, 160);
+            figure.append(caption);
+          }
           mediaGrid.append(figure);
         }
         if (mediaGrid.childElementCount) {

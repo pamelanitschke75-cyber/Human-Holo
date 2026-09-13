@@ -335,6 +335,7 @@ Details:
 - [Build 291: Originaldesign und sichtbare Tierbilder](./BUILD-291-TIER-HOLO-ORIGINALDESIGN-TIERBILDER-13-09-2026.md)
 - [Build 292: Tier-Holos im Human-Holo-Glass-Design](./BUILD-292-TIER-HOLO-HUMAN-HOLO-GLASS-13-09-2026.md)
 - [Build 293: Holo-Glas-Abschluss und würdige Erinnerung](./BUILD-293-TIER-HOLO-SCHWEBENDE-NAVIGATION-13-09-2026.md)
+- [Build 294: Omas zwei Fotos in richtiger Reihenfolge](./BUILD-294-OMA-FOTOS-RICHTIGE-REIHENFOLGE-13-09-2026.md)
 - [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
 - [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 
