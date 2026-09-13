@@ -299,8 +299,12 @@ Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
 - sofortige ownergebundene lokale Speicherung bestätigter Beobachtungen
 - direkte Speicherung aus Text und Sprache ohne erneute Zustimmungsfrage, wenn
   Pam das Tier eindeutig bezeichnet hat
+- öffentlich freigegebene Start-Profilbilder für Salt, Peps, Tina, Gurke und
+  Möhrchen; auf Tinas Bild wurde die zuvor mit abgebildete Tochter vollständig
+  entfernt
 - frei änderbare private Profilfotos mit lokalem Sofortspeicher und
-  ownergebundener Serversicherung; die Fotos liegen nicht im öffentlichen Code
+  ownergebundener Serversicherung; ein privates Ersatzfoto liegt weiterhin
+  nicht im öffentlichen Code und hat in der App Vorrang
 - additive Wiederanzeige bereits vorhandener Tier-Beobachtungen aus dem
   ownergebundenen Vollzeitgedächtnis
 - additive Aufnahme in die verschlüsselte Human-Holo-Sicherung
@@ -315,8 +319,9 @@ keine Sicherheitsgarantie.
 
 Der generische Tier-Holo-Kern und seine Bedienoberfläche sind als ausdrücklich
 abgegrenzter Open-Build-Baustein unter MIT freigegeben. Das übrige Repository
-behält seine bestehenden Lizenzbedingungen; private Fotos, Stimmen und
-Identitätsdaten werden durch diese Freigabe nicht mitlizenziert.
+behält seine bestehenden Lizenzbedingungen. Die von Pamela Christina Nitschke
+öffentlich freigegebenen Start-Profilbilder sowie private Fotos, Stimmen und
+Identitätsdaten werden durch die MIT-Freigabe nicht mitlizenziert.
 
 Der Stand ist technisch integriert und automatisiert geprüft. Als praktisch
 bestanden wird die neue Bedienoberfläche erst nach Installation und Test des
@@ -327,6 +332,7 @@ Details:
 - [Human Holo Tier-Holos](./HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 - [Build 288: Glasprofile und Direkt-Speichern](./BUILD-288-TIER-HOLO-GLASPROFILE-AUTOSPEICHERN-13-09-2026.md)
 - [Build 290: kompakte Tier-Holo-Ansicht](./BUILD-290-TIER-HOLO-KOMPAKTANSICHT-13-09-2026.md)
+- [Build 291: Originaldesign und sichtbare Tierbilder](./BUILD-291-TIER-HOLO-ORIGINALDESIGN-TIERBILDER-13-09-2026.md)
 - [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
 - [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 

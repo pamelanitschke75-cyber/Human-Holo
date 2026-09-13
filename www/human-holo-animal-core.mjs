@@ -28,6 +28,7 @@ export const ANIMAL_HOLO_OPEN_BUILD = Object.freeze({
   license: "MIT",
   scope: "www/human-holo-animal-core.mjs",
   extensible: true,
+  publicStarterPhotosIncluded: true,
   privateMediaIncluded: false
 });
 
