@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-290-animal-compact-dashboard";
+const CACHE_VERSION = "human-holo-291-animal-original-design";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

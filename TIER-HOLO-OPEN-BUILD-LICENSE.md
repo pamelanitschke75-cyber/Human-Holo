@@ -11,6 +11,10 @@ Sie gilt nicht automatisch für andere Dateien, Marken, Logos, Fotos, Videos,
 Stimmen, Biometriedaten, private Erinnerungen oder persönliche digitale
 Identitäten im Human-Holo-Repository.
 
+Insbesondere gehören die öffentlich sichtbaren Tierprofilbilder unter
+`www/assets/animals/` nicht zu dieser MIT-Freigabe. Für diese Bilder gilt der
+dort hinterlegte gesonderte Urheberrechts- und Nutzungshinweis.
+
 ## MIT License
 
 Copyright (c) 2026 Pamela Nitschke

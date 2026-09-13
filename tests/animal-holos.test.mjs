@@ -429,7 +429,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=4/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=5/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
@@ -457,7 +457,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-290-animal-compact-dashboard/u);
+  assert.match(worker, /human-holo-291-animal-original-design/u);
 });
 
 test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
@@ -476,6 +476,49 @@ test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
   assert.match(ui, /if \(other !== details\) other\.open = false/u);
   assert.doesNotMatch(ui, /details\.open\s*=/u);
   assert.doesNotMatch(ui, /animalHoloMemoryBadge/u);
+  assert.doesNotMatch(ui, /observationCount\s*\+\s*" gespeichert"/u);
+  assert.match(ui, /Was Holo über " \+ profileDisplayName\(profile\) \+ " weiß"/u);
+  assert.match(ui, /Build 291: Pams freigegebene leuchtende Holo-Glas-Ansicht/u);
+});
+
+test("freigegebene Tierbilder sind im App-Build sichtbar, aber nicht MIT-lizenziert", async () => {
+  const [ui, notice, license, ...photos] = await Promise.all([
+    readFile(
+      new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
+      "utf8"
+    ),
+    readFile(
+      new URL("../www/assets/animals/README.md", import.meta.url),
+      "utf8"
+    ),
+    readFile(new URL("../TIER-HOLO-OPEN-BUILD-LICENSE.md", import.meta.url), "utf8"),
+    ...["salt", "peps", "tina", "gurke", "moehrchen"].map((name) =>
+      readFile(new URL(`../www/assets/animals/${name}.webp`, import.meta.url))
+    )
+  ]);
+
+  for (const [profileId, fileName] of [
+    ["salt", "salt.webp"],
+    ["pepper", "peps.webp"],
+    ["tina", "tina.webp"],
+    ["gurke", "gurke.webp"],
+    ["moehrchen", "moehrchen.webp"]
+  ]) {
+    assert.match(
+      ui,
+      new RegExp(`${profileId}: new URL\\("\\./assets/animals/${fileName.replace(".", "\\.")}"`, "u")
+    );
+  }
+  for (const photo of photos) {
+    assert.ok(photo.length > 20_000);
+    assert.equal(photo.subarray(0, 4).toString("ascii"), "RIFF");
+    assert.equal(photo.subarray(8, 12).toString("ascii"), "WEBP");
+  }
+  assert.equal(ANIMAL_HOLO_OPEN_BUILD.publicStarterPhotosIncluded, true);
+  assert.equal(ANIMAL_HOLO_OPEN_BUILD.privateMediaIncluded, false);
+  assert.match(notice, /Tochter vollständig entfernt/iu);
+  assert.match(notice, /nicht.*MIT-Freigabe/isu);
+  assert.match(license, /www\/assets\/animals/iu);
 });
 
 test("frühere Tierfotos werden privat zugeordnet und Tina wird allein zugeschnitten", async () => {

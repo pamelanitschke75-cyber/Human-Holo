@@ -48,6 +48,7 @@ on:
       - "www/sol-holo-backup-core.mjs"
       - "www/human-holo-animal-core.mjs"
       - "www/human-holo-animal-holos.mjs"
+      - "www/assets/**"
       - "www/human-holo-chatgpt-memory-bridge.mjs"
       - "www/human-holo-durable-memory.mjs"
       - "www/sol-holo-backup.css"
@@ -463,6 +464,9 @@ jobs:
           test -s "$public_assets/sol-holo-backup.css"
           test -s "$public_assets/human-holo-animal-core.mjs"
           test -s "$public_assets/human-holo-animal-holos.mjs"
+          for animal_photo in salt peps tina gurke moehrchen; do
+            test -s "$public_assets/assets/animals/${animal_photo}.webp"
+          done
           test -s "$public_assets/human-holo-chatgpt-memory-bridge.mjs"
           test -s "$public_assets/human-holo-durable-memory.mjs"
           grep -q "SPDX-License-Identifier: MIT" "$public_assets/human-holo-animal-core.mjs"
