@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-292-animal-human-holo-glass";
+const CACHE_VERSION = "human-holo-293-animal-floating-dock";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

@@ -68,11 +68,40 @@ test("die Erinnerungsseite bleibt würdevoll und zeigt nur drei klare Hauptberei
     (memorialMarkup.match(/class="memorialDetail(?:\s[^"]*)?"/gu) || []).length,
     3
   );
-  assert.match(memorialMarkup, /<strong>Neue Erinnerung<\/strong>/u);
+  assert.match(memorialMarkup, /<strong>Foto oder Erinnerung hinzufügen<\/strong>/u);
   assert.match(memorialMarkup, /id="memorialCollectionPanel"[\s\S]*?open/u);
   assert.match(memorialMarkup, /<strong>Würde &amp; Sicherheit<\/strong>/u);
   assert.doesNotMatch(memorialMarkup, /class="memorialKinds"/u);
   assert.doesNotMatch(memorialMarkup, /class="memorialKind glassCard"/u);
+  assert.match(
+    ui,
+    /memorialSections\.insertBefore\([\s\S]*?memorialCollectionForLayout,[\s\S]*?memorialCreateForLayout/u,
+    "Bewahrte Erinnerungen müssen vor dem Eingabebereich stehen"
+  );
+});
+
+test("Omas Erinnerung bleibt ein privates Einzelporträt im oberen Seitenbereich", () => {
+  const renderSource = functionSource("renderMemorialEntries", "deleteMemorialEntry");
+
+  assert.match(ui, /function isGrandmotherMemorial\(entry\)/u);
+  assert.match(ui, /word === "oma"/u);
+  assert.match(renderSource, /memorialCard--grandmotherPortrait/u);
+  assert.match(css, /\.memorialCard--grandmotherPortrait[\s\S]*?object-position:center 7%/u);
+  assert.match(css, /\.memorialCard--grandmotherPortrait[\s\S]*?figcaption[\s\S]*?display:none/u);
+});
+
+test("weitere Fotos lassen sich direkt ownergebunden zur Erinnerung hinzufügen", () => {
+  const appendSource = functionSource("appendMemorialPhotos", "deleteMemorialEntry");
+
+  assert.match(ui, /id="memorialAppendPhotoInput"[\s\S]*?accept="image\/\*"/u);
+  assert.match(ui, /dataset\.memorialAction = "add-photo"/u);
+  assert.match(ui, /className = "memorialAddPhotoButton"/u);
+  assert.match(appendSource, /entry\.ownerId !== identity\.ownerId/u);
+  assert.match(appendSource, /media: \[\.\.\.entry\.media, \.\.\.appendedMedia\]/u);
+  assert.match(appendSource, /objectStore\(memorialStoreName\)\.put\(record\)/u);
+  assert.doesNotMatch(appendSource, /\bfetch\s*\(/u);
+  assert.match(css, /\.memorialAddPhotoButton/u);
+  assert.doesNotMatch(css, /\.memorialAddPhotoButton--overlay/u);
 });
 
 test("Speichern verlangt Einwilligung und bleibt ownergebunden lokal", () => {
@@ -137,8 +166,11 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(theme, /#memoryView,#memorialView,#medicationView,#servicesView/u);
   assert.match(css, /\.memorialDetail/u);
   assert.match(css, /\.memorialHeroInfinity/u);
-  assert.match(html, /sol-holo-ui\.css\?v=52/u);
+  assert.match(ui, /id="memorialInfinityGradient"/u);
+  assert.match(ui, /stop-color="#d44dff"[\s\S]*?stop-color="#66efff"/u);
+  assert.match(css, /\.memorialHeroInfinity[\s\S]*?rgba\(61,218,255/u);
+  assert.match(html, /sol-holo-ui\.css\?v=53/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=81/u);
-  assert.match(serviceWorker, /human-holo-292-animal-human-holo-glass/u);
+  assert.match(html, /sol-holo-ui\.js\?v=82/u);
+  assert.match(serviceWorker, /human-holo-293-animal-floating-dock/u);
 });
