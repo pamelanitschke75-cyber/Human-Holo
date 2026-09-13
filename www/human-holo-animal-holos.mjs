@@ -5,17 +5,24 @@
  * Copyright (c) 2026 Pamela Nitschke
  */
 import {
+  ANIMAL_HOLO_CONVERSATION_REPLY,
   ANIMAL_HOLO_SAFETY,
   addAnimalHoloObservation,
   addAnimalHoloProfile,
+  animalHoloProposalFromAssistantAnswer,
   animalHoloPromptContext,
   animalHoloStorageKey,
+  classifyAnimalHoloConversationReply,
   markAnimalHoloObservationSynced,
+  normalizeAnimalHoloProposal,
   normalizeAnimalHoloState,
   serializeAnimalHoloState
 } from "./human-holo-animal-core.mjs";
 
 const BACKEND_URL = "https://sol-holo.onrender.com";
+const PENDING_CONVERSATION_TTL_MS = 30 * 60 * 1000;
+const PENDING_CONVERSATION_STORAGE_PREFIX =
+  "human-holo-animal-conversation-pending-v1";
 let animalState = null;
 let selectedProfileId = "";
 let syncing = false;
@@ -65,6 +72,207 @@ function persistState() {
       detail: { ownerId: identity.ownerId }
     })
   );
+}
+
+function currentConversationId() {
+  return String(window.SolHoloIdentity?.conversationId?.() || "")
+    .trim()
+    .slice(0, 200);
+}
+
+function pendingConversationStorageKey(identity) {
+  return (
+    PENDING_CONVERSATION_STORAGE_PREFIX +
+    ":" +
+    String(identity?.ownerId || "")
+      .toLocaleLowerCase("de-DE")
+      .replace(/[^a-z0-9äöüß_-]+/gu, "-")
+      .slice(0, 120)
+  );
+}
+
+function clearPendingConversationProposal(identity = currentIdentity()) {
+  if (!identity?.ownerId) return;
+  localStorage.removeItem(pendingConversationStorageKey(identity));
+}
+
+function readPendingConversationProposal() {
+  const identity = currentIdentity();
+  if (!identity?.ownerId || !identity?.speakerId) return null;
+  const key = pendingConversationStorageKey(identity);
+  let pending;
+  try {
+    pending = JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    localStorage.removeItem(key);
+    return null;
+  }
+  const proposal = normalizeAnimalHoloProposal(pending?.proposal);
+  const createdAt = Number(pending?.createdAt || 0);
+  const conversationId = currentConversationId();
+  const valid =
+    proposal &&
+    pending?.ownerId === identity.ownerId &&
+    pending?.speakerId === identity.speakerId &&
+    pending?.conversationId === conversationId &&
+    Number.isFinite(createdAt) &&
+    createdAt > 0 &&
+    Date.now() - createdAt <= PENDING_CONVERSATION_TTL_MS;
+  if (!valid) {
+    localStorage.removeItem(key);
+    return null;
+  }
+  return { ...pending, proposal };
+}
+
+function captureConversationProposal({
+  proposal: suppliedProposal = null,
+  answer = "",
+  conversationId = ""
+} = {}) {
+  const identity = requireIdentity();
+  const state = loadState();
+  const proposal =
+    normalizeAnimalHoloProposal(suppliedProposal, {
+      profiles: state.profiles
+    }) ||
+    animalHoloProposalFromAssistantAnswer(answer, {
+      profiles: state.profiles
+    });
+  if (!proposal) return { staged: false };
+
+  const profile = state.profiles.find(
+    (candidate) => candidate.id === proposal.profileId
+  );
+  if (!profile) return { staged: false };
+
+  const activeConversationId = currentConversationId();
+  const suppliedConversationId = String(conversationId || "").trim();
+  if (
+    !activeConversationId ||
+    (suppliedConversationId && suppliedConversationId !== activeConversationId)
+  ) {
+    return { staged: false };
+  }
+
+  const pending = {
+    ownerId: identity.ownerId,
+    speakerId: identity.speakerId,
+    conversationId: activeConversationId,
+    createdAt: Date.now(),
+    proposal
+  };
+  localStorage.setItem(
+    pendingConversationStorageKey(identity),
+    JSON.stringify(pending)
+  );
+  return { staged: true, proposal };
+}
+
+function animalHoloDestination(profile) {
+  const projectName = String(profile?.projectName || "").trim();
+  if (projectName) {
+    return /tier[\s‑-]*holo$/iu.test(projectName)
+      ? projectName
+      : projectName + " Tier-Holo";
+  }
+  return profileLabel(profile) + " Tier-Holo";
+}
+
+async function commitPendingConversationProposal(pending) {
+  loadState();
+  const proposal = pending.proposal;
+  const profile = animalState.profiles.find(
+    (candidate) => candidate.id === proposal.profileId
+  );
+  if (!profile) {
+    clearPendingConversationProposal();
+    return {
+      handled: true,
+      kind: "animal-holo",
+      marker: "[LOKALES_TIER_HOLO_ERGEBNIS]",
+      status: "Tier-Holo nicht gefunden.",
+      answer: "Das passende Tier-Holo wurde nicht gefunden. Es wurde nichts gespeichert."
+    };
+  }
+
+  const destination = animalHoloDestination(profile);
+  const result = addAnimalHoloObservation(
+    animalState,
+    profile.id,
+    {
+      text: proposal.text,
+      observedAt: proposal.observedAt,
+      source: "conversation_confirmation",
+      syncState: "pending"
+    }
+  );
+
+  if (result.duplicate) {
+    clearPendingConversationProposal();
+    return {
+      handled: true,
+      kind: "animal-holo",
+      marker: "[LOKALES_TIER_HOLO_ERGEBNIS]",
+      status: "Tier-Holo-Beobachtung bereits vorhanden.",
+      answer: `Diese Beobachtung ist im ${destination} bereits gespeichert ✅️: ${proposal.text}`
+    };
+  }
+
+  animalState = result.state;
+  selectedProfileId = profile.id;
+  persistState();
+  clearPendingConversationProposal();
+  render();
+
+  let synchronized = false;
+  try {
+    synchronized = await syncObservation(profile, result.observation);
+  } catch {
+    synchronized = false;
+  }
+  render();
+
+  const answer = synchronized
+    ? `Gespeichert im ${destination} und ownergebunden im Vollzeitgedächtnis ✅️: ${proposal.text}`
+    : `Auf diesem Handy im ${destination} gespeichert ✅️. Die ownergebundene Vollzeit-Synchronisierung ist vorgemerkt: ${proposal.text}`;
+  setStatus(answer, "success");
+  return {
+    handled: true,
+    kind: "animal-holo",
+    marker: "[LOKALES_TIER_HOLO_ERGEBNIS]",
+    status: "Tier-Holo-Beobachtung gespeichert.",
+    answer,
+    localSaved: true,
+    synchronized
+  };
+}
+
+async function handleConversationReply(message) {
+  const pending = readPendingConversationProposal();
+  if (!pending) return { handled: false };
+  const reply = classifyAnimalHoloConversationReply(message);
+
+  if (reply === ANIMAL_HOLO_CONVERSATION_REPLY.CANCEL) {
+    const state = loadState();
+    const profile = state.profiles.find(
+      (candidate) => candidate.id === pending.proposal.profileId
+    );
+    clearPendingConversationProposal();
+    return {
+      handled: true,
+      kind: "animal-holo",
+      marker: "[LOKALES_TIER_HOLO_ERGEBNIS]",
+      status: "Tier-Holo-Speicherung abgebrochen.",
+      answer: `Alles klar. Im ${animalHoloDestination(profile)} wurde nichts hinzugefügt.`
+    };
+  }
+
+  if (reply === ANIMAL_HOLO_CONVERSATION_REPLY.CONFIRM) {
+    return commitPendingConversationProposal(pending);
+  }
+
+  return { handled: false };
 }
 
 function profileLabel(profile) {
@@ -607,7 +815,10 @@ function install() {
     state: () => (animalState ? JSON.parse(serializeAnimalHoloState(animalState)) : null),
     context: (profileId = "") =>
       animalHoloPromptContext(loadState(), profileId),
-    flush: flushPendingObservations
+    flush: flushPendingObservations,
+    captureConversationProposal,
+    handleConversationReply,
+    pendingConversationProposal: readPendingConversationProposal
   });
 }
 

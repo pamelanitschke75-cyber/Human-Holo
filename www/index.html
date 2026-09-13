@@ -11098,6 +11098,31 @@ async function sendMessage(
     }
 
 
+    try{
+
+      window.HumanHoloAnimalHolos
+        ?.captureConversationProposal?.({
+          proposal:
+            data?.animalHolo?.proposal ||
+            null,
+          answer,
+          conversationId:
+            data?.conversationId ||
+            conversationId
+        });
+
+    }catch(
+      animalProposalError
+    ){
+
+      console.error(
+        "Tier-Holo-Gesprächsvorschlag:",
+        animalProposalError?.name ||
+          "Fehler"
+      );
+    }
+
+
     if(
       !isForcedMessage &&
       mediaKindToSend ===
@@ -12289,12 +12314,17 @@ async function handleRealtimeLocalNoteTranscript(
 
 
     speakExecutedRealtimeResult(
-      alarmRequest
-        ? "[LOKALES_WECKERERGEBNIS]"
-        : mapsDestination !== null &&
-          mapsDestination !== undefined
-          ? "[LOKALES_NAVIGATIONSERGEBNIS]"
-          : "[LOKALES_NOTIZERGEBNIS]",
+      String(
+        localAction.marker ||
+        (
+          alarmRequest
+            ? "[LOKALES_WECKERERGEBNIS]"
+            : mapsDestination !== null &&
+              mapsDestination !== undefined
+              ? "[LOKALES_NAVIGATIONSERGEBNIS]"
+              : "[LOKALES_NOTIZERGEBNIS]"
+        )
+      ),
       localAnswer
     );
 
@@ -14977,6 +15007,22 @@ function saveRealtimeAssistantTranscript(
   lastAssistantMemoryTranscript = transcript;
   lastAssistantMemoryTranscriptAt = now;
 
+  try{
+    window.HumanHoloAnimalHolos
+      ?.captureConversationProposal?.({
+        answer:transcript,
+        conversationId
+      });
+  }catch(
+    animalProposalError
+  ){
+    console.error(
+      "Tier-Holo-Realtime-Vorschlag:",
+      animalProposalError?.name ||
+        "Fehler"
+    );
+  }
+
   const sourceTurnEventId =
     currentRealtimeMemoryEventId ||
     realtimeEvent?.event_id ||
@@ -16019,7 +16065,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=286",
+          "./service-worker.js?v=287",
           {
             updateViaCache:"none"
           }
@@ -16055,10 +16101,10 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=79"></script>
+<script src="./sol-holo-ui.js?v=80"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
-<script type="module" src="./human-holo-animal-holos.mjs?v=1"></script>
+<script type="module" src="./human-holo-animal-holos.mjs?v=2"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=5"></script>
 <script type="module" src="./human-holo-chatgpt-memory-bridge.mjs?v=1"></script>
 </body>

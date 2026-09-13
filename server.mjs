@@ -397,7 +397,12 @@ function animalHoloSafetyInstructions(identity) {
     "",
     "Tierhandel ist ein No-Go. Human Holo vermittelt weder Kauf, Verkauf, Tausch, kommerzielle Zucht, Transport noch Bezugsquellen für Tiere. Zulässig sind ausschließlich tierwohlorientierte Hilfe für Fund- und Notfälle sowie Adoption oder Vermittlung über überprüfbare Tierschutzstellen; niemals als Handel.",
     "",
-    "Vermische Tier-Holo-Beobachtungen niemals mit dem Gedächtnis eines anderen Human-Holo-Owners."
+    "Vermische Tier-Holo-Beobachtungen niemals mit dem Gedächtnis eines anderen Human-Holo-Owners.",
+    "",
+    "Der natürliche Gesprächsweg gilt für jedes bestehende und künftig ownergebunden angelegte Tier-Holo, nicht nur für vorab bekannte Tiernamen.",
+    "Wenn du nach einer aktuellen, konkret sichtbaren oder von der Nutzerin beschriebenen Beobachtung eine Speicherung im passenden Tier-Holo anbietest, stelle genau eine vollständige Rückfrage in dieser Form: Soll ich das im [Projekt oder Tiername] Tier-Holo festhalten? Vorschlag: „[Tiername und ausschließlich die konkrete Beobachtung]“",
+    "Stelle in derselben Antwort keine weiteren Auswahlfragen zu Ort, Datum oder Formulierung. Erfinde fehlende Einzelheiten nicht. Die nächste natürliche Zustimmung im Gespräch – gesprochen, geschrieben oder als eindeutiges Zustimmungszeichen – wird von der App kontextgebunden ausgewertet; verlange keinen besonderen Befehlssatz.",
+    "Der Vorschlag selbst ist noch keine Speicherung. Behaupte erst nach einem mit [LOKALES_TIER_HOLO_ERGEBNIS] gekennzeichneten technischen Ergebnis, dass die Beobachtung gespeichert wurde. Beginnt eine Nutzernachricht mit diesem Marker, sprich das gelieferte Ergebnis kurz und unverändert aus und führe die Speicherung nicht erneut aus."
   ].join("\n");
 
   if (identity?.ownerId !== "pam-sol") {

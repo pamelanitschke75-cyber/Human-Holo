@@ -4,13 +4,16 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  ANIMAL_HOLO_CONVERSATION_REPLY,
   ANIMAL_HOLO_OPEN_BUILD,
   ANIMAL_HOLO_OWNER_ID,
   ANIMAL_HOLO_SAFETY,
   ANIMAL_HOLO_STORAGE_KEY,
   addAnimalHoloObservation,
   addAnimalHoloProfile,
+  animalHoloProposalFromAssistantAnswer,
   animalHoloPromptContext,
+  classifyAnimalHoloConversationReply,
   createAnimalHoloState,
   markAnimalHoloObservationSynced,
   mergeAnimalHoloStates,
@@ -115,6 +118,90 @@ test("Bestätigte Beobachtungen werden sofort normalisiert und gespeichert", () 
     synced.profiles.find((profile) => profile.id === "pepper")
       .observations[0].syncState,
     "synced"
+  );
+});
+
+test("natürliche Zustimmung bestätigt nur eine offene Tier-Holo-Rückfrage", () => {
+  for (const reply of [
+    "Ja",
+    "Ja bitte",
+    "Okay",
+    "OK, danke",
+    "Alles",
+    "Alles klar",
+    "Gerne",
+    "Mach das ruhig",
+    "Von mir aus",
+    "👍",
+    "👍🏻",
+    "✅",
+    "Yes please",
+    "Sí"
+  ]) {
+    assert.equal(
+      classifyAnimalHoloConversationReply(reply),
+      ANIMAL_HOLO_CONVERSATION_REPLY.CONFIRM,
+      reply
+    );
+  }
+
+  for (const reply of ["Nein", "Doch nicht", "Lieber nicht", "👎", "❌"]) {
+    assert.equal(
+      classifyAnimalHoloConversationReply(reply),
+      ANIMAL_HOLO_CONVERSATION_REPLY.CANCEL,
+      reply
+    );
+  }
+
+  for (const reply of [
+    "Was weißt du über Salt?",
+    "Okay, aber welchen Stuhl meinst du?",
+    "👍 oder 👎"
+  ]) {
+    assert.equal(
+      classifyAnimalHoloConversationReply(reply),
+      ANIMAL_HOLO_CONVERSATION_REPLY.OTHER,
+      reply
+    );
+  }
+});
+
+test("Holos natürliche Rückfrage wird für jedes Tierprofil sicher erkannt", () => {
+  const saltProposal = animalHoloProposalFromAssistantAnswer(
+    "Alles klar, das ist Salt. Soll ich das im SALT & PEPS Tier-Holo festhalten? " +
+      "Vorschlag: „Salt – entspannt auf dem Stuhl (heute)“."
+  );
+  assert.deepEqual(saltProposal, {
+    profileId: "salt",
+    text: "Salt – entspannt auf dem Stuhl (heute)",
+    observedAt: ""
+  });
+
+  const profiles = [
+    {
+      id: "moehrchen",
+      name: "Möhrchen",
+      nicknames: [],
+      projectName: "Möhrchens Tier-Holo"
+    }
+  ];
+  const futureProfileProposal = animalHoloProposalFromAssistantAnswer(
+    "Möchtest du, dass ich das im Tier-Holo von Möhrchen speichere? " +
+      "Vorschlag: „Möhrchen wartet ruhig an der Tür.“",
+    { profiles }
+  );
+  assert.deepEqual(futureProfileProposal, {
+    profileId: "moehrchen",
+    text: "Möhrchen wartet ruhig an der Tür.",
+    observedAt: ""
+  });
+
+  assert.equal(
+    animalHoloProposalFromAssistantAnswer(
+      "Ich habe Salt dauerhaft gespeichert."
+    ),
+    null,
+    "Eine unbelegte Erfolgsbehauptung darf keine offene Speicheraktion erzeugen"
   );
 });
 
@@ -242,12 +329,13 @@ test("Der offene Kern trägt eine eindeutige MIT-Kennzeichnung", async () => {
 });
 
 test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet", async () => {
-  const [html, ui, server, workflow, worker] = await Promise.all([
+  const [html, ui, solUi, server, workflow, worker] = await Promise.all([
     readFile(new URL("../www/index.html", import.meta.url), "utf8"),
     readFile(
       new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
       "utf8"
     ),
+    readFile(new URL("../www/sol-holo-ui.js", import.meta.url), "utf8"),
     readFile(new URL("../server.mjs", import.meta.url), "utf8"),
     readFile(
       new URL("../.github/workflows/android-build.yml", import.meta.url),
@@ -256,18 +344,26 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=1/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=2/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.match(html, /captureConversationProposal/u);
+  assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
   assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);
   assert.match(ui, /fulltime\/history\/append/u);
   assert.match(ui, /interactive: false/u);
   assert.match(ui, /pending/u);
+  assert.match(ui, /handleConversationReply/u);
+  assert.match(ui, /conversation_confirmation/u);
+  assert.match(ui, /ownergebunden im Vollzeitgedächtnis/u);
+  assert.match(solUi, /HumanHoloAnimalHolos[\s\S]*?handleConversationReply/u);
   assert.match(server, /function animalHoloSafetyInstructions/u);
   assert.match(server, /identity\?\.ownerId !== "pam-sol"/u);
   assert.match(server, /Tina erhält ein eigenes Hund-Tier-Holo/u);
+  assert.match(server, /jedes bestehende und künftig ownergebunden angelegte Tier-Holo/u);
+  assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-286-private-owner-wiedererkennung/u);
+  assert.match(worker, /human-holo-287-contextual-animal-memory/u);
 });
 
 test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {

@@ -6757,6 +6757,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
 
+    const animalConversationAction =
+      await window.HumanHoloAnimalHolos
+        ?.handleConversationReply?.(noteMessage);
+    if (animalConversationAction?.handled) {
+      previousPlainUserMessage = "";
+      previousPlainUserMessageAt = 0;
+      return animalConversationAction;
+    }
+
     contextualPersonalRecallQueryFromMessage(
       noteMessage
     );
