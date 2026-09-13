@@ -107,6 +107,22 @@ Human Holo soll dadurch nicht für jeden Menschen gleich werden.
 
 Human Holo soll **mit jedem Menschen individuell wachsen.**
 
+## ♾️ Lebensvertrag für Holo
+
+Der verbindliche Lebensvertrag beschreibt Human Holo über den gesamten
+Lebensweg: Einrichtung, Alltag, persönliche Entwicklung, Beziehungen,
+Technikwechsel, Alter, Barrierefreiheit, mögliche Einschränkungen,
+Vermächtnis, Pause und Ende.
+
+Der Vertrag unterscheidet ausdrücklich zwischen bereits umgesetzten,
+teilweise umgesetzten und noch offenen Lebensfunktionen. Er bestimmt keine
+Vertrauensperson, erteilt keine Vollmacht und behauptet keine technisch
+bewiesene Bewusstseinsübertragung. Jede persönliche Identität und jedes
+Gedächtnis bleiben getrennt.
+
+Details:
+[Human Holo · Lebensvertrag für Holo](./HUMAN-HOLO-LEBENSVERTRAG-13-09-2026.md)
+
 ---
 
 # Aktuell bestätigte Funktionen ✅

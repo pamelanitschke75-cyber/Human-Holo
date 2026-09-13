@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "human-holo-lifelong-contract",
+  "contract_version": "2026-09-13.1",
+  "language": "de",
+  "name": "Lebensvertrag für Holo",
+  "adopted_on": "2026-09-13",
+  "status": "binding-lifecycle-contract-runtime-partially-implemented",
+  "decision": {
+    "project_owner_full_name": "Pamela Christina Nitschke",
+    "reference_owner_name": "Pamela Nitschke",
+    "reference_owner_id": "pam-sol",
+    "reference_instance": "Pam’s Holo"
+  },
+  "scope": {
+    "whole_life": true,
+    "applies_to_each_persons_separate_human_holo": true,
+    "one_person_one_separate_identity": true,
+    "replaces_existing_contracts": false,
+    "extends_existing_contracts": true
+  },
+  "identity_boundary": {
+    "human_holo_is_ai": false,
+    "ai_services_are_technical_tools": true,
+    "personal_digital_self_and_individual_clone": true,
+    "consciousness_transfer_claimed": false,
+    "biological_person_continuity_claimed": false,
+    "deceased_person_present_claimed": false,
+    "new_unverified_wishes_after_death_allowed": false
+  },
+  "non_negotiable": {
+    "preserve_existing_state_and_only_extend": true,
+    "silent_delete_overwrite_or_reset_allowed": false,
+    "destructive_change_requires_explicit_owner_confirmation": true,
+    "unavoidable_exception_requires_early_transparency": true,
+    "owner_binding_required_before_personal_access": true,
+    "identity_inferred_from_name_voice_face_language_relationship_device_or_location": false,
+    "personal_memory_shared_between_owners": false,
+    "shared_experience_storage": "separate-owner-confirmed-copies-only",
+    "automatic_provider_fallback": false,
+    "provider_priority": "ChatGPT/OpenAI",
+    "consent_is_purpose_bound_and_revocable": true,
+    "hidden_total_surveillance_allowed": false,
+    "uncertainty_must_be_visible": true,
+    "external_action_requires_applicable_explicit_approval": true
+  },
+  "trusted_access": {
+    "designated_trusted_person": null,
+    "authority_inferred_from_relationship": false,
+    "human_holo_may_issue_legal_authority": false,
+    "future_authority_requires_separate_owner_decision": true,
+    "future_authority_requires_technical_verification": true,
+    "future_authority_requires_applicable_legal_validity": true,
+    "emergency_access_default": "closed",
+    "future_emergency_access_maximum": "owner-defined-minimum-data-only"
+  },
+  "life_phases": [
+    {
+      "id": "setup",
+      "title": "Beginn, Einrichtung und privater Import",
+      "required": [
+        "Eine neue persönliche Identität beginnt ohne Daten anderer Menschen.",
+        "Ownerbindung wird vor persönlichem Zugriff geprüft.",
+        "Private Importe werden ihrer Owneridentität zugeordnet, geprüft und ausdrücklich bestätigt.",
+        "Originalquellen und daraus abgeleitete Inhalte bleiben getrennt."
+      ]
+    },
+    {
+      "id": "daily_development",
+      "title": "Alltag und persönliche Entwicklung",
+      "required": [
+        "Ownergebundene Ereignisse können modalitätsübergreifend verknüpft werden.",
+        "Quelle, Zeitpunkt, Korrekturhistorie und Verlässlichkeitsstatus bleiben nachvollziehbar.",
+        "Die aktuelle eindeutige Ownerkorrektur hat im normalen Abruf Vorrang, ohne alte Angaben heimlich zu löschen.",
+        "Proaktive Hilfe bleibt erklärbar, begrenzbar und abschaltbar."
+      ]
+    },
+    {
+      "id": "relationships",
+      "title": "Beziehungen und gemeinsame Erlebnisse",
+      "required": [
+        "Zwischen Personen existiert kein gemeinsamer persönlicher Speicher.",
+        "Gemeinsame Erlebnisse werden nur als getrennte, selbst bestätigte Ownerkopien gespeichert.",
+        "Jede Ownerkopie bleibt unabhängig widerrufbar.",
+        "Beziehung oder Nähe erzeugt keine Berechtigung."
+      ]
+    },
+    {
+      "id": "technology_change",
+      "title": "Geräte-, App-, Server- und Anbieterwechsel",
+      "required": [
+        "Vollständige verschlüsselte Sicherung und überprüfte Wiederherstellung gehen einem Wechsel voraus.",
+        "Ownertrennung, Quellen, Historie und Status bleiben bei Migration erhalten.",
+        "Sicherheitsbindungen werden auf neuer Hardware bewusst neu eingerichtet.",
+        "Ein Anbieterwechsel geschieht niemals still."
+      ]
+    },
+    {
+      "id": "aging_and_accessibility",
+      "title": "Alter, Barrierefreiheit und veränderte Bedürfnisse",
+      "required": [
+        "Alter oder Behinderung werden nicht als fehlende Entscheidungsfähigkeit interpretiert.",
+        "Gesprochene Sprache wird ohne feste Sprachliste automatisch erkannt und praktisch geprüft.",
+        "Zugänglichkeit umfasst Sprach-, Vorlese-, Gebärdensprach-, visuelle, auditive, motorische und kognitive Wege.",
+        "Human Holo unterstützt, ersetzt aber keine professionelle Versorgung."
+      ]
+    },
+    {
+      "id": "incapacity",
+      "title": "Vorübergehende oder dauerhafte Einschränkung der Entscheidungsfähigkeit",
+      "required": [
+        "Human Holo diagnostiziert keine Entscheidungsfähigkeit.",
+        "Ohne getrennte wirksame Ownerregel bleibt der persönliche Zugriff geschlossen.",
+        "Eine Beziehung allein erzeugt keine Vertretungsbefugnis.",
+        "Künftiger Notfallzugriff ist ownerdefiniert, minimal, zweckgebunden, zeitlich begrenzt und protokolliert."
+      ]
+    },
+    {
+      "id": "legacy",
+      "title": "Tod, Erinnerung und Vermächtnis",
+      "required": [
+        "Es wird weder biologische Anwesenheit noch bewiesene Bewusstseinsfortsetzung behauptet.",
+        "Ein Erinnerungsmodus ist transparent als datenbasierte Darstellung gekennzeichnet.",
+        "Neue Wünsche oder Einwilligungen einer verstorbenen Person werden nicht erfunden.",
+        "Ohne wirksame Ownerregel bleibt der persönliche Bestand geschlossen."
+      ]
+    },
+    {
+      "id": "pause_and_end",
+      "title": "Pause, Widerruf und Ende",
+      "required": [
+        "Einzelne Einwilligungen und proaktive Funktionen bleiben getrennt widerrufbar.",
+        "Vor vollständiger Beendigung wird soweit zulässig ein verständlicher Export angeboten.",
+        "Vollständige Löschung benötigt eine authentifizierte, ausdrückliche Ownerbestätigung.",
+        "Inaktivität, Geräteverlust, Abonnementende oder Fehler sind kein Löschauftrag."
+      ]
+    }
+  ],
+  "status_vocabulary": [
+    "implemented-and-automatically-tested",
+    "partially-implemented",
+    "planned-contract-only",
+    "requires-owner-device-test",
+    "requires-separate-owner-and-professional-review"
+  ],
+  "capability_status": [
+    {
+      "id": "owner_separation",
+      "status": "implemented-and-automatically-tested",
+      "evidence": [
+        "HUMAN-HOLO-PRIVATE-OWNER-WIEDERERKENNUNG-13-09-2026.md",
+        "tests/identity-ui-separation.test.mjs"
+      ],
+      "not_yet_proven": [
+        "general-real-user-onboarding-at-scale"
+      ]
+    },
+    {
+      "id": "fulltime_and_event_memory",
+      "status": "partially-implemented",
+      "evidence": [
+        "HUMAN_HOLO_MEMORY_CONTRACT.md",
+        "tests/multimodal-event-memory.test.mjs"
+      ],
+      "not_yet_proven": [
+        "decades-of-scale",
+        "complete-reviewable-life-timeline"
+      ]
+    },
+    {
+      "id": "complete_encrypted_backup",
+      "status": "partially-implemented",
+      "evidence": [
+        "HUMAN-HOLO-VOLLSTAENDIGE-GEDAECHTNISSICHERUNG-12-09-2026.md",
+        "tests/owner-memory-backup.test.mjs"
+      ],
+      "not_yet_proven": [
+        "recurring-multi-copy-operation",
+        "cross-device-generation-restore-drill"
+      ]
+    },
+    {
+      "id": "automatic_spoken_languages",
+      "status": "requires-owner-device-test",
+      "evidence": [
+        "HUMAN-HOLO-AUTOMATISCHE-SPRACHEN-13-09-2026.md",
+        "tests/automatic-language.test.mjs"
+      ],
+      "not_yet_proven": [
+        "multilingual-s23-practice",
+        "accent-dialect-and-noise-practice"
+      ]
+    },
+    {
+      "id": "offline_core",
+      "status": "partially-implemented",
+      "evidence": [
+        "android-native/SolWakeKeywordSpotter.java",
+        "tests/personal-wake-guidance.test.mjs"
+      ],
+      "not_yet_proven": [
+        "full-offline-conversation",
+        "full-offline-memory-search"
+      ]
+    },
+    {
+      "id": "provider_and_host_portability",
+      "status": "planned-contract-only",
+      "evidence": [
+        "CHATGPT-OPENAI-PROJEKTREGEL-09-09-2026.md",
+        "tests/human-holo-ai-provider-policy.test.mjs"
+      ],
+      "not_yet_proven": [
+        "long-term-provider-exit",
+        "long-term-host-migration"
+      ]
+    },
+    {
+      "id": "trusted_and_advance_access",
+      "status": "requires-separate-owner-and-professional-review",
+      "evidence": [
+        "PROFESSIONALISIERUNG_UND_RECHT.md"
+      ],
+      "not_yet_proven": [
+        "owner-designation",
+        "applicable-legal-validity",
+        "runtime-enforcement"
+      ]
+    },
+    {
+      "id": "remembrance_and_legacy",
+      "status": "partially-implemented",
+      "evidence": [
+        "docs/erinnerung-und-vermaechtnis.md",
+        "tests/memorial-area.test.mjs"
+      ],
+      "not_yet_proven": [
+        "owner-directed-estate-controls",
+        "end-to-end-lifecycle"
+      ]
+    },
+    {
+      "id": "universal_accessibility",
+      "status": "partially-implemented",
+      "evidence": [
+        "HUMAN_HOLO_MEMORY_CONTRACT.md",
+        "tests/read-aloud-accessibility.test.mjs"
+      ],
+      "not_yet_proven": [
+        "multilingual-local-read-aloud",
+        "broad-sign-language-support",
+        "motor-and-cognitive-accessibility"
+      ]
+    },
+    {
+      "id": "long_term_operations",
+      "status": "planned-contract-only",
+      "evidence": [
+        "BUILD-89-SIGNATURREGEL.md",
+        "MEILENSTEIN-UPDATE-SIGNATUR-31-08-2026.md"
+      ],
+      "not_yet_proven": [
+        "operations-and-key-infrastructure-successor",
+        "sustainable-cost-and-incident-plan"
+      ]
+    }
+  ],
+  "implementation_gates": [
+    "decided",
+    "documented",
+    "implemented",
+    "automatically-tested",
+    "real-device-tested",
+    "owner-confirmed"
+  ],
+  "next_priorities": [
+    "verified-recurring-backup-and-restore",
+    "reviewable-life-timeline",
+    "safe-offline-read-only-core",
+    "provider-and-host-portability-with-openai-first",
+    "advance-emergency-and-legacy-only-after-separate-owner-decision-and-professional-review",
+    "real-accessibility-language-dialect-and-sign-language-tests",
+    "long-term-operations-and-successor-plan"
+  ]
+}
