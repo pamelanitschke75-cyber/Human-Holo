@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-285-ownergebundenes-dauergedächtnis";
+const CACHE_VERSION = "human-holo-286-private-owner-wiedererkennung";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

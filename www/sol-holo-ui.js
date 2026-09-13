@@ -870,6 +870,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       '</span>' +
       '<span id="samsungGalleryStatus" class="serviceStatus connected">Verbunden</span>' +
     '</button>' +
+    '<button id="knownPersonRecognitionRow" class="serviceRow" type="button">' +
+      '<span class="rowIcon">◉</span>' +
+      '<span class="rowText">' +
+        '<span class="rowTitle">Pam auf Fotos wiedererkennen</span>' +
+        '<span class="rowMeta">Nur einzeln gesendete Fotos · jederzeit widerrufbar</span>' +
+      '</span>' +
+      '<span id="knownPersonRecognitionStatus" class="serviceStatus setup">Aus</span>' +
+    '</button>' +
     '<button id="smartThingsRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">⌂</span>' +
       '<span class="rowText">' +
@@ -1054,6 +1062,20 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "sol-holo:pam-sol:clone-appearance-migration:v2";
   const pamCloneMetadataKey =
     "sol-holo:pam-sol:clone-appearance-meta:v2";
+  const knownPersonSelfConsentKey =
+    "human-holo:pam-sol:owner-self-recognition-consent:v2";
+  const knownPersonSelfConsentVersion =
+    "human-holo-owner-self-recognition-v2";
+  const knownPersonSelfPurpose =
+    "private-manually-submitted-photo-verification";
+  const knownPersonIdentityRequestPattern =
+    /(?:\bwer\s+ist\s+(?:die|diese)\s+person\b|\bwer\s+bin\s+ich\b|\b(?:erkenn|kenn)st\s+du\s+(?:mich|pam|die\s+person|diese\s+person|den\s+menschen|die\s+frau|den\s+mann)\b|\bwei(?:ß|ss)t\s+du[\s\S]{0,24}\bwer\s+(?:ich|die\s+person|dieser\s+mensch|diese\s+frau|dieser\s+mann)\b|\bist\s+das\s+(?:pam|ich)\b|\bbin\s+das\s+ich\b|\bnur\s+(?:um\s+)?(?:die\s+)?person\b|\bidentifizier(?:e|en)\s+(?:mich|die\s+person)\b|\bwho\s+is\s+(?:this|the)\s+(?:person|woman|man)\b|\bis\s+this\s+pam\b|\bdo\s+you\s+recogni[sz]e\s+me\b)/iu;
+  const knownPersonRecognitionDisclosure =
+    "Private Wiedererkennung von Pam auf einzelnen Fotos\n\n" +
+    "Wenn du zustimmst, darf Pam’s Holo dein bereits owner-gebundenes Profilbild als Referenz verwenden, um ausschließlich bei einem von dir bewusst gesendeten Foto zu prüfen, ob die einzelne sichtbare Person du bist.\n\n" +
+    "Referenz- und Prüffoto werden dafür über eine verschlüsselte Verbindung an ChatGPT/OpenAI übertragen. Human Holo speichert sie nicht im Vollzeitgedächtnis. Die normale Response-Speicherung ist ausgeschaltet. OpenAI verwendet API-Daten standardmäßig nicht zum Modelltraining, kann Eingaben und Antworten aber nach den aktuell veröffentlichten API-Regeln bis zu 30 Tage für Missbrauchsschutz aufbewahren; gesetzlich oder aus Sicherheitsgründen kann eine längere Aufbewahrung nötig sein.\n\n" +
+    "Human Holo legt keine öffentliche Gesichtsdatenbank an und verwendet die Funktion nicht für Live-Überwachung oder unbekannte Personen. Bei Unsicherheit wird kein Name geraten.\n\n" +
+    "Die Einwilligung ist freiwillig und kann unter Verbindungen mit einem Antippen wieder ausgeschaltet werden. Der Widerruf stoppt künftige Abgleiche; bereits entstandene Sicherheitsprotokolle kann Human Holo nicht rückwirkend bei OpenAI löschen. Möchtest du die Einwilligung jetzt ausdrücklich erteilen?";
   const unverifiedPamClonePhotoQuarantineKey =
     "sol-holo:unassigned:clone-photo:v2:quarantine";
   const unverifiedPamCloneMouthQuarantineKey =
@@ -1251,6 +1273,287 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
     return null;
   }
+
+  function readKnownPersonSelfConsent() {
+    const identity =
+      window.SolHoloIdentity
+        ?.selected?.();
+
+    if (
+      identity?.ownerId !== "pam-sol" ||
+      identity?.speakerId !== "pam"
+    ) {
+      return null;
+    }
+
+    try {
+      const consent = JSON.parse(
+        localStorage.getItem(
+          knownPersonSelfConsentKey
+        ) ||
+        "null"
+      );
+
+      if (
+        consent?.granted !== true ||
+        consent?.consentVersion !==
+          knownPersonSelfConsentVersion ||
+        consent?.ownerId !==
+          identity.ownerId ||
+        consent?.speakerId !==
+          identity.speakerId ||
+        consent?.subject !==
+          "owner-self" ||
+        consent?.purpose !==
+          knownPersonSelfPurpose
+      ) {
+        return null;
+      }
+
+      return consent;
+    } catch {
+      return null;
+    }
+  }
+
+  function renderKnownPersonRecognitionStatus() {
+    const status = document.getElementById(
+      "knownPersonRecognitionStatus"
+    );
+
+    if (!status) {
+      return;
+    }
+
+    const identity =
+      window.SolHoloIdentity
+        ?.selected?.();
+    const consent =
+      readKnownPersonSelfConsent();
+
+    status.classList.remove(
+      "connected",
+      "setup"
+    );
+
+    if (
+      identity?.ownerId !== "pam-sol"
+    ) {
+      status.textContent =
+        "Gesperrt";
+      status.classList.add(
+        "setup"
+      );
+      return;
+    }
+
+    if (!customClonePhoto) {
+      status.textContent =
+        "Bild fehlt";
+      status.classList.add(
+        "setup"
+      );
+      return;
+    }
+
+    status.textContent =
+      consent
+        ? "Freigegeben"
+        : "Aus";
+    status.classList.add(
+      consent
+        ? "connected"
+        : "setup"
+    );
+  }
+
+  function revokeKnownPersonSelfConsent({
+    notify = true
+  } = {}) {
+    try {
+      localStorage.removeItem(
+        knownPersonSelfConsentKey
+      );
+    } catch {}
+
+    renderKnownPersonRecognitionStatus();
+
+    if (notify) {
+      showToast(
+        "Wiedererkennung ausgeschaltet · dein Holo-Bild bleibt unverändert."
+      );
+    }
+  }
+
+  function grantKnownPersonSelfConsent() {
+    const identity =
+      requireActivePersonalOwner();
+
+    if (
+      !identity ||
+      identity.ownerId !== "pam-sol" ||
+      identity.speakerId !== "pam"
+    ) {
+      return null;
+    }
+
+    if (!customClonePhoto) {
+      showView("settings");
+      showToast(
+        "Bitte wähle zuerst im Profil ein klares eigenes Bild von Pam aus."
+      );
+      renderKnownPersonRecognitionStatus();
+      return null;
+    }
+
+    if (
+      !window.confirm(
+        knownPersonRecognitionDisclosure
+      )
+    ) {
+      showToast(
+        "Keine Einwilligung erteilt · Wiedererkennung bleibt aus."
+      );
+      renderKnownPersonRecognitionStatus();
+      return null;
+    }
+
+    const consent = {
+      consentVersion:
+        knownPersonSelfConsentVersion,
+      granted:
+        true,
+      grantedAt:
+        new Date().toISOString(),
+      ownerId:
+        identity.ownerId,
+      provider:
+        "openai",
+      providerAbuseMonitoringRetentionAcknowledged:
+        true,
+      purpose:
+        knownPersonSelfPurpose,
+      providerAbuseMonitoringRetentionPossibleDays:
+        30,
+      reference:
+        "owner-bound-local-profile-photo",
+      speakerId:
+        identity.speakerId,
+      subject:
+        "owner-self",
+      withdrawal:
+        "one-tap-in-connections"
+    };
+
+    try {
+      const serialized =
+        JSON.stringify(consent);
+
+      localStorage.setItem(
+        knownPersonSelfConsentKey,
+        serialized
+      );
+
+      if (
+        localStorage.getItem(
+          knownPersonSelfConsentKey
+        ) !== serialized
+      ) {
+        throw new Error(
+          "OWNER_SELF_CONSENT_SAVE_FAILED"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Einwilligung zur privaten Wiedererkennung:",
+        error
+      );
+      showToast(
+        "Die Einwilligung konnte nicht sicher gespeichert werden."
+      );
+      renderKnownPersonRecognitionStatus();
+      return null;
+    }
+
+    renderKnownPersonRecognitionStatus();
+    showToast(
+      "Private Wiedererkennung von Pam ist freigegeben ✅️"
+    );
+    return consent;
+  }
+
+  function authorizeKnownPersonSelfRecognition({
+    hasImage,
+    message
+  } = {}) {
+    const requested = Boolean(
+      hasImage &&
+      knownPersonIdentityRequestPattern.test(
+        String(message || "").trim()
+      )
+    );
+
+    if (!requested) {
+      return {
+        granted:
+          false,
+        required:
+          false
+      };
+    }
+
+    if (!customClonePhoto) {
+      showView("settings");
+      renderKnownPersonRecognitionStatus();
+      return {
+        granted:
+          false,
+        reason:
+          "reference_missing",
+        required:
+          true
+      };
+    }
+
+    const consent =
+      readKnownPersonSelfConsent() ||
+      grantKnownPersonSelfConsent();
+
+    if (!consent) {
+      return {
+        granted:
+          false,
+        reason:
+          "consent_missing",
+        required:
+          true
+      };
+    }
+
+    return {
+      consent,
+      granted:
+        true,
+      referenceImage:
+        customClonePhoto,
+      required:
+        true
+    };
+  }
+
+  window.SolHoloKnownPersonRecognition =
+    Object.freeze({
+      authorize:
+        authorizeKnownPersonSelfRecognition,
+      consentVersion:
+        knownPersonSelfConsentVersion,
+      revoke:
+        revokeKnownPersonSelfConsent,
+      status:
+        () => Boolean(
+          readKnownPersonSelfConsent()
+        )
+    });
 
   function quarantineLegacyCloneAppearance() {
     try {
@@ -7243,8 +7546,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         deviceBinding: "signed-owner-bound-instance",
         deviceDisplayNameUsedAsIdentity: false,
         explicitOwnerConfirmation: true,
-        faceProcessing: "local-landmarks-only-not-person-identification",
+        faceProcessing:
+          "local-landmarks-only-not-person-identification",
         locationUsedAsIdentity: false,
+        optionalSelfRecognition:
+          "separate-explicit-consent-required",
         ownerId: identity.ownerId,
         schemaVersion: 2,
         speakerId: identity.speakerId,
@@ -7259,7 +7565,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       ) {
         throw new Error("OWNER_BOUND_IMAGE_SAVE_FAILED");
       }
+      revokeKnownPersonSelfConsent({
+        notify: false
+      });
       applyCustomCloneAppearance(photo, mouth);
+      renderKnownPersonRecognitionStatus();
       showToast(
         "Bild owner-gebunden gespeichert · Original Full Sync wird nur lokal neu zugeordnet ✨"
       );
@@ -7309,7 +7619,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       localStorage.removeItem(keys.mouth);
       localStorage.removeItem(keys.metadata);
     } catch {}
+    revokeKnownPersonSelfConsent({
+      notify: false
+    });
     applyCustomCloneAppearance("", null);
+    renderKnownPersonRecognitionStatus();
     showToast("Das HUMAN-HOLO-Bild ist wieder aktiv.");
   });
 
@@ -7672,6 +7986,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     showToast(`Samsung Galerie ist geöffnet · das Bild bleibt nur bei ${identity.displayName}s Holo.`);
   });
 
+  document.getElementById("knownPersonRecognitionRow")
+    .addEventListener("click", () => {
+      if (readKnownPersonSelfConsent()) {
+        revokeKnownPersonSelfConsent();
+        return;
+      }
+
+      grantKnownPersonSelfConsent();
+    });
+
   document.getElementById("smartThingsRow").addEventListener("click", () => {
     const identity = requireActivePersonalOwner();
     if (!identity) {
@@ -7832,6 +8156,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       void loadMemorialEntries();
     }
     restoreCustomCloneAppearance();
+    renderKnownPersonRecognitionStatus();
     void loadGoogleStatus();
     void loadSmartThingsStatus();
   });
@@ -7847,6 +8172,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   renderMemorialEntries();
   renderPersonalIdentityUi();
   restoreCustomCloneAppearance();
+  renderKnownPersonRecognitionStatus();
   document.querySelectorAll(".pamUnicorn, #chatUnicornSignature").forEach(
     node => node.remove()
   );

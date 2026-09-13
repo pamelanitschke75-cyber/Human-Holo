@@ -10420,6 +10420,100 @@ async function sendMessage(
   }
 
 
+  const knownPersonAuthorization =
+    window.SolHoloKnownPersonRecognition
+      ?.authorize?.({
+        message,
+        hasImage:
+          Boolean(imageToSend)
+      }) || {
+        granted:false,
+        required:false
+      };
+
+
+  if(
+    knownPersonAuthorization.required &&
+    !knownPersonAuthorization.granted
+  ){
+
+    chatStatus.textContent =
+      knownPersonAuthorization.reason ===
+        "reference_missing"
+        ? "Bitte wähle im Profil zuerst ein klares eigenes Bild von Pam aus."
+        : "Wiedererkennung abgebrochen · es wurde kein Bild dafür übertragen.";
+
+
+    return;
+  }
+
+
+  if(
+    knownPersonAuthorization.granted
+  ){
+
+    const ensureTrustedSession =
+      window.SolHoloTrustedSession
+        ?.ensure;
+
+
+    if(
+      typeof ensureTrustedSession !==
+      "function"
+    ){
+
+      chatStatus.textContent =
+        "Die sichere S23-Sitzung ist für die private Wiedererkennung nicht verfügbar.";
+
+
+      return;
+    }
+
+
+    let trustedSession =
+      null;
+
+
+    try{
+
+      trustedSession =
+        await ensureTrustedSession({
+          interactive:true
+        });
+
+    }catch(
+      error
+    ){
+
+      console.error(
+        "Private Wiedererkennung · sichere Sitzung:",
+        error?.code ||
+          error?.name ||
+          "Fehler"
+      );
+
+
+      chatStatus.textContent =
+        "Die sichere S23-Sitzung konnte nicht bestätigt werden. Es wurde kein Bild zur Wiedererkennung übertragen.";
+
+
+      return;
+    }
+
+
+    if(
+      !trustedSession?.trusted
+    ){
+
+      chatStatus.textContent =
+        "Die sichere S23-Sitzung wurde nicht bestätigt. Es wurde kein Bild zur Wiedererkennung übertragen.";
+
+
+      return;
+    }
+  }
+
+
   const fulltimeEventId =
     String(
       existingFulltimeEventId ||
@@ -10768,6 +10862,16 @@ async function sendMessage(
               fulltimeEventId,
 
               medicationRecognitionConsent,
+
+              knownPersonSelfConsent:
+                knownPersonAuthorization.granted
+                  ? knownPersonAuthorization.consent
+                  : null,
+
+              ownerSelfReferenceImage:
+                knownPersonAuthorization.granted
+                  ? knownPersonAuthorization.referenceImage
+                  : null,
 
               source:
                 "text"
@@ -15915,7 +16019,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=285",
+          "./service-worker.js?v=286",
           {
             updateViaCache:"none"
           }
@@ -15951,7 +16055,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=78"></script>
+<script src="./sol-holo-ui.js?v=79"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=1"></script>

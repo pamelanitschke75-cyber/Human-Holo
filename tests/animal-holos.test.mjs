@@ -267,7 +267,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /Tina erhält ein eigenes Hund-Tier-Holo/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-285-ownergebundenes-dauergedächtnis/u);
+  assert.match(worker, /human-holo-286-private-owner-wiedererkennung/u);
 });
 
 test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {
