@@ -73,7 +73,7 @@ test("Sicherung verwendet eine Positivliste und schließt Geheimnisse/Biometrie 
   ]);
   assert.deepEqual(
     snapshot.data.animalHolos.profiles.map((profile) => profile.name),
-    ["Salt", "Pepper", "Tina"]
+    ["Salt", "Pepper", "Tina", "Gurke", "Möhrchen"]
   );
 });
 

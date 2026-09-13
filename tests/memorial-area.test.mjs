@@ -120,5 +120,5 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(html, /sol-holo-ui\.css\?v=51/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
   assert.match(html, /sol-holo-ui\.js\?v=80/u);
-  assert.match(serviceWorker, /human-holo-287-contextual-animal-memory/u);
+  assert.match(serviceWorker, /human-holo-288-animal-glass-autosave/u);
 });
