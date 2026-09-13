@@ -12,6 +12,12 @@ export const ANIMAL_HOLO_SCHEMA_VERSION = 1;
 export const ANIMAL_HOLO_OWNER_ID = "pam-sol";
 export const ANIMAL_HOLO_STORAGE_KEY = "human-holo-animal-memory-v1";
 
+export const ANIMAL_HOLO_CONVERSATION_REPLY = Object.freeze({
+  CONFIRM: "confirm",
+  CANCEL: "cancel",
+  OTHER: "other"
+});
+
 const MAX_PROFILES = 50;
 const MAX_OBSERVATIONS = 500;
 const MAX_TEXT = 2_000;
@@ -146,6 +152,157 @@ function hash(value) {
     result = Math.imul(result, 16777619);
   }
   return (result >>> 0).toString(36);
+}
+
+function animalProfileId(value) {
+  const candidate = slug(value);
+  if (candidate === "peps") return "pepper";
+  return candidate;
+}
+
+function comparableAnimalName(value) {
+  return text(value, 240)
+    .toLocaleLowerCase("de-DE")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function resolveAnimalProfileId(value, profiles) {
+  const candidate = animalProfileId(value);
+  const comparable = comparableAnimalName(value);
+  const matched = (Array.isArray(profiles) ? profiles : []).find((profile) => {
+    const names = [profile?.id, profile?.name, ...(profile?.nicknames || [])];
+    return names.some(
+      (name) =>
+        animalProfileId(name) === candidate ||
+        comparableAnimalName(name) === comparable
+    );
+  });
+  return animalProfileId(matched?.id || candidate);
+}
+
+function normalizedConversationReply(value) {
+  return text(value, 400)
+    .toLocaleLowerCase("de-DE")
+    .replace(
+      /^(?:(?:hey\s+)?(?:human\s+holo|holo|sol(?:\s+holo)?|pam))\s*[,;:!.-]?\s*/iu,
+      ""
+    )
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]/gu, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+export function classifyAnimalHoloConversationReply(value) {
+  const raw = text(value, 400);
+  const reply = normalizedConversationReply(raw);
+  const hasPositiveEmoji = /(?:👍|✅|☑)/u.test(raw);
+  const hasNegativeEmoji = /(?:👎|❌|⛔)/u.test(raw);
+
+  if (hasPositiveEmoji && hasNegativeEmoji) {
+    return ANIMAL_HOLO_CONVERSATION_REPLY.OTHER;
+  }
+
+  if (
+    hasNegativeEmoji ||
+    /^(?:nein|nee|ne|nö|nope|doch nicht|lieber nicht|nicht speichern|nicht festhalten|abbrechen|abbruch|vergiss es|no|cancel|don t|do not|non|pas maintenant|no gracias)$/iu.test(
+      reply
+    )
+  ) {
+    return ANIMAL_HOLO_CONVERSATION_REPLY.CANCEL;
+  }
+
+  const politePositive =
+    /^(?:ja(?: bitte| gern| gerne| klar| unbedingt| mach das| mach das bitte| speicher(?:e)? das)?|jaha|jawohl|jo|jop|jep|jup|yep|yes(?: please)?|sure|go ahead|ok|okay|okey|alles|alles klar|alles ok|klar|gern|gerne|passt|genau|richtig|unbedingt|bitte|bitte speichern|bitte festhalten|speicher(?:e)?(?: das| es)?|halt(?:e)? das fest|mach(?: das)?(?: bitte| ruhig)?|kannst du machen|von mir aus|meinetwegen|ohne zusatz|einfach ohne zusatz|si|sí|claro|vale|guardalo|guárdalo|oui|d accord|sì|va bene)(?: danke| dankeschön)?$/iu;
+
+  if (politePositive.test(reply)) {
+    return ANIMAL_HOLO_CONVERSATION_REPLY.CONFIRM;
+  }
+
+  if (
+    hasPositiveEmoji &&
+    (!reply || /^(?:ja|ok|okay|klar|gern|gerne|passt|genau|danke|bitte)$/iu.test(reply))
+  ) {
+    return ANIMAL_HOLO_CONVERSATION_REPLY.CONFIRM;
+  }
+
+  return ANIMAL_HOLO_CONVERSATION_REPLY.OTHER;
+}
+
+export function normalizeAnimalHoloProposal(
+  value,
+  { profiles = [] } = {}
+) {
+  const profileId = resolveAnimalProfileId(
+    value?.profileId ?? value?.profile_id ?? value?.animalId ?? value?.animal_id,
+    profiles
+  );
+  const observationText = text(
+    value?.text ?? value?.observation ?? value?.content
+  );
+  if (!profileId || !observationText) return null;
+  return {
+    profileId,
+    text: observationText,
+    observedAt: iso(value?.observedAt ?? value?.observed_at, "")
+  };
+}
+
+export function animalHoloProposalFromAssistantAnswer(
+  value,
+  { profiles = PAM_ANIMAL_HOLO_STARTERS } = {}
+) {
+  const answer = text(value, 6000);
+  if (
+    !answer ||
+    !/tier[\s‑-]*holo/iu.test(answer) ||
+    !/(?:soll|möchtest|mochtest|darf)\b[\s\S]{0,180}\b(?:speicher|festhalt|hinterleg|hinzufüg|hinzufug)/iu.test(
+      answer
+    )
+  ) {
+    return null;
+  }
+
+  const quotedProposal = answer.match(
+    /vorschlag\s*[:：]\s*(?:„([^“”]+)[“”]|“([^“”]+)[“”]|"([^"]+)"|'([^']+)')/iu
+  );
+  const lineProposal = answer.match(
+    /vorschlag\s*[:：]\s*([^\r\n]{2,2000})/iu
+  );
+  const proposalText = text(
+    quotedProposal?.slice(1).find(Boolean) ||
+      lineProposal?.[1]?.replace(/\s+(?:drinnen|balkon|oder)\b[\s\S]*$/iu, "") ||
+      ""
+  ).replace(/[“”„"']+$/u, "").trim();
+  if (!proposalText) return null;
+
+  const availableProfiles = (Array.isArray(profiles) ? profiles : [])
+    .map((profile) => ({
+      id: animalProfileId(profile?.id || profile?.name),
+      names: [profile?.name, ...(profile?.nicknames || []), profile?.id]
+        .map(comparableAnimalName)
+        .filter(Boolean)
+    }))
+    .filter((profile) => profile.id && profile.names.length);
+  const matchingProfiles = (haystack) => {
+    const searchable = " " + comparableAnimalName(haystack) + " ";
+    return availableProfiles.filter((profile) =>
+      profile.names.some((name) => searchable.includes(" " + name + " "))
+    );
+  };
+  const proposalProfileMatches = matchingProfiles(proposalText);
+  const profileMatches = matchingProfiles(answer);
+  const selectedMatches = proposalProfileMatches.length
+    ? proposalProfileMatches
+    : profileMatches;
+  if (selectedMatches.length !== 1) return null;
+
+  return normalizeAnimalHoloProposal({
+    profileId: selectedMatches[0].id,
+    text: proposalText
+  }, { profiles });
 }
 
 function cloneStarter(profile) {

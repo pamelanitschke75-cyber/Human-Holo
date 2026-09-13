@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-286-private-owner-wiedererkennung";
+const CACHE_VERSION = "human-holo-287-contextual-animal-memory";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
