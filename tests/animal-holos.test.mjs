@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  ANIMAL_HOLO_AUTO_SAVE_MARKER,
   ANIMAL_HOLO_CONVERSATION_REPLY,
   ANIMAL_HOLO_OPEN_BUILD,
   ANIMAL_HOLO_OWNER_ID,
@@ -11,6 +12,8 @@ import {
   ANIMAL_HOLO_STORAGE_KEY,
   addAnimalHoloObservation,
   addAnimalHoloProfile,
+  animalHoloAutoSaveProposalFromAssistantAnswer,
+  animalHoloObservationFromFulltimeMessage,
   animalHoloProposalFromAssistantAnswer,
   animalHoloPromptContext,
   classifyAnimalHoloConversationReply,
@@ -18,7 +21,8 @@ import {
   markAnimalHoloObservationSynced,
   mergeAnimalHoloStates,
   normalizeAnimalHoloState,
-  serializeAnimalHoloState
+  serializeAnimalHoloState,
+  stripAnimalHoloAutoSaveMarker
 } from "../www/human-holo-animal-core.mjs";
 import {
   BACKUP_STORAGE_KEYS,
@@ -47,11 +51,11 @@ class MemoryStorage {
   }
 }
 
-test("Pams Tier-Holo-Start enthält Salt, Pepper alias Peps und Tina", () => {
+test("Pams Tier-Holo-Start enthält alle fünf bestätigten Tiere", () => {
   const state = createAnimalHoloState(ANIMAL_HOLO_OWNER_ID);
   assert.deepEqual(
     state.profiles.map((profile) => profile.name),
-    ["Salt", "Pepper", "Tina"]
+    ["Salt", "Pepper", "Tina", "Gurke", "Möhrchen"]
   );
   const salt = state.profiles.find((profile) => profile.id === "salt");
   const pepper = state.profiles.find((profile) => profile.id === "pepper");
@@ -61,6 +65,44 @@ test("Pams Tier-Holo-Start enthält Salt, Pepper alias Peps und Tina", () => {
   assert.equal(pepper.humanReference, "Pam");
   assert.equal(tina.species, "Hund");
   assert.equal(tina.breed, "Schäferhund");
+  assert.equal(salt.observations.length, 2);
+  assert.match(salt.observations[0].text, /unkontrollierten Bewegungen/iu);
+  assert.match(salt.observations[1].text, /zieht sie sich eher zurück/iu);
+  assert.equal(
+    state.profiles.find((profile) => profile.id === "gurke").humanReference,
+    "Pams Eltern"
+  );
+  assert.equal(
+    state.profiles.find((profile) => profile.id === "moehrchen").projectName,
+    "Gurke & Möhrchen"
+  );
+});
+
+test("Salt-Migration ergänzt nur fehlende Beobachtungen und verdoppelt nichts", () => {
+  const migrated = normalizeAnimalHoloState(
+    {
+      ownerId: ANIMAL_HOLO_OWNER_ID,
+      profiles: [{
+        id: "salt",
+        name: "Salt",
+        observations: [{
+          id: "alter-eintrag",
+          text:
+            "Nach Pams Beobachtung geht Salt auch mit unkontrollierten Bewegungen sehr kleiner Kinder ruhig um.",
+          syncState: "synced"
+        }]
+      }]
+    },
+    { ownerId: ANIMAL_HOLO_OWNER_ID }
+  );
+  const salt = migrated.profiles.find((profile) => profile.id === "salt");
+  assert.equal(salt.observations.length, 2);
+  assert.equal(
+    salt.observations.filter((observation) =>
+      /unkontrollierten Bewegungen/iu.test(observation.text)
+    ).length,
+    1
+  );
 });
 
 test("Tier-Holo-Sicherheitsgrenzen schützen Kind, Tier und Wirklichkeit", () => {
@@ -205,6 +247,49 @@ test("Holos natürliche Rückfrage wird für jedes Tierprofil sicher erkannt", (
   );
 });
 
+test("Pams Holo-Antwort löst eine direkte, unsichtbar markierte Speicherung aus", () => {
+  const answer =
+    "Das passt zu deiner Beobachtung.\n" +
+    ANIMAL_HOLO_AUTO_SAVE_MARKER +
+    ' {"profileId":"peps","text":"Peps wartet ruhig an der Tür.","observedAt":""}';
+  assert.deepEqual(animalHoloAutoSaveProposalFromAssistantAnswer(answer), {
+    profileId: "pepper",
+    text: "Peps wartet ruhig an der Tür.",
+    observedAt: ""
+  });
+  assert.equal(
+    stripAnimalHoloAutoSaveMarker(answer),
+    "Das passt zu deiner Beobachtung."
+  );
+  assert.equal(
+    animalHoloAutoSaveProposalFromAssistantAnswer(
+      ANIMAL_HOLO_AUTO_SAVE_MARKER +
+        ' {"profileId":"unbekannt","text":"Nicht zuordnen","observedAt":""}'
+    ),
+    null
+  );
+});
+
+test("ownergebundene Vollzeit-Beobachtungen werden wieder als Tier-Einträge sichtbar", () => {
+  const restored = animalHoloObservationFromFulltimeMessage({
+    content:
+      "Bestätigte Tier-Holo-Beobachtung zu Möhrchen: Möhrchen sitzt gern im Karton.",
+    createdAt: "2026-09-13T12:00:00.000Z",
+    observationId: "fulltime-42"
+  });
+  assert.equal(restored.profileId, "moehrchen");
+  assert.equal(restored.observation.syncState, "synced");
+  assert.equal(restored.observation.id, "fulltime-42");
+  assert.match(restored.observation.text, /sitzt gern im Karton/iu);
+
+  const peps = animalHoloObservationFromFulltimeMessage({
+    content:
+      "Bestätigte Tier-Holo-Beobachtung zu Pepper (Peps): Peps schaut aus dem Fenster.",
+    observationId: "fulltime-43"
+  });
+  assert.equal(peps.profileId, "pepper");
+});
+
 test("Weitere Tier-Holos können auf dem offenen Kern aufbauen", () => {
   const extended = addAnimalHoloProfile(
     createAnimalHoloState("builder-owner"),
@@ -246,7 +331,7 @@ test("Tier-Holo-Wiederherstellung ist additiv und dedupliziert", () => {
   assert.equal(
     merged.state.profiles.find((profile) => profile.id === "salt")
       .observations.length,
-    2
+    4
   );
 });
 
@@ -344,7 +429,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=2/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=3/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
@@ -355,15 +440,24 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(ui, /handleConversationReply/u);
   assert.match(ui, /conversation_confirmation/u);
   assert.match(ui, /ownergebunden im Vollzeitgedächtnis/u);
+  assert.match(ui, /Foto ändern/u);
+  assert.match(ui, /animal-holos\/profile-photo\/save/u);
+  assert.match(ui, /animal-holos\/observations/u);
+  assert.match(ui, /ohne zusätzliche Zustimmungsfrage/u);
+  assert.doesNotMatch(ui, /animalHoloObservationConfirmed/u);
   assert.match(solUi, /HumanHoloAnimalHolos[\s\S]*?handleConversationReply/u);
   assert.match(server, /function animalHoloSafetyInstructions/u);
   assert.match(server, /identity\?\.ownerId !== "pam-sol"/u);
   assert.match(server, /Tina erhält ein eigenes Hund-Tier-Holo/u);
+  assert.match(server, /Gurke und Möhrchen sind Katzen/u);
+  assert.match(server, /save_animal_holo_observation/u);
+  assert.match(server, /TIER_HOLO_AUTOSAVE/u);
+  assert.match(server, /animal-holos\/profile-photo\/save/u);
   assert.match(server, /jedes bestehende und künftig ownergebunden angelegte Tier-Holo/u);
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-287-contextual-animal-memory/u);
+  assert.match(worker, /human-holo-288-animal-glass-autosave/u);
 });
 
 test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {

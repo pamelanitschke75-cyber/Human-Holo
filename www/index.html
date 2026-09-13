@@ -11081,7 +11081,7 @@ async function sendMessage(
     }
 
 
-    const answer =
+    let answer =
       String(
         data?.answer ||
         ""
@@ -11100,7 +11100,8 @@ async function sendMessage(
 
     try{
 
-      window.HumanHoloAnimalHolos
+      const animalHoloResult =
+        await window.HumanHoloAnimalHolos
         ?.captureConversationProposal?.({
           proposal:
             data?.animalHolo?.proposal ||
@@ -11108,8 +11109,26 @@ async function sendMessage(
           answer,
           conversationId:
             data?.conversationId ||
-            conversationId
+            conversationId,
+          autoSave:
+            data?.animalHolo?.autoSave ===
+            true
         });
+
+
+      if(
+        animalHoloResult?.handled &&
+        animalHoloResult?.answer
+      ){
+
+        answer =
+          String(
+            animalHoloResult.answer
+          ).trim();
+
+        data.answer =
+          answer;
+      }
 
     }catch(
       animalProposalError
@@ -14819,6 +14838,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "prepare_sms",
   "prepare_whatsapp",
   "read_health_snapshot",
+  "save_animal_holo_observation",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14898,6 +14918,28 @@ async function handleRealtimeMemoryToolCall(
       );
       chatStatus.textContent =
         "Gmail-Posteingang sicher und nur lesend geprüft.";
+    }else if(toolCall?.name === "save_animal_holo_observation"){
+      if(typeof window.HumanHoloAnimalHolos?.saveObservation === "function"){
+        const result = await window.HumanHoloAnimalHolos.saveObservation({
+          profileId:
+            String(parsedArguments?.profile_id || "").trim(),
+          text:
+            String(parsedArguments?.text || "").trim(),
+          observedAt:
+            String(parsedArguments?.observed_at || "").trim(),
+          source:
+            "realtime_auto_save"
+        });
+        output = String(
+          result?.answer ||
+          "Die Tier-Beobachtung wurde sicher gespeichert."
+        );
+        chatStatus.textContent =
+          "Tier-Holo-Beobachtung direkt gespeichert.";
+      }else{
+        output =
+          "Das Tier-Holo ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
+      }
     }else if(REALTIME_NOTE_TOOL_NAMES.has(toolCall?.name)){
       if(typeof window.executeSolHoloNotesTool === "function"){
         const result = await window.executeSolHoloNotesTool(
@@ -14946,6 +14988,8 @@ async function handleRealtimeMemoryToolCall(
         ? "Die aktuelle Information konnte gerade nicht zuverlässig geprüft werden. Erfinde keine Live-Daten."
       : toolCall?.name === "search_gmail"
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
+      : toolCall?.name === "save_animal_holo_observation"
+        ? "Die Tier-Beobachtung konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung und frage nicht erneut nach Erlaubnis."
       : REALTIME_NOTE_TOOL_NAMES.has(toolCall?.name)
         ? "Die Samsung-Notes-Übergabe ist gerade technisch fehlgeschlagen. Behaupte nicht, dass eine Notiz gespeichert wurde."
       : toolCall?.name === "read_health_snapshot"
@@ -15008,11 +15052,21 @@ function saveRealtimeAssistantTranscript(
   lastAssistantMemoryTranscriptAt = now;
 
   try{
-    window.HumanHoloAnimalHolos
-      ?.captureConversationProposal?.({
-        answer:transcript,
-        conversationId
-      });
+    void Promise.resolve(
+      window.HumanHoloAnimalHolos
+        ?.captureConversationProposal?.({
+          answer:transcript,
+          conversationId
+        })
+    ).catch(
+      animalProposalError => {
+        console.error(
+          "Tier-Holo-Realtime-Vorschlag:",
+          animalProposalError?.name ||
+            "Fehler"
+        );
+      }
+    );
   }catch(
     animalProposalError
   ){
@@ -16065,7 +16119,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=287",
+          "./service-worker.js?v=288",
           {
             updateViaCache:"none"
           }
@@ -16104,7 +16158,7 @@ if(
 <script src="./sol-holo-ui.js?v=80"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
-<script type="module" src="./human-holo-animal-holos.mjs?v=2"></script>
+<script type="module" src="./human-holo-animal-holos.mjs?v=3"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=5"></script>
 <script type="module" src="./human-holo-chatgpt-memory-bridge.mjs?v=1"></script>
 </body>

@@ -283,7 +283,7 @@ Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden
 
 ---
 
-# 🐾 Tier-Holos – Salt, Pepper (Peps) und Tina
+# 🐾 Tier-Holos – Salt, Peps, Tina, Gurke und Möhrchen
 
 Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
 **Erinnerungen**. Der technisch integrierte Start umfasst:
@@ -293,8 +293,16 @@ Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
 - **Pepper**, genannt **Peps**, als Teil von **SALT & PEPS**, innerhalb des
   Projekts Pam zugeordnet
 - **Tina** mit einem eigenen Hund-Tier-Holo als Schäferhund
+- **Gurke** und **Möhrchen** als zwei eigene Katzenprofile im gemeinsamen
+  Projekt bei Pams Eltern
 - weitere Tier-Holos, die der jeweilige Mensch selbst anlegen kann
 - sofortige ownergebundene lokale Speicherung bestätigter Beobachtungen
+- direkte Speicherung aus Text und Sprache ohne erneute Zustimmungsfrage, wenn
+  Pam das Tier eindeutig bezeichnet hat
+- frei änderbare private Profilfotos mit lokalem Sofortspeicher und
+  ownergebundener Serversicherung; die Fotos liegen nicht im öffentlichen Code
+- additive Wiederanzeige bereits vorhandener Tier-Beobachtungen aus dem
+  ownergebundenen Vollzeitgedächtnis
 - additive Aufnahme in die verschlüsselte Human-Holo-Sicherung
 - sichere Wiederholung der Synchronisierung ins ownergebundene
   Vollzeitgedächtnis, sobald eine vertrauenswürdige App-Sitzung verfügbar ist
@@ -317,6 +325,7 @@ zugehörigen Android-Builds auf dem Galaxy S23 bezeichnet.
 Details:
 
 - [Human Holo Tier-Holos](./HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
+- [Build 288: Glasprofile und Direkt-Speichern](./BUILD-288-TIER-HOLO-GLASPROFILE-AUTOSPEICHERN-13-09-2026.md)
 - [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
 - [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 

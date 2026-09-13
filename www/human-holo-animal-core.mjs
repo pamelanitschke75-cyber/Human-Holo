@@ -8,9 +8,10 @@
  * holos. Private photos, recordings and identity data are not part of this file.
  */
 
-export const ANIMAL_HOLO_SCHEMA_VERSION = 1;
+export const ANIMAL_HOLO_SCHEMA_VERSION = 2;
 export const ANIMAL_HOLO_OWNER_ID = "pam-sol";
 export const ANIMAL_HOLO_STORAGE_KEY = "human-holo-animal-memory-v1";
+export const ANIMAL_HOLO_AUTO_SAVE_MARKER = "[TIER_HOLO_AUTOSAVE]";
 
 export const ANIMAL_HOLO_CONVERSATION_REPLY = Object.freeze({
   CONFIRM: "confirm",
@@ -55,9 +56,26 @@ export const PAM_ANIMAL_HOLO_STARTERS = Object.freeze([
     summary:
       "Salt gehört zum gemeinsamen Tier-Holo-Projekt SALT & PEPS und ist darin Steffi zugeordnet.",
     baselineFacts: Object.freeze([
-      "Liebevoll großgezogen und kinderfreundlich sozialisiert.",
-      "Nach Pams Beobachtung geht Salt auch mit unkontrollierten Bewegungen sehr kleiner Kinder ruhig um.",
-      "Wenn es Salt zu lebhaft wird, zieht sie sich eher zurück."
+      "Liebevoll großgezogen und kinderfreundlich sozialisiert."
+    ]),
+    observations: Object.freeze([
+      Object.freeze({
+        id: "salt_ruhiger_umgang_mit_kleinkindern",
+        text:
+          "Nach Pams Beobachtung geht Salt auch mit unkontrollierten Bewegungen sehr kleiner Kinder ruhig um.",
+        observedAt: "",
+        recordedAt: "2026-09-13T00:00:00.000Z",
+        source: "owner_confirmed_starter",
+        syncState: "synced"
+      }),
+      Object.freeze({
+        id: "salt_rueckzug_bei_lebhaftigkeit",
+        text: "Wenn es Salt zu lebhaft wird, zieht sie sich eher zurück.",
+        observedAt: "",
+        recordedAt: "2026-09-13T00:00:00.000Z",
+        source: "owner_confirmed_starter",
+        syncState: "synced"
+      })
     ])
   }),
   Object.freeze({
@@ -74,7 +92,8 @@ export const PAM_ANIMAL_HOLO_STARTERS = Object.freeze([
       "Liebevoll großgezogen und kinderfreundlich sozialisiert.",
       "Nach Pams Beobachtung geht Peps auch mit unkontrollierten Bewegungen sehr kleiner Kinder ruhig um.",
       "Peps bleibt bei lebhaftem Familienalltag meist mitten im Geschehen."
-    ])
+    ]),
+    observations: Object.freeze([])
   }),
   Object.freeze({
     id: "tina",
@@ -89,7 +108,38 @@ export const PAM_ANIMAL_HOLO_STARTERS = Object.freeze([
     baselineFacts: Object.freeze([
       "Tina ist ein Schäferhund.",
       "Weitere Eigenschaften werden erst ergänzt, wenn Pam sie ausdrücklich bestätigt."
-    ])
+    ]),
+    observations: Object.freeze([])
+  }),
+  Object.freeze({
+    id: "gurke",
+    name: "Gurke",
+    nicknames: Object.freeze([]),
+    species: "Katze",
+    breed: "",
+    projectName: "Gurke & Möhrchen",
+    humanReference: "Pams Eltern",
+    summary:
+      "Gurke lebt gemeinsam mit Möhrchen bei Pams Eltern und gehört dort zur Familie.",
+    baselineFacts: Object.freeze([
+      "Gurke und Möhrchen leben bei Pams Eltern."
+    ]),
+    observations: Object.freeze([])
+  }),
+  Object.freeze({
+    id: "moehrchen",
+    name: "Möhrchen",
+    nicknames: Object.freeze([]),
+    species: "Katze",
+    breed: "",
+    projectName: "Gurke & Möhrchen",
+    humanReference: "Pams Eltern",
+    summary:
+      "Möhrchen lebt gemeinsam mit Gurke bei Pams Eltern und gehört dort zur Familie.",
+    baselineFacts: Object.freeze([
+      "Gurke und Möhrchen leben bei Pams Eltern."
+    ]),
+    observations: Object.freeze([])
   })
 ]);
 
@@ -171,7 +221,8 @@ function comparableAnimalName(value) {
 function resolveAnimalProfileId(value, profiles) {
   const candidate = animalProfileId(value);
   const comparable = comparableAnimalName(value);
-  const matched = (Array.isArray(profiles) ? profiles : []).find((profile) => {
+  const availableProfiles = Array.isArray(profiles) ? profiles : [];
+  const matched = availableProfiles.find((profile) => {
     const names = [profile?.id, profile?.name, ...(profile?.nicknames || [])];
     return names.some(
       (name) =>
@@ -179,7 +230,18 @@ function resolveAnimalProfileId(value, profiles) {
         comparableAnimalName(name) === comparable
     );
   });
-  return animalProfileId(matched?.id || candidate);
+  if (matched) return animalProfileId(matched.id);
+
+  const searchable = " " + comparable + " ";
+  const contained = availableProfiles.filter((profile) =>
+    [profile?.id, profile?.name, ...(profile?.nicknames || [])].some((name) => {
+      const comparableName = comparableAnimalName(name);
+      return comparableName && searchable.includes(" " + comparableName + " ");
+    })
+  );
+  return contained.length === 1
+    ? animalProfileId(contained[0].id)
+    : candidate;
 }
 
 function normalizedConversationReply(value) {
@@ -250,6 +312,93 @@ export function normalizeAnimalHoloProposal(
   };
 }
 
+export function animalHoloAutoSaveProposalFromAssistantAnswer(
+  value,
+  { profiles = PAM_ANIMAL_HOLO_STARTERS } = {}
+) {
+  const answer = text(value, 10_000);
+  const markerIndex = answer.lastIndexOf(ANIMAL_HOLO_AUTO_SAVE_MARKER);
+  if (markerIndex < 0) return null;
+  const markerLine = answer
+    .slice(markerIndex + ANIMAL_HOLO_AUTO_SAVE_MARKER.length)
+    .split(/\r?\n/u, 1)[0]
+    .trim();
+  if (!markerLine || markerLine.length > 4_000) return null;
+  let candidate;
+  try {
+    candidate = JSON.parse(markerLine);
+  } catch {
+    return null;
+  }
+  const proposal = normalizeAnimalHoloProposal(candidate, { profiles });
+  if (
+    !proposal ||
+    !(Array.isArray(profiles) ? profiles : []).some(
+      (profile) => animalProfileId(profile?.id) === proposal.profileId
+    )
+  ) {
+    return null;
+  }
+  return proposal;
+}
+
+export function stripAnimalHoloAutoSaveMarker(value) {
+  const answer = text(value, 10_000);
+  const markerIndex = answer.lastIndexOf(ANIMAL_HOLO_AUTO_SAVE_MARKER);
+  if (markerIndex < 0) return answer;
+  const suffix = answer.slice(markerIndex + ANIMAL_HOLO_AUTO_SAVE_MARKER.length);
+  const markerLine = suffix.split(/\r?\n/u, 1)[0].trim();
+  if (!markerLine || markerLine.length > 4_000) return answer;
+  try {
+    JSON.parse(markerLine);
+  } catch {
+    return answer;
+  }
+  return answer.slice(0, markerIndex).trim();
+}
+
+export function animalHoloObservationFromFulltimeMessage(
+  value,
+  { profiles = PAM_ANIMAL_HOLO_STARTERS } = {}
+) {
+  const content = text(value?.content ?? value?.text, 10_000);
+  const match = content.match(
+    /^Bestätigte Tier-Holo-Beobachtung zu\s+(.+?):\s+([\s\S]+)$/iu
+  );
+  if (!match) return null;
+  const profileId = resolveAnimalProfileId(match[1], profiles);
+  if (
+    !profileId ||
+    !(Array.isArray(profiles) ? profiles : []).some(
+      (profile) => animalProfileId(profile?.id) === profileId
+    )
+  ) {
+    return null;
+  }
+  const observationText = text(match[2]);
+  if (!observationText) return null;
+  const recordedAt = iso(value?.createdAt ?? value?.created_at, "");
+  const suppliedId = slug(value?.observationId ?? value?.observation_id);
+  const sourceId = slug(value?.sourceEventId ?? value?.source_event_id);
+  return {
+    profileId,
+    observation: {
+      id:
+        suppliedId ||
+        sourceId ||
+        ("animal_" + profileId + "_" + hash(recordedAt + ":" + observationText)).slice(
+          0,
+          120
+        ),
+      text: observationText,
+      observedAt: "",
+      recordedAt,
+      source: "owner_fulltime_restore",
+      syncState: "synced"
+    }
+  };
+}
+
 export function animalHoloProposalFromAssistantAnswer(
   value,
   { profiles = PAM_ANIMAL_HOLO_STARTERS } = {}
@@ -316,7 +465,9 @@ function cloneStarter(profile) {
     humanReference: profile.humanReference,
     summary: profile.summary,
     baselineFacts: [...profile.baselineFacts],
-    observations: []
+    observations: (profile.observations || []).map((observation) => ({
+      ...observation
+    }))
   };
 }
 
@@ -376,6 +527,29 @@ function normalizedProfile(candidate, index, now) {
 
 function applyStarter(starter, supplied) {
   if (!supplied) return cloneStarter(starter);
+  const observations = supplied.observations.map((observation) => ({
+    ...observation
+  }));
+  const observationIds = new Set(
+    observations.map((observation) => observation.id)
+  );
+  const observationTexts = new Set(
+    observations.map((observation) =>
+      observation.text.toLocaleLowerCase("de-DE")
+    )
+  );
+  for (const observation of starter.observations || []) {
+    const observationText = observation.text.toLocaleLowerCase("de-DE");
+    if (
+      observationIds.has(observation.id) ||
+      observationTexts.has(observationText)
+    ) {
+      continue;
+    }
+    observationIds.add(observation.id);
+    observationTexts.add(observationText);
+    observations.push({ ...observation });
+  }
   return {
     ...supplied,
     name: supplied.name || starter.name,
@@ -388,7 +562,8 @@ function applyStarter(starter, supplied) {
     baselineFacts: unique([
       ...starter.baselineFacts,
       ...supplied.baselineFacts
-    ])
+    ]),
+    observations: observations.slice(-MAX_OBSERVATIONS)
   };
 }
 
