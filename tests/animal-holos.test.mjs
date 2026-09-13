@@ -429,7 +429,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=3/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=4/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
@@ -457,7 +457,48 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-289-memorial-dignity/u);
+  assert.match(worker, /human-holo-290-animal-compact-dashboard/u);
+});
+
+test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
+  const ui = await readFile(
+    new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(ui, /const ANIMAL_HOLO_PRIMARY_NAVIGATION[\s\S]*?"salt"[\s\S]*?"pepper"[\s\S]*?"tina"/u);
+  assert.match(ui, /label: "Start"/u);
+  assert.match(ui, /label: "Mehr"/u);
+  assert.match(ui, /titleText: "Über " \+ profileDisplayName\(profile\)/u);
+  assert.match(ui, /titleText: "Erinnerungen"/u);
+  assert.match(ui, /titleText: "Sicherheit"/u);
+  assert.match(ui, /titleText: "Neue Erinnerung"/u);
+  assert.match(ui, /if \(other !== details\) other\.open = false/u);
+  assert.doesNotMatch(ui, /details\.open\s*=/u);
+  assert.doesNotMatch(ui, /animalHoloMemoryBadge/u);
+});
+
+test("frühere Tierfotos werden privat zugeordnet und Tina wird allein zugeschnitten", async () => {
+  const ui = await readFile(
+    new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
+    "utf8"
+  );
+
+  for (const [fileId, profileId] of [
+    ["1000114664", "salt"],
+    ["1000113888", "pepper"],
+    ["1000115450", "tina"],
+    ["1000114215", "gurke"],
+    ["1000114211", "moehrchen"]
+  ]) {
+    assert.match(ui, new RegExp(`"${fileId}": "${profileId}"`, "u"));
+  }
+  assert.match(ui, /id="animalHoloPreviousPhotosInput"[\s\S]*?multiple hidden/u);
+  assert.match(ui, /Vorherige Fotos übernehmen/u);
+  assert.match(ui, /profileId === "tina"[\s\S]*?width > height[\s\S]*?width \* 0\.5/u);
+  assert.match(ui, /writePhotoRecord[\s\S]*?syncState: "pending"/u);
+  assert.match(ui, /savePhotoRemotely/u);
+  assert.equal(ANIMAL_HOLO_OPEN_BUILD.privateMediaIncluded, false);
 });
 
 test("Tier-Holo-Open-Build ist eng abgegrenzt und dokumentiert", async () => {
