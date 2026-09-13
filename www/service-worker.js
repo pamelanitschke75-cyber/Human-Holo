@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-288-animal-glass-autosave";
+const CACHE_VERSION = "human-holo-289-memorial-dignity";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

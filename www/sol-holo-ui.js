@@ -256,118 +256,138 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       <span class="memorialHeaderFlower" aria-hidden="true">🌻</span>
     </div>
 
-    <section class="memorialIntro glassCard" aria-labelledby="memorialIntroTitle">
-      <p class="eyebrow">Eigenständiger Human-Holo-Bereich</p>
-      <h2 id="memorialIntroTitle">Erinnerungen bewahren.<strong>Würde schützen.</strong></h2>
-      <p>
-        Bewahre Fotos, Videos, Sprachaufnahmen, Geschichten, Texte und
-        biografische Erinnerungen an einen verstorbenen Menschen respektvoll
-        und nur in deinem eigenen Human Holo.
-      </p>
+    <section class="memorialIntro memorialHero glassCard"
+      aria-labelledby="memorialIntroTitle">
+      <span class="memorialHeroInfinity" aria-hidden="true">∞</span>
+      <div class="memorialHeroCopy">
+        <p class="eyebrow">Human Holo · Forever Together</p>
+        <h2 id="memorialIntroTitle">Erinnerungen bewahren.<strong>Würde schützen.</strong></h2>
+        <p>
+          Fotos, Videos, Sprachaufnahmen, Geschichten, Texte und
+          biografische Erinnerungen erhalten hier einen persönlichen,
+          geschützten Platz.
+        </p>
+        <span class="memorialHeroPromise">🌻 Persönlich · respektvoll · ownergebunden</span>
+      </div>
     </section>
 
-    <aside class="memorialBoundary glassCard" role="note"
-      aria-label="Verbindliche Identitätsgrenze">
-      <span class="memorialBoundaryIcon" aria-hidden="true">∞</span>
-      <div>
-        <strong>Klare und unverrückbare Grenze</strong>
-        <p>
-          Human Holo bewahrt Erinnerungen. Es behauptet niemals, der
-          verstorbene Mensch selbst zu sein, und erzeugt keine täuschende
-          Unterhaltung in dessen Namen.
-        </p>
-      </div>
-    </aside>
+    <div class="memorialSections">
+      <details id="memorialCreatePanel" class="memorialDetail">
+        <summary>
+          <span class="memorialDetailIcon" aria-hidden="true">＋</span>
+          <span class="memorialDetailCopy">
+            <strong>Neue Erinnerung</strong>
+            <small>Text, Foto, Video oder Stimme bewahren</small>
+          </span>
+          <span class="memorialDetailChevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="memorialDetailBody">
+          <form id="memorialForm" class="memorialForm">
+            <p class="memorialFormLead">
+              Erst nach deiner ausdrücklichen Bestätigung wird etwas gespeichert.
+            </p>
 
-    <div class="memorialKinds" aria-label="Bewahrbare Erinnerungsarten">
-      <div class="memorialKind glassCard">
-        <span aria-hidden="true">▧</span>
-        <strong>Fotos &amp; Videos</strong>
-      </div>
-      <div class="memorialKind glassCard">
-        <span aria-hidden="true">◉</span>
-        <strong>Stimme &amp; Texte</strong>
-      </div>
-      <div class="memorialKind glassCard">
-        <span aria-hidden="true">✦</span>
-        <strong>Geschichten &amp; Lebensspuren</strong>
-      </div>
+            <label class="memorialField" for="memorialPersonName">
+              <span>Name des Menschen</span>
+              <input id="memorialPersonName" name="personName" type="text"
+                maxlength="120" autocomplete="off" required
+                placeholder="An wen möchtest du erinnern?">
+            </label>
+
+            <label class="memorialField" for="memorialRelationship">
+              <span>Verbindung zu dir <small>(freiwillig)</small></span>
+              <input id="memorialRelationship" name="relationship" type="text"
+                maxlength="120" autocomplete="off"
+                placeholder="Zum Beispiel Familie, Freundschaft …">
+            </label>
+
+            <label class="memorialField" for="memorialStory">
+              <span>Geschichte oder Erinnerung</span>
+              <textarea id="memorialStory" name="story" maxlength="10000" rows="5"
+                placeholder="Was soll respektvoll bewahrt werden?"></textarea>
+            </label>
+
+            <label class="memorialMediaPicker" for="memorialMediaInput">
+              <span class="memorialMediaIcon" aria-hidden="true">＋</span>
+              <span>
+                <strong>Foto, Video oder Sprachaufnahme hinzufügen</strong>
+                <small>Bis zu 8 Dateien · je höchstens 20 MB</small>
+              </span>
+              <input id="memorialMediaInput" name="media" type="file" multiple
+                accept="image/*,audio/*,video/mp4,video/webm">
+            </label>
+            <p id="memorialMediaStatus" class="memorialMediaStatus" aria-live="polite">
+              Noch keine Datei ausgewählt.
+            </p>
+
+            <label class="memorialConsent" for="memorialRightsConfirmation">
+              <input id="memorialRightsConfirmation" name="rightsConfirmation"
+                type="checkbox" required>
+              <span>
+                Ich bestätige ausdrücklich, dass ich die nötigen Rechte und
+                Einwilligungen geprüft habe und diese Erinnerung respektvoll
+                bewahren darf.
+              </span>
+            </label>
+
+            <p class="memorialOwnerNote">
+              Die Inhalte bleiben lokal und ownergebunden in deinem persönlichen
+              Human Holo. Eine andere Human-Holo-Identität kann sie nicht laden.
+            </p>
+
+            <button id="memorialSaveButton" class="primaryButton" type="submit">
+              Erinnerung sicher anlegen
+            </button>
+          </form>
+        </div>
+      </details>
+
+      <details id="memorialCollectionPanel" class="memorialDetail" open>
+        <summary>
+          <span class="memorialDetailIcon memorialDetailIcon--flower" aria-hidden="true">🌻</span>
+          <span class="memorialDetailCopy">
+            <strong id="memorialCollectionTitle">Bewahrte Erinnerungen</strong>
+            <small>Menschen, Geschichten und gemeinsame Lebensspuren</small>
+          </span>
+          <span id="memorialCount" class="memorialCount">0</span>
+          <span class="memorialDetailChevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="memorialDetailBody memorialDetailBody--collection">
+          <section class="memorialCollection" aria-labelledby="memorialCollectionTitle">
+            <div id="memorialList" class="memorialList" aria-live="polite"></div>
+            <div id="memorialEmpty" class="memorialEmpty">
+              <span aria-hidden="true">🌻</span>
+              <strong>Noch keine Erinnerung angelegt.</strong>
+              <p>Du entscheidest bewusst, was hier einen geschützten Platz erhält.</p>
+            </div>
+          </section>
+        </div>
+      </details>
+
+      <details class="memorialDetail memorialDetail--boundary">
+        <summary>
+          <span class="memorialDetailIcon" aria-hidden="true">∞</span>
+          <span class="memorialDetailCopy">
+            <strong>Würde &amp; Sicherheit</strong>
+            <small>Die unverrückbare Grenze von Human Holo</small>
+          </span>
+          <span class="memorialDetailChevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="memorialDetailBody">
+          <aside class="memorialBoundary" role="note"
+            aria-label="Verbindliche Identitätsgrenze">
+            <strong>Erinnerung bleibt Erinnerung.</strong>
+            <p>
+              Human Holo bewahrt Erinnerungen. Es behauptet niemals, der
+              verstorbene Mensch selbst zu sein, und erzeugt keine täuschende
+              Unterhaltung in dessen Namen.
+            </p>
+          </aside>
+        </div>
+      </details>
     </div>
 
-    <form id="memorialForm" class="memorialForm glassCard">
-      <div class="memorialFormHeading">
-        <span aria-hidden="true">＋</span>
-        <div>
-          <h3>Eine Erinnerung bewahren</h3>
-          <p>Erst nach deiner ausdrücklichen Bestätigung wird etwas gespeichert.</p>
-        </div>
-      </div>
-
-      <label class="memorialField" for="memorialPersonName">
-        <span>Name des Menschen</span>
-        <input id="memorialPersonName" name="personName" type="text"
-          maxlength="120" autocomplete="off" required
-          placeholder="An wen möchtest du erinnern?">
-      </label>
-
-      <label class="memorialField" for="memorialRelationship">
-        <span>Verbindung zu dir <small>(freiwillig)</small></span>
-        <input id="memorialRelationship" name="relationship" type="text"
-          maxlength="120" autocomplete="off"
-          placeholder="Zum Beispiel Familie, Freundschaft …">
-      </label>
-
-      <label class="memorialField" for="memorialStory">
-        <span>Geschichte oder Erinnerung</span>
-        <textarea id="memorialStory" name="story" maxlength="10000" rows="5"
-          placeholder="Was soll respektvoll bewahrt werden?"></textarea>
-      </label>
-
-      <label class="memorialMediaPicker" for="memorialMediaInput">
-        <span class="memorialMediaIcon" aria-hidden="true">＋</span>
-        <span>
-          <strong>Foto, Video oder Sprachaufnahme hinzufügen</strong>
-          <small>Bis zu 8 Dateien · je höchstens 20 MB</small>
-        </span>
-        <input id="memorialMediaInput" name="media" type="file" multiple
-          accept="image/*,audio/*,video/mp4,video/webm">
-      </label>
-      <p id="memorialMediaStatus" class="memorialMediaStatus" aria-live="polite">
-        Noch keine Datei ausgewählt.
-      </p>
-
-      <label class="memorialConsent" for="memorialRightsConfirmation">
-        <input id="memorialRightsConfirmation" name="rightsConfirmation"
-          type="checkbox" required>
-        <span>
-          Ich bestätige ausdrücklich, dass ich die nötigen Rechte und
-          Einwilligungen geprüft habe und diese Erinnerung respektvoll
-          bewahren darf.
-        </span>
-      </label>
-
-      <p class="memorialOwnerNote">
-        Die Inhalte bleiben lokal und ownergebunden in deinem persönlichen
-        Human Holo. Eine andere Human-Holo-Identität kann sie nicht laden.
-      </p>
-
-      <button id="memorialSaveButton" class="primaryButton" type="submit">
-        Erinnerung sicher anlegen
-      </button>
-    </form>
-
-    <section class="memorialCollection" aria-labelledby="memorialCollectionTitle">
-      <div class="memorialCollectionHeader">
-        <h3 id="memorialCollectionTitle">Bewahrte Erinnerungen</h3>
-        <span id="memorialCount">0</span>
-      </div>
-      <div id="memorialList" class="memorialList" aria-live="polite"></div>
-      <div id="memorialEmpty" class="memorialEmpty glassCard">
-        <span aria-hidden="true">🌻</span>
-        <strong>Noch keine Erinnerung angelegt.</strong>
-        <p>Du entscheidest bewusst, was hier einen geschützten Platz erhält.</p>
-      </div>
-    </section>
+    <p class="memorialPageFooter">♾️ Forever Together · in Würde bewahrt</p>
   `;
   solApp.insertBefore(memorialView, currentHeader);
 
@@ -1134,6 +1154,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "memorialRightsConfirmation"
   );
   const memorialSaveButton = document.getElementById("memorialSaveButton");
+  const memorialCreatePanel = document.getElementById("memorialCreatePanel");
+  const memorialCollectionPanel = document.getElementById(
+    "memorialCollectionPanel"
+  );
   const memorialList = document.getElementById("memorialList");
   const memorialEmpty = document.getElementById("memorialEmpty");
   const memorialCount = document.getElementById("memorialCount");
@@ -2467,6 +2491,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       memorialForm.reset();
       renderMemorialMediaSelection();
       await loadMemorialEntries();
+      if (memorialCreatePanel) memorialCreatePanel.open = false;
+      if (memorialCollectionPanel) memorialCollectionPanel.open = true;
       showToast("Erinnerung ownergebunden und respektvoll bewahrt ✅️");
       return true;
     } catch (error) {

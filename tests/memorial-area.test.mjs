@@ -57,6 +57,24 @@ test("der Bereich zeigt Inhalte und die unverrückbare Identitätsgrenze", () =>
   );
 });
 
+test("die Erinnerungsseite bleibt würdevoll und zeigt nur drei klare Hauptbereiche", () => {
+  const memorialMarkup = ui.match(
+    /memorialView\.innerHTML = `([\s\S]*?)`;\n\s*solApp\.insertBefore/u
+  )?.[1] || "";
+
+  assert.match(memorialMarkup, /class="memorialIntro memorialHero glassCard"/u);
+  assert.match(memorialMarkup, /🌻 Persönlich · respektvoll · ownergebunden/u);
+  assert.equal(
+    (memorialMarkup.match(/class="memorialDetail(?:\s[^"]*)?"/gu) || []).length,
+    3
+  );
+  assert.match(memorialMarkup, /<strong>Neue Erinnerung<\/strong>/u);
+  assert.match(memorialMarkup, /id="memorialCollectionPanel"[\s\S]*?open/u);
+  assert.match(memorialMarkup, /<strong>Würde &amp; Sicherheit<\/strong>/u);
+  assert.doesNotMatch(memorialMarkup, /class="memorialKinds"/u);
+  assert.doesNotMatch(memorialMarkup, /class="memorialKind glassCard"/u);
+});
+
 test("Speichern verlangt Einwilligung und bleibt ownergebunden lokal", () => {
   const form = ui.match(/<form id="memorialForm"[\s\S]*?<\/form>/u)?.[0] || "";
   const saveSource = functionSource("saveMemorialEntry", "deleteMemorialEntry");
@@ -117,8 +135,10 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(css, /\.memorialForm/u);
   assert.match(css, /\.memorialMediaGrid/u);
   assert.match(theme, /#memoryView,#memorialView,#medicationView,#servicesView/u);
-  assert.match(html, /sol-holo-ui\.css\?v=51/u);
+  assert.match(css, /\.memorialDetail/u);
+  assert.match(css, /\.memorialHeroInfinity/u);
+  assert.match(html, /sol-holo-ui\.css\?v=52/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=80/u);
-  assert.match(serviceWorker, /human-holo-288-animal-glass-autosave/u);
+  assert.match(html, /sol-holo-ui\.js\?v=81/u);
+  assert.match(serviceWorker, /human-holo-289-memorial-dignity/u);
 });

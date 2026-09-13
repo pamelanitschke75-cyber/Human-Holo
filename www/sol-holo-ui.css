@@ -2663,6 +2663,478 @@ body{
   line-height:1.45;
 }
 
+/* Build 289: ruhige, wuerdevolle Erinnerungsansicht ohne Kartenflut. */
+#memorialView .memorialHero{
+  position:relative;
+  display:grid;
+  grid-template-columns:88px minmax(0,1fr);
+  align-items:center;
+  gap:16px;
+  margin:18px 0 14px;
+  padding:20px 18px;
+  overflow:hidden;
+  border-radius:27px;
+}
+
+#memorialView .memorialHero::before{
+  content:"";
+  position:absolute;
+  inset:-45% -20%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 25% 50%,rgba(198,102,255,.27),transparent 28%),
+    radial-gradient(circle at 78% 35%,rgba(62,220,255,.22),transparent 32%);
+  filter:blur(8px);
+}
+
+#memorialView .memorialHero>*{
+  position:relative;
+}
+
+.memorialHeroInfinity{
+  display:grid;
+  width:86px;
+  height:86px;
+  place-items:center;
+  border:1px solid rgba(216,226,255,.66);
+  border-radius:50%;
+  color:#fff;
+  background:
+    radial-gradient(circle at 32% 24%,rgba(255,255,255,.26),transparent 30%),
+    linear-gradient(145deg,rgba(183,91,242,.67),rgba(42,163,235,.55));
+  box-shadow:
+    0 0 18px rgba(84,221,255,.38),
+    0 0 34px rgba(178,83,255,.4),
+    inset 0 1px 0 rgba(255,255,255,.3);
+  font-size:58px;
+  font-weight:300;
+  line-height:1;
+  text-shadow:0 0 16px rgba(255,255,255,.68);
+}
+
+.memorialHeroCopy{
+  min-width:0;
+}
+
+#memorialView .memorialHero .eyebrow{
+  margin-bottom:6px;
+  color:#dfd4ff;
+  font-size:9px;
+  letter-spacing:.14em;
+}
+
+#memorialView .memorialHero h2{
+  font-size:clamp(22px,6vw,29px);
+  line-height:1.06;
+}
+
+#memorialView .memorialHero>div>p:not(.eyebrow){
+  margin:10px 0 0;
+  color:#e2e5f5;
+  font-size:12px;
+  line-height:1.52;
+}
+
+.memorialHeroPromise{
+  display:inline-flex;
+  margin-top:11px;
+  color:#b8f5e5;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.35;
+}
+
+.memorialSections{
+  display:grid;
+  gap:10px;
+}
+
+.memorialDetail{
+  overflow:hidden;
+  border:1px solid rgba(196,218,255,.5);
+  border-radius:22px;
+  color:#f9f9ff;
+  background:
+    radial-gradient(circle at 24% 4%,rgba(255,255,255,.14),transparent 30%),
+    linear-gradient(140deg,rgba(84,101,211,.38),rgba(31,27,111,.52));
+  box-shadow:
+    0 0 11px rgba(73,210,255,.2),
+    0 0 24px rgba(148,75,255,.23),
+    inset 0 1px 0 rgba(255,255,255,.15);
+  backdrop-filter:blur(18px) saturate(1.25);
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);
+}
+
+.memorialDetail>summary{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:10px;
+  min-height:76px;
+  padding:9px 13px;
+  list-style:none;
+  cursor:pointer;
+}
+
+.memorialDetail>summary::-webkit-details-marker{
+  display:none;
+}
+
+.memorialDetail>summary::marker{
+  content:"";
+}
+
+.memorialDetailIcon{
+  display:grid;
+  width:44px;
+  height:44px;
+  place-items:center;
+  border:1px solid rgba(141,227,255,.63);
+  border-radius:50%;
+  color:#c5f7ff;
+  background:
+    radial-gradient(circle at 30% 20%,rgba(255,255,255,.2),transparent 34%),
+    linear-gradient(145deg,rgba(107,89,225,.58),rgba(41,85,181,.53));
+  box-shadow:
+    0 0 13px rgba(83,210,255,.27),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  font-size:24px;
+}
+
+.memorialDetailIcon--flower{
+  border-color:rgba(255,217,126,.55);
+  font-size:22px;
+  filter:drop-shadow(0 0 8px rgba(255,202,81,.28));
+}
+
+.memorialDetailCopy{
+  display:grid;
+  min-width:0;
+  gap:3px;
+}
+
+.memorialDetailCopy strong{
+  color:#fff;
+  font-size:16px;
+  line-height:1.22;
+}
+
+.memorialDetailCopy small{
+  overflow:hidden;
+  color:#c9cce0;
+  font-size:11px;
+  line-height:1.35;
+  text-overflow:ellipsis;
+}
+
+.memorialDetailChevron{
+  color:#efeaff;
+  font-size:28px;
+  line-height:1;
+  transition:transform .2s ease;
+}
+
+.memorialDetail[open] .memorialDetailChevron{
+  transform:rotate(90deg);
+}
+
+.memorialCount{
+  display:grid;
+  min-width:30px;
+  height:28px;
+  padding:0 7px;
+  place-items:center;
+  border:1px solid rgba(136,231,255,.55);
+  border-radius:999px;
+  color:#b9f5ff;
+  background:rgba(55,72,171,.43);
+  font-size:11px;
+  font-weight:800;
+}
+
+.memorialDetailBody{
+  padding:0 16px 16px;
+  border-top:1px solid rgba(197,216,255,.16);
+}
+
+.memorialDetailBody--collection{
+  padding:12px;
+}
+
+#memorialView .memorialForm{
+  gap:14px;
+  margin:0;
+  padding:15px 0 0;
+}
+
+.memorialFormLead{
+  margin:0 0 1px;
+  color:#b9f0df;
+  font-size:12px;
+  line-height:1.45;
+}
+
+#memorialView .memorialField{
+  gap:7px;
+}
+
+#memorialView .memorialField>span{
+  font-size:13px;
+}
+
+#memorialView .memorialField :is(input,textarea){
+  padding:13px 14px;
+  border-radius:16px;
+  font-size:15px;
+}
+
+#memorialView .memorialField textarea{
+  min-height:128px;
+}
+
+#memorialView .memorialMediaPicker{
+  grid-template-columns:48px minmax(0,1fr);
+  gap:12px;
+  min-height:76px;
+  padding:12px;
+  border-style:solid;
+  border-radius:18px;
+  background:linear-gradient(140deg,rgba(83,102,211,.32),rgba(32,35,124,.38));
+}
+
+#memorialView .memorialMediaIcon{
+  width:46px;
+  height:46px;
+  border-radius:15px;
+}
+
+#memorialView .memorialMediaPicker strong{
+  font-size:13px;
+}
+
+#memorialView .memorialMediaPicker small,
+#memorialView .memorialMediaStatus{
+  font-size:11px;
+}
+
+#memorialView .memorialConsent{
+  gap:11px;
+  padding:13px;
+  border-radius:17px;
+  font-size:12px;
+}
+
+#memorialView .memorialOwnerNote{
+  padding:0 2px;
+  font-size:11px;
+  line-height:1.52;
+}
+
+#memorialView .memorialForm>.primaryButton{
+  min-height:54px;
+  border-radius:18px;
+  font-size:15px;
+}
+
+#memorialView .memorialBoundary{
+  display:block;
+  padding:15px 0 0;
+  border:0;
+  background:none;
+}
+
+#memorialView .memorialBoundary strong{
+  color:#fff2c5;
+  font-size:14px;
+}
+
+#memorialView .memorialBoundary p{
+  margin-top:7px;
+  color:#e1e3f2;
+  font-size:12px;
+  line-height:1.58;
+}
+
+#memorialView .memorialCollection{
+  padding:0;
+}
+
+#memorialView .memorialList{
+  gap:13px;
+}
+
+#memorialView .memorialCard{
+  position:relative;
+  gap:14px;
+  padding:14px;
+  overflow:hidden;
+  border-radius:22px;
+}
+
+#memorialView .memorialCardHeader{
+  flex-wrap:wrap;
+  align-items:flex-end;
+  padding:2px 2px 0;
+}
+
+#memorialView .memorialCardHeader h3{
+  font-size:clamp(22px,6vw,28px);
+  line-height:1.08;
+  letter-spacing:.015em;
+  text-shadow:0 0 13px rgba(111,207,255,.36);
+}
+
+#memorialView .memorialCardHeader div>span{
+  margin-top:5px;
+  color:#c8f3e1;
+  font-size:12px;
+}
+
+#memorialView .memorialCardHeader time{
+  margin-left:auto;
+  color:#b9bfd7;
+  font-size:10px;
+}
+
+#memorialView .memorialStory{
+  max-height:none;
+  padding:0 2px;
+  color:#f0eff9;
+  font-size:14px;
+  line-height:1.62;
+}
+
+#memorialView .memorialMediaGrid{
+  order:-1;
+  gap:9px;
+}
+
+#memorialView .memorialMediaGrid figure{
+  border-radius:17px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+#memorialView .memorialMediaGrid figure:first-child{
+  grid-column:1 / -1;
+}
+
+#memorialView .memorialMediaGrid figure:first-child :is(img,video){
+  height:clamp(190px,52vw,280px);
+}
+
+#memorialView .memorialMediaGrid :is(img,video){
+  height:128px;
+}
+
+#memorialView .memorialMediaGrid figcaption{
+  padding:8px 10px;
+  font-size:10px;
+}
+
+#memorialView .memorialCardFooter{
+  align-items:center;
+  padding:10px 2px 0;
+  border-top:1px solid rgba(195,215,255,.15);
+}
+
+#memorialView .memorialCardFooter>span{
+  color:#d2d4e7;
+  font-size:10px;
+}
+
+#memorialView .memorialCardFooter button{
+  min-height:38px;
+  padding:0 12px;
+  border-radius:13px;
+  font-size:11px;
+}
+
+#memorialView .memorialEmpty{
+  min-height:132px;
+  padding:18px 10px 8px;
+  background:none;
+}
+
+#memorialView .memorialEmpty>span{
+  font-size:34px;
+  filter:drop-shadow(0 0 12px rgba(255,204,80,.3));
+}
+
+#memorialView .memorialEmpty strong{
+  font-size:14px;
+}
+
+#memorialView .memorialEmpty p{
+  color:#c5c9de;
+  font-size:11px;
+}
+
+.memorialPageFooter{
+  margin:18px 0 4px;
+  color:#eadbfa;
+  text-align:center;
+  font-size:12px;
+  font-style:italic;
+  letter-spacing:.025em;
+  text-shadow:0 0 12px rgba(167,89,255,.34);
+}
+
+@media(max-width:380px){
+  #memorialView .memorialHero{
+    grid-template-columns:68px minmax(0,1fr);
+    gap:12px;
+    padding:17px 14px;
+  }
+
+  .memorialHeroInfinity{
+    width:66px;
+    height:66px;
+    font-size:45px;
+  }
+
+  #memorialView .memorialHero h2{
+    font-size:21px;
+  }
+
+  #memorialView .memorialHero>div>p:not(.eyebrow){
+    font-size:11px;
+  }
+
+  .memorialHeroPromise{
+    font-size:9px;
+  }
+
+  .memorialDetail>summary{
+    grid-template-columns:44px minmax(0,1fr) auto auto;
+    gap:8px;
+    padding:8px 10px;
+  }
+
+  .memorialDetailIcon{
+    width:40px;
+    height:40px;
+  }
+
+  .memorialDetailCopy strong{
+    font-size:15px;
+  }
+
+  .memorialDetailCopy small{
+    font-size:10px;
+  }
+
+  .memorialDetailBody{
+    padding-right:12px;
+    padding-left:12px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .memorialDetailChevron{
+    transition:none;
+  }
+}
+
 /*
 ==========================================================
 GEMEINSAME BEDIENFREUNDLICHKEIT
