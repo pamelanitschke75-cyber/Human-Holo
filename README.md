@@ -327,6 +327,7 @@ Details:
 - [Human Holo Tier-Holos](./HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 - [Build 288: Glasprofile und Direkt-Speichern](./BUILD-288-TIER-HOLO-GLASPROFILE-AUTOSPEICHERN-13-09-2026.md)
 - [Build 290: kompakte Tier-Holo-Ansicht](./BUILD-290-TIER-HOLO-KOMPAKTANSICHT-13-09-2026.md)
+- [Build 291: visuelle Tier-Holo-Korrektur](./BUILD-291-TIER-HOLO-VISUELLE-KORREKTUR-13-09-2026.md)
 - [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
 - [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 

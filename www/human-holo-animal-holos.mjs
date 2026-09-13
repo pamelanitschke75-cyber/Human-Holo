@@ -34,11 +34,7 @@ const PAM_PREVIOUS_ANIMAL_PHOTO_FILES = Object.freeze({
   "1000114215": "gurke",
   "1000114211": "moehrchen"
 });
-const ANIMAL_HOLO_PRIMARY_NAVIGATION = Object.freeze([
-  "salt",
-  "pepper",
-  "tina"
-]);
+const ANIMAL_HOLO_PRIMARY_NAVIGATION = Object.freeze(["salt", "pepper"]);
 let animalState = null;
 let selectedProfileId = "";
 let syncing = false;
@@ -359,6 +355,23 @@ function profileIcon(profile) {
     : "🐾";
 }
 
+function animalIconSvg(name) {
+  const icons = {
+    paw: '<svg class="animalHoloSvg animalHoloSvgPaw" viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="13" cy="14" rx="5" ry="7"/><ellipse cx="25" cy="10" rx="5" ry="7"/><ellipse cx="36" cy="15" rx="5" ry="7"/><ellipse cx="40" cy="27" rx="4.5" ry="6"/><path d="M12 32c1-7 7-12 14-12 8 0 14 6 14 13 0 6-5 10-11 8-3-1-5-1-8 0-6 2-10-2-9-9Z"/></svg>',
+    home: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><path d="m7 23 17-15 17 15"/><path d="M11 21v20h26V21M20 41V29h8v12"/></svg>',
+    heart: '<svg class="animalHoloSvg animalHoloSvgHeart" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 41S7 31 7 18.5C7 10 17 6 24 14c7-8 17-4 17 4.5C41 31 24 41 24 41Z"/></svg>',
+    grid: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="13" height="13" rx="2"/><rect x="28" y="7" width="13" height="13" rx="2"/><rect x="7" y="28" width="13" height="13" rx="2"/><rect x="28" y="28" width="13" height="13" rx="2"/></svg>',
+    list: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="6" width="32" height="36" rx="4"/><path d="M15 16h18M15 24h18M15 32h13"/></svg>',
+    shield: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 40 11v11c0 10-6 17-16 22C14 39 8 32 8 22V11l16-6Z"/><path d="M24 33s-8-5-8-11c0-5 6-7 8-2 2-5 8-3 8 2 0 6-8 11-8 11Z"/></svg>',
+    plus: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8v32M8 24h32"/></svg>',
+    camera: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 16h9l3-5h10l3 5h9v25H7V16Z"/><circle cx="24" cy="28" r="8"/></svg>',
+    menu: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 13h34M7 24h34M7 35h34"/></svg>',
+    search: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="13"/><path d="m31 31 10 10"/></svg>',
+    settings: '<svg class="animalHoloSvg" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="8"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l5 5M33 33l5 5M38 10l-5 5M15 33l-5 5"/></svg>'
+  };
+  return icons[name] || icons.paw;
+}
+
 function setStatus(message, kind = "info") {
   const status = document.getElementById("animalHoloStatus");
   if (!status) return;
@@ -404,8 +417,8 @@ function profileTagline(profile) {
 
 function profileFooter(profile) {
   return profile?.id === "tina"
-    ? "🐾 Für immer im Herzen. ♡"
-    : "🐾 Danke, dass es dich gibt. ♡";
+    ? "Für immer im Herzen. ♡"
+    : "Danke, dass es dich gibt. ♡";
 }
 
 function previousPhotoProfileId(fileName) {
@@ -838,8 +851,9 @@ function createDockButton({ icon, label, selected = false, onClick }) {
   button.setAttribute("aria-pressed", String(selected));
   const iconElement = document.createElement("span");
   iconElement.className = "animalHoloDockIcon";
-  iconElement.textContent = icon;
+  iconElement.innerHTML = animalIconSvg(icon);
   const labelElement = document.createElement("span");
+  labelElement.className = "animalHoloDockLabel";
   labelElement.textContent = label;
   button.append(iconElement, labelElement);
   button.addEventListener("click", onClick);
@@ -864,7 +878,12 @@ function renderMoreProfileButtons() {
     button.type = "button";
     button.className = "animalHoloMoreProfileButton";
     button.dataset.selected = String(profile.id === selectedProfileId);
-    button.textContent = profileIcon(profile) + " " + profileDisplayName(profile);
+    const icon = document.createElement("span");
+    icon.className = "animalHoloMoreProfileIcon";
+    icon.innerHTML = animalIconSvg(profile.id === "tina" ? "heart" : "paw");
+    const label = document.createElement("span");
+    label.textContent = profileDisplayName(profile);
+    button.append(icon, label);
     button.addEventListener("click", () => selectAnimalProfile(profile.id));
     list.append(button);
   }
@@ -876,7 +895,7 @@ function renderProfileButtons() {
   list.replaceChildren();
   list.append(
     createDockButton({
-      icon: "⌂",
+      icon: "home",
       label: "Start",
       onClick: closeAnimalHolos
     })
@@ -888,20 +907,47 @@ function renderProfileButtons() {
     if (!profile) continue;
     list.append(
       createDockButton({
-        icon: profileIcon(profile),
+        icon: "paw",
         label: profileDisplayName(profile).toLocaleUpperCase("de-DE"),
         selected: profile.id === selectedProfileId,
         onClick: () => selectAnimalProfile(profile.id)
       })
     );
   }
-  const selectedInMore = !ANIMAL_HOLO_PRIMARY_NAVIGATION.includes(
+  const selectedProfile = animalState.profiles.find(
+    (profile) => profile.id === selectedProfileId
+  );
+  const saltPepsSelected = ANIMAL_HOLO_PRIMARY_NAVIGATION.includes(
     selectedProfileId
   );
+  if (saltPepsSelected) {
+    list.append(
+      createDockButton({
+        icon: "heart",
+        label: "SALT & PEPS",
+        onClick: () => {
+          const askButton = document.getElementById("animalHoloAsk");
+          if (!askButton) return;
+          askButton.dataset.solPrompt =
+            "Zeig mir das gemeinsame Tier-Holo von Salt und Peps. Nutze nur bestätigte Beobachtungen.";
+          askButton.click();
+        }
+      })
+    );
+  } else if (selectedProfile) {
+    list.append(
+      createDockButton({
+        icon: selectedProfile.id === "tina" ? "heart" : "paw",
+        label: profileDisplayName(selectedProfile).toLocaleUpperCase("de-DE"),
+        selected: true,
+        onClick: () => selectAnimalProfile(selectedProfile.id)
+      })
+    );
+  }
   const moreButton = createDockButton({
-    icon: "▦",
+    icon: "grid",
     label: "Mehr",
-    selected: selectedInMore || moreProfilesOpen,
+    selected: moreProfilesOpen,
     onClick: () => {
       moreProfilesOpen = !moreProfilesOpen;
       if (!moreProfilesOpen) {
@@ -963,12 +1009,15 @@ function renderSelectedProfile() {
   const photoPlaceholder = document.createElement("span");
   photoPlaceholder.id = "animalHoloPhotoPlaceholder";
   photoPlaceholder.className = "animalHoloPhotoPlaceholder";
-  photoPlaceholder.textContent = profileIcon(profile);
+  photoPlaceholder.innerHTML =
+    animalIconSvg("paw") +
+    '<small>Privates Tierfoto hinzufügen</small>';
   photoFrame.append(photo, photoPlaceholder);
   const photoButton = document.createElement("button");
   photoButton.type = "button";
   photoButton.className = "animalHoloPhotoButton";
-  photoButton.textContent = "📷 Foto ändern";
+  photoButton.innerHTML =
+    animalIconSvg("camera") + "<span>Foto ändern</span>";
   photoButton.addEventListener("click", () => {
     photoInputProfileId = profile.id;
     const input = document.getElementById("animalHoloPhotoInput");
@@ -982,11 +1031,14 @@ function renderSelectedProfile() {
 
   const identityCard = document.createElement("div");
   identityCard.className = "animalHoloIdentityCard";
+  const heading = document.createElement("div");
+  heading.className = "animalHoloIdentityHeading";
   const paw = document.createElement("span");
   paw.className = "animalHoloIdentityPaw";
-  paw.textContent = "🐾";
+  paw.innerHTML = animalIconSvg("paw");
   const title = document.createElement("h3");
   title.textContent = profileDisplayName(profile).toLocaleUpperCase("de-DE");
+  heading.append(paw, title);
   const meta = document.createElement("p");
   meta.textContent = profileMeta(profile).join(" · ");
   const assignment = document.createElement("p");
@@ -997,20 +1049,48 @@ function renderSelectedProfile() {
   tagline.textContent = profileTagline(profile);
   const family = document.createElement("span");
   family.className = "animalHoloFamilyMark";
-  family.textContent = "♡";
+  family.innerHTML = animalIconSvg("heart");
   family.setAttribute("aria-hidden", "true");
-  identityCard.append(paw, title, meta, assignment, tagline, family);
+  const familyNote = document.createElement("span");
+  familyNote.className = "animalHoloFamilyNote";
+  familyNote.textContent = "Ein Teil unserer Familie ♡";
+  const heartNote = document.createElement("span");
+  heartNote.className = "animalHoloHeartNote";
+  heartNote.textContent =
+    profile.id === "tina"
+      ? "Große Pfoten. Größte Spuren. ♡"
+      : "Kleine Pfoten. Großes Herz. ♡";
+  const identityWatermark = document.createElement("span");
+  identityWatermark.className = "animalHoloIdentityWatermark";
+  identityWatermark.innerHTML = animalIconSvg("paw");
+  identityCard.append(
+    heading,
+    meta,
+    assignment,
+    tagline,
+    family,
+    familyNote,
+    heartNote,
+    identityWatermark
+  );
   hero.append(photoColumn, identityCard);
   container.append(hero);
 
   const detailElements = [];
-  const createDetail = ({ icon, titleText, subtitle, caption = "" }) => {
+  const createDetail = ({
+    icon,
+    kind,
+    titleText,
+    subtitle,
+    caption = ""
+  }) => {
     const details = document.createElement("details");
     details.className = "animalHoloDetail";
+    details.dataset.kind = kind;
     const summaryRow = document.createElement("summary");
     const summaryIcon = document.createElement("span");
     summaryIcon.className = "animalHoloDetailIcon";
-    summaryIcon.textContent = icon;
+    summaryIcon.innerHTML = animalIconSvg(icon);
     const summaryCopy = document.createElement("span");
     summaryCopy.className = "animalHoloDetailCopy";
     const summaryTitle = document.createElement("strong");
@@ -1027,7 +1107,10 @@ function renderSelectedProfile() {
     const chevron = document.createElement("span");
     chevron.className = "animalHoloDetailChevron";
     chevron.textContent = "›";
-    summaryRow.append(summaryIcon, summaryCopy, chevron);
+    const watermark = document.createElement("span");
+    watermark.className = "animalHoloDetailWatermark";
+    watermark.innerHTML = animalIconSvg("paw");
+    summaryRow.append(summaryIcon, summaryCopy, watermark, chevron);
     const body = document.createElement("div");
     body.className = "animalHoloDetailBody";
     details.append(summaryRow, body);
@@ -1043,7 +1126,8 @@ function renderSelectedProfile() {
   };
 
   const factsBody = createDetail({
-    icon: "🐾",
+    icon: "paw",
+    kind: "about",
     titleText: "Über " + profileDisplayName(profile),
     subtitle:
       profile.id === "tina"
@@ -1058,19 +1142,22 @@ function renderSelectedProfile() {
 
   const observationCount = profile.observations.length;
   const observationsBody = createDetail({
-    icon: "▤",
+    icon: "list",
+    kind: "memories",
     titleText: "Erinnerungen",
     subtitle:
       profile.id === "tina"
         ? "Gemeinsame Momente · Geschichten · Entwicklung"
         : "Gemeinsame Momente · Beobachtungen · Entwicklung",
-    caption:
-      "Was Holo über " +
-      profileDisplayName(profile) +
-      " weiß · " +
-      observationCount +
-      " gespeichert"
+    caption: "Was Holo über " + profileDisplayName(profile) + " weiß"
   });
+  const observationHeading = document.createElement("p");
+  observationHeading.className = "animalHoloObservationCount";
+  observationHeading.textContent =
+    observationCount +
+    " gespeicherte Beobachtung" +
+    (observationCount === 1 ? "" : "en");
+  observationsBody.append(observationHeading);
   const observations = document.createElement("ol");
   observations.className = "animalHoloObservationList";
   if (!observationCount) {
@@ -1094,7 +1181,8 @@ function renderSelectedProfile() {
   observationsBody.append(observations);
 
   const safetyBody = createDetail({
-    icon: "♡",
+    icon: "shield",
+    kind: "safety",
     titleText: "Sicherheit",
     subtitle:
       profile.id === "tina"
@@ -1113,7 +1201,8 @@ function renderSelectedProfile() {
   }
 
   const newMemoryBody = createDetail({
-    icon: "+",
+    icon: "plus",
+    kind: "new-memory",
     titleText: "Neue Erinnerung",
     subtitle: "Foto · Text · Sprache",
     caption: "Jeder Moment zählt ♡"
@@ -1123,9 +1212,22 @@ function renderSelectedProfile() {
     newMemoryBody.append(form);
   }
 
-  const footer = document.createElement("p");
+  const footer = document.createElement("div");
   footer.className = "animalHoloProfileFooter";
-  footer.textContent = profileFooter(profile);
+  const footerPaw = document.createElement("span");
+  footerPaw.className = "animalHoloFooterPaw";
+  footerPaw.innerHTML = animalIconSvg("paw");
+  const footerText = document.createElement("span");
+  footerText.className = "animalHoloFooterText";
+  footerText.textContent = profileFooter(profile);
+  const footerProject = document.createElement("span");
+  footerProject.className = "animalHoloFooterProject";
+  footerProject.textContent =
+    (profile.id === "tina"
+      ? "TINA"
+      : profile.projectName || profileDisplayName(profile).toLocaleUpperCase("de-DE")) +
+    "  ∞";
+  footer.append(footerPaw, footerText, footerProject);
   container.append(footer);
   void renderProfilePhoto(profile.id);
 
@@ -1177,7 +1279,7 @@ function openAnimalHolos() {
   overlay.scrollTop = 0;
   document.body.classList.add("animalHoloOpen");
   render();
-  document.getElementById("animalHoloClose")?.focus();
+  document.getElementById("animalHoloMenu")?.focus();
   void flushPendingObservations();
   void restoreRemoteObservations();
   void flushPendingPhotos();
@@ -1284,82 +1386,141 @@ function installStyle() {
   if (document.getElementById("animalHoloStyles")) return;
   const style = document.createElement("style");
   style.id = "animalHoloStyles";
-  style.textContent = [
-    "body.animalHoloOpen{overflow:hidden}",
-    ".animalHoloOverlay{position:fixed;inset:0;z-index:2147481000;background:radial-gradient(circle at 12% 8%,rgba(139,68,255,.45),transparent 32%),radial-gradient(circle at 91% 25%,rgba(20,207,255,.34),transparent 37%),radial-gradient(circle at 50% 95%,rgba(232,91,255,.28),transparent 44%),#030927;backdrop-filter:blur(20px);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow:auto;-webkit-text-size-adjust:100%}",
-    ".animalHoloOverlay[hidden]{display:none!important}",
-    ".animalHoloDialog{position:relative;width:min(760px,100%);min-height:100dvh;box-sizing:border-box;margin:0 auto;padding:10px 12px calc(88px + env(safe-area-inset-bottom));border:1px solid rgba(155,224,255,.52);background:linear-gradient(155deg,rgba(34,38,124,.9),rgba(6,22,73,.96) 48%,rgba(28,17,91,.94));box-shadow:inset 0 0 42px rgba(95,219,255,.18),0 0 45px rgba(133,73,255,.35);color:#fbfaff;overflow:hidden}",
-    ".animalHoloDialog:before{content:'';position:absolute;inset:-25%;pointer-events:none;background:conic-gradient(from 80deg,transparent,rgba(71,221,255,.15),transparent 29%,rgba(240,110,255,.16),transparent 63%);filter:blur(24px)}",
-    ".animalHoloDialog>*{position:relative}",
-    ".animalHoloHeader{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;gap:8px;min-height:58px;margin-bottom:8px}",
-    ".animalHoloBrandMark{display:grid;place-items:center;width:48px;height:48px;border:2px solid rgba(211,171,255,.88);border-radius:50% 50% 47% 53%;background:rgba(54,45,155,.6);box-shadow:inset 0 0 16px rgba(92,224,255,.22),0 0 24px rgba(196,112,255,.62);font-size:1.55rem}",
-    ".animalHoloBrand{text-align:center}",
-    ".animalHoloBrand h2{margin:0;font-size:clamp(19px,4.8vw,27px);font-weight:500;letter-spacing:.22em}",
-    ".animalHoloEyebrow{margin:2px 0 0;color:#ead6ff;font-family:cursive;font-size:clamp(12px,3.1vw,16px);font-style:italic;letter-spacing:.04em}",
-    ".animalHoloClose{display:grid;place-items:center;min-width:46px;min-height:46px;border-radius:50%;border:1px solid rgba(166,231,255,.54);background:rgba(6,13,47,.46);box-shadow:inset 0 0 14px rgba(92,216,255,.14),0 0 16px rgba(135,94,255,.18);color:white;font-size:27px;cursor:pointer}",
-    ".animalHoloSelected{margin:0}",
-    ".animalHoloHero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);min-height:232px;margin-bottom:10px;padding:5px;border:1px solid rgba(184,226,255,.76);border-radius:25px;background:linear-gradient(135deg,rgba(217,170,255,.2),rgba(20,122,214,.2) 56%,rgba(246,122,255,.17));box-shadow:inset 0 0 30px rgba(111,206,255,.2),0 0 18px rgba(92,96,255,.23),0 0 7px rgba(255,145,238,.48);overflow:hidden}",
-    ".animalHoloPhotoColumn{min-width:0;min-height:220px}",
-    ".animalHoloPhotoFrame{position:relative;display:grid;place-items:center;width:100%;height:100%;min-height:220px;overflow:hidden;border-radius:20px;background:radial-gradient(circle,rgba(131,99,240,.46),rgba(11,28,76,.78));box-shadow:inset 0 0 24px rgba(145,220,255,.27)}",
-    ".animalHoloPhotoFrame img{width:100%;height:100%;object-fit:cover}",
-    ".animalHoloHero[data-profile=tina] .animalHoloPhotoFrame img{object-position:52% center}",
-    ".animalHoloPhotoFrame img[hidden],.animalHoloPhotoPlaceholder[hidden]{display:none!important}",
-    ".animalHoloPhotoPlaceholder{font-size:58px;filter:drop-shadow(0 0 16px rgba(100,230,255,.5))}",
-    ".animalHoloPhotoButton{position:absolute;left:9px;bottom:9px;z-index:2;min-height:39px;padding:7px 12px;border:1px solid rgba(145,235,255,.77);border-radius:18px;background:linear-gradient(115deg,rgba(31,99,190,.91),rgba(61,55,147,.91));box-shadow:inset 0 0 12px rgba(255,255,255,.16),0 0 12px rgba(81,209,255,.35);color:#f7fdff;font-size:13px;font-weight:760;cursor:pointer}",
-    ".animalHoloIdentityCard{position:relative;z-index:1;align-self:center;min-height:190px;margin:13px 7px 13px -27px;padding:15px 12px 12px 35px;border:1px solid rgba(168,222,255,.78);border-radius:23px;background:linear-gradient(145deg,rgba(23,67,164,.93),rgba(37,42,143,.91) 60%,rgba(101,50,167,.88));box-shadow:inset 0 0 24px rgba(117,224,255,.2),0 0 17px rgba(110,83,255,.35)}",
-    ".animalHoloIdentityPaw{display:inline-block;font-size:30px;filter:drop-shadow(0 0 12px rgba(255,163,244,.68))}",
-    ".animalHoloIdentityCard h3{margin:1px 0 3px;font-size:clamp(25px,6.3vw,39px);line-height:1;letter-spacing:.04em;background:linear-gradient(90deg,#fff,#a9ecff 55%,#e8b6ff);background-clip:text;-webkit-background-clip:text;color:transparent}",
-    ".animalHoloIdentityCard>p{margin:6px 0;color:#d7d8ee;font-size:clamp(11px,2.8vw,15px);line-height:1.3}",
-    ".animalHoloIdentityCard .animalHoloAssignment{margin:10px 0;color:#a1f8d2;font-weight:800}",
-    ".animalHoloIdentityCard .animalHoloTagline{color:#f1edfb}",
-    ".animalHoloFamilyMark{position:absolute;right:13px;top:12px;color:#fff;font-size:27px}",
-    ".animalHoloDetail{margin:9px 0;border:1px solid rgba(190,199,255,.66);border-radius:20px;background:linear-gradient(110deg,rgba(252,218,255,.17),rgba(40,117,204,.25),rgba(184,78,225,.18));box-shadow:inset 0 0 22px rgba(128,210,255,.16),0 0 12px rgba(137,93,255,.2),0 0 5px rgba(255,157,233,.38);overflow:hidden}",
-    ".animalHoloDetail summary{display:grid;grid-template-columns:54px 1fr 25px;align-items:center;gap:10px;min-height:76px;padding:7px 12px;list-style:none;cursor:pointer}",
-    ".animalHoloDetail summary::-webkit-details-marker{display:none}",
-    ".animalHoloDetailIcon{display:grid;place-items:center;width:50px;height:50px;border:1px solid rgba(126,236,255,.75);border-radius:50%;background:linear-gradient(145deg,rgba(45,80,177,.78),rgba(65,49,159,.72));box-shadow:inset 0 0 17px rgba(108,215,255,.32),0 0 15px rgba(90,204,255,.3);font-size:23px;color:#c6f9ff}",
-    ".animalHoloDetailCopy{display:grid;gap:1px;min-width:0}",
-    ".animalHoloDetailCopy strong{font-size:clamp(17px,4.5vw,24px);line-height:1.1;color:#fff}",
-    ".animalHoloDetailCopy small{color:#d1d0e5;font-size:clamp(10px,2.65vw,14px);line-height:1.26;white-space:normal}",
-    ".animalHoloDetailCopy .animalHoloDetailCaption{color:#bcecff}",
-    ".animalHoloDetailChevron{font-size:31px;line-height:1;transform:rotate(0);transition:transform .2s ease}",
-    ".animalHoloDetail[open] .animalHoloDetailChevron{transform:rotate(90deg)}",
-    ".animalHoloDetailBody{padding:2px 14px 14px;border-top:1px solid rgba(186,206,255,.21);background:rgba(3,12,48,.22);color:#e9e6f6;font-size:14px;line-height:1.45}",
-    ".animalHoloDetailBody p{margin:10px 0 0}",
-    ".animalHoloFactList,.animalHoloObservationList{margin:10px 0 0;padding-left:20px;display:grid;gap:8px;line-height:1.43}",
-    ".animalHoloObservationList li{padding:6px 0;border-bottom:1px solid rgba(122,207,255,.18)}",
-    ".animalHoloObservationList li:last-child{border-bottom:0}",
-    ".animalHoloEmpty{color:#aaa4c7;font-style:italic}",
-    ".animalHoloProfileFooter{margin:11px 0 10px;padding:5px 8px;text-align:center;color:#edccff;font-family:cursive;font-size:clamp(16px,4.2vw,23px);font-style:italic}",
-    ".animalHoloInlineForm{padding:8px 0 0;margin:0}",
-    ".animalHoloInlineForm[hidden],.animalHoloFormParking[hidden]{display:none!important}",
-    ".animalHoloFormHint{margin:0 0 8px;color:#a7ecd9;font-size:12px;line-height:1.4}",
-    ".animalHoloInlineForm label,.animalHoloNewProfile label{display:grid;gap:4px;margin:8px 0;color:#f0ecfb;font-size:13px;font-weight:700}",
-    ".animalHoloInlineForm textarea,.animalHoloInlineForm input,.animalHoloInlineForm select,.animalHoloNewProfile input{box-sizing:border-box;width:100%;border:1px solid rgba(143,195,255,.48);border-radius:13px;padding:10px 11px;background:rgba(2,7,31,.7);color:white;font:inherit;color-scheme:dark}",
-    ".animalHoloProfileChooser{display:none!important}",
-    ".animalHoloActions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}",
-    ".animalHoloActions button{flex:1 1 150px;min-height:43px;border-radius:15px;border:1px solid rgba(113,226,255,.58);background:linear-gradient(110deg,rgba(155,65,255,.66),rgba(35,184,255,.5));box-shadow:inset 0 0 14px rgba(255,255,255,.1),0 0 14px rgba(68,180,255,.14);color:white;font-size:13px;font-weight:800;padding:10px;cursor:pointer}",
-    ".animalHoloActions .secondary{background:rgba(255,255,255,.06)}",
-    ".animalHoloStatus{min-height:0;margin:6px 4px;white-space:pre-wrap;font-size:12px;line-height:1.4;color:#cfc9e7}",
-    ".animalHoloStatus[data-kind=success]{color:#77f1d2}",
-    ".animalHoloStatus[data-kind=error]{color:#ff9eaf}",
-    ".animalHoloMoreMenu{position:fixed;z-index:7;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));width:min(736px,calc(100% - 16px));box-sizing:border-box;transform:translateX(-50%);padding:10px;border:1px solid rgba(151,223,255,.63);border-radius:18px;background:linear-gradient(145deg,rgba(17,35,112,.98),rgba(43,27,111,.98));box-shadow:0 0 24px rgba(63,181,255,.25)}",
-    ".animalHoloMoreMenu[hidden],.animalHoloNewProfile[hidden]{display:none!important}",
-    ".animalHoloMoreProfiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}",
-    ".animalHoloMoreProfileButton,.animalHoloMoreAction{min-height:42px;border:1px solid rgba(158,188,255,.5);border-radius:13px;background:rgba(255,255,255,.07);color:#fff;font-weight:750;cursor:pointer}",
-    ".animalHoloMoreProfileButton[data-selected=true]{border-color:#68ebff;background:rgba(49,155,220,.25)}",
-    ".animalHoloMoreActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}",
-    ".animalHoloNewProfile{margin-top:9px;padding:10px;border-top:1px solid rgba(151,223,255,.25)}",
-    ".animalHoloNewProfile h3{margin:0 0 6px;font-size:16px}",
-    ".animalHoloProfiles{position:fixed;z-index:8;left:50%;bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:min(760px,100%);min-height:78px;box-sizing:border-box;transform:translateX(-50%);border:1px solid rgba(166,224,255,.65);border-radius:20px 20px 0 0;background:linear-gradient(145deg,rgba(36,47,139,.97),rgba(18,46,120,.98) 55%,rgba(63,30,126,.97));box-shadow:inset 0 0 25px rgba(103,207,255,.17),0 -4px 20px rgba(11,8,58,.45);overflow:hidden}",
-    ".animalHoloDockButton{display:grid;place-items:center;align-content:center;gap:2px;min-width:0;border:0;border-right:1px solid rgba(193,207,255,.25);background:transparent;color:#eceafa;font-size:10px;cursor:pointer}",
-    ".animalHoloDockButton:last-child{border-right:0}",
-    ".animalHoloDockIcon{font-size:24px;line-height:1;color:#d6f8ff;filter:drop-shadow(0 0 8px rgba(120,217,255,.45))}",
-    ".animalHoloDockButton[data-selected=true]{background:linear-gradient(145deg,rgba(145,54,245,.68),rgba(24,196,237,.48));box-shadow:inset 0 0 18px rgba(255,255,255,.16),0 0 16px rgba(89,213,255,.42);color:#fff;font-weight:800}",
-    ".animalHoloDialog button:focus-visible,.animalHoloDialog summary:focus-visible,.animalHoloDialog input:focus-visible,.animalHoloDialog textarea:focus-visible,.animalHoloDialog select:focus-visible{outline:2px solid #7cecff;outline-offset:2px}",
-    "@media (max-width:520px){.animalHoloDialog{padding:7px 8px calc(80px + env(safe-area-inset-bottom))}.animalHoloHeader{grid-template-columns:46px 1fr 46px;min-height:52px;margin-bottom:6px}.animalHoloBrandMark{width:42px;height:42px;font-size:21px}.animalHoloClose{min-width:42px;min-height:42px;font-size:24px}.animalHoloHero{min-height:207px;border-radius:21px}.animalHoloPhotoColumn,.animalHoloPhotoFrame{min-height:197px}.animalHoloIdentityCard{min-height:166px;margin:13px 5px 13px -23px;padding:13px 8px 10px 29px;border-radius:20px}.animalHoloIdentityPaw{font-size:25px}.animalHoloIdentityCard h3{font-size:24px}.animalHoloIdentityCard>p{font-size:11px}.animalHoloFamilyMark{right:9px;top:8px;font-size:23px}.animalHoloDetail{margin:7px 0;border-radius:17px}.animalHoloDetail summary{grid-template-columns:48px 1fr 22px;gap:8px;min-height:68px;padding:6px 9px}.animalHoloDetailIcon{width:44px;height:44px;font-size:20px}.animalHoloDetailChevron{font-size:27px}.animalHoloPhotoButton{left:7px;bottom:7px;min-height:34px;padding:6px 9px;font-size:11px}.animalHoloActions button{flex-basis:100%}.animalHoloProfiles{min-height:70px}.animalHoloDockIcon{font-size:21px}.animalHoloDockButton{font-size:9px}.animalHoloMoreMenu{bottom:calc(73px + env(safe-area-inset-bottom))}}",
-    "@media (max-width:360px){.animalHoloBrand h2{font-size:17px;letter-spacing:.16em}.animalHoloHero{grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr)}.animalHoloIdentityCard{padding-left:26px}.animalHoloIdentityCard h3{font-size:21px}.animalHoloIdentityCard>p{font-size:10px}.animalHoloDetailCopy strong{font-size:16px}.animalHoloDetailCopy small{font-size:9px}}",
-    "@media (prefers-reduced-motion:reduce){.animalHoloDetailChevron{transition:none}}"
-  ].join("\n");
+  style.textContent = `
+    body.animalHoloOpen{overflow:hidden}
+    .animalHoloOverlay{position:fixed;inset:0;z-index:2147481000;box-sizing:border-box;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow:auto;background:radial-gradient(circle at 8% 9%,rgba(165,73,255,.68),transparent 28%),radial-gradient(circle at 88% 16%,rgba(35,205,255,.55),transparent 31%),radial-gradient(circle at 55% 47%,rgba(65,95,255,.42),transparent 38%),radial-gradient(circle at 16% 75%,rgba(237,78,255,.42),transparent 32%),radial-gradient(circle at 92% 88%,rgba(41,220,255,.38),transparent 30%),linear-gradient(165deg,#07124a 0%,#121764 34%,#08195b 62%,#251060 100%);-webkit-text-size-adjust:100%;font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif}
+    .animalHoloOverlay[hidden]{display:none!important}
+    .animalHoloDialog{position:relative;width:min(760px,100%);min-height:100dvh;box-sizing:border-box;margin:0 auto;padding:5px 8px calc(96px + env(safe-area-inset-bottom));overflow:hidden;color:#fbfaff;background:radial-gradient(circle at 48% 2%,rgba(45,185,255,.28),transparent 23%),radial-gradient(circle at 78% 23%,rgba(255,98,242,.25),transparent 25%),radial-gradient(circle at 22% 53%,rgba(61,197,255,.18),transparent 24%),linear-gradient(160deg,rgba(20,31,111,.72),rgba(4,18,70,.9) 52%,rgba(31,15,91,.87));box-shadow:inset 0 0 58px rgba(84,221,255,.22),0 0 46px rgba(125,69,255,.42)}
+    .animalHoloDialog:before,.animalHoloDialog:after{content:"";position:absolute;pointer-events:none}
+    .animalHoloDialog:before{inset:0;opacity:.68;background-image:radial-gradient(circle,rgba(255,255,255,.94) 0 1px,transparent 1.6px),radial-gradient(circle,rgba(91,222,255,.85) 0 1px,transparent 1.7px),radial-gradient(circle,rgba(255,146,246,.72) 0 1.2px,transparent 1.9px);background-size:43px 47px,71px 67px,97px 89px;background-position:7px 11px,19px 31px,51px 13px;mix-blend-mode:screen}
+    .animalHoloDialog:after{inset:-12%;background:conic-gradient(from 70deg,transparent 0 9%,rgba(69,219,255,.18) 18%,transparent 29% 45%,rgba(237,96,255,.2) 57%,transparent 70%);filter:blur(28px)}
+    .animalHoloDialog>*{position:relative;z-index:1}
+    .animalHoloSvg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+    .animalHoloSvgPaw{fill:currentColor;stroke:none}
+    .animalHoloHeader{display:grid;grid-template-columns:34px 49px minmax(0,1fr) 34px 34px;align-items:center;gap:5px;min-height:62px;padding:1px 3px 5px;margin:0 0 5px}
+    .animalHoloHeaderButton{display:grid;place-items:center;width:34px;height:40px;padding:5px;border:0;background:transparent;color:#f8fbff;filter:drop-shadow(0 0 7px rgba(101,222,255,.7));cursor:pointer}
+    .animalHoloHeaderButton .animalHoloSvg{stroke-width:3}
+    .animalHoloBrandMark{display:grid;place-items:center;width:49px;height:54px;filter:drop-shadow(0 0 6px #53dfff) drop-shadow(0 0 10px #b866ff)}
+    .animalHoloBrandMark svg{width:100%;height:100%;overflow:visible}
+    .animalHoloLogoHeart{fill:rgba(42,72,193,.36);stroke:#efb0ff;stroke-width:2.1}
+    .animalHoloLogoPaw{fill:#8eeeff;stroke:none;filter:drop-shadow(0 0 4px #34d8ff)}
+    .animalHoloBrand{text-align:center;min-width:0}
+    .animalHoloBrand h2{margin:0;white-space:nowrap;font-size:clamp(16px,4.7vw,25px);font-weight:500;line-height:1.05;letter-spacing:.17em;text-shadow:0 0 10px rgba(118,226,255,.46)}
+    .animalHoloEyebrow{margin:3px 0 0;white-space:nowrap;color:#f1d9ff;font-family:"Segoe Script","Brush Script MT",cursive;font-size:clamp(12px,3.6vw,18px);font-style:italic;line-height:1;letter-spacing:.02em;text-shadow:0 0 7px rgba(224,149,255,.65)}
+    .animalHoloSelected{margin:0}
+    .animalHoloHero{position:relative;height:clamp(214px,62vw,310px);margin-bottom:8px;border:1.5px solid rgba(208,238,255,.94);border-radius:24px;background:radial-gradient(circle at 21% 24%,rgba(255,192,247,.2),transparent 30%),linear-gradient(128deg,rgba(183,142,255,.25),rgba(25,153,224,.21) 55%,rgba(230,100,255,.18));box-shadow:0 0 2px #fff,0 0 9px rgba(78,226,255,.92),0 0 16px rgba(216,100,255,.66),inset 0 0 28px rgba(112,216,255,.26);backdrop-filter:blur(15px) saturate(1.35);overflow:hidden}
+    .animalHoloPhotoColumn{position:absolute;inset:4px auto 4px 4px;width:63%;min-width:0}
+    .animalHoloPhotoFrame{position:relative;display:grid;place-items:center;width:100%;height:100%;overflow:hidden;border-radius:20px;background:radial-gradient(circle at 50% 38%,rgba(116,98,232,.65),rgba(10,31,88,.93) 74%);box-shadow:inset 0 0 28px rgba(122,222,255,.3)}
+    .animalHoloPhotoFrame:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 56%,rgba(20,40,133,.48) 82%,rgba(35,28,116,.74));mix-blend-mode:screen}
+    .animalHoloPhotoFrame img{width:100%;height:100%;object-fit:cover}
+    .animalHoloHero[data-profile=tina] .animalHoloPhotoFrame img{object-position:50% center}
+    .animalHoloPhotoFrame img[hidden],.animalHoloPhotoPlaceholder[hidden]{display:none!important}
+    .animalHoloPhotoPlaceholder{display:grid;place-items:center;gap:8px;width:78px;color:#afdcff;text-align:center;filter:drop-shadow(0 0 13px rgba(104,222,255,.62))}
+    .animalHoloPhotoPlaceholder .animalHoloSvg{height:62px;color:#c58cff}
+    .animalHoloPhotoPlaceholder small{font-size:10px;line-height:1.2;color:#e7e2fa}
+    .animalHoloPhotoButton{position:absolute;left:9px;bottom:9px;z-index:3;display:flex;align-items:center;gap:6px;min-height:35px;padding:6px 12px;border:1.4px solid rgba(181,245,255,.95);border-radius:18px;background:linear-gradient(115deg,rgba(31,100,193,.94),rgba(62,49,159,.95));box-shadow:0 0 2px #fff,0 0 10px rgba(71,220,255,.74),inset 0 0 12px rgba(255,255,255,.18);color:#faffff;font-size:12px;font-weight:760;cursor:pointer}
+    .animalHoloPhotoButton .animalHoloSvg{width:23px;height:23px;stroke-width:2.4}
+    .animalHoloIdentityCard{position:absolute;z-index:2;top:13px;right:8px;bottom:13px;width:55%;box-sizing:border-box;padding:15px 25px 10px 28px;border:1.5px solid rgba(191,231,255,.96);border-radius:22px;background:radial-gradient(circle at 84% 17%,rgba(195,91,255,.23),transparent 32%),linear-gradient(145deg,rgba(22,75,179,.95),rgba(31,41,142,.94) 58%,rgba(101,45,170,.92));box-shadow:0 0 2px #fff,0 0 10px rgba(76,218,255,.8),0 0 16px rgba(207,92,255,.55),inset 0 0 24px rgba(115,224,255,.24);overflow:hidden}
+    .animalHoloIdentityHeading{display:flex;align-items:center;gap:6px;max-width:88%;margin:1px 0 5px}
+    .animalHoloIdentityPaw{flex:0 0 30px;width:30px;height:30px;color:#ffc2ef;filter:drop-shadow(0 0 8px rgba(255,161,237,.9))}
+    .animalHoloIdentityCard h3{min-width:0;margin:0;white-space:nowrap;font-size:clamp(24px,6.6vw,42px);font-weight:800;line-height:1;letter-spacing:.035em;background:linear-gradient(90deg,#fff 0%,#a9f0ff 57%,#efb6ff 100%);background-clip:text;-webkit-background-clip:text;color:transparent;text-shadow:0 0 16px rgba(138,211,255,.15)}
+    .animalHoloIdentityCard>p{position:relative;z-index:2;max-width:78%;margin:6px 0;color:#e5e1f4;font-size:clamp(10px,2.65vw,15px);line-height:1.28}
+    .animalHoloIdentityCard .animalHoloAssignment{max-width:85%;margin:9px 0;color:#dffbf0;font-weight:780}
+    .animalHoloIdentityCard .animalHoloTagline{max-width:75%;color:#f4effc}
+    .animalHoloFamilyMark{position:absolute;right:10px;top:9px;width:23px;height:23px;color:#fff;filter:drop-shadow(0 0 7px rgba(227,181,255,.7))}
+    .animalHoloFamilyNote,.animalHoloHeartNote{position:absolute;z-index:2;right:7px;width:46px;color:#f3dbff;font-family:"Segoe Script","Brush Script MT",cursive;font-size:9px;font-style:italic;line-height:1.12;text-align:center;transform:rotate(-5deg);text-shadow:0 0 6px rgba(229,158,255,.72)}
+    .animalHoloFamilyNote{top:41px}
+    .animalHoloHeartNote{right:12px;bottom:14px;width:92px;font-size:10px;transform:rotate(-7deg)}
+    .animalHoloIdentityWatermark{position:absolute;left:20px;bottom:-8px;width:55px;height:55px;color:rgba(115,140,235,.37);transform:rotate(-8deg)}
+    .animalHoloDetail{position:relative;margin:7px 0;border:1.5px solid rgba(208,226,255,.91);border-radius:19px;background:radial-gradient(circle at 87% 18%,rgba(247,147,255,.26),transparent 25%),radial-gradient(circle at 31% 95%,rgba(36,211,255,.22),transparent 35%),linear-gradient(112deg,rgba(222,194,255,.25),rgba(37,116,209,.38) 50%,rgba(139,68,203,.28));box-shadow:0 0 2px #fff,0 0 8px rgba(70,218,255,.7),0 0 13px rgba(223,97,255,.46),inset 0 0 22px rgba(141,218,255,.2);backdrop-filter:blur(16px) saturate(1.35);overflow:hidden}
+    .animalHoloDetail:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.16),transparent 24% 72%,rgba(255,170,249,.12));opacity:.8}
+    .animalHoloDetail summary{position:relative;z-index:1;display:grid;grid-template-columns:50px minmax(0,1fr) 22px;align-items:center;gap:9px;min-height:70px;padding:6px 10px;list-style:none;cursor:pointer}
+    .animalHoloDetail summary::-webkit-details-marker{display:none}
+    .animalHoloDetailIcon{display:grid;place-items:center;width:46px;height:46px;padding:10px;box-sizing:border-box;border:1.4px solid rgba(151,242,255,.95);border-radius:50%;background:radial-gradient(circle at 34% 25%,rgba(255,255,255,.22),transparent 24%),linear-gradient(145deg,rgba(54,91,194,.92),rgba(65,43,161,.9));box-shadow:0 0 2px #fff,0 0 11px rgba(66,224,255,.78),inset 0 0 14px rgba(105,224,255,.36);color:#bdf7ff}
+    .animalHoloDetail[data-kind=about] .animalHoloDetailIcon{color:#ffd1f4}
+    .animalHoloDetail[data-kind=safety] .animalHoloDetailIcon{color:#a2fff0}
+    .animalHoloDetail[data-kind=new-memory] .animalHoloDetailIcon{color:#f4c5ff;border-color:#eea8ff;box-shadow:0 0 2px #fff,0 0 12px rgba(229,96,255,.8),inset 0 0 14px rgba(255,160,245,.3)}
+    .animalHoloDetailCopy{display:grid;gap:1px;min-width:0}
+    .animalHoloDetailCopy strong{font-size:clamp(17px,4.8vw,26px);font-weight:790;line-height:1.05;color:#fff;text-shadow:0 0 8px rgba(196,225,255,.35)}
+    .animalHoloDetailCopy small{min-width:0;overflow:hidden;color:#e0dced;font-size:clamp(9px,2.55vw,14px);line-height:1.25;white-space:nowrap;text-overflow:clip}
+    .animalHoloDetailCopy .animalHoloDetailCaption{color:#c4f1ff}
+    .animalHoloDetail[data-kind=new-memory] .animalHoloDetailCaption{position:absolute;right:42px;top:24px;width:105px;overflow:visible;color:#f4d8ff;font-family:"Segoe Script","Brush Script MT",cursive;font-size:12px;font-style:italic;text-align:center;transform:rotate(-5deg);white-space:normal;text-shadow:0 0 7px rgba(222,135,255,.7)}
+    .animalHoloDetailWatermark{position:absolute;right:44px;top:13px;width:43px;height:43px;color:rgba(145,160,239,.34);transform:rotate(8deg)}
+    .animalHoloDetail[data-kind=new-memory] .animalHoloDetailWatermark{display:none}
+    .animalHoloDetailChevron{font-size:30px;line-height:1;color:#fff;transform:rotate(0);transition:transform .2s ease;text-shadow:0 0 7px rgba(147,225,255,.8)}
+    .animalHoloDetail[open] .animalHoloDetailChevron{transform:rotate(90deg)}
+    .animalHoloDetailBody{position:relative;z-index:1;padding:2px 13px 13px;border-top:1px solid rgba(203,224,255,.28);background:rgba(3,13,55,.34);color:#f0edf8;font-size:13px;line-height:1.45}
+    .animalHoloDetailBody p{margin:9px 0 0}
+    .animalHoloFactList,.animalHoloObservationList{display:grid;gap:7px;margin:9px 0 0;padding-left:20px;line-height:1.43}
+    .animalHoloObservationCount{color:#93f2de;font-size:12px;font-weight:760}
+    .animalHoloObservationList li{padding:5px 0;border-bottom:1px solid rgba(122,207,255,.2)}
+    .animalHoloObservationList li:last-child{border-bottom:0}
+    .animalHoloEmpty{color:#bbb5d3;font-style:italic}
+    .animalHoloProfileFooter{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:52px;box-sizing:border-box;margin:8px 0 11px;padding:5px 10px;border:1.4px solid rgba(204,231,255,.85);border-radius:19px;background:linear-gradient(110deg,rgba(93,59,176,.3),rgba(28,119,196,.32),rgba(101,48,177,.28));box-shadow:0 0 2px #fff,0 0 9px rgba(68,218,255,.62),0 0 13px rgba(218,91,255,.43),inset 0 0 18px rgba(139,219,255,.16)}
+    .animalHoloFooterPaw{width:30px;height:30px;color:#ffd0ef;filter:drop-shadow(0 0 7px rgba(255,141,228,.72))}
+    .animalHoloFooterText{min-width:0;color:#f0d6ff;font-family:"Segoe Script","Brush Script MT",cursive;font-size:clamp(14px,4vw,22px);font-style:italic;white-space:nowrap;text-shadow:0 0 7px rgba(225,145,255,.6)}
+    .animalHoloFooterProject{min-width:86px;padding:7px 12px;border:1px solid rgba(171,241,255,.86);border-radius:18px;background:linear-gradient(110deg,rgba(42,116,199,.75),rgba(70,50,165,.77));box-shadow:0 0 10px rgba(74,223,255,.58),inset 0 0 10px rgba(255,255,255,.13);color:#fff;font-size:11px;text-align:center;white-space:nowrap}
+    .animalHoloInlineForm{padding:8px 0 0;margin:0}
+    .animalHoloInlineForm[hidden],.animalHoloFormParking[hidden]{display:none!important}
+    .animalHoloFormHint{margin:0 0 8px;color:#a7ecd9;font-size:12px;line-height:1.4}
+    .animalHoloInlineForm label,.animalHoloNewProfile label{display:grid;gap:4px;margin:8px 0;color:#f0ecfb;font-size:13px;font-weight:700}
+    .animalHoloInlineForm textarea,.animalHoloInlineForm input,.animalHoloInlineForm select,.animalHoloNewProfile input{box-sizing:border-box;width:100%;border:1px solid rgba(143,220,255,.6);border-radius:13px;padding:10px 11px;background:rgba(2,7,31,.72);color:white;font:inherit;color-scheme:dark}
+    .animalHoloProfileChooser{display:none!important}
+    .animalHoloActions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+    .animalHoloActions button{flex:1 1 150px;min-height:43px;border:1px solid rgba(124,234,255,.7);border-radius:15px;background:linear-gradient(110deg,rgba(155,65,255,.7),rgba(35,184,255,.55));box-shadow:inset 0 0 14px rgba(255,255,255,.1),0 0 14px rgba(68,180,255,.18);color:white;font-size:13px;font-weight:800;padding:10px;cursor:pointer}
+    .animalHoloActions .secondary{background:rgba(255,255,255,.07)}
+    .animalHoloStatus{min-height:0;margin:5px 4px;white-space:pre-wrap;font-size:11px;line-height:1.35;color:#d6d0e8}
+    .animalHoloStatus[data-kind=success]{color:#77f1d2}
+    .animalHoloStatus[data-kind=error]{color:#ff9eaf}
+    .animalHoloMoreMenu{position:fixed;z-index:7;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));width:min(736px,calc(100% - 16px));box-sizing:border-box;transform:translateX(-50%);padding:10px;border:1.5px solid rgba(176,237,255,.9);border-radius:19px;background:radial-gradient(circle at 80% 10%,rgba(205,80,255,.25),transparent 35%),linear-gradient(145deg,rgba(19,52,145,.98),rgba(48,25,121,.98));box-shadow:0 0 3px #fff,0 0 17px rgba(62,211,255,.7),0 0 22px rgba(203,84,255,.46),inset 0 0 22px rgba(111,212,255,.15)}
+    .animalHoloMoreMenu[hidden],.animalHoloNewProfile[hidden]{display:none!important}
+    .animalHoloMoreProfiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    .animalHoloMoreProfileButton,.animalHoloMoreAction{display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:1px solid rgba(158,221,255,.65);border-radius:13px;background:rgba(255,255,255,.08);color:#fff;font-weight:750;cursor:pointer}
+    .animalHoloMoreProfileIcon{width:23px;height:23px;color:#dcbcff}
+    .animalHoloMoreProfileButton[data-selected=true]{border-color:#75efff;background:rgba(49,155,220,.3);box-shadow:0 0 10px rgba(83,221,255,.45)}
+    .animalHoloMoreActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+    .animalHoloNewProfile{margin-top:9px;padding:10px;border-top:1px solid rgba(151,223,255,.25)}
+    .animalHoloNewProfile h3{margin:0 0 6px;font-size:16px}
+    .animalHoloProfiles{position:fixed;z-index:8;left:50%;bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:min(744px,calc(100% - 16px));height:78px;box-sizing:border-box;transform:translateX(-50%);border:1.5px solid rgba(207,234,255,.92);border-radius:21px 21px 4px 4px;background:radial-gradient(circle at 47% 15%,rgba(164,72,255,.3),transparent 34%),linear-gradient(145deg,rgba(35,62,157,.97),rgba(17,66,151,.98) 52%,rgba(69,31,137,.97));box-shadow:0 0 3px #fff,0 0 13px rgba(62,217,255,.78),0 0 19px rgba(208,84,255,.55),inset 0 0 25px rgba(109,215,255,.22);overflow:hidden}
+    .animalHoloDockButton{display:grid;place-items:center;align-content:center;gap:3px;min-width:0;padding:5px 2px;border:0;border-right:1px solid rgba(203,218,255,.28);background:linear-gradient(180deg,rgba(255,255,255,.05),transparent);color:#eeebfa;font-size:10px;cursor:pointer}
+    .animalHoloDockButton:last-child{border-right:0}
+    .animalHoloDockIcon{display:block;width:27px;height:27px;color:#e9edff;filter:drop-shadow(0 0 7px rgba(121,218,255,.58))}
+    .animalHoloDockButton:nth-child(2) .animalHoloDockIcon{color:#d7eaff}
+    .animalHoloDockButton:nth-child(3) .animalHoloDockIcon{color:#ffd1ef}
+    .animalHoloDockLabel{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .animalHoloDockButton[data-selected=true]{position:relative;z-index:1;border:1px solid rgba(217,226,255,.8);border-radius:18px;background:radial-gradient(circle at 50% 8%,rgba(226,127,255,.46),transparent 42%),linear-gradient(145deg,rgba(143,53,240,.82),rgba(23,198,238,.67));box-shadow:0 0 3px #fff,0 0 12px rgba(91,222,255,.86),0 0 16px rgba(218,89,255,.6),inset 0 0 19px rgba(255,255,255,.2);color:#fff;font-weight:800}
+    .animalHoloDialog button:focus-visible,.animalHoloDialog summary:focus-visible,.animalHoloDialog input:focus-visible,.animalHoloDialog textarea:focus-visible,.animalHoloDialog select:focus-visible{outline:2px solid #8ef3ff;outline-offset:2px}
+    @media (max-width:520px){
+      .animalHoloDialog{padding-left:7px;padding-right:7px}
+      .animalHoloHero{height:clamp(208px,61vw,254px)}
+      .animalHoloIdentityCard{padding:13px 22px 9px 25px}
+      .animalHoloIdentityPaw{flex-basis:27px;width:27px;height:27px}
+      .animalHoloIdentityCard h3{font-size:clamp(22px,6.5vw,31px)}
+      .animalHoloIdentityCard>p{font-size:clamp(9.5px,2.65vw,12px)}
+      .animalHoloDetailCopy strong{font-size:clamp(17px,4.7vw,22px)}
+      .animalHoloFooterProject{min-width:78px;padding:7px 9px;font-size:10px}
+    }
+    @media (max-width:380px){
+      .animalHoloHeader{grid-template-columns:31px 45px minmax(0,1fr) 31px 31px;gap:3px}
+      .animalHoloHeaderButton{width:31px;height:36px;padding:4px}
+      .animalHoloBrandMark{width:45px;height:49px}
+      .animalHoloBrand h2{font-size:15px;letter-spacing:.14em}
+      .animalHoloEyebrow{font-size:12px}
+      .animalHoloIdentityCard{right:6px;width:56%;padding-left:23px}
+      .animalHoloIdentityHeading{gap:4px}
+      .animalHoloIdentityPaw{flex-basis:24px;width:24px;height:24px}
+      .animalHoloFamilyNote{display:none}
+      .animalHoloHeartNote{right:8px;width:82px;font-size:9px}
+      .animalHoloDetail summary{grid-template-columns:47px minmax(0,1fr) 20px;gap:7px;padding-left:8px;padding-right:8px}
+      .animalHoloDetailIcon{width:43px;height:43px;padding:9px}
+      .animalHoloDetailCopy small{font-size:9px}
+      .animalHoloDetailWatermark{right:38px;width:39px;height:39px}
+      .animalHoloFooterText{font-size:14px}
+      .animalHoloFooterProject{min-width:72px;padding:6px 7px;font-size:9px}
+      .animalHoloDockLabel{font-size:9px}
+    }
+    @media (prefers-reduced-motion:reduce){.animalHoloDetailChevron{transition:none}}
+  `;
   document.head.append(style);
 }
 
@@ -1371,10 +1532,12 @@ function installMarkup() {
   overlay.hidden = true;
   overlay.innerHTML = [
     '<section class="animalHoloDialog" role="dialog" aria-modal="true" aria-labelledby="animalHoloTitle">',
-    '<header class="animalHoloHeader"><span class="animalHoloBrandMark" aria-hidden="true">🐾</span>',
+    `<header class="animalHoloHeader"><button id="animalHoloMenu" class="animalHoloHeaderButton" type="button" aria-label="Tier-Holo-Menü öffnen">${animalIconSvg("menu")}</button>`,
+    `<span class="animalHoloBrandMark" aria-hidden="true"><svg viewBox="0 0 64 60"><path class="animalHoloLogoHeart" d="M32 56S6 40 6 20C6 6 23 2 32 15 41 2 58 6 58 20c0 20-26 36-26 36Z"/><g class="animalHoloLogoPaw" transform="translate(17 13) scale(.62)"><ellipse cx="13" cy="14" rx="5" ry="7"/><ellipse cx="25" cy="10" rx="5" ry="7"/><ellipse cx="36" cy="15" rx="5" ry="7"/><ellipse cx="40" cy="27" rx="4.5" ry="6"/><path d="M12 32c1-7 7-12 14-12 8 0 14 6 14 13 0 6-5 10-11 8-3-1-5-1-8 0-6 2-10-2-9-9Z"/></g></svg></span>`,
     '<div class="animalHoloBrand"><h2 id="animalHoloTitle">HUMAN HOLO</h2>',
     '<p class="animalHoloEyebrow">Forever Together ∞</p></div>',
-    '<button id="animalHoloClose" class="animalHoloClose" type="button" aria-label="Tier-Holos schließen">×</button></header>',
+    `<button id="animalHoloSearch" class="animalHoloHeaderButton" type="button" aria-label="Mit Holo über dieses Tier sprechen">${animalIconSvg("search")}</button>`,
+    `<button id="animalHoloSettings" class="animalHoloHeaderButton" type="button" aria-label="Einstellungen öffnen">${animalIconSvg("settings")}</button></header>`,
     '<section id="animalHoloSelected" class="animalHoloSelected" aria-live="polite"></section>',
     '<input id="animalHoloPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>',
     '<input id="animalHoloPreviousPhotosInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>',
@@ -1408,9 +1571,19 @@ function installMarkup() {
   ].join("");
   document.body.append(overlay);
 
-  document.getElementById("animalHoloClose")?.addEventListener(
+  document.getElementById("animalHoloMenu")?.addEventListener("click", () => {
+    moreProfilesOpen = !moreProfilesOpen;
+    renderProfileButtons();
+  });
+  document.getElementById("animalHoloSearch")?.addEventListener("click", () => {
+    document.getElementById("animalHoloAsk")?.click();
+  });
+  document.getElementById("animalHoloSettings")?.addEventListener(
     "click",
-    closeAnimalHolos
+    () => {
+      closeAnimalHolos();
+      document.getElementById("homeSettingsButton")?.click();
+    }
   );
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) closeAnimalHolos();

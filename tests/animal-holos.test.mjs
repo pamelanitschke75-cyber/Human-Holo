@@ -429,7 +429,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=4/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=5/u);
   assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
@@ -457,18 +457,31 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-290-animal-compact-dashboard/u);
+  assert.match(worker, /human-holo-291-animal-visual-match/u);
 });
 
-test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
+test("Tier-Holos folgen Pams korrigierter Holo-Glas-Referenz", async () => {
   const ui = await readFile(
     new URL("../www/human-holo-animal-holos.mjs", import.meta.url),
     "utf8"
   );
 
-  assert.match(ui, /const ANIMAL_HOLO_PRIMARY_NAVIGATION[\s\S]*?"salt"[\s\S]*?"pepper"[\s\S]*?"tina"/u);
+  assert.match(
+    ui,
+    /const ANIMAL_HOLO_PRIMARY_NAVIGATION = Object\.freeze\(\["salt", "pepper"\]\)/u
+  );
   assert.match(ui, /label: "Start"/u);
+  assert.match(ui, /label: "SALT & PEPS"/u);
   assert.match(ui, /label: "Mehr"/u);
+  assert.match(ui, /id="animalHoloMenu"/u);
+  assert.match(ui, /id="animalHoloSearch"/u);
+  assert.match(ui, /id="animalHoloSettings"/u);
+  assert.match(ui, /animalHoloLogoHeart/u);
+  assert.match(ui, /animalIconSvg\("camera"\)/u);
+  assert.match(ui, /animalIconSvg\(icon\)/u);
+  assert.match(ui, /white-space:nowrap[^}]*HUMAN HOLO|animalHoloBrand h2\{[^}]*white-space:nowrap/u);
+  assert.match(ui, /animalHoloProfileFooter[\s\S]*?animalHoloFooterProject/u);
+  assert.match(ui, /radial-gradient\(circle,rgba\(255,255,255,\.94\)/u);
   assert.match(ui, /titleText: "Über " \+ profileDisplayName\(profile\)/u);
   assert.match(ui, /titleText: "Erinnerungen"/u);
   assert.match(ui, /titleText: "Sicherheit"/u);
@@ -476,6 +489,7 @@ test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
   assert.match(ui, /if \(other !== details\) other\.open = false/u);
   assert.doesNotMatch(ui, /details\.open\s*=/u);
   assert.doesNotMatch(ui, /animalHoloMemoryBadge/u);
+  assert.doesNotMatch(ui, /0 gespeichert/u);
 });
 
 test("frühere Tierfotos werden privat zugeordnet und Tina wird allein zugeschnitten", async () => {
