@@ -82,12 +82,17 @@ test("die Erinnerungsseite bleibt würdevoll und zeigt nur drei klare Hauptberei
 
 test("Omas Erinnerung bleibt ein privates Einzelporträt im oberen Seitenbereich", () => {
   const renderSource = functionSource("renderMemorialEntries", "deleteMemorialEntry");
+  const displaySource = functionSource("memorialDisplayMedia", "renderMemorialEntries");
 
   assert.match(ui, /function isGrandmotherMemorial\(entry\)/u);
   assert.match(ui, /word === "oma"/u);
   assert.match(renderSource, /memorialCard--grandmotherPortrait/u);
-  assert.match(css, /\.memorialCard--grandmotherPortrait[\s\S]*?object-position:center 7%/u);
-  assert.match(css, /\.memorialCard--grandmotherPortrait[\s\S]*?figcaption[\s\S]*?display:none/u);
+  assert.match(displaySource, /\[\.\.\.photos\]\.reverse\(\)\.concat\(otherMedia\)/u);
+  assert.match(renderSource, /memorialMediaFigure--grandmotherCover/u);
+  assert.match(renderSource, /memorialMediaFigure--grandmotherSecondary/u);
+  assert.match(renderSource, /!\(isGrandmother && isPhoto\)/u);
+  assert.match(css, /\.memorialMediaFigure--grandmotherCover[\s\S]*?object-position:center 44%/u);
+  assert.match(css, /\.memorialMediaFigure--grandmotherSecondary[\s\S]*?object-position:65% 45%/u);
 });
 
 test("weitere Fotos lassen sich direkt ownergebunden zur Erinnerung hinzufügen", () => {
@@ -169,8 +174,8 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(ui, /id="memorialInfinityGradient"/u);
   assert.match(ui, /stop-color="#d44dff"[\s\S]*?stop-color="#66efff"/u);
   assert.match(css, /\.memorialHeroInfinity[\s\S]*?rgba\(61,218,255/u);
-  assert.match(html, /sol-holo-ui\.css\?v=53/u);
+  assert.match(html, /sol-holo-ui\.css\?v=54/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=82/u);
-  assert.match(serviceWorker, /human-holo-293-animal-floating-dock/u);
+  assert.match(html, /sol-holo-ui\.js\?v=83/u);
+  assert.match(serviceWorker, /human-holo-294-grandmother-photo-order/u);
 });

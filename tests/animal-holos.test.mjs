@@ -457,7 +457,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-293-animal-floating-dock/u);
+  assert.match(worker, /human-holo-294-grandmother-photo-order/u);
 });
 
 test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
