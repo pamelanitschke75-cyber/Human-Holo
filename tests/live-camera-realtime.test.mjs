@@ -498,5 +498,45 @@ test(
       privacy,
       /Human Holo übernimmt diese Live-Bilder weder in das Vollzeitgedächtnis/u
     );
+
+    assert.match(
+      server,
+      /app\.post\(\s*"\/memory\/remember-recognized"[\s\S]*?recognitionConfidence !== "high"[\s\S]*?rawMediaStored: false/u
+    );
+
+    assert.match(
+      server,
+      /name:\s*\n\s*"remember_personal_fact"[\s\S]*?ausdrücklich gestarteten Gebärdensprachfolge/iu
+    );
+
+    assert.match(
+      html,
+      /async function rememberRealtimeSignedPersonalFact[\s\S]*?\/memory\/remember-recognized[\s\S]*?explicitMemoryCommand:\s*\n\s*true/u
+    );
+
+    assert.match(
+      html,
+      /function consumeRecentSignLanguageSequence[\s\S]*?45_000[\s\S]*?languageCode/u
+    );
+
+    assert.match(
+      html,
+      /lastCompletedSignLanguageSequence = \{[\s\S]*?eventId:[\s\S]*?signMemoryEventId[\s\S]*?completedAt/u
+    );
+
+    assert.match(
+      html,
+      /REALTIME_SIGN_ACTION_TOOL_NAMES[\s\S]*?"remember_personal_fact"[\s\S]*?"create_calendar_entry"/u
+    );
+
+    assert.match(
+      server,
+      /„Merk dir …“, „Pass mal auf …“ und „Hör mal zu …“[\s\S]*?niemals Notizen/u
+    );
+
+    assert.match(
+      server,
+      /Geburtstage werden jährlich im externen Handy- oder Google-Kalender gespeichert/u
+    );
   }
 );

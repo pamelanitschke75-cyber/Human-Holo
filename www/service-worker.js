@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-293-animal-floating-dock";
+const CACHE_VERSION = "human-holo-294-memory-targets-today-calendar";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
