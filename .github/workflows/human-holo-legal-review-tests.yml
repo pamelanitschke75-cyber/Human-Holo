@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - human-holo-legal-review-2026-09-14
 
 permissions:
   contents: read
