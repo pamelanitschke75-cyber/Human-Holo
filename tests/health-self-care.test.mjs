@@ -19,6 +19,6 @@ test("medizinische Selbsthilfe ist bis zur juristischen Freigabe deaktiviert", (
 test("zentrale Human-Holo-Regel enthält den juristischen Medizin-Hold", () => {
   const rules = humanHoloNoGoInstructions();
   assert.match(rules, /TEMPORÄRER JURISTISCHER HOLD · MEDIZIN/u);
-  assert.match(rules, /reine Erinnerungs- und Organisationsfunktionen/u);
-  assert.match(rules, /Text, Sprache, Realtime/u);
+  assert.match(rules, /ausschließlich Erinnerungs- und Organisationsfunktionen/u);
+  assert.match(rules, /Text, Sprache, Realtime, Bilder/u);
 });
