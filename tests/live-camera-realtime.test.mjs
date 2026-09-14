@@ -484,7 +484,7 @@ test(
 
     assert.match(
       server,
-      /name:\s*"append_shopping_list_item"[\s\S]*?konkret(?:en)? Einkaufsartikel/u
+      /name:\s*"append_shopping_list_item"[\s\S]*?konkrete Einkaufsartikel/u
     );
 
     assert.match(
