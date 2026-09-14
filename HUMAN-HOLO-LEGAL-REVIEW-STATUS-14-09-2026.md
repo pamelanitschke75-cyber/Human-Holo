@@ -123,6 +123,17 @@ erhalten. Die alten Pam-signierten Veröffentlichungs- und Stimmen-Workflows
 sind in der Human-Holo-Linie zusätzlich mit einem nicht übersteuerbaren
 `if: false` geparkt.
 
+**Reichweite dieser technischen Sperre:** Das `404` gilt für den künftigen
+Human-Holo-Webdienst. Es entfernt keine bereits versionierten Dateien aus dem
+derzeit öffentlichen GitHub-Repository oder dessen Historie. Der gemeinsame
+Ausgangsstand enthält weiterhin historische Pam-Module, persönliche
+Projektunterlagen und Medien. Eine echte Veröffentlichungs- und
+Repository-Trennung erfordert deshalb eine ausdrückliche Entscheidung von
+Pamela Nitschke (zum Beispiel getrenntes privates Pam-Repository und eigener
+bereinigter Human-Holo-Testbestand). Eine solche Umstellung wurde nicht
+stillschweigend vorgenommen, weil sie die bestehende Pam-Holo-Deploymentquelle
+und öffentliche Links betreffen kann.
+
 Auch der bisherige Android-Prüfworkflow ist fail-closed geparkt. Er enthält
 historische Pfade unter Pams Application-ID `com.solholo.app` und darf deshalb
 vor einer ausdrücklichen Entscheidung über eine eigene Human-Holo-ID und
@@ -178,13 +189,15 @@ wiederverwenden.
 
 1. separaten Human-Holo-Render-Dienst und separate PostgreSQL-Datenbank real
    anlegen und Wiederherstellung/Backups testen;
-2. bestehende Pam-Holo-Render-Instanz nach Backup-Nachweis auf den geschützten
+2. Repository- und Veröffentlichungsgrenze für die historischen Pam-Dateien
+   ausdrücklich festlegen und technisch umsetzen;
+3. bestehende Pam-Holo-Render-Instanz nach Backup-Nachweis auf den geschützten
    Pam-Holo-Branch binden;
-3. eigene Android-Application-ID und eigene Signaturlinie für Human Holo durch
+4. eigene Android-Application-ID und eigene Signaturlinie für Human Holo durch
    Pamela Nitschke festlegen; bis dahin wird kein APK/AAB veröffentlicht;
-4. externe rechtliche Prüfungen, Verträge, Datenschutz-Folgenabschätzung,
+5. externe rechtliche Prüfungen, Verträge, Datenschutz-Folgenabschätzung,
    Löschfristen, Anbieter- und Transferprüfung abschließen;
-5. vollständige technische, Sicherheits- und Barrierefreiheitstests mit der
+6. vollständige technische, Sicherheits- und Barrierefreiheitstests mit der
    finalen Infrastruktur durchführen.
 
 Bis Punkt 3 ausdrücklich entschieden ist, bleibt Human Holo ein getrennter

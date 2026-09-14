@@ -12,9 +12,11 @@
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
 **Status:** LEGAL REVIEW · KEINE MARKTFREIGABE ⛔
 
-> **Verbindliche Produktgrenze:** `main` ist die weiterzuentwickelnde
-> Human-Holo-Produktlinie. Pam’s bereits erstelltes persönliches Holo wird
-> dadurch nicht verändert. Sein unveränderter Code-Ausgangsstand liegt auf
+> **Verbindliche Produktgrenze:** Human Holo wird während der Prüfung nur auf
+> `human-holo-legal-review-2026-09-14` weiterentwickelt; `main` bleibt vorerst
+> auf dem unveränderten gemeinsamen Ausgangsstand. Pam’s bereits erstelltes
+> persönliches Holo wird dadurch nicht verändert. Sein unveränderter
+> Code-Ausgangsstand liegt zusätzlich auf
 > [`pam-holo-preserved-2026-09-14`](https://github.com/pamelanitschke75-cyber/Human-Holo/tree/pam-holo-preserved-2026-09-14)
 > (Commit `14a977af3cb503f78a0157e2b45dd185dda8559b`). Human Holo erhält einen
 > eigenen Server und eine eigene Datenbank; bis diese real eingerichtet und
@@ -22,6 +24,12 @@
 > gesperrt. Details:
 > [Legal-Review-Status](./HUMAN-HOLO-LEGAL-REVIEW-STATUS-14-09-2026.md) und
 > [Pam-Holo-Schutzgrenze](./PAM-HOLO-SCHUTZGRENZE-14-09-2026.md).
+>
+> **Öffentlichkeitsgrenze:** Server-Sperren entfernen keine historischen
+> Pam-Dateien aus dem öffentlichen GitHub-Repository. Eine echte Trennung der
+> Repositories beziehungsweise ihrer Sichtbarkeit ist noch ausdrücklich zu
+> entscheiden; bis dahin ist auch der Review-Branch keine öffentliche
+> Testfreigabe.
 
 ## Verbindliches Human-Holo-Testprofil
 

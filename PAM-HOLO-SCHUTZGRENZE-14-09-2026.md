@@ -5,8 +5,10 @@ ist kein Rechtsgutachten und behauptet keine abgeschlossene Rechtskonformität.
 
 ## Verbindliche Trennung
 
-- **Human Holo** bleibt die allgemeine Produktlinie auf `main` und wird weiter
-  überarbeitet.
+- **Human Holo** wird bis zur getrennten Infrastruktur ausschließlich auf dem
+  Review-Branch `human-holo-legal-review-2026-09-14` weiter überarbeitet.
+- `main` bleibt während dieser Prüfung unverändert auf dem gemeinsamen
+  Ausgangsstand und ist noch keine freigegebene Human-Holo-Auslieferungslinie.
 - **Pam-Holo** ist Pamela Nitschkes bereits erstellte persönliche Instanz und
   wird durch diese Human-Holo-Überarbeitung nicht verändert.
 - Der unveränderte Code-Ausgangsstand von Pam-Holo ist im Remote-Branch
