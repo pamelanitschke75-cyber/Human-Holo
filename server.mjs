@@ -3618,6 +3618,153 @@ function weatherRequestHasPlace(message) {
   );
 }
 
+
+function cleanWeatherPreferencePlace(value) {
+  let place = String(value || "")
+    .split(/[\n.!?;]/u)[0]
+    .replace(
+      /,?\s*\b(?:außer|ausser|falls|wenn|solange|bis)\b[\s\S]*$/iu,
+      ""
+    )
+    .replace(/^[„“"'’]+|[„“"'’]+$/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+  if (!place || place.length > 70) {
+    return "";
+  }
+
+  const normalized = place
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .toLowerCase();
+
+  if (
+    /^(?:mir|uns|hier|heute|morgen|jetzt|spater|spaeter)$/u.test(
+      normalized
+    )
+  ) {
+    return "";
+  }
+
+  return place;
+}
+
+function weatherDefaultPlacePreference(message) {
+  const original = String(message || "")
+    .normalize("NFKC")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+  if (
+    !original ||
+    !/\bwetter(?:bericht|vorhersage)?\b/iu.test(original)
+  ) {
+    return {
+      action: "none",
+      place: ""
+    };
+  }
+
+  const normalized = original
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .toLowerCase();
+
+  const clearPreference =
+    /\b(?:vergiss|nicht\s+mehr)\b[\s\S]{0,80}\bwetter(?:bericht|vorhersage)?\b/u.test(
+      normalized
+    ) ||
+    /\bwetter(?:bericht|vorhersage)?\b[\s\S]{0,80}\b(?:nicht\s+mehr|kein(?:e[nrms]?)?\s+standard(?:ort|einstellung)?)\b/u.test(
+      normalized
+    );
+
+  if (clearPreference) {
+    return {
+      action: "clear",
+      place: ""
+    };
+  }
+
+  const hasPreferenceSignal =
+    /\b(?:merk(?:e)?\s+dir|fur\s+immer|fuer\s+immer|kunftig|ab\s+jetzt|immer|standard(?:massig|maessig|ort)?|nur)\b/u.test(
+      normalized
+    );
+
+  if (!hasPreferenceSignal) {
+    return {
+      action: "none",
+      place: ""
+    };
+  }
+
+  const patterns = [
+    /\bwetter(?:bericht|vorhersage)?\b[\s\S]{0,100}?\b(?:für|fuer|in)\s+([\p{L}][\p{L}\p{M} .,'’()-]{1,70})/iu,
+    /\b(?:für|fuer|in)\s+([\p{L}][\p{L}\p{M} .,'’()-]{1,70})[\s\S]{0,100}?\bwetter(?:bericht|vorhersage)?\b/iu
+  ];
+
+  for (const pattern of patterns) {
+    const match = original.match(pattern);
+    const place = cleanWeatherPreferencePlace(
+      match?.[1]
+    );
+
+    if (place) {
+      return {
+        action: "set",
+        place
+      };
+    }
+  }
+
+  return {
+    action: "none",
+    place: ""
+  };
+}
+
+async function loadOwnerWeatherDefaultPlace(identity) {
+  const result = await db.query(
+    `
+      SELECT
+        content
+      FROM sol_fulltime_memory
+      WHERE clone_id = $1
+        AND role = 'user'
+        AND content ILIKE '%wetter%'
+      ORDER BY id DESC
+      LIMIT 80
+    `,
+    [
+      cloneIdForOwner(
+        identity.ownerId
+      )
+    ]
+  );
+
+  for (const row of result.rows) {
+    const preference =
+      weatherDefaultPlacePreference(
+        row.content
+      );
+
+    if (preference.action === "clear") {
+      return "";
+    }
+
+    if (
+      preference.action === "set" &&
+      preference.place
+    ) {
+      return preference.place;
+    }
+  }
+
+  return "";
+}
+
 function ecosystemRequestScope(
   identity,
   conversationId = ""
@@ -4188,10 +4335,36 @@ async function handleLiveWeatherRequest(
     return { handled: false };
   }
 
-  const effectiveMessage =
+  let effectiveMessage =
     explicitWeatherRequest
       ? cleanMessage
       : `${pending.message} in ${cleanMessage}`;
+
+  if (
+    explicitWeatherRequest &&
+    !weatherRequestHasPlace(
+      effectiveMessage
+    )
+  ) {
+    try {
+      const defaultPlace =
+        await loadOwnerWeatherDefaultPlace(
+          identity
+        );
+
+      if (defaultPlace) {
+        effectiveMessage =
+          `${effectiveMessage} in ${defaultPlace}`;
+      }
+    } catch (error) {
+      console.error(
+        "Wetter-Standardort aus Vollzeitgedächtnis:",
+        error?.code ||
+        error?.name ||
+        "Fehler"
+      );
+    }
+  }
 
   if (!weatherRequestHasPlace(effectiveMessage)) {
     pendingWeatherRequests.set(
@@ -4226,7 +4399,7 @@ ${automaticReplyLanguageInstructions()}
 Heute in der Zeitzone Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche. Nenne Ort, Zeitraum, Temperatur, Niederschlag und
 einen kurzen praktischen Hinweis, soweit die Quellen das hergeben.
-Bleib kompakt und erfinde keine Messwerte. Gib keine rohen URLs im Antworttext aus.
+Antworte kurz auf Deutsch. Erfinde keine Messwerte. Gib keine Links oder rohen URLs im sichtbaren Antworttext aus und mache keine Werbung.
 `
     });
 
