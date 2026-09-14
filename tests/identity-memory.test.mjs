@@ -142,6 +142,54 @@ test("direkter Speicherbefehl wird eng und ohne Inhaltsinferenz erkannt", () => 
   );
 });
 
+test("natürliche Gedächtnissignale speichern den vollständigen folgenden Inhalt", () => {
+  for (const [command, expected] of [
+    [
+      "Merk dir: Wir haben uns an einem Mittwoch kennengelernt.",
+      "Wir haben uns an einem Mittwoch kennengelernt."
+    ],
+    [
+      "Bitte merke dir, dass Salt gern am Fenster sitzt.",
+      "Salt gern am Fenster sitzt."
+    ],
+    [
+      "Hey Pam, pass mal auf: Der blaue Ordner gehört ins Regal.",
+      "Der blaue Ordner gehört ins Regal."
+    ],
+    [
+      "Hör mal zu, Peps bekommt heute sein Lieblingsfutter.",
+      "Peps bekommt heute sein Lieblingsfutter."
+    ]
+  ]) {
+    assert.deepEqual(
+      extractExplicitMemoryRequest(command),
+      {
+        requested: true,
+        content: expected,
+        confirmationMethod: "direct_memory_command"
+      },
+      command
+    );
+  }
+});
+
+test("eine sicher erkannte Gebärde nutzt dieselbe ownergebundene Speicherregel", () => {
+  const decision = evaluateIdentityMemoryWrite({
+    source: "sign_language",
+    role: "user",
+    selectedSpeakerId: "pam",
+    content: "Merk dir: Die Sonnenblume ist unser Testwort."
+  });
+
+  assert.equal(decision.kind, MEMORY_DECISION.PERSIST);
+  assert.equal(decision.memory.ownerId, "pam-sol");
+  assert.equal(decision.memory.sourceType, "text");
+  assert.equal(
+    decision.memory.confirmationMethod,
+    "direct_sign_language_command"
+  );
+});
+
 test("normale Nachrichten werden nicht automatisch dauerhaft gespeichert", () => {
   const decision = evaluateIdentityMemoryWrite({
     source: "text",

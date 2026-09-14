@@ -90,6 +90,7 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_CALENDAR_TITLE_LENGTH = 240;
     private static final int MAX_CALENDAR_DESCRIPTION_LENGTH = 2000;
     private static final long CALENDAR_DUPLICATE_WINDOW_MILLIS = 2 * 60 * 1000L;
+    private static final long CALENDAR_DUPLICATE_TIME_TOLERANCE_MILLIS = 60 * 1000L;
     private static final String CALENDAR_PREFERENCES =
         "human_holo_direct_calendar";
     private static final String CALENDAR_FINGERPRINT_KEY =
@@ -1166,12 +1167,88 @@ public class PhoneContactsPlugin extends Plugin {
         return result;
     }
 
+    private long findExistingCalendarEventId(
+        String title,
+        long startMillis,
+        long endMillis,
+        boolean allDay
+    ) {
+        long rangeStart = Math.max(
+            0L,
+            startMillis - CALENDAR_DUPLICATE_TIME_TOLERANCE_MILLIS
+        );
+        long rangeEnd = endMillis + CALENDAR_DUPLICATE_TIME_TOLERANCE_MILLIS;
+        Uri.Builder instancesBuilder =
+            CalendarContract.Instances.CONTENT_URI.buildUpon();
+        ContentUris.appendId(instancesBuilder, rangeStart);
+        ContentUris.appendId(instancesBuilder, rangeEnd);
+
+        String[] projection = new String[] {
+            CalendarContract.Instances.EVENT_ID,
+            CalendarContract.Instances.TITLE,
+            CalendarContract.Instances.BEGIN,
+            CalendarContract.Instances.END,
+            CalendarContract.Instances.ALL_DAY
+        };
+
+        try (Cursor cursor = getContext().getContentResolver().query(
+            instancesBuilder.build(),
+            projection,
+            CalendarContract.Calendars.VISIBLE + " = 1",
+            null,
+            CalendarContract.Instances.BEGIN + " ASC"
+        )) {
+            if (cursor == null) {
+                return -1L;
+            }
+            int eventIdIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.EVENT_ID
+            );
+            int titleIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.TITLE
+            );
+            int beginIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.BEGIN
+            );
+            int endIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.END
+            );
+            int allDayIndex = cursor.getColumnIndexOrThrow(
+                CalendarContract.Instances.ALL_DAY
+            );
+
+            while (cursor.moveToNext()) {
+                String existingTitle = cursor.getString(titleIndex);
+                long existingStart = cursor.getLong(beginIndex);
+                long existingEnd = cursor.getLong(endIndex);
+                boolean existingAllDay = cursor.getInt(allDayIndex) == 1;
+                if (
+                    title.equalsIgnoreCase(
+                        existingTitle == null ? "" : existingTitle.trim()
+                    ) &&
+                    existingAllDay == allDay &&
+                    Math.abs(existingStart - startMillis) <=
+                        CALENDAR_DUPLICATE_TIME_TOLERANCE_MILLIS &&
+                    Math.abs(existingEnd - endMillis) <=
+                        CALENDAR_DUPLICATE_TIME_TOLERANCE_MILLIS
+                ) {
+                    return cursor.getLong(eventIdIndex);
+                }
+            }
+        }
+
+        return -1L;
+    }
+
     private void saveCalendarEventNow(PluginCall call) {
         String title = call.getString("title", "Termin").trim();
         String description = call.getString("description", "").trim();
         Long startValue = numericLong(call, "startMillis");
         Long endValue = numericLong(call, "endMillis");
         boolean allDay = Boolean.TRUE.equals(call.getBoolean("allDay", false));
+        boolean yearly = "yearly".equals(
+            call.getString("recurrence", "").trim().toLowerCase(Locale.ROOT)
+        );
         if (title.length() > MAX_CALENDAR_TITLE_LENGTH) {
             title = title.substring(0, MAX_CALENDAR_TITLE_LENGTH).trim();
         }
@@ -1191,7 +1268,39 @@ public class PhoneContactsPlugin extends Plugin {
         }
 
         String cleanTitle = title.isEmpty() ? "Termin" : title;
-        String fingerprint = cleanTitle + "\n" + startValue + "\n" + endValue;
+        try {
+            long existingEventId = findExistingCalendarEventId(
+                cleanTitle,
+                startValue,
+                endValue,
+                allDay
+            );
+            if (existingEventId >= 0L) {
+                call.resolve(directCalendarResult(
+                    existingEventId,
+                    calendar,
+                    true
+                ));
+                return;
+            }
+        } catch (SecurityException error) {
+            call.reject(
+                "Android hat die Kalenderprüfung nicht freigegeben.",
+                "CALENDAR_PERMISSION_REQUIRED",
+                error
+            );
+            return;
+        } catch (Exception error) {
+            call.reject(
+                "Der Kalender konnte nicht sicher auf einen vorhandenen Eintrag geprüft werden.",
+                "CALENDAR_DUPLICATE_CHECK_FAILED",
+                error
+            );
+            return;
+        }
+
+        String fingerprint =
+            cleanTitle + "\n" + startValue + "\n" + endValue + "\n" + yearly;
         long now = System.currentTimeMillis();
         SharedPreferences preferences = getContext().getSharedPreferences(
             CALENDAR_PREFERENCES,
@@ -1216,7 +1325,16 @@ public class PhoneContactsPlugin extends Plugin {
         values.put(CalendarContract.Events.CALENDAR_ID, calendar.id);
         values.put(CalendarContract.Events.TITLE, cleanTitle);
         values.put(CalendarContract.Events.DTSTART, startValue);
-        values.put(CalendarContract.Events.DTEND, endValue);
+        if (yearly) {
+            long durationSeconds = Math.max(60L, (endValue - startValue) / 1000L);
+            values.put(CalendarContract.Events.RRULE, "FREQ=YEARLY");
+            values.put(
+                CalendarContract.Events.DURATION,
+                allDay ? "P1D" : "P" + durationSeconds + "S"
+            );
+        } else {
+            values.put(CalendarContract.Events.DTEND, endValue);
+        }
         values.put(
             CalendarContract.Events.EVENT_TIMEZONE,
             allDay ? "UTC" : "Europe/Berlin"
