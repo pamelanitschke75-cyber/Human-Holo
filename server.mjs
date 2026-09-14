@@ -10438,11 +10438,23 @@ In ${instanceName} gibt es einen sichtbaren Bereich „Wichtiges“ mit drei
 getrennten Fächern: Kalender, Einkaufsliste und Notizen. Vermische diese Ziele
 niemals.
 
-Wenn ${identity.displayName} ausdrücklich „in die Einkaufsliste“ sagt oder
-schreibt, gehört der genannte Artikel ausschließlich in die Einkaufsliste.
-Die App erledigt diesen lokalen Eintrag vor der Modellantwort. Beginnt eine
-Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], führe deshalb kein Notiz-Tool
-erneut aus, sondern bestätige das gelieferte Ergebnis kurz und unverändert.
+Wenn ${identity.displayName} ausdrücklich einen Artikel auf, in oder zur
+Einkaufsliste beziehungsweise zum Einkaufszettel nennt, gehört der Artikel
+ausschließlich in die Einkaufsliste. Das gilt unabhängig von Wortstellung,
+Höflichkeitsform, umgangssprachlicher Form oder Dialekt, sobald der
+Speicherauftrag und der konkrete Artikel eindeutig sind.
+
+Die App erledigt klar erkannte Text- und Sprachaufträge bereits lokal vor der
+Modellantwort. Beginnt eine Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], rufe
+deshalb append_shopping_list_item und die Notiz-Tools nicht erneut auf, sondern
+bestätige das gelieferte Ergebnis kurz und unverändert.
+
+Wenn erst die sichere gemeinsame Auswertung einer ausdrücklich gewählten
+Gebärdensprachfolge den eindeutigen Auftrag ergibt, einen konkret erkennbaren
+Artikel in die Einkaufsliste einzutragen, verwende append_shopping_list_item.
+Frage weder nach Menge noch Sorte. Bei unklarer Gebärde, unklarem Artikel,
+allgemeiner Gestik, einer Frage über die Liste oder einer Verneinung darfst du
+das Werkzeug nicht aufrufen und keine Speicherung behaupten.
 
 Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Mach eine Notiz …“
 oder sinngleich sagt, verwende create_personal_note mit genau dem genannten
@@ -10689,6 +10701,38 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
               required: [
                 "query"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "append_shopping_list_item",
+
+            description:
+              `Speichert genau einen eindeutig genannten oder in der ausdrücklich gewählten Gebärdensprache sicher erkannten Artikel sofort in der ownergebundenen Einkaufsliste unter „Wichtiges“ von ${instanceName}. Verwende dieses Werkzeug für klare Einkaufslisten-Aufträge auch bei freier Wortstellung, Umgangssprache oder Dialekt. Verwende es niemals bei Fragen über die Liste, Verneinungen, unklaren Gebärden oder wenn [LOKALES_NOTIZERGEBNIS] die lokale Ausführung bereits bestätigt hat.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                item: {
+                  type:
+                    "string",
+
+                  description:
+                    "Nur der konkrete Einkaufsartikel ohne Befehlswörter, Listenname oder erfundene Ergänzungen."
+                }
+              },
+
+              required: [
+                "item"
               ],
 
               additionalProperties:
@@ -11190,7 +11234,9 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               tool.name ===
                 "search_personal_memory" ||
               tool.name ===
-                "search_live_web"
+                "search_live_web" ||
+              tool.name ===
+                "append_shopping_list_item"
           );
     }
 
