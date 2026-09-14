@@ -2920,11 +2920,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   function explicitListTitle(value) {
     const normalized = normalizeNoteSearchText(value)
       .replace(/[\s_-]+/g, "");
+
+    if (
+      /^(?:ei(?:n)?kaufs?(?:list(?:e|en|erl|l)?|lischt(?:e)?|zett(?:el|l))|i(?:i)?chaufs?(?:liste|lischte|zettel)|shoppinglist)$/u.test(normalized)
+    ) {
+      return "Einkaufsliste";
+    }
+
     const titles = {
       aufgabenliste: "Aufgabenliste",
       besorgungsliste: "Besorgungsliste",
-      einkaufliste: "Einkaufsliste",
-      einkaufsliste: "Einkaufsliste",
+      besorgungszettel: "Besorgungsliste",
       packliste: "Packliste",
       todoliste: "Aufgabenliste",
       wunschliste: "Wunschliste"
@@ -2946,7 +2952,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (!text) return false;
 
     const explicitListRequest =
-      /\b(?:einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\b/u.test(text);
+      /\b(?:ei(?:n)?kaufs?(?:\s|-)*(?:list\w*|lischt\w*|zett(?:el|l))|i(?:i)?chaufs?(?:liste|lischte|zettel)|shopping(?:\s|-)*list|besorgungs?liste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\b/u.test(text);
     const explicitNoteRequest =
       /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
       /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
@@ -3322,35 +3328,240 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return null;
     }
 
+    const normalizedMessage = normalizeNoteSearchText(cleanMessage);
+    if (
+      /\b(?:nicht|nix|nichts|nie|kein(?:e|en|er|es)?)\b/u.test(
+        normalizedMessage
+      )
+    ) {
+      return null;
+    }
+
+    const listNamePattern =
+      "ei(?:n)?kaufs?[\\s-]*(?:list(?:e|en|erl|l)?|lischt(?:e)?|zett(?:el|l))|" +
+      "i(?:i)?chaufs?(?:liste|lischte|zettel)|shopping[\\s-]*list|" +
+      "besorgungs?liste|aufgabenliste|to[-\\s]?do[-\\s]?liste|" +
+      "packliste|wunschliste";
+    const listArticlePattern =
+      "(?:(?:meine(?:r)?|die|der|den|dem|de|d['’]?|['’]?n)\\s+)?";
+    const listDestinationPattern =
+      "(?:auf|in|zu(?:r)?|uf|uff|op|i|auf['’]?(?:n|m|d)|" +
+      "in['’]?(?:n|d)|inne)\\s+" +
+      listArticlePattern +
+      "(" +
+      listNamePattern +
+      ")";
+    const listOnlyPattern =
+      listArticlePattern +
+      "(" +
+      listNamePattern +
+      ")";
+    const leadingActionPattern =
+      "(?:setz(?:e)?|pack(?:e)?|schreib(?:e)?|trag(?:e)?|nimm|" +
+      "speicher(?:e)?|hinterleg(?:e)?|f(?:u|ü|ue)g(?:e)?|" +
+      "tu(?:e|a)?|mach(?:e)?|hau)";
+    const trailingActionPattern =
+      "(?:setz(?:e|en)?|schreib(?:e|en)?|eintrag(?:e|en)?|" +
+      "trag(?:e|en)?|pack(?:e|en)?|speicher(?:e|n)?|" +
+      "hinterleg(?:e|en)?|hinzuf(?:u|ü|ue)g(?:e|en)?|" +
+      "draufschreib(?:e|en)?|dazutu(?:e|n)?|tu(?:e|n|a)?|" +
+      "mach(?:e|en)?|soll|muss)";
+    const commandFillersPattern =
+      "(?:(?:(?:mir|mer|ma)|(?:bitte|mal|doch|grad(?:e)?))\\s+)*";
+    const inlineFillersPattern =
+      "(?:(?:bitte|mal|ma|doch|noch)\\s+)*";
+    const politeTailPattern =
+      "(?:\\s*[,;:]?\\s*(?:bitte\\w*|bittsch\\S*|danke))?" +
+      "[\\s,;:.!?]*$";
+
     const listPatterns = [
       {
-        pattern: /^(?:bitte\s+)?(?:setz(?:e)?|pack(?:e)?|f(?:u|ü)g(?:e)?|trag(?:e)?|nimm|speicher(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:auf|in|zu(?:r)?)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinzu|drauf))?(?:\s*[,;:]?\s*bitte\w*)?[\s,;:.!?]*$/i,
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(?:kannst|konntest|könntest|koenntest|" +
+          "wurdest|würdest|wuerdest)\\s+du\\s+" +
+          commandFillersPattern +
+          "(.+?)\\s+" +
+          inlineFillersPattern +
+          listDestinationPattern +
+          "\\s+" +
+          trailingActionPattern +
+          politeTailPattern,
+          "iu"
+        ),
         contentGroup: 1,
         listGroup: 2
       },
       {
-        pattern: /^(?:bitte\s+)?f(?:u|ü)g(?:e)?\s+(?:(?:meiner|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\s+(.+?)\s+hinzu[.!?]*$/i,
-        contentGroup: 2,
-        listGroup: 1
-      },
-      {
-        pattern: /^(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)(?:\s+(?:ein|hinein|rein|drauf))?(?:\s*[,;:]?\s*bitte\w*)?[\s,;:.!?]*$/i,
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(?:kannst|konntest|könntest|koenntest|" +
+          "wurdest|würdest|wuerdest)\\s+du\\s+" +
+          commandFillersPattern +
+          "(.+?)\\s+" +
+          inlineFillersPattern +
+          listOnlyPattern +
+          "\\s+" +
+          trailingActionPattern +
+          politeTailPattern,
+          "iu"
+        ),
         contentGroup: 1,
         listGroup: 2
       },
       {
-        pattern: /^(?:bitte\s+)?(?:in|auf)\s+(?:(?:meine|die|der)\s+)?(einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i,
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          leadingActionPattern +
+          "\\s+" +
+          commandFillersPattern +
+          "(.+?)\\s+" +
+          inlineFillersPattern +
+          listDestinationPattern +
+          "(?:\\s+(?:ein|hinzu|drauf|dazu))?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          leadingActionPattern +
+          "\\s+" +
+          commandFillersPattern +
+          "(.+?)\\s+" +
+          inlineFillersPattern +
+          listOnlyPattern +
+          "(?:\\s+(?:ein|hinzu|drauf|dazu))?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          leadingActionPattern +
+          "\\s+" +
+          commandFillersPattern +
+          listDestinationPattern +
+          "\\s*[:,-]?\\s*" +
+          inlineFillersPattern +
+          "(.+?)(?:\\s+(?:ein|hinzu|drauf|dazu))?" +
+          politeTailPattern,
+          "iu"
+        ),
         contentGroup: 2,
         listGroup: 1
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          leadingActionPattern +
+          "\\s+" +
+          commandFillersPattern +
+          listOnlyPattern +
+          "\\s*[:,-]?\\s*" +
+          inlineFillersPattern +
+          "(.+?)(?:\\s+(?:ein|hinzu|drauf|dazu))?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 2,
+        listGroup: 1
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(.+?)\\s+" +
+          "(?:soll|muss|geh(?:o|ö|oe)rt|kommt)\\s+" +
+          listDestinationPattern +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(.+?)\\s+" +
+          inlineFillersPattern +
+          listDestinationPattern +
+          "\\s+" +
+          trailingActionPattern +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(.+?)\\s+" +
+          inlineFillersPattern +
+          listOnlyPattern +
+          "\\s+" +
+          trailingActionPattern +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          listDestinationPattern +
+          "\\s*[:,-]?\\s*" +
+          inlineFillersPattern +
+          "(.+?)(?:\\s+" +
+          trailingActionPattern +
+          ")?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 2,
+        listGroup: 1
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?" +
+          listOnlyPattern +
+          "\\s*[:,-]\\s*" +
+          inlineFillersPattern +
+          "(.+?)(?:\\s+" +
+          trailingActionPattern +
+          ")?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 2,
+        listGroup: 1
+      },
+      {
+        pattern: new RegExp(
+          "^(?:bitte\\s+)?(.+?)\\s+" +
+          inlineFillersPattern +
+          listDestinationPattern +
+          "(?:\\s+(?:ein|hinein|rein|drauf|dazu))?" +
+          politeTailPattern,
+          "iu"
+        ),
+        contentGroup: 1,
+        listGroup: 2
       }
     ];
+
+    const invalidItemStart =
+      /^(?:ist|sind|steht|stehen|stand|war|waren|was|wer|wann|wo|wie|warum|wieso|weshalb|welch\w*|habe|haben|hast|hat|gibt|kommt|gehort|gehört|setz\w*|schreib\w*|trag\w*|fug\w*|füg\w*|hinterleg\w*)\b/u;
 
     for (const listPattern of listPatterns) {
       const match = cleanMessage.match(listPattern.pattern);
       if (!match) continue;
       const content = cleanExplicitSaveContent(match[listPattern.contentGroup]);
+      const normalizedContent = normalizeNoteSearchText(content);
       const rawListTitle = match[listPattern.listGroup];
-      if (content) {
+      if (content && !invalidItemStart.test(normalizedContent)) {
         return {
           category: explicitListTitle(rawListTitle),
           content,
@@ -3917,6 +4128,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       answer: `„${cleanItem}“ steht jetzt dauerhaft auf deiner ${cleanListTitle} ✅️`
     };
   }
+
+  function executeShoppingListTool(name, args = {}) {
+    if (name !== "append_shopping_list_item") {
+      return {
+        success: false,
+        answer: "Unbekannte Einkaufslisten-Funktion."
+      };
+    }
+
+    const result = appendPersonalListItem(
+      "Einkaufsliste",
+      args?.item
+    );
+    return {
+      ...result,
+      localSaved: Boolean(result?.success),
+      destination: "Einkaufsliste"
+    };
+  }
+
+  window.executeSolHoloShoppingListTool =
+    executeShoppingListTool;
 
   function saveExplicitRequest(request) {
     if (request?.kind === "list-item") {
