@@ -1,45 +1,17 @@
-const CACHE_NAME = "human-holo-v1-brand-hey-pam-voice";
+const CACHE_VERSION = "human-holo-root-redirect-no-cache-1";
 
-const APP_FILES = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/sol-holo-ui.css",
-  "/sol-holo-ui.js",
-  "/media-tools.js",
-  "/human-holo-logo.png",
-  "/icon-192.png",
-  "/icon-512.png"
-];
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
 
-self.addEventListener("install", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_FILES);
-    })
+    caches.keys()
+      .then(names => Promise.all(names.map(name => caches.delete(name))))
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((names) => {
-      return Promise.all(
-        names
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
-  );
-});
-
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
-  );
-});
+// Kein Fetch-Handler: Der frühere GitHub-Pages-App-Cache ist abgeschaltet.
+void CACHE_VERSION;

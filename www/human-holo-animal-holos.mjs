@@ -20,7 +20,9 @@ import {
   serializeAnimalHoloState
 } from "./human-holo-animal-core.mjs";
 
-const BACKEND_URL = "https://sol-holo.onrender.com";
+const BACKEND_URL =
+  globalThis.HumanHoloBackend?.baseUrl ||
+  "https://human-holo-backend.invalid";
 const PENDING_CONVERSATION_TTL_MS = 30 * 60 * 1000;
 const PENDING_CONVERSATION_STORAGE_PREFIX =
   "human-holo-animal-conversation-pending-v1";

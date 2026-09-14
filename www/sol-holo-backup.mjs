@@ -19,7 +19,9 @@ const state = {
   memoryImport: null
 };
 
-const HUMAN_HOLO_BACKEND_URL = "https://sol-holo.onrender.com";
+const HUMAN_HOLO_BACKEND_URL =
+  globalThis.HumanHoloBackend?.baseUrl ||
+  "https://human-holo-backend.invalid";
 const MEMORY_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
 const OWNER_MEMORY_RESTORE_CHUNK_ITEMS = 200;
 const OWNER_MEMORY_RESTORE_CHUNK_BYTES = 1_500_000;
@@ -844,4 +846,8 @@ installUi();
 
 window.HumanHoloConfirmedMemoryImport = Object.freeze({
   open: openConfirmedMemoryImport
+});
+
+window.HumanHoloBackup = Object.freeze({
+  open: openDialog
 });

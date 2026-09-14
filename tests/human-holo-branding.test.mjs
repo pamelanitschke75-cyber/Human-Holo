@@ -13,17 +13,18 @@ function pngDimensions(path) {
   };
 }
 
-test("Human Holo ist der sichtbare Name bei unveränderter Android-Identität", () => {
+test("Human Holo ist sichtbar, ohne Pams Android-Identität zu übernehmen", () => {
   const capacitor = JSON.parse(readText("capacitor.config.json"));
   const manifest = JSON.parse(readText("www/manifest.json"));
 
   assert.equal(capacitor.appName, "Human Holo");
-  assert.equal(capacitor.appId, "com.solholo.app");
+  assert.equal(capacitor.appId, "invalid.humanholo.unconfigured");
+  assert.notEqual(capacitor.appId, "com.solholo.app");
   assert.equal(manifest.name, "Human Holo");
   assert.equal(manifest.short_name, "Human Holo");
 });
 
-test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
+test("aktueller Human-Holo-Bildschirm nutzt die eingeladene Testidentität", () => {
   const html = readText("www/index.html");
   const ui = readText("www/sol-holo-ui.js");
   const css = readText("www/sol-holo-ui.css");
@@ -35,15 +36,16 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
 
   assert.match(html, /<title>Human Holo<\/title>/u);
   assert.match(html, /human-holo-logo\.png/u);
-  assert.match(html, /instanceName:"Pam’s Holo"/u);
-  assert.match(html, /ownerId:"pam-sol"/u);
-  assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Du";/u);
+  assert.match(html, /HumanHoloTestAccess\?\.identity\?\.\(\)/u);
+  assert.match(html, /instanceName:"Human Holo · Test"/u);
+  assert.match(html, /ownerId:""/u);
+  assert.match(html, /const HOLO_CHAT_SPEAKER =\s*"Human Holo · KI";/u);
   assert.doesNotMatch(html, /addMessage\(\s*"Sol"/u);
   assert.doesNotMatch(html, /Schreib Sol|Nachricht an Sol|Mit Sol sprechen/u);
   assert.match(html, /sol-holo-ui\.js\?v=83/u);
   assert.match(ui, /Human Holo · \$\{instanceName\}/u);
-  assert.match(ui, /Pam’s Holo/u);
-  assert.match(ui, /Chat mit Pam’s Holo/u);
+  assert.match(ui, /window\.SolHoloIdentity\?\.selected\?\.\(\)\?\.instanceName/u);
+  assert.match(ui, /Human Holo · Test/u);
   assert.match(ui, /BY PAMELA NITSCHKE UND STEFANIE HÖRATH/u);
   assert.match(renderedHome, /BY PAMELA NITSCHKE UND STEFANIE HÖRATH/u);
   assert.match(ui, /DEVELOPED WITH <strong>CHATGPT BY OPENAI<\/strong>/u);
@@ -55,7 +57,7 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(ui, /humanHoloHero[\s\S]*humanHoloPosterCredits/u);
   assert.match(ui, /Miteinander<br>Füreinander<br>Für eine<br>bessere Welt♡/u);
   assert.match(ui, /Together<br>Forever♡/u);
-  assert.match(ui, /class="humanHoloWelcomeTitle">Hallo Pam♡<\/h2>/u);
+  assert.match(ui, /class="humanHoloWelcomeTitle">Hallo♡<\/h2>/u);
   assert.match(ui, /homeTitle\.textContent = displayName \? `Hallo \$\{displayName\}♡` : "Hallo♡"/u);
   assert.doesNotMatch(`${html}\n${ui}`, /pamUnicorn--home/u);
   assert.doesNotMatch(
@@ -82,13 +84,15 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.match(html, /function humanHoloVisibleText\(value\)/u);
   assert.match(ui, /function applyHumanHoloVisibleNaming\(root = document\)/u);
   assert.match(ui, /new MutationObserver/u);
-  assert.match(ui, /Immer aktiv · updatefest/u);
+  assert.match(ui, /Automatik aus · nur ausdrücklich bestätigt/u);
+  assert.match(ui, /KI-gestützte Software im Legal-Review-Profil/u);
   assert.doesNotMatch(ui, /askSol\("Sol,/u);
   assert.doesNotMatch(ui, /Chat mit Sol|SH♾️ zurück/u);
   assert.match(html, /class="solHoloLockLogo"[\s\S]*human-holo-logo\.png/u);
   assert.match(html, /HSG – HUMANS SECOND GENERATION!/u);
   assert.match(appLock, /human-holo-logo\.png/u);
   assert.match(appLock, /HSG – HUMANS SECOND GENERATION!/u);
+  assert.doesNotMatch(html, /app-lock-bootstrap\.mjs/u);
   assert.doesNotMatch(appLock, /SH♾️/u);
   assert.doesNotMatch(`${html}\n${ui}`, /Sol Holo/u);
 });
@@ -173,13 +177,15 @@ test("Startseitenmotiv ist seitlich erweitert und für den breiten Bildrahmen op
   });
 });
 
-test("Build #89 Signaturwächter folgt dem neuen Artefaktnamen", () => {
+test("Human Holo verwendet Pams historische Signatur nicht", () => {
   const build = readText(".github/workflows/android-build.yml");
   const guard = readText(".github/workflows/build89-signature-guard.yml");
 
-  assert.match(build, /Human-Holo-Update\.apk/u);
-  assert.match(build, /Human-Holo-Android-\$\{\{ steps\.signing_mode\.outputs\.mode \}\}/u);
-  assert.match(build, /SOL_HOLO_KEYSTORE_BASE64/u);
+  assert.match(build, /build-android:[\s\S]*?if: \$\{\{ false \}\}/u);
+  assert.match(build, /Android-Artefakte nur zur Buildprüfung kompilieren/u);
+  assert.match(build, /keine Signierung, kein Upload und keine Marktfreigabe/u);
+  assert.doesNotMatch(build, /jarsigner|upload-artifact|SOL_HOLO_KEYSTORE_BASE64/u);
+  assert.doesNotMatch(guard, /Human Holo · Legal-Review-Buildprüfung/u);
   assert.match(guard, /Human-Holo-Update\.apk/u);
   assert.match(guard, /E1:22:20:10:77:B9:3C:B4:7E:DB:69:51:44:6F:B8:DF:F7:74:27:A2:F5:A2:BD:47:19:47:4A:63:8F:E8:03:E9/u);
   assert.match(guard, /CN=Pam's Holo Original, O=Pam's Holo, C=DE/u);

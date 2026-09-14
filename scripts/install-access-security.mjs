@@ -101,9 +101,10 @@ if (!activity.includes(backupRegistration)) {
 /*
  * Wiederherstellungsgrundlage
  * --------------------------
- * Normale App-Daten, WebView/LocalStorage, Einstellungen und Datenbanken
- * dürfen Android Auto Backup bzw. Geräteübertragung verwenden. Zwei
- * Sicherheitsbereiche werden absichtlich NICHT übernommen:
+ * Das Legal-Review-Profil schaltet Android Auto Backup vollständig aus.
+ * Export und Wiederherstellung bleiben bewusst ausgelöste, verschlüsselte
+ * Nutzeraktionen. Die nachstehenden Ausschlüsse dienen als zusätzliche
+ * Absicherung für Geräteübertragungswerkzeuge.
  *
  * 1. sol_holo_access_security_v1_pam-sol
  *    enthält Metadaten zu einem Android-Keystore-Geräteschlüssel. Der private
@@ -169,7 +170,7 @@ if (!match) {
 
 let attributes = match[1];
 const requiredApplicationAttributes = [
-  ["android:allowBackup", "true"],
+  ["android:allowBackup", "false"],
   ["android:fullBackupContent", "@xml/sol_holo_backup_rules"],
   ["android:dataExtractionRules", "@xml/sol_holo_data_extraction_rules"]
 ];

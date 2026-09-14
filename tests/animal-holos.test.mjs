@@ -413,7 +413,7 @@ test("Der offene Kern trägt eine eindeutige MIT-Kennzeichnung", async () => {
   assert.match(source, /private photos, recordings and identity data/iu);
 });
 
-test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet", async () => {
+test("persönliche Tier-Holos bleiben als Quelle erhalten, aber im Human-Test geparkt", async () => {
   const [html, ui, solUi, server, workflow, worker] = await Promise.all([
     readFile(new URL("../www/index.html", import.meta.url), "utf8"),
     readFile(
@@ -429,8 +429,9 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=7/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.doesNotMatch(html, /human-holo-animal-holos\.mjs/u);
+  assert.match(html, /human-holo-test-export\.mjs\?v=1/u);
+  assert.doesNotMatch(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
   assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);
@@ -453,11 +454,14 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /save_animal_holo_observation/u);
   assert.match(server, /TIER_HOLO_AUTOSAVE/u);
   assert.match(server, /animal-holos\/profile-photo\/save/u);
+  assert.match(server, /feature: "animalHolos"/u);
+  assert.match(server, /pathValue\.startsWith\("\/animal-holos\/"\)/u);
+  assert.match(server, /if \(!isLaunchFeatureEnabled\("animalHolos"\)\)/u);
   assert.match(server, /jedes bestehende und künftig ownergebunden angelegte Tier-Holo/u);
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-293-animal-floating-dock/u);
+  assert.match(worker, /human-holo-legal-review-separated-backend-1/u);
 });
 
 test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {

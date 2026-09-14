@@ -8,7 +8,7 @@ async function source(path) {
   return readFile(new URL(path, root), "utf8");
 }
 
-test("Pams ausgelieferte Holo-Instanz enthält ausschließlich Pams lokale ID und Speicher", async () => {
+test("Pams lokale Implementierung bleibt geparkt und wird nicht als Human-Testidentität gewählt", async () => {
   const html = await source("www/index.html");
   const ui = await source("www/sol-holo-ui.js");
   const consent = await source("www/consent-ui-bootstrap.mjs");
@@ -25,6 +25,12 @@ test("Pams ausgelieferte Holo-Instanz enthält ausschließlich Pams lokale ID un
     assert.doesNotMatch(client, /steffi(?:-sol|s-holo)?/iu);
   }
 
+  assert.match(html, /HumanHoloTestAccess\?\.identity/u);
+  const identityBlock = html.match(
+    /const SOL_APP_IDENTITY = Object\.freeze\([\s\S]*?\n\);/u
+  )?.[0] ?? "";
+  assert.doesNotMatch(identityBlock, /pam-sol|Pam’s Holo/u);
+
   assert.match(ui, /function activeNotesStorageKey\(\)/u);
   assert.match(ui, /function activeCloneStorageKeys\(\)/u);
   assert.match(ui, /if \(!storageKey\) \{\s*personalNotes = \[\]/u);
@@ -35,6 +41,24 @@ test("Pams ausgelieferte Holo-Instanz enthält ausschließlich Pams lokale ID un
   assert.match(
     ui,
     /function restoreCustomCloneAppearance\(\) \{[\s\S]*quarantineLegacyCloneAppearance\(\);[\s\S]*applyCustomCloneAppearance\("", null\);/u
+  );
+  const restoreStart = ui.indexOf("function restoreCustomCloneAppearance()");
+  const parkedGuard = ui.indexOf(
+    'if (!featureEnabled("personalAppearance"))',
+    restoreStart
+  );
+  const legacyQuarantine = ui.indexOf(
+    "quarantineLegacyCloneAppearance();",
+    restoreStart
+  );
+  assert.ok(restoreStart >= 0);
+  assert.ok(parkedGuard > restoreStart);
+  assert.ok(legacyQuarantine > parkedGuard);
+  assert.match(ui, /`human-holo:\$\{introOwnerId\}:intro-v1-seen`/u);
+  assert.doesNotMatch(ui, /sol-holo-intro-v2-seen/u);
+  assert.match(
+    html,
+    /human-holo-test-conversation-session-v1:\$\{String\(/u
   );
   assert.match(
     ui,
@@ -62,14 +86,16 @@ test("Pams ausgelieferte Holo-Instanz enthält ausschließlich Pams lokale ID un
   assert.match(ui, /quarantineUnverifiedPamCloneAppearance\(keys\)/u);
 });
 
-test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sitzungs-ID", async () => {
+test("der Human-Teststand lädt eine flüchtige Einladung statt Pams Gerätebindung", async () => {
   const html = await source("www/index.html");
   const appLock = await source("www/app-lock-bootstrap.mjs");
+  const testAccess = await source("www/human-holo-test-access.js");
 
   assert.match(html, /PAM_SOL_VOICE_STORAGE_KEY/u);
   assert.match(html, /const SOL_APP_IDENTITY = Object\.freeze/u);
-  assert.match(html, /ownerId:"pam-sol"/u);
-  assert.match(html, /speakerId:"pam"/u);
+  assert.match(html, /HumanHoloTestAccess\?\.identity/u);
+  assert.match(html, /ownerId:""/u);
+  assert.match(html, /speakerId:""/u);
   assert.match(
     html,
     /let selectedSpeakerId =\s*SOL_APP_IDENTITY\.speakerId;/u
@@ -82,13 +108,16 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   assert.match(html, /class="solholo-booting"/u);
   assert.match(html, /id="solHoloBootScreen"/u);
   assert.match(
-    appLock,
+    testAccess,
     /classList\.remove\("solholo-booting"\)/u
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=5/u);
+  assert.match(html, /human-holo-test-access\.js\?v=1/u);
+  assert.doesNotMatch(html, /app-lock-bootstrap\.mjs/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
+  assert.match(testAccess, /sessionStorage\.setItem/u);
+  assert.doesNotMatch(testAccess, /localStorage/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /authorizeAppAccess/u);
   assert.match(appLock, /consumeCriticalAuthorization/u);

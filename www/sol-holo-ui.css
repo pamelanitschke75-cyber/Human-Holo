@@ -4948,6 +4948,333 @@ body.voice-open #onboardingScreen{
   line-height:1.55;
 }
 
+/* Persönliches Gedächtnis · transparente, ownergebundene Steuerung */
+.visuallyHidden{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+
+.personalMemoryControls{
+  display:grid;
+  gap:15px;
+  margin-top:18px;
+  padding:17px;
+  border:1px solid rgba(102,218,255,.3);
+  border-radius:23px;
+  background:linear-gradient(155deg,rgba(24,35,104,.62),rgba(8,15,38,.82));
+}
+
+.personalMemoryControlHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.personalMemoryControlHeader .eyebrow{
+  margin:0 0 4px;
+}
+
+.personalMemoryControlHeader h3,
+.personalMemoryManager h4,
+.dataErasurePreview h4{
+  margin:0;
+  color:#fff;
+}
+
+.memoryCompactButton,
+.memoryItemAction{
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid rgba(119,213,255,.44);
+  border-radius:13px;
+  color:#eefaff;
+  background:rgba(37,77,153,.55);
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.memoryCompactButton:disabled,
+.memoryItemAction:disabled{
+  opacity:.48;
+  cursor:default;
+}
+
+.memoryArchitectureFacts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+
+.memoryArchitectureFacts p{
+  margin:0;
+  padding:11px;
+  border:1px solid rgba(142,181,255,.24);
+  border-radius:15px;
+  background:rgba(17,28,69,.62);
+}
+
+.memoryArchitectureFacts strong,
+.memoryArchitectureFacts span,
+.memoryModeChoice strong,
+.memoryModeChoice span,
+.memoryPauseChoice strong,
+.memoryPauseChoice span{
+  display:block;
+}
+
+.memoryArchitectureFacts strong{
+  color:#f7fbff;
+  font-size:11px;
+}
+
+.memoryArchitectureFacts span{
+  margin-top:4px;
+  color:#9caccc;
+  font-size:10px;
+  line-height:1.4;
+}
+
+.memoryModeFieldset{
+  display:grid;
+  gap:9px;
+  margin:0;
+  padding:0;
+  border:0;
+}
+
+.memoryModeFieldset legend{
+  margin-bottom:9px;
+  color:#dfe8ff;
+  font-size:13px;
+  font-weight:800;
+}
+
+.memoryModeChoice,
+.memoryPauseChoice,
+.memoryAcknowledgement,
+.memoryCategoryChoice{
+  display:grid;
+  grid-template-columns:20px minmax(0,1fr);
+  align-items:start;
+  gap:9px;
+  color:#b9c8e6;
+  font-size:12px;
+  line-height:1.48;
+}
+
+.memoryModeChoice,
+.memoryPauseChoice,
+.memoryAcknowledgement{
+  padding:12px;
+  border:1px solid rgba(135,161,230,.25);
+  border-radius:16px;
+  background:rgba(8,16,41,.58);
+}
+
+.memoryModeChoice input,
+.memoryPauseChoice input,
+.memoryAcknowledgement input,
+.memoryCategoryChoice input{
+  width:18px;
+  height:18px;
+  margin:1px 0 0;
+  accent-color:#52d9ff;
+}
+
+.memoryModeChoice strong,
+.memoryPauseChoice strong{
+  margin-bottom:3px;
+  color:#fff;
+}
+
+.memoryCategoryChoices{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  padding:12px;
+  border:1px solid rgba(126,166,234,.21);
+  border-radius:16px;
+  background:rgba(4,12,32,.42);
+}
+
+.memoryCategoryChoices[data-disabled]{
+  opacity:.5;
+}
+
+.memorySafetyNote,
+.memoryDeletionBoundary,
+.personalMemoryControlStatus,
+.dataRightsStatus{
+  margin:0;
+  color:#9cacca;
+  font-size:11px;
+  line-height:1.55;
+}
+
+.personalMemoryControlStatus[data-kind="success"],
+.dataRightsStatus[data-kind="success"]{
+  color:#84efc4;
+}
+
+.personalMemoryControlStatus[data-kind="error"],
+.dataRightsStatus[data-kind="error"]{
+  color:#ffacb9;
+}
+
+.personalMemoryControlStatus[data-kind="warning"],
+.dataRightsStatus[data-kind="warning"]{
+  color:#ffd68a;
+}
+
+.personalMemoryManager{
+  display:grid;
+  gap:11px;
+  padding-top:3px;
+}
+
+.personalMemorySearchForm{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+}
+
+.personalMemorySearchForm input,
+.dataErasurePreview input[type="text"]{
+  min-width:0;
+  min-height:42px;
+  padding:9px 11px;
+  border:1px solid rgba(132,185,237,.32);
+  border-radius:13px;
+  color:#fff;
+  background:rgba(5,12,29,.72);
+  font:inherit;
+}
+
+.personalMemoryList{
+  display:grid;
+  gap:9px;
+}
+
+.personalMemoryItem,
+.personalMemoryEmpty{
+  margin:0;
+  padding:13px;
+  border:1px solid rgba(119,158,226,.24);
+  border-radius:16px;
+  background:rgba(5,13,34,.62);
+}
+
+.personalMemoryItem[data-blocked="true"]{
+  opacity:.62;
+  border-style:dashed;
+}
+
+.personalMemoryContent{
+  margin:0;
+  color:#f4f7ff;
+  font-size:13px;
+  line-height:1.52;
+  overflow-wrap:anywhere;
+}
+
+.personalMemoryMeta,
+.personalMemoryEmpty{
+  color:#93a4c5;
+  font-size:10px;
+  line-height:1.5;
+}
+
+.personalMemoryMeta{
+  margin:7px 0 0;
+}
+
+.personalMemoryItemActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:11px;
+}
+
+.memoryItemAction.danger,
+.dangerRow .rowIcon{
+  border-color:rgba(255,115,139,.45);
+  color:#ffc1cc;
+  background:rgba(139,34,64,.28);
+}
+
+/* Betroffenenrechte · Export vor transaktionaler Gesamtlöschung */
+.dataRightsPanel{
+  margin-top:13px;
+}
+
+.dataErasurePreview{
+  display:grid;
+  gap:11px;
+  padding:15px;
+  border:1px solid rgba(255,119,143,.42);
+  border-radius:18px;
+  color:#dce5fa;
+  background:rgba(69,15,37,.32);
+}
+
+.dataErasurePreview[hidden]{
+  display:none;
+}
+
+.dataErasurePreview p,
+.dataErasurePreview label{
+  margin:0;
+  font-size:12px;
+  line-height:1.55;
+}
+
+.dataErasurePreview code{
+  display:block;
+  padding:10px;
+  border-radius:12px;
+  color:#ffd4dd;
+  background:rgba(7,10,25,.68);
+  overflow-wrap:anywhere;
+  font-size:11px;
+}
+
+.dataErasureExecute{
+  min-height:48px;
+  padding:11px 14px;
+  border:1px solid rgba(255,124,148,.58);
+  border-radius:15px;
+  color:#fff;
+  background:linear-gradient(145deg,#8d234a,#5d1737);
+  font:inherit;
+  font-weight:900;
+}
+
+.dataErasureExecute:disabled{
+  opacity:.42;
+}
+
+@media(max-width:420px){
+  .memoryArchitectureFacts,
+  .memoryCategoryChoices{
+    grid-template-columns:1fr;
+  }
+
+  .personalMemoryControlHeader{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
 
 /* Sichtbare gemeinsame Human-Holo-Zuordnung · Startseite */
 #homeView .humanHoloHero .humanHoloPosterCredits{

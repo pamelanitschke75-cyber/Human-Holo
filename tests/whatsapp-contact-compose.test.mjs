@@ -18,24 +18,6 @@ const android = fs.readFileSync(
   new URL("../android-native/PhoneContactsPlugin.java", import.meta.url),
   "utf8"
 );
-const autoSendCommand = fs.readFileSync(
-  new URL("../android-native/WhatsAppAutoSendCommand.java", import.meta.url),
-  "utf8"
-);
-const autoSendService = fs.readFileSync(
-  new URL(
-    "../android-native/WhatsAppAutoSendAccessibilityService.java",
-    import.meta.url
-  ),
-  "utf8"
-);
-const autoSendServiceConfig = fs.readFileSync(
-  new URL(
-    "../android-native/sol_holo_whatsapp_auto_send_service.xml",
-    import.meta.url
-  ),
-  "utf8"
-);
 const installer = fs.readFileSync(
   new URL("../scripts/install-whatsapp-driving-mode.mjs", import.meta.url),
   "utf8"
@@ -268,82 +250,40 @@ test("Kontaktalias bleibt im privaten App-Bereich und wird gegen Kontakte geprü
   assert.match(android, /storedOnlyOnDevice", true/u);
 });
 
-test("WhatsApp-Auto-Senden ist einmalig, explizit und fail-closed", () => {
+test("WhatsApp wird nur als sichtbarer Entwurf geöffnet", () => {
   const method = sourceBetween(
     android,
     "public void prepareWhatsApp",
     "private void confirmExternalAction"
   );
   assert.match(method, /authority\("wa\.me"\)/u);
-  assert.match(method, /call\.getBoolean\("autoSend", false\)/u);
-  assert.match(method, /call\.getBoolean\("explicitOwnerCommand", false\)/u);
-  assert.match(method, /whatsAppAutoSendAccessEnabled/u);
-  assert.match(method, /WhatsAppAutoSendCommand\.arm/u);
-  assert.match(method, /WhatsAppAutoSendAccessibilityService\.wakeForPendingCommand/u);
-  assert.match(method, /finalWhatsAppSendRequired", false/u);
-  assert.match(method, /singleUseCommand", true/u);
   assert.match(method, /confirmExternalAction/u);
   assert.match(method, /Intent\.ACTION_VIEW/u);
+  assert.match(method, /automaticSendRequested", false/u);
   assert.match(method, /result\.put\("sent", false\)/u);
   assert.match(method, /finalWhatsAppSendRequired", true/u);
+  assert.match(method, /tippst anschließend selbst in WhatsApp auf Senden/u);
+  assert.doesNotMatch(method, /autoSend|explicitOwnerCommand|Accessibility/u);
   assert.doesNotMatch(method, /Intent\.ACTION_SEND\b/u);
   assert.match(android, /WHATSAPP_PACKAGE = "com\.whatsapp"/u);
   assert.match(android, /"com\.whatsapp\.w4b"/u);
-  assert.match(installer, /<package android:name="\$\{whatsAppPackage\}"/u);
-  assert.match(installer, /"com\.whatsapp"/u);
-  assert.match(installer, /"com\.whatsapp\.w4b"/u);
-  assert.match(
-    installer,
-    /WhatsAppAutoSendAccessibilityService\.java/u
-  );
-  assert.match(
-    installer,
-    /android\.permission\.BIND_ACCESSIBILITY_SERVICE/u
-  );
-
-  assert.match(autoSendCommand, /static final long DEFAULT_TTL_MS = 30_000L/u);
-  assert.match(autoSendCommand, /private static Pending pending/u);
-  assert.match(autoSendCommand, /WHATSAPP_COMMAND_ALREADY_ACTIVE/u);
-  assert.doesNotMatch(autoSendCommand, /SharedPreferences/u);
-  assert.match(autoSendCommand, /public static synchronized Pending claim/u);
-  assert.match(autoSendService, /pending\.packageName\.contentEquals/u);
-  assert.match(autoSendService, /findExactDraft/u);
-  assert.match(autoSendService, /findRecipientEvidence/u);
-  assert.match(autoSendService, /findSendControl/u);
-  assert.match(autoSendService, /scheduleRetryIfPending/u);
-  assert.match(autoSendService, /clickableSelfOrAncestor/u);
-  assert.match(autoSendService, /RETRY_INTERVAL_MS/u);
-  assert.match(autoSendService, /WhatsAppAutoSendCommand\.claim/u);
-  assert.match(autoSendService, /scheduleReturnToSolHolo\(claimed\)/u);
-  assert.match(autoSendService, /performGlobalAction\(GLOBAL_ACTION_BACK\)/u);
-  assert.match(autoSendService, /new Intent\(this, MainActivity\.class\)/u);
-  assert.equal(
-    (autoSendService.match(/ACTION_CLICK/g) || []).length,
-    1,
-    "Der Dienst darf genau eine Klickstelle besitzen"
-  );
-  assert.match(
-    autoSendServiceConfig,
-    /android:packageNames="com\.whatsapp,com\.whatsapp\.w4b"/u
-  );
-  assert.match(autoSendServiceConfig, /android:canRetrieveWindowContent="true"/u);
-  assert.match(autoSendServiceConfig, /android:isAccessibilityTool="false"/u);
+  assert.match(installer, /WhatsAppAutoSendAccessibilityService\.java/u);
+  assert.match(installer, /rmSync\(join\(javaTarget, fileName\), \{ force: true \}\)/u);
+  assert.doesNotMatch(installer, /android\.permission\.BIND_ACCESSIBILITY_SERVICE/u);
 });
 
 test("Text- und Sprachchat kennen dasselbe lokale WhatsApp-Werkzeug", () => {
   assert.match(server, /name:\s*\n\s*"prepare_whatsapp"/u);
-  assert.match(server, /ausdrücklichem WhatsApp-Sendeauftrag/u);
-  assert.match(server, /explicit_whatsapp_command/u);
-  assert.match(server, /enum:\s*\[\s*true\s*\]/u);
-  assert.match(server, /Ohne diese technische Rückmeldung niemals behaupten/u);
+  assert.match(server, /Öffnet nach sichtbarer Bestätigung nur einen WhatsApp-Entwurf/u);
+  assert.match(server, /tippt selbst auf Senden/u);
+  assert.doesNotMatch(server, /explicit_whatsapp_command/u);
   assert.match(html, /"prepare_whatsapp"/u);
   assert.match(ui, /executePhoneTool\("prepare_whatsapp"/u);
   assert.match(ui, /plugin\.prepareWhatsApp/u);
-  assert.match(ui, /autoSend: automaticSend/u);
-  assert.match(ui, /explicitOwnerCommand: automaticSend/u);
-  assert.match(ui, /explicit_whatsapp_command/u);
-  assert.match(ui, /whatsAppAutoSendResult/u);
-  assert.match(ui, /automatisch gesendet/u);
+  assert.match(ui, /automaticSendRequested: false/u);
+  assert.match(ui, /tippst in WhatsApp selbst auf Senden/u);
+  assert.doesNotMatch(ui, /explicit_whatsapp_command|whatsAppAutoSendResult/u);
+  assert.doesNotMatch(html, /TECHNISCH_BESTAETIGTE_GERAETEAKTION/u);
 });
 
 test("das laufende Holo-Gespräch wird nach WhatsApp automatisch fortgesetzt", () => {
@@ -361,16 +301,10 @@ test("das laufende Holo-Gespräch wird nach WhatsApp automatisch fortgesetzt", (
   assert.match(ui, /focus[\s\S]*?resumeSolHoloConversationAfterExternalReturn/u);
 });
 
-test("technisch bestätigter WhatsApp-Versand wird Sol verbindlich übergeben", () => {
-  assert.match(android, /event\.put\("message", message/u);
-  assert.match(android, /event\.put\("executedBy", "Pam’s Holo"\)/u);
-  assert.match(android, /event\.put\("manualSendRequired", false\)/u);
-  assert.match(ui, /recordSolHoloVerifiedDeviceAction/u);
-  assert.match(html, /window\.recordSolHoloVerifiedDeviceAction/u);
-  assert.match(html, /TECHNISCH_BESTAETIGTE_GERAETEAKTION/u);
-  assert.match(html, /Technisch bestätigte Geräteaktion:/u);
-  assert.match(html, /sendLiveTranscriptToMemory\([\s\S]*?"assistant"/u);
-  assert.match(server, /VERBINDLICHE TECHNISCHE GERÄTEAKTIONEN/u);
-  assert.match(server, /Widersprich einem solchen Beleg nicht/u);
-  assert.match(server, /Die Nutzerin\s+erteilt den Auftrag;[\s\S]*führt ihn technisch aus/u);
+test("Human Holo erzeugt keinen automatischen WhatsApp-Versandbeleg", () => {
+  assert.doesNotMatch(android, /publishWhatsAppAutoSendResult|sendControlActivated/u);
+  assert.doesNotMatch(ui, /recordSolHoloVerifiedDeviceAction|whatsAppAutoSendResult/u);
+  assert.doesNotMatch(html, /recordSolHoloVerifiedDeviceAction|TECHNISCH_BESTAETIGTE_GERAETEAKTION/u);
+  assert.doesNotMatch(server, /VERBINDLICHE TECHNISCHE GERÄTEAKTIONEN|sendControlActivated/u);
+  assert.match(server, /Behaupte niemals, die Nachricht sei gesendet/u);
 });

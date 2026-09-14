@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   publish:
+    # Historische Pam-signierte Veröffentlichung; in Human Holo geparkt.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Geprüftes HUMAN-HOLO-Artefakt herunterladen

@@ -2,9 +2,19 @@ import {
   copyFileSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   writeFileSync
 } from "node:fs";
 import { join } from "node:path";
+
+/*
+ * Android-Installationsprofil 2026-09-14: LEGAL REVIEW
+ *
+ * Der historische Dateiname bleibt erhalten, damit bestehende CI-Aufrufe nicht
+ * brechen. Der Installer bindet ausdrücklich KEINEN WhatsApp-Fahrmodus, KEINE
+ * Accessibility-Automatik, KEIN Health Connect, KEIN Hintergrund-Weckwort und
+ * KEINE Direktanruf-Berechtigung mehr ein.
+ */
 
 const projectRoot = process.cwd();
 const nativeSource = join(projectRoot, "android-native");
@@ -28,457 +38,158 @@ const manifestPath = join(
   "AndroidManifest.xml"
 );
 const mainActivityPath = join(javaTarget, "MainActivity.java");
-const resXmlTarget = join(
-  projectRoot,
-  "android",
-  "app",
-  "src",
-  "main",
-  "res",
-  "xml"
-);
-const stringsPath = join(
-  projectRoot,
-  "android",
-  "app",
-  "src",
-  "main",
-  "res",
-  "values",
-  "strings.xml"
-);
 
 mkdirSync(javaTarget, { recursive: true });
-mkdirSync(resXmlTarget, { recursive: true });
 
+// Wiederholte lokale Builds dürfen keine früher installierten Risikomodule
+// mitschleppen. Diese Dateien sind im Legal-Review-Profil ausdrücklich nicht
+// Bestandteil der App und werden aus dem generierten Android-Projekt entfernt.
 for (const fileName of [
   "HealthConnectPlugin.java",
-  "GalaxyWatchBridgePlugin.java",
   "HealthPrivacyActivity.java",
   "HeyHoSolPlugin.java",
   "HeyHoSolService.java",
+  "PcmRingBuffer.java",
+  "SolSpeakerIdentityPlugin.java",
+  "SpeakerVerificationPolicy.java",
   "WakeCaptureEndpointer.java",
-  "WakeRecognitionLifecyclePolicy.java",
   "WakePhraseMatcher.java",
-  "PhoneContactsPlugin.java",
-  "WhatsAppAutoSendCommand.java",
+  "WakeRecognitionLifecyclePolicy.java",
+  "WakeVoiceTemplateSelector.java",
+  "GalaxyWatchBridgePlugin.java",
   "WhatsAppAutoSendAccessibilityService.java",
-  "SolAudioRoutePlugin.java",
-  "SolReadAloudPlugin.java",
+  "WhatsAppAutoSendCommand.java",
   "WhatsAppDrivingModePlugin.java",
   "WhatsAppNotificationListener.java"
+]) {
+  rmSync(join(javaTarget, fileName), { force: true });
+}
+
+for (const relativePath of [
+  ["res", "xml", "sol_holo_whatsapp_auto_send_service.xml"],
+  ["res", "xml", "sol_holo_notification_listener.xml"]
+]) {
+  rmSync(
+    join(projectRoot, "android", "app", "src", "main", ...relativePath),
+    { force: true }
+  );
+}
+
+for (const fileName of [
+  "PhoneContactsPlugin.java",
+  "SolAudioRoutePlugin.java",
+  "SolReadAloudPlugin.java"
 ]) {
   copyFileSync(join(nativeSource, fileName), join(javaTarget, fileName));
 }
 
-copyFileSync(
-  join(nativeSource, "sol_holo_whatsapp_auto_send_service.xml"),
-  join(resXmlTarget, "sol_holo_whatsapp_auto_send_service.xml")
-);
+writeFileSync(
+  mainActivityPath,
+  `package com.solholo.app;
 
-let strings = readFileSync(stringsPath, "utf8");
-if (!strings.includes('name="whatsapp_auto_send_accessibility_description"')) {
-  const resourcesEnd = "</resources>";
-  if (!strings.includes(resourcesEnd)) {
-    throw new Error("Android-String-Ressourcen konnten nicht erweitert werden.");
-  }
-  strings = strings.replace(
-    resourcesEnd,
-    "    <string name=\"whatsapp_auto_send_accessibility_description\">" +
-      "Sendet nach einem ausdrücklichen Human-Holo-Auftrag genau eine " +
-      "WhatsApp-Nachricht und prüft dafür Empfänger, Text und Senden-Schaltfläche." +
-      "</string>\n" + resourcesEnd
-  );
-}
-writeFileSync(stringsPath, strings, "utf8");
+import android.content.Intent;
+import android.os.Bundle;
 
-let mainActivity = readFileSync(mainActivityPath, "utf8");
-if (!mainActivity.includes("registerPlugin(WhatsAppDrivingModePlugin.class)")) {
-  if (!mainActivity.includes("import android.os.Bundle;")) {
-    mainActivity = mainActivity.replace(
-      /package com\.solholo\.app;\s*/,
-      "package com.solholo.app;\n\n" +
-      "import android.content.Intent;\n" +
-      "import android.os.Build;\n" +
-      "import android.os.Bundle;\n" +
-      "import android.view.WindowManager;\n\n"
-    );
-  }
+import com.getcapacitor.BridgeActivity;
 
-  const emptyActivity = /public class MainActivity extends BridgeActivity\s*\{\s*\}/;
-  if (!emptyActivity.test(mainActivity)) {
-    throw new Error("MainActivity konnte nicht sicher erweitert werden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    emptyActivity,
-    `public class MainActivity extends BridgeActivity {
+public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(WhatsAppDrivingModePlugin.class);
-        applyWakeScreenBehavior(getIntent());
+        registerPlugin(SolAudioRoutePlugin.class);
+        registerPlugin(SolReadAloudPlugin.class);
+        registerPlugin(PhoneContactsPlugin.class);
         super.onCreate(savedInstanceState);
+        PhoneContactsPlugin.handleSharedNoteIntent(this, getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        applyWakeScreenBehavior(intent);
+        PhoneContactsPlugin.handleSharedNoteIntent(this, intent);
     }
-
-    private void applyWakeScreenBehavior(Intent intent) {
-        if (
-            intent == null
-                || !intent.getBooleanExtra("hey_ho_sol_wake", false)
-        ) {
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-            getWindow().addFlags(
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-            );
-            return;
-        }
-
-        getWindow().addFlags(
-            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        );
-    }
-}`
-  );
 }
-
-if (!mainActivity.includes("registerPlugin(HeyHoSolPlugin.class)")) {
-  const registrationMarker =
-    "        registerPlugin(WhatsAppDrivingModePlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(HeyHoSolPlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(SolAudioRoutePlugin.class)")) {
-  const registrationMarker = "        registerPlugin(HeyHoSolPlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Weckruf-Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(SolAudioRoutePlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(SolReadAloudPlugin.class)")) {
-  const registrationMarker = "        registerPlugin(SolAudioRoutePlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Audio-Plugin-Registrierung für Vorlesen nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(SolReadAloudPlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(PhoneContactsPlugin.class)")) {
-  const registrationMarker = "        registerPlugin(SolAudioRoutePlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Audio-Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(PhoneContactsPlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(HealthConnectPlugin.class)")) {
-  const registrationMarker = "        registerPlugin(PhoneContactsPlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Telefon-Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(HealthConnectPlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(GalaxyWatchBridgePlugin.class)")) {
-  const registrationMarker = "        registerPlugin(HealthConnectPlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Health-Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(GalaxyWatchBridgePlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("handleSharedNoteIntent(this, getIntent())")) {
-  const createMarker = "        super.onCreate(savedInstanceState);\n    }";
-  if (!mainActivity.includes(createMarker)) {
-    throw new Error("onCreate-Markierung für Samsung Notes nicht gefunden.");
-  }
-  mainActivity = mainActivity.replace(
-    createMarker,
-    "        super.onCreate(savedInstanceState);\n" +
-      "        PhoneContactsPlugin.handleSharedNoteIntent(this, getIntent());\n    }"
-  );
-}
-
-if (!mainActivity.includes("handleSharedNoteIntent(this, intent)")) {
-  const intentMarker = "        applyWakeScreenBehavior(intent);\n    }";
-  if (!mainActivity.includes(intentMarker)) {
-    throw new Error("onNewIntent-Markierung für Samsung Notes nicht gefunden.");
-  }
-  mainActivity = mainActivity.replace(
-    intentMarker,
-    "        applyWakeScreenBehavior(intent);\n" +
-      "        PhoneContactsPlugin.handleSharedNoteIntent(this, intent);\n    }"
-  );
-}
-
-if (!mainActivity.includes("HeyHoSolPlugin.publishPendingWakeEvent();")) {
-  const createMarker =
-    "        PhoneContactsPlugin.handleSharedNoteIntent(this, getIntent());\n    }";
-  if (!mainActivity.includes(createMarker)) {
-    throw new Error("onCreate-Markierung für den Sol-Weckruf nicht gefunden.");
-  }
-  mainActivity = mainActivity.replace(
-    createMarker,
-    "        PhoneContactsPlugin.handleSharedNoteIntent(this, getIntent());\n" +
-      "        HeyHoSolPlugin.publishPendingWakeEvent();\n    }"
-  );
-
-  const intentMarker =
-    "        PhoneContactsPlugin.handleSharedNoteIntent(this, intent);\n    }";
-  if (!mainActivity.includes(intentMarker)) {
-    throw new Error("onNewIntent-Markierung für den Sol-Weckruf nicht gefunden.");
-  }
-  mainActivity = mainActivity.replace(
-    intentMarker,
-    "        PhoneContactsPlugin.handleSharedNoteIntent(this, intent);\n" +
-      "        HeyHoSolPlugin.publishPendingWakeEvent();\n    }"
-  );
-}
-
-writeFileSync(mainActivityPath, mainActivity, "utf8");
+`,
+  "utf8"
+);
 
 let manifest = readFileSync(manifestPath, "utf8");
 const manifestMarker =
   '<manifest xmlns:android="http://schemas.android.com/apk/res/android">';
+const applicationMarker = "    <application";
+
+if (!manifest.includes(manifestMarker) || !manifest.includes(applicationMarker)) {
+  throw new Error("Android-Manifest konnte nicht sicher auf Legal Review gesetzt werden.");
+}
 
 manifest = manifest.replace(
-  'android:allowBackup="true"',
+  /android:allowBackup="true"/g,
   'android:allowBackup="false"'
 );
 
-for (const permission of [
-  '<uses-permission android:name="android.permission.CAMERA" />',
-  '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-  '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
-  '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
-  '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
-  '<uses-permission android:name="com.android.alarm.permission.SET_ALARM" />',
-  '<uses-permission android:name="android.permission.READ_CONTACTS" />',
-  '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
-  '<uses-permission android:name="android.permission.CALL_PHONE" />',
-  '<uses-permission android:name="android.permission.READ_CALENDAR" />',
-  '<uses-permission android:name="android.permission.WRITE_CALENDAR" />',
-  '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
-  '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />',
-  '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-  '<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />',
-  '<uses-permission android:name="android.permission.health.READ_BASAL_BODY_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE" />',
-  '<uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_FAT" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_WATER_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_BONE_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_CERVICAL_MUCUS" />',
-  '<uses-permission android:name="android.permission.health.READ_CYCLING_PEDALING_CADENCE" />',
-  '<uses-permission android:name="android.permission.health.READ_DISTANCE" />',
-  '<uses-permission android:name="android.permission.health.READ_ELEVATION_GAINED" />',
-  '<uses-permission android:name="android.permission.health.READ_EXERCISE" />',
-  '<uses-permission android:name="android.permission.health.READ_FLOORS_CLIMBED" />',
-  '<uses-permission android:name="android.permission.health.READ_HEART_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />',
-  '<uses-permission android:name="android.permission.health.READ_HEIGHT" />',
-  '<uses-permission android:name="android.permission.health.READ_HYDRATION" />',
-  '<uses-permission android:name="android.permission.health.READ_INTERMENSTRUAL_BLEEDING" />',
-  '<uses-permission android:name="android.permission.health.READ_LEAN_BODY_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_MENSTRUATION" />',
-  '<uses-permission android:name="android.permission.health.READ_NUTRITION" />',
-  '<uses-permission android:name="android.permission.health.READ_OVULATION_TEST" />',
-  '<uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION" />',
-  '<uses-permission android:name="android.permission.health.READ_PLANNED_EXERCISE" />',
-  '<uses-permission android:name="android.permission.health.READ_POWER" />',
-  '<uses-permission android:name="android.permission.health.READ_RESPIRATORY_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_SKIN_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_SLEEP" />',
-  '<uses-permission android:name="android.permission.health.READ_SPEED" />',
-  '<uses-permission android:name="android.permission.health.READ_STEPS" />',
-  '<uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />',
-  '<uses-permission android:name="android.permission.health.READ_VO2_MAX" />',
-  '<uses-permission android:name="android.permission.health.READ_WEIGHT" />',
-  '<uses-permission android:name="android.permission.health.READ_WHEELCHAIR_PUSHES" />'
-]) {
-  if (!manifest.includes(permission)) {
-    if (!manifest.includes(manifestMarker)) {
-      throw new Error("Manifest-Tag nicht gefunden.");
-    }
+// Geschlossene Liste: nur Berechtigungen für bewusst ausgelöste Kernaktionen.
+const allowedPermissions = [
+  "android.permission.CAMERA",
+  "android.permission.RECORD_AUDIO",
+  "android.permission.MODIFY_AUDIO_SETTINGS",
+  "android.permission.READ_CONTACTS"
+];
+
+// Falls ein Upstream-Template künftig zusätzliche risikoreiche Zeilen enthält,
+// werden sie vor der Positivliste entfernt.
+manifest = manifest.replace(
+  /^\s*<uses-permission android:name="(?:android\.permission\.(?:SYSTEM_ALERT_WINDOW|POST_NOTIFICATIONS|READ_PHONE_STATE|READ_CALENDAR|WRITE_CALENDAR|CALL_PHONE|FOREGROUND_SERVICE(?:_MICROPHONE)?|WAKE_LOCK)|android\.permission\.health\.[^"]+|com\.android\.alarm\.permission\.SET_ALARM)" \/>\s*$/gm,
+  ""
+);
+
+for (const permission of allowedPermissions) {
+  const declaration = `<uses-permission android:name="${permission}" />`;
+  if (!manifest.includes(declaration)) {
     manifest = manifest.replace(
       manifestMarker,
-      manifestMarker + "\n    " + permission
+      `${manifestMarker}\n    ${declaration}`
     );
   }
 }
 
 if (!manifest.includes('android:name="android.hardware.camera.any"')) {
-  const applicationMarker = "    <application";
-  if (!manifest.includes(applicationMarker)) {
-    throw new Error("Application-Tag für die optionale Kamera nicht gefunden.");
-  }
-
-  const optionalCameraFeature = [
-    "    <uses-feature",
-    '        android:name="android.hardware.camera.any"',
-    '        android:required="false" />',
-    ""
-  ].join("\n");
-
   manifest = manifest.replace(
     applicationMarker,
-    optionalCameraFeature + "\n" + applicationMarker
+    `    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+
+${applicationMarker}`
   );
 }
 
 if (!manifest.includes('android:name="android.hardware.telephony"')) {
-  const applicationMarker = "    <application";
-  if (!manifest.includes(applicationMarker)) {
-    throw new Error("Application-Tag für die optionale Telefonie nicht gefunden.");
-  }
-
-  const optionalTelephonyFeature = [
-    "    <uses-feature",
-    '        android:name="android.hardware.telephony"',
-    '        android:required="false" />',
-    ""
-  ].join("\n");
-
   manifest = manifest.replace(
     applicationMarker,
-    optionalTelephonyFeature + "\n" + applicationMarker
+    `    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+${applicationMarker}`
   );
 }
 
-if (!manifest.includes("android.intent.action.TTS_SERVICE")) {
-  const applicationMarker = "    <application";
-  if (!manifest.includes(applicationMarker)) {
-    throw new Error("Application-Tag im Android-Manifest nicht gefunden.");
-  }
-
+if (!manifest.includes("<queries>")) {
   manifest = manifest.replace(
     applicationMarker,
     `    <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <package android:name="com.google.android.apps.maps" />
+        <package android:name="com.samsung.android.app.notes" />
+        <package android:name="com.samsung.android.app.watchmanager" />
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
     </queries>
 
 ${applicationMarker}`
   );
-}
-
-if (!manifest.includes("android.speech.RecognitionService")) {
-  const queriesEnd = "    </queries>";
-  if (!manifest.includes(queriesEnd)) {
-    throw new Error("Queries-Tag im Android-Manifest nicht gefunden.");
-  }
-
-  const recognitionQuery = [
-    "        <intent>",
-    '            <action android:name="android.speech.RecognitionService" />',
-    "        </intent>"
-  ].join("\n");
-
-  manifest = manifest.replace(
-    queriesEnd,
-    recognitionQuery + "\n" + queriesEnd
-  );
-}
-
-if (!manifest.includes('android:name="com.google.android.apps.healthdata"')) {
-  const queriesEnd = "    </queries>";
-  if (!manifest.includes(queriesEnd)) {
-    throw new Error("Queries-Tag für Health Connect nicht gefunden.");
-  }
-
-  manifest = manifest.replace(
-    queriesEnd,
-    '        <package android:name="com.google.android.apps.healthdata" />\n' +
-      queriesEnd
-  );
-}
-
-if (!manifest.includes('android:name="com.samsung.android.app.notes"')) {
-  const queriesEnd = "    </queries>";
-  if (!manifest.includes(queriesEnd)) {
-    throw new Error("Queries-Tag für Samsung Notes nicht gefunden.");
-  }
-
-  manifest = manifest.replace(
-    queriesEnd,
-    '        <package android:name="com.samsung.android.app.notes" />\n' +
-      queriesEnd
-  );
-}
-
-if (!manifest.includes('android:name="com.samsung.android.app.watchmanager"')) {
-  const queriesEnd = "    </queries>";
-  if (!manifest.includes(queriesEnd)) {
-    throw new Error("Queries-Tag für Galaxy Wearable nicht gefunden.");
-  }
-
-  manifest = manifest.replace(
-    queriesEnd,
-    '        <package android:name="com.samsung.android.app.watchmanager" />\n' +
-      queriesEnd
-  );
-}
-
-for (const whatsAppPackage of [
-  "com.whatsapp",
-  "com.whatsapp.w4b"
-]) {
-  const packageQuery =
-    `        <package android:name="${whatsAppPackage}" />`;
-  if (!manifest.includes(packageQuery)) {
-    const queriesEnd = "    </queries>";
-    if (!manifest.includes(queriesEnd)) {
-      throw new Error("Queries-Tag für WhatsApp nicht gefunden.");
-    }
-    manifest = manifest.replace(
-      queriesEnd,
-      packageQuery + "\n" + queriesEnd
-    );
-  }
 }
 
 if (!manifest.includes('android:name="android.intent.action.SEND"')) {
@@ -487,9 +198,8 @@ if (!manifest.includes('android:name="android.intent.action.SEND"')) {
     "            </intent-filter>"
   ].join("\n");
   if (!manifest.includes(launcherEnd)) {
-    throw new Error("Launcher-Filter für Samsung Notes nicht gefunden.");
+    throw new Error("Launcher-Filter für die manuelle Notes-Übergabe fehlt.");
   }
-
   const shareFilter = [
     "            <intent-filter>",
     '                <action android:name="android.intent.action.SEND" />',
@@ -497,116 +207,32 @@ if (!manifest.includes('android:name="android.intent.action.SEND"')) {
     '                <data android:mimeType="text/plain" />',
     "            </intent-filter>"
   ].join("\n");
-
   manifest = manifest.replace(
     launcherEnd,
-    launcherEnd + "\n" + shareFilter
+    `${launcherEnd}\n${shareFilter}`
   );
 }
 
-if (!manifest.includes(".WhatsAppNotificationListener")) {
-  const applicationEnd = "    </application>";
-  if (!manifest.includes(applicationEnd)) {
-    throw new Error("Application-Ende im Android-Manifest nicht gefunden.");
+// Keine riskanten Komponenten dürfen aus einem veränderten Template überleben.
+for (const componentName of [
+  "WhatsAppNotificationListener",
+  "WhatsAppAutoSendAccessibilityService",
+  "HeyHoSolService",
+  "HealthPrivacyActivity",
+  "ViewHealthPermissionUsageActivity"
+]) {
+  if (manifest.includes(componentName)) {
+    throw new Error(
+      `Risikokomponente ${componentName} ist trotz Legal-Review-Profil im Manifest.`
+    );
   }
-
-  manifest = manifest.replace(
-    applicationEnd,
-    `        <service
-            android:name=".WhatsAppNotificationListener"
-            android:label="Pam’s Holo WhatsApp-Fahrmodus"
-            android:exported="false"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-${applicationEnd}`
-  );
-}
-
-if (!manifest.includes(".WhatsAppAutoSendAccessibilityService")) {
-  const applicationEnd = "    </application>";
-  if (!manifest.includes(applicationEnd)) {
-    throw new Error("Application-Ende für WhatsApp-Auto-Senden nicht gefunden.");
-  }
-
-  manifest = manifest.replace(
-    applicationEnd,
-    `        <service
-            android:name=".WhatsAppAutoSendAccessibilityService"
-            android:label="Human Holo – WhatsApp automatisch senden"
-            android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/sol_holo_whatsapp_auto_send_service" />
-        </service>
-
-${applicationEnd}`
-  );
-}
-
-if (!manifest.includes(".HeyHoSolService")) {
-  const applicationEnd = "    </application>";
-  if (!manifest.includes(applicationEnd)) {
-    throw new Error("Application-Ende im Android-Manifest nicht gefunden.");
-  }
-
-  const wakeService = [
-    "        <service",
-    '            android:name=".HeyHoSolService"',
-    '            android:exported="false"',
-    '            android:foregroundServiceType="microphone"',
-    '            android:stopWithTask="false" />',
-    ""
-  ].join("\n");
-
-  manifest = manifest.replace(
-    applicationEnd,
-    wakeService + "\n" + applicationEnd
-  );
-}
-
-if (!manifest.includes(".HealthPrivacyActivity")) {
-  const applicationEnd = "    </application>";
-  if (!manifest.includes(applicationEnd)) {
-    throw new Error("Application-Ende für Health-Datenschutz nicht gefunden.");
-  }
-
-  const healthPrivacy = [
-    "        <activity",
-    '            android:name=".HealthPrivacyActivity"',
-    '            android:exported="true">',
-    "            <intent-filter>",
-    '                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />',
-    "            </intent-filter>",
-    "        </activity>",
-    "",
-    "        <activity-alias",
-    '            android:name=".ViewHealthPermissionUsageActivity"',
-    '            android:exported="true"',
-    '            android:targetActivity=".HealthPrivacyActivity"',
-    '            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">',
-    "            <intent-filter>",
-    '                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />',
-    '                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />',
-    "            </intent-filter>",
-    "        </activity-alias>",
-    ""
-  ].join("\n");
-
-  manifest = manifest.replace(
-    applicationEnd,
-    healthPrivacy + "\n" + applicationEnd
-  );
 }
 
 writeFileSync(manifestPath, manifest, "utf8");
+
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "Android Legal-Review-Profil aktiv: Tap-to-talk, statische Medienwahl, " +
+  "Telefonwähler, WhatsApp-Entwurf und bewusst geteilte Notes; kein Kalender, " +
+  "kein Wecker/Watch, kein Health Connect, kein Hintergrund-Weckwort, kein " +
+  "Direktanruf und kein Accessibility-/Benachrichtigungsdienst."
 );

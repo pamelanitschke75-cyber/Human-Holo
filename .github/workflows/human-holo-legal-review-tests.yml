@@ -1,0 +1,45 @@
+name: Human Holo · Getrennte Legal-Review-Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-human-holo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        run: npm ci
+
+      - name: Human-Holo-Schutzgrenzen und Funktionen testen
+        run: node --test tests/*.test.mjs
+
+      - name: JavaScript-Syntax der aktiven Einstiegspunkte prüfen
+        run: |
+          node --check server.mjs
+          node --check www/sol-holo-ui.js
+          node --check www/human-holo-test-access.js
+
+      - name: Keine Veröffentlichung in diesem Workflow bestätigen
+        run: |
+          test ! -d android
+          echo "Nur Tests: kein Android-Paket, keine Signierung, kein Deployment."

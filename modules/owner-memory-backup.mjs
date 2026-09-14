@@ -14,6 +14,19 @@ const OWNER_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/u;
 const SPEAKER_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/u;
 const EVENT_PATTERN = /^[a-zA-Z0-9:_-]{16,160}$/u;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/u;
+const MEMORY_CATEGORIES = new Set([
+  "identity",
+  "relationships",
+  "preferences",
+  "life_events",
+  "projects",
+  "animals",
+  "routines",
+  "organization",
+  "sensitive",
+  "other"
+]);
+const CAPTURE_MODES = new Set(["explicit", "automatic", "import"]);
 
 export class OwnerMemoryBackupError extends Error {
   constructor(code) {
@@ -194,16 +207,48 @@ function normalizeConfirmedRow(row, ownerId, speakerId) {
   const legacySourceId = cleanPositiveInteger(
     row?.legacySourceId ?? row?.legacy_source_id
   );
+  const hasStructuredMetadata = [
+    "memoryCategory",
+    "memory_category",
+    "captureMode",
+    "capture_mode",
+    "sourceModalities",
+    "source_modalities",
+    "updatedAt",
+    "updated_at"
+  ].some(key => Object.prototype.hasOwnProperty.call(row || {}, key));
+  const categoryCandidate = String(
+    row?.memoryCategory ?? row?.memory_category ?? "other"
+  ).trim();
+  const memoryCategory = MEMORY_CATEGORIES.has(categoryCandidate)
+    ? categoryCandidate
+    : "other";
+  const captureCandidate = String(
+    row?.captureMode ?? row?.capture_mode ?? "explicit"
+  ).trim();
+  const captureMode = CAPTURE_MODES.has(captureCandidate)
+    ? captureCandidate
+    : "explicit";
+  const sourceModalities = cleanModalities(
+    row?.sourceModalities ?? row?.source_modalities ?? [sourceType]
+  );
+  const updatedAt = hasStructuredMetadata
+    ? cleanTimestamp(row?.updatedAt ?? row?.updated_at ?? createdAt)
+    : null;
+  const stableFields = [
+    ownerId,
+    speakerId,
+    content,
+    sourceType,
+    confirmedAt,
+    recallStatus,
+    createdAt
+  ];
+  if (hasStructuredMetadata) {
+    stableFields.push(memoryCategory, captureMode, sourceModalities, updatedAt);
+  }
   return {
-    backupEntryId: stableEntryId("confirmed", [
-      ownerId,
-      speakerId,
-      content,
-      sourceType,
-      confirmedAt,
-      recallStatus,
-      createdAt
-    ]),
+    backupEntryId: stableEntryId("confirmed", stableFields),
     content,
     sourceType,
     confirmedBy,
@@ -212,6 +257,9 @@ function normalizeConfirmedRow(row, ownerId, speakerId) {
     recallStatus,
     legacySourceTable,
     legacySourceId,
+    ...(hasStructuredMetadata
+      ? { memoryCategory, captureMode, sourceModalities, updatedAt }
+      : {}),
     createdAt
   };
 }
@@ -627,9 +675,20 @@ async function restoreConfirmedChunk(query, chunk) {
           item->>'confirmationMethod' AS confirmation_method,
           (item->>'confirmedAt')::timestamptz AS confirmed_at,
           item->>'recallStatus' AS recall_status,
+          COALESCE(NULLIF(item->>'memoryCategory', ''), 'other') AS memory_category,
+          COALESCE(NULLIF(item->>'captureMode', ''), 'explicit') AS capture_mode,
+          ARRAY(
+            SELECT jsonb_array_elements_text(
+              COALESCE(item->'sourceModalities', '["text"]'::jsonb)
+            )
+          ) AS source_modalities,
           NULLIF(item->>'legacySourceTable', '') AS legacy_source_table,
           NULLIF(item->>'legacySourceId', '')::bigint AS legacy_source_id,
-          (item->>'createdAt')::timestamptz AS created_at
+          (item->>'createdAt')::timestamptz AS created_at,
+          COALESCE(
+            NULLIF(item->>'updatedAt', '')::timestamptz,
+            (item->>'createdAt')::timestamptz
+          ) AS updated_at
         FROM jsonb_array_elements($3::jsonb) AS source(item)
       )
       INSERT INTO sol_identity_memory (
@@ -643,9 +702,13 @@ async function restoreConfirmedChunk(query, chunk) {
         confirmation_method,
         confirmed_at,
         recall_status,
+        memory_category,
+        capture_mode,
+        source_modalities,
         legacy_source_table,
         legacy_source_id,
-        created_at
+        created_at,
+        updated_at
       )
       SELECT
         $1,
@@ -658,9 +721,13 @@ async function restoreConfirmedChunk(query, chunk) {
         incoming.confirmation_method,
         incoming.confirmed_at,
         incoming.recall_status,
+        incoming.memory_category,
+        incoming.capture_mode,
+        incoming.source_modalities,
         incoming.legacy_source_table,
         incoming.legacy_source_id,
-        incoming.created_at
+        incoming.created_at,
+        incoming.updated_at
       FROM incoming
       WHERE NOT EXISTS (
         SELECT 1
@@ -800,9 +867,13 @@ export function createOwnerMemoryBackupStore({ database }) {
                 confirmation_method,
                 confirmed_at,
                 recall_status,
+                memory_category,
+                capture_mode,
+                source_modalities,
                 legacy_source_table,
                 legacy_source_id,
-                created_at
+                created_at,
+                updated_at
               FROM sol_identity_memory
               WHERE canonical_owner_id = $1
                 AND speaker_id = $2

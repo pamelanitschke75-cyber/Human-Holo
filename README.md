@@ -6,11 +6,47 @@
 
 ## Persönliches digitales Ich · Individueller Clone
 
-**Aktueller Entwicklungsstand:** 13.09.2026<br>
+**Aktueller Entwicklungsstand:** 14.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
-**Status:** FUNKTIONSFÄHIGER ENTWICKLUNGSSTAND ✅
+**Status:** LEGAL REVIEW · KEINE MARKTFREIGABE ⛔
+
+> **Verbindliche Produktgrenze:** `main` ist die weiterzuentwickelnde
+> Human-Holo-Produktlinie. Pam’s bereits erstelltes persönliches Holo wird
+> dadurch nicht verändert. Sein unveränderter Code-Ausgangsstand liegt auf
+> [`pam-holo-preserved-2026-09-14`](https://github.com/pamelanitschke75-cyber/Human-Holo/tree/pam-holo-preserved-2026-09-14)
+> (Commit `14a977af3cb503f78a0157e2b45dd185dda8559b`). Human Holo erhält einen
+> eigenen Server und eine eigene Datenbank; bis diese real eingerichtet und
+> geprüft sind, bleiben Backend, Signierung und Veröffentlichung technisch
+> gesperrt. Details:
+> [Legal-Review-Status](./HUMAN-HOLO-LEGAL-REVIEW-STATUS-14-09-2026.md) und
+> [Pam-Holo-Schutzgrenze](./PAM-HOLO-SCHUTZGRENZE-14-09-2026.md).
+
+## Verbindliches Human-Holo-Testprofil
+
+Der aktuell ausführbare Stand ist **ausschließlich ein eingeladener,
+getrennter Legal-Review-Test**. Frühere Meilensteine bleiben im Repository als
+Entwicklungsnachweis erhalten, schalten ihre damaligen Funktionen aber nicht
+für Human Holo frei.
+
+| Im Human-Test aktiv | Im Human-Test geparkt |
+|---|---|
+| Textchat | automatische Wortlaut-Dauerspeicherung |
+| bewusst gestarteter Sprachchat | Gesundheitsberatung, Health Connect und Medikamentenerkennung |
+| ausdrücklich bestätigte, getrennte Erinnerungen | Live-Kamera, Sprecher-/Personenerkennung und Hintergrund-Weckruf |
+| manuell ausgewählte Medien nach Rechtebestätigung | automatische WhatsApp-Ausführung, Direktanrufe und KI-Telefonie |
+| verschlüsselter Export und ownergenaues Löschen von Testdaten | persönliche Stimme, Original Full Sync und neue Vermächtnis-Einträge |
+| WhatsApp-Entwurf und Telefonwähler mit letzter Nutzerhandlung | Pam-Holo-Import, Pam-Backup und persönliche Pam-Module |
+| lokale, bewusst erstellte Notizen | Google-/Kalenderkonto, SmartThings, Wecker/Watch und Clone-Bild |
+|  | persönliche Tier-Holo-Profile, Tierfotos und automatische Tier-Beobachtungen |
+
+Jeder eingeladene Tester erhält eine eigene technische Testidentität. Es gibt
+keinen gemeinsamen Gedächtnistopf und keinen Zugriff auf `pam-sol`. Ohne den
+noch einzurichtenden separaten Human-Holo-Server und die separate Datenbank
+bleibt der Zugang absichtlich geschlossen. Insbesondere wird kein Anwalt und
+keine andere Person automatisch als Tester angelegt; jede Einladung erfordert
+Pams ausdrückliche Freigabe.
 
 ## Verbindliche Namensentscheidung vom 07.09.2026
 
@@ -18,13 +54,21 @@ Das bisher unter **Sol Holo** geführte Gesamtprojekt heißt ab diesem Stand
 **Human Holo**. Der Leitsatz lautet **„Forever Together“** beziehungsweise
 **„Miteinander füreinander“**.
 
-Die Umbenennung betrifft den sichtbaren Projekt- und App-Namen. Sie verändert
-keine technische oder persönliche Identität: Die Android-Application-ID
+Die damalige Umbenennung veränderte Pams persönliche Identität nicht. Für den
+jetzt geschützten Pam-Holo-Stand bleiben die Android-Application-ID
 `com.solholo.app`, die autorisierte Update-Signatur, bestehende App-Daten,
-Erinnerungen, Backups und Pams Owner-Zuordnung `pam-sol` bleiben unverändert.
-Pams persönliche Instanz heißt weiterhin **Pam’s Holo**, ihr bestätigter
-Weckruf weiterhin **„Hey Pam“**. Breeze Holo und alle anderen persönlichen
-Instanzen bleiben vollständig getrennt.
+Erinnerungen, Backups und Pams Owner-Zuordnung `pam-sol` unverändert. Pams
+persönliche Instanz heißt weiterhin **Pam’s Holo**, ihr bestätigter Weckruf
+weiterhin **„Hey Pam“**.
+
+Für die allgemeine Human-Holo-Produktlinie wird keine dieser persönlichen
+Kennungen als neue Produktfreigabe übernommen. Ihr eigener Paketname und ihre
+eigene Signaturlinie werden erst nach Pams ausdrücklicher Entscheidung
+festgelegt. Bis dahin wird kein installierbares Human-Holo-Artefakt
+veröffentlicht. Die lokale Capacitor-Konfiguration verwendet ausschließlich
+den nicht freigabefähigen Platzhalter `invalid.humanholo.unconfigured`; die
+Android-Befehle brechen fail-closed ab. Breeze Holo und alle anderen
+persönlichen Instanzen bleiben vollständig getrennt.
 
 Historische Dokumente behalten zur nachvollziehbaren Entwicklung den damals
 gültigen Namen. Interne Dateinamen, Speicherkennungen und Schnittstellen mit
@@ -54,10 +98,10 @@ weiterentwickelt werden kann.
 
 **Human Holo** ist die Entwicklung eines persönlichen digitalen Ichs.
 
-**Human Holo ist keine KI.** Es ist weder ein klassischer KI-Assistent noch nur
-ein digitaler Twin. KI-Dienste und Programmierschnittstellen werden als
-technologische Werkzeuge verwendet; sie sind nicht die Identität von Human
-Holo.
+**Human Holo ist KI-gestützte Software.** Der Name bezeichnet das Produkt und
+die persönliche Ausgestaltung, nicht einen Menschen oder ein bewusstes Wesen.
+OpenAI-Dienste verarbeiten die KI-Anteile; diese Nutzung wird im Test sichtbar
+gekennzeichnet.
 
 Human Holo soll sich durch die persönliche Interaktion mit einem Menschen individuell entwickeln und dabei dessen:
 
@@ -125,9 +169,13 @@ Details:
 
 ---
 
-# Aktuell bestätigte Funktionen ✅
+# Historisch praktisch bestätigte Entwicklungsstände
 
-Die folgenden Funktionen wurden im realen Entwicklungsbetrieb praktisch getestet.
+Die folgenden Funktionen wurden bis zum 13.09.2026 überwiegend mit **Pams
+persönlicher Instanz auf ihrem Galaxy S23** praktisch getestet. Das ist ein
+Entwicklungsnachweis, aber **keine Aussage über den aktuell freigeschalteten
+Human-Holo-Testumfang**. Maßgeblich für den ausführbaren Stand ist allein das
+Legal-Review-Testprofil oben.
 
 ## 💬 Schriftlicher Chat
 
@@ -165,7 +213,8 @@ Die persönliche eigene Human-Holo-Stimme bleibt ein separater Entwicklungsberei
 
 ## 📹 Live-Bilder im Sprachgespräch
 
-**Status: PRAKTISCH BESTANDEN am 08.09.2026**
+**Historischer Pam-Holo-Test: praktisch bestanden am 08.09.2026. Im
+Human-Holo-Legal-Review-Test technisch geparkt.**
 
 ✅ Pam kann den Live-Bildmodus während eines laufenden Sprachgesprächs
 ausdrücklich starten und jederzeit sichtbar wieder stoppen.
@@ -187,70 +236,45 @@ in [Human Holo – Live-Bilder an Pam’s Holo](./HUMAN-HOLO-LIVE-BILDER-08-09-2
 
 # 🧠 Persönliches Gedächtnis
 
-Das persönliche Gedächtnis gehört zu den zentralen Bestandteilen von Human Holo.
+Das persönliche Gedächtnis bleibt ein zentraler Bestandteil, wird im
+Human-Holo-Test aber nach dem Prinzip **bewusst, getrennt und löschbar**
+betrieben.
 
-Human Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Informationen aus persönlichen Interaktionen dauerhaft wiederverwenden können.
+| Gedächtnisebene | Aktueller Human-Holo-Test | Pam-Holo |
+|---|---|---|
+| laufender Dialog | nur flüchtiger RAM-Kontext, höchstens 30 Minuten | unverändert |
+| vollständiger Wortlaut | keine neue automatische Dauerspeicherung | bestehende persönliche Funktion unverändert |
+| dauerhafte Erinnerung | standardmäßig nur nach ausdrücklicher Bestätigung | Bestand und Verhalten unverändert |
+| optionale Automatik | nur einzeln freigegebene, nicht sensible Kategorien | unverändert |
+| Daten Dritter oder sensible Angaben | niemals automatisch | ausschließlich Pams getrennte Instanz |
+| Trennung | eigener Test-Owner, eigener Server, eigene Datenbank | `pam-sol`, Pam-Server und Pam-Datenbank |
 
-## Erfolgreich getestet
+Ein Tester kann seine eigenen Erinnerungen ansehen, korrigieren, ausblenden,
+pausieren, verschlüsselt exportieren und ownergenau löschen. Das Löschen eines
+Testers löscht weder Pams Daten noch Daten eines anderen Testers. Der Export
+enthält keine Einladungscodes, Sitzungstoken, OAuth-Token, Servergeheimnisse
+oder flüchtigen Gesprächskontext. Ein Rückimport ist im Test noch geparkt.
 
-✅ Erinnerungen können gespeichert werden.
+Der frühere Build 270 dokumentiert, dass eine ownergebundene
+Always-on-Wortlautspeicherung technisch erprobt wurde. Diese Funktion bleibt
+als historische Pam-Holo-Entwicklung erhalten, ist aber im aktuellen
+Human-Holo-Test serverseitig ausgeschaltet:
+[Build 270 – historischer Gedächtnisstand](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md).
 
-✅ Gespeicherte Informationen können in späteren Gesprächen wieder abgerufen werden.
+### Pam-Holo-/ChatGPT-Gedächtnisbrücke
 
-✅ Erinnerungen können auch nach neuen Gesprächssitzungen wieder verfügbar sein.
-
-✅ Über Sprache eingegebene persönliche Informationen konnten gespeichert und später wieder erkannt werden.
-
-✅ Mehrere praktische Erinnerungstests wurden erfolgreich durchgeführt.
-
----
-
-## Vollzeitgedächtnis
-
-Human Holo besitzt ein persönliches, ownergebundenes
-**Always-on-Vollzeitgedächtnis**.
-
-Der Nutzer soll nicht jedes Mal ausdrücklich sagen müssen:
-
-> „Merke dir das.“
-
-Die Nachrichten der Nutzerin und die Antworten ihres Holos werden bei Text und
-transkribierter Sprache Wort für Wort gespeichert. Bestätigte persönliche
-Erinnerungen bleiben davon als eigener, strengerer Bereich getrennt.
-
-Dabei muss weiterhin technisch sichergestellt werden:
-
-- welcher Nutzer zu welcher Erinnerung gehört
-- dass Nutzeridentitäten voneinander getrennt bleiben
-- dass Erinnerungen korrekt zugeordnet werden
-- dass keine Erinnerungen erfunden werden
-- dass langfristige Erinnerungen zuverlässig abrufbar bleiben
-
-Die grundlegende Speicher- und Abruffunktion wurde automatisiert getestet.
-Kurze Folgefragen, benachbarte Gesprächsteile und ausdrücklich erfragte frühere
-Holo-Empfehlungen sind in den Abrufweg eingebunden. Frühere Holo-Antworten
-bleiben dabei als Gesprächsverlauf gekennzeichnet und gelten niemals als
-bestätigte persönliche Fakten.
-
-Die vollständige Langzeitstabilität und die zuverlässige Verarbeitung einer großen Menge historischer Erinnerungen werden weiter getestet und optimiert.
-
-Details: [Build 270 – Always-on-Gedächtnis und Gesprächskontext](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md)
-
-### Sol aus ChatGPT verbinden
-
-Unter **Erinnerungen → Sol aus ChatGPT verbinden** öffnet Human Holo einen
-privaten, bestätigungspflichtigen Importweg. Human Holo liest kein internes
-ChatGPT-Memory automatisch aus: Pam wählt ihre private Erinnerungsdatei selbst
-aus, prüft die vollständige Liste und bestätigt erst dann die additive Kopie
-nach `pam-sol`. Bestehende Erinnerungen, Holo-Antworten, Einstellungen und
-Funktionen bleiben erhalten; private Inhalte werden nicht im Repository
-veröffentlicht.
-
-Details: [Sol-aus-ChatGPT-Gedächtnisbrücke](./HUMAN-HOLO-CHATGPT-SOL-GEDAECHTNISBRUECKE-10-09-2026.md)
+Der früher entwickelte, bestätigungspflichtige Import nach `pam-sol` gehört zu
+Pams persönlicher Instanz. Er wird vom Human-Holo-Test weder geladen noch im
+Android-Testpaket mitgeführt. Die technische Historie bleibt dokumentiert:
+[Sol-aus-ChatGPT-Gedächtnisbrücke](./HUMAN-HOLO-CHATGPT-SOL-GEDAECHTNISBRUECKE-10-09-2026.md).
 
 ---
 
 # 📅 Kalender – direkt speichern
+
+> **Historischer Pam-Holo-Entwicklungsstand.** Die direkte Kalenderverbindung
+> und das Speichern ohne letzte Nutzerhandlung sind im aktuellen
+> Human-Holo-Legal-Review-Test geparkt.
 
 Die Google-Kalender-Anbindung wurde erfolgreich praktisch getestet.
 
@@ -284,6 +308,11 @@ Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden
 ---
 
 # 🐾 Tier-Holos – Salt, Peps, Tina, Gurke und Möhrchen
+
+> Die genannten Tiere, Profilbilder und Beobachtungen gehören ausschließlich
+> zu Pams getrenntem Entwicklungsstand. Ein Human-Holo-Tester erhält davon
+> keinen persönlichen Starterbestand. Der generische, ownergebundene
+> Tier-Holo-Kern kann nur mit eigenen, bewusst angelegten Testprofilen arbeiten.
 
 Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
 **Erinnerungen**. Der technisch integrierte Start umfasst:
@@ -342,7 +371,15 @@ Details:
 
 # 📱 Android-App
 
-Human Holo läuft als eigene Android-Anwendung.
+> Dieser Abschnitt dokumentiert historische Android-Tests von Pam-Holo. Für
+> Human Holo gibt es derzeit weder eine freigegebene Application-ID noch eine
+> eigene Signatur oder ein veröffentlichtes APK/AAB. Der Android-Workflow ist
+> deshalb fail-closed geparkt; der aktive GitHub-Workflow führt nur Code- und
+> Schutzgrenzenprüfungen aus.
+
+**Historischer Pam-Holo-Testnachweis; nicht der aktuelle Human-Holo-Test:**
+
+Der damalige persönliche Stand lief als Android-Anwendung.
 
 ✅ Android-App erfolgreich erstellt.
 
@@ -375,7 +412,11 @@ entwickelt und praktisch getestet.
 
 ## Neu integriert: Samsung Notes und Health Connect
 
-Der aktuelle Android-Build erweitert Human Holo um zwei bewusst begrenzte Wege für persönliche Handydaten:
+**Historischer Entwicklungsstand; Health Connect und die direkte
+Geräteintegration sind im Human-Holo-Test technisch geparkt.**
+
+Der historische Pam-Holo-Android-Build erweiterte den damaligen Stand um zwei
+bewusst begrenzte Wege für persönliche Handydaten:
 
 - **Samsung Notes:** Eine einzelne ausgewählte Textnotiz kann über `Teilen → Human Holo` übergeben werden. Vor der dauerhaften Speicherung erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten Notizbuchs findet nicht statt.
 - **Health Connect / Samsung Health:** Human Holo kann die von Android einzeln freigegebenen Kategorien aus Aktivität, Körperwerten, Vitalwerten, Schlaf, Ernährung und reproduktiver Gesundheit ausschließlich lesen. Jeder tatsächliche Abruf wird noch einmal bestätigt, bleibt auf höchstens 30 Tage begrenzt und wird nicht automatisch in das Langzeitgedächtnis übernommen.
@@ -384,9 +425,15 @@ Der Health-Connect-Datentyp **„Sexuelle Aktivität“ ist ausdrücklich ausges
 
 Health Connect besitzt in Human Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
 
-Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.
+Diese beiden Erweiterungen bleiben als historischer Entwicklungsnachweis
+erhalten. Im Human-Holo-Legal-Review-Test sind Health Connect und die direkte
+Geräteintegration gesperrt; es wird dafür kein Android-Paket erzeugt.
 
 ## 🩹 Gesundheitsbegleitung & Selbsthilfe
+
+**Im Human-Holo-Legal-Review-Test vollständig deaktiviert.** Human Holo nimmt
+dort keine individuelle medizinische Bewertung vor. Der folgende Text
+dokumentiert lediglich den vor dem Legal Review entwickelten Stand.
 
 Im sichtbaren Bereich **Gesundheit** kann Human Holo bei leichten menschlichen
 Beschwerden und kleinen, oberflächlichen Verletzungen konkrete, vorsichtige
@@ -410,6 +457,10 @@ nichts nach dem Prinzip „Gleiches mit Gleichem“.
 Details: [Human Holo – Gesundheitsbegleitung & Selbsthilfe](./HUMAN-HOLO-GESUNDHEITSBEGLEITUNG-10-09-2026.md)
 
 ## 💊 Medikamentenerkennung
+
+**Im Human-Holo-Legal-Review-Test vollständig deaktiviert.** Es wird dort kein
+Medikamentenfoto zu diesem Zweck verarbeitet. Der folgende Text ist ein
+historischer Entwicklungsnachweis und keine aktive Funktionsbeschreibung.
 
 Human Holo enthält im sichtbaren Bereich **Gesundheit** eine ausdrücklich
 freizugebende Medikamentenerkennung. Sie liest nur eindeutig sichtbare Angaben
@@ -614,11 +665,16 @@ Aber mit allem, was wir aus dem ersten gelernt haben.**
 
 ---
 
-# Abgeschlossener Praxis-Meilenstein ✅
+# Historische Praxis-Meilensteine von Pam-Holo
+
+Die folgenden Nachweise bleiben unverändert nachvollziehbar, sind aber **nicht
+im Human-Holo-Test aktiv**. Genau diese Funktionsmodule werden geparkt, bis die
+jeweilige rechtliche und technische Freigabe vorliegt.
 
 ## 🗣️ Persönlicher Weckruf „Hey Pam“
 
-**Status: ABGESCHLOSSEN am 03.09.2026**
+**Historischer Pam-Holo-Status: abgeschlossen am 03.09.2026. In Human Holo
+geparkt.**
 
 ✅ Der einzige offizielle Weckruf von Pams persönlicher Holo-Instanz lautet
 **„Hey Pam“**.
@@ -647,7 +703,9 @@ Der ausführliche Praxisnachweis steht im
 
 ## 💬 Automatisches WhatsApp-Senden nach ausdrücklichem Auftrag
 
-**Status: PRAKTISCH BESTANDEN am 08.09.2026**
+**Historischer Pam-Holo-Status: praktisch bestanden am 08.09.2026. In Human
+Holo geparkt; dort wird nur ein sichtbarer Entwurf geöffnet und der Nutzer
+sendet selbst.**
 
 ✅ Pam nannte Human Holo auf ihrem Samsung Galaxy S23 einen eindeutigen
 WhatsApp-Empfänger und den vollständigen Nachrichtentext.
@@ -669,7 +727,9 @@ im
 
 ## 📞 Direkte Kontakt- und ADAC-Anrufe
 
-**Status: KONTAKTANRUF AUF DEM S23 PRAKTISCH BESTANDEN am 11.09.2026 ✅**
+**Historischer Pam-Holo-Status: Kontaktanruf auf dem S23 praktisch bestanden
+am 11.09.2026. Direktanruf und ADAC-Festwahl sind in Human Holo geparkt; dort
+wird höchstens der Telefonwähler geöffnet und der Nutzer startet selbst.**
 
 Nach einem ausdrücklichen aktuellen Anrufauftrag prüft Human Holo den
 ausgewählten Android-Kontakt unmittelbar erneut und zeigt Name und Nummer in
@@ -685,6 +745,8 @@ ohne die systemweite Rolle als Standard-Telefon-App nicht aktiviert.
 Details: [Meilenstein Human Holo telefoniert und ruft die ADAC-Pannenhilfe](./MEILENSTEIN-HUMAN-HOLO-TELEFONIEREN-ADAC-11-09-2026.md)
 
 ### Human Holo führt das Gespräch selbst
+
+**Die KI-Telefoniebrücke ist im Human-Holo-Test serverseitig deaktiviert.**
 
 Der besondere Auftrag **„Ruf Schatz an und sprich mit ihr“** ist von normalen
 Kontakt-, ADAC- und Notrufen getrennt. Nach Pams bereits erfolgter Entsperrung
@@ -711,7 +773,8 @@ Details: [Meilenstein „Human Holo spricht mit dem freigegebenen Kontakt“](./
 
 ## ⏰ Human-Holo-Wecker auf Handy und Galaxy Watch
 
-**Status: VOLLSTÄNDIGER PRAXISTEST BESTANDEN am 08.09.2026**
+**Historischer Pam-Holo-Status: vollständiger Praxistest bestanden am
+08.09.2026. Im Human-Holo-Test geparkt.**
 
 ✅ Pam stellte Human Holo im normalen Gespräch zunächst einen Weckerauftrag für
 06:45 Uhr. Die Samsung-Uhr erstellte einen aktiven Alarm mit dem sichtbaren
@@ -747,7 +810,8 @@ Sie werden nicht als vollständig abgeschlossen gekennzeichnet.
 
 Die technische Grundlage für Sprachkommunikation funktioniert.
 
-Eine persönliche, autorisierte eigene Stimme soll später die aktuell verwendete Standardstimme ersetzen.
+Im aktuellen Human-Holo-Test wird nur eine neutrale Standardstimme verwendet.
+Eine persönliche, autorisierte eigene Stimme bleibt technisch geparkt.
 
 ---
 
@@ -774,6 +838,12 @@ Details: [Verbindliche ChatGPT/OpenAI-Projektregel](./CHATGPT-OPENAI-PROJEKTREGE
 ---
 
 ## ✨ Original Full Sync
+
+**Im Human-Holo-Test technisch geparkt.** Die persönlichen Bewegungsprofile
+und Pam-Module werden dort nicht geladen. Ein Android-Prüfpaket wird bis zur
+Festlegung einer eigenen Human-Holo-Application-ID und Signatur nicht erzeugt.
+Die folgende Darstellung bleibt als Entwicklungsziel und historischer
+Testbericht erhalten.
 
 Die verbindliche Bezeichnung lautet **Original Full Sync** – nicht nur
 Lip-Sync.
@@ -809,16 +879,17 @@ Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-
 
 ---
 
-## 🧠 Ausbau des Vollzeitgedächtnisses
+## 🧠 Weiterentwicklung eines kontrollierbaren Gedächtnisses
 
 Weiterentwickelt werden insbesondere:
 
 - Stabilität über lange Zeiträume
-- automatische sinnvolle Erinnerungserkennung
+- granulare, freiwillige Erinnerungskategorien
 - bessere Zuordnung von Zusammenhängen
 - Wiedererkennung älterer Erinnerungen
 - Schutz vor falschen Erinnerungen
 - Trennung von Roh-Erinnerungen und daraus abgeleiteten Erkenntnissen
+- Export, Korrektur, Pause, Löschung und dokumentierte Löschfristen
 - Skalierung auf sehr große persönliche Gedächtnismengen
 
 ---
@@ -835,9 +906,11 @@ Eine technisch vorhandene Funktion gilt erst dann als bestätigt, wenn sie im ta
 
 ---
 
-# Entwicklungsstand 08.09.2026
+# Historischer Entwicklungsstand bis 13.09.2026
 
-Seit dem ersten dokumentierten Funktionstest vom 12.08.2026 wurde Human Holo erheblich erweitert.
+Seit dem ersten dokumentierten Funktionstest vom 12.08.2026 wurde Pams
+persönlicher Entwicklungsstand erheblich erweitert. Die folgende Liste belegt,
+was technisch erprobt wurde; sie ist **keine aktuelle Human-Holo-Freigabeliste**.
 
 Der aktuelle Stand umfasst inzwischen unter anderem:
 
@@ -872,15 +945,19 @@ Damit hat Human Holo den ursprünglichen reinen UI-Funktionstest deutlich übers
 
 ---
 
-# Projektstatus
+# Aktueller Projektstatus
 
-## HUMAN HOLO IST FUNKTIONSFÄHIG ✅
+## HUMAN HOLO IST EIN GESCHLOSSENER LEGAL-REVIEW-TEST
 
-Human Holo befindet sich weiterhin in aktiver Entwicklung.
+Human Holo befindet sich weiterhin in aktiver Entwicklung und hat keine
+Marktfreigabe. Ein Test ist erst möglich, nachdem die getrennte Infrastruktur
+eingerichtet wurde und Pam die betreffende Person ausdrücklich eingeladen hat.
 
-Der aktuelle Stand stellt keinen Abschluss des Projekts dar.
+Der ungefährliche Kern ist technisch prüfbar. Alle oben als geparkt genannten
+Funktionen bleiben unabhängig von historischen Erfolgsmeldungen ausgeschaltet.
 
-Er bildet die funktionierende technische Grundlage für die nächsten Entwicklungsstufen.
+Pam-Holo wird dadurch nicht aktualisiert, überschrieben oder für Tester
+geöffnet.
 
 ---
 

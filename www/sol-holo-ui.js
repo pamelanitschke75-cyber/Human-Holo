@@ -1,4 +1,4 @@
-const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTitle\">\n  <div class=\"welcomeContent\">\n    <img class=\"welcomeLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n    <h2 id=\"welcomeTitle\" class=\"welcomeName\">HUMAN HOLO <span class=\"pamUnicorn\" role=\"img\" aria-label=\"Rosa Einhorn\">🦄</span></h2>\n    <p class=\"welcomeTagline\">\n      Dein persönliches digitales Ich.\n      <strong>Für alles, was dich ausmacht.</strong>\n    </p>\n  </div>\n  <div class=\"cosmicHorizon\" aria-hidden=\"true\"></div>\n  <button id=\"welcomeButton\" class=\"primaryButton welcomeButton\" type=\"button\">\n    <span>Willkommen bei Human Holo</span>\n    <span class=\"arrow\" aria-hidden=\"true\">→</span>\n  </button>\n  <div class=\"welcomeDots\" aria-hidden=\"true\">\n    <span></span><span></span><span></span>\n  </div>\n</section>\n\n<section id=\"homeView\" class=\"appView active\" aria-labelledby=\"homeTitle\">\n  <div class=\"screenHeader\">\n    <div class=\"homeBrand\">\n      <img class=\"screenLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n      <span class=\"statusPill\">Online</span>\n    </div>\n    <button id=\"homeSettingsButton\" class=\"iconButton\" type=\"button\"\n      aria-label=\"Einstellungen öffnen\">⚙</button>\n  </div>\n\n  <div class=\"homeIntro\">\n    <p class=\"eyebrow\">Me, Myself &amp; I</p>\n    <h2 id=\"homeTitle\" class=\"viewTitle\">\n      Hallo Pam <span class=\"accent\">✦</span>\n    </h2>\n    <p class=\"viewLead\">Schön, dich zu sehen.<br>Womit wollen wir starten?</p>\n  </div>\n\n  <button id=\"homeOrbButton\" class=\"holoOrbButton\" type=\"button\"\n    aria-label=\"Sprachgespräch mit Sol starten\">\n    <span class=\"holoOrb\" aria-hidden=\"true\"></span>\n    <span class=\"orbHint\">Antippen und mit Sol sprechen</span>\n  </button>\n\n  <form id=\"homeComposer\" class=\"homeComposer glassCard\">\n    <input id=\"homeMessageInput\" type=\"text\" autocomplete=\"off\"\n      placeholder=\"Sprich oder schreib mit Sol …\" aria-label=\"Nachricht an Sol\">\n    <button id=\"homeMicButton\" class=\"composerButton\" type=\"button\"\n      aria-label=\"Sprachgespräch starten\">◉</button>\n    <button id=\"homeSendButton\" class=\"composerButton primary\" type=\"submit\"\n      aria-label=\"Nachricht senden\">→</button>\n  </form>\n\n  <div class=\"quickGrid\" aria-label=\"Schnellzugriffe\">\n    <button class=\"quickCard\" type=\"button\" data-open-view=\"memory\">\n      <span class=\"quickIcon\">◇</span>\n      <span class=\"quickTitle\">Erinnerungen</span>\n      <span class=\"quickMeta\">Dein Gedächtnis</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\"\n      data-sol-prompt=\"Sol, zeig mir meine aktuellen Ziele.\">\n      <span class=\"quickIcon\">◎</span>\n      <span class=\"quickTitle\">Ziele</span>\n      <span class=\"quickMeta\">Pläne &amp; Fortschritt</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\"\n      data-sol-prompt=\"Sol, was sollte ich heute im Blick behalten?\">\n      <span class=\"quickIcon\">▦</span>\n      <span class=\"quickTitle\">Heute</span>\n      <span id=\"todayCardMeta\" class=\"quickMeta\">Dein Überblick</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\" data-open-view=\"services\">\n      <span class=\"quickIcon\">♡</span>\n      <span class=\"quickTitle\">Verbindungen</span>\n      <span class=\"quickMeta\">Google &amp; Handy</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n  </div>\n</section>\n\n<section id=\"memoryView\" class=\"appView\" aria-labelledby=\"memoryViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"home\"\n      aria-label=\"Zurück zur Startseite\">‹</button>\n    <div id=\"memoryViewTitle\" class=\"subHeaderTitle\">Erinnerungen</div>\n    <button class=\"iconButton\" type=\"button\"\n      data-sol-prompt=\"Sol, was weißt du dauerhaft?\"\n      aria-label=\"Gedächtnis mit Sol besprechen\">···</button>\n  </div>\n\n  <div class=\"memoryVisual memoryInfinityVisual\" aria-hidden=\"true\">\n    <svg viewBox=\"0 0 360 220\" role=\"presentation\">\n      <defs>\n        <linearGradient id=\"memoryInfinityGradient\" x1=\"52\" y1=\"106\" x2=\"308\" y2=\"106\" gradientUnits=\"userSpaceOnUse\">\n          <stop offset=\"0\" stop-color=\"#d44dff\"/>\n          <stop offset=\".2\" stop-color=\"#a85cff\"/>\n          <stop offset=\".46\" stop-color=\"#756dff\"/>\n          <stop offset=\".7\" stop-color=\"#31c8ff\"/>\n          <stop offset=\"1\" stop-color=\"#66efff\"/>\n        </linearGradient>\n        <linearGradient id=\"memoryPlatformGradient\" x1=\"52\" y1=\"0\" x2=\"308\" y2=\"0\" gradientUnits=\"userSpaceOnUse\">\n          <stop offset=\"0\" stop-color=\"#8f49ff\" stop-opacity=\"0\"/>\n          <stop offset=\".28\" stop-color=\"#a256ff\" stop-opacity=\".88\"/>\n          <stop offset=\".7\" stop-color=\"#3bbfff\" stop-opacity=\".9\"/>\n          <stop offset=\"1\" stop-color=\"#52e6ff\" stop-opacity=\"0\"/>\n        </linearGradient>\n        <radialGradient id=\"memoryPlatformFill\" cx=\"50%\" cy=\"50%\" r=\"50%\">\n          <stop offset=\"0\" stop-color=\"#6f64ff\" stop-opacity=\".28\"/>\n          <stop offset=\".58\" stop-color=\"#3158f0\" stop-opacity=\".1\"/>\n          <stop offset=\"1\" stop-color=\"#050819\" stop-opacity=\"0\"/>\n        </radialGradient>\n        <filter id=\"memoryInfinityGlow\" x=\"-40%\" y=\"-70%\" width=\"180%\" height=\"240%\">\n          <feGaussianBlur stdDeviation=\"8\" result=\"blur\"/>\n          <feMerge>\n            <feMergeNode in=\"blur\"/>\n            <feMergeNode in=\"SourceGraphic\"/>\n          </feMerge>\n        </filter>\n        <filter id=\"memoryStarGlow\" x=\"-300%\" y=\"-300%\" width=\"700%\" height=\"700%\">\n          <feGaussianBlur stdDeviation=\"2.2\" result=\"blur\"/>\n          <feMerge>\n            <feMergeNode in=\"blur\"/>\n            <feMergeNode in=\"SourceGraphic\"/>\n          </feMerge>\n        </filter>\n      </defs>\n\n      <g class=\"memoryStarfield\" filter=\"url(#memoryStarGlow)\">\n        <circle cx=\"47\" cy=\"58\" r=\"1.6\" fill=\"#8d63ff\"/>\n        <circle cx=\"72\" cy=\"34\" r=\"1.1\" fill=\"#dca8ff\"/>\n        <circle cx=\"102\" cy=\"47\" r=\"1.3\" fill=\"#548cff\"/>\n        <circle cx=\"133\" cy=\"28\" r=\"1.1\" fill=\"#b687ff\"/>\n        <circle cx=\"224\" cy=\"33\" r=\"1.25\" fill=\"#62ddff\"/>\n        <circle cx=\"255\" cy=\"43\" r=\"1.65\" fill=\"#31baff\"/>\n        <circle cx=\"291\" cy=\"31\" r=\"1.05\" fill=\"#78e9ff\"/>\n        <circle cx=\"319\" cy=\"62\" r=\"1.35\" fill=\"#a56bff\"/>\n        <circle cx=\"36\" cy=\"116\" r=\"1.05\" fill=\"#4edcff\"/>\n        <circle cx=\"329\" cy=\"118\" r=\"1.15\" fill=\"#b05eff\"/>\n        <circle cx=\"93\" cy=\"170\" r=\"1.1\" fill=\"#8f79ff\"/>\n        <circle cx=\"270\" cy=\"169\" r=\"1.2\" fill=\"#4cdcff\"/>\n      </g>\n\n      <path class=\"memoryBeam memoryBeam--soft\" d=\"M180 18V192\"/>\n      <path class=\"memoryBeam memoryBeam--core\" d=\"M180 30V186\"/>\n\n      <ellipse class=\"memoryOrbit memoryOrbit--far\" cx=\"180\" cy=\"109\" rx=\"151\" ry=\"62\"/>\n      <ellipse class=\"memoryOrbit memoryOrbit--near\" cx=\"180\" cy=\"109\" rx=\"132\" ry=\"45\"/>\n\n      <g class=\"memoryInfinityGlyph\">\n        <path class=\"memoryInfinityAura\" filter=\"url(#memoryInfinityGlow)\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityRibbon memoryInfinityRibbon--shadow\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityRibbon memoryInfinityRibbon--main\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityHighlight\"\n          d=\"M180 103 C157 70 140 53 112 53 C79 53 57 74 57 103 C57 133 80 152 112 152 C142 152 160 130 180 103 C200 76 218 54 248 54 C280 54 303 74 303 103\"/>\n      </g>\n\n      <ellipse class=\"memoryPlatform memoryPlatform--glow\" cx=\"180\" cy=\"188\" rx=\"118\" ry=\"22\"/>\n      <ellipse class=\"memoryPlatform memoryPlatform--outer\" cx=\"180\" cy=\"188\" rx=\"126\" ry=\"21\"/>\n      <ellipse class=\"memoryPlatform memoryPlatform--inner\" cx=\"180\" cy=\"188\" rx=\"88\" ry=\"12\"/>\n      <path class=\"memoryPlatformLine\" d=\"M82 188H278\"/>\n      <circle class=\"memoryPlatformSpark\" cx=\"180\" cy=\"188\" r=\"2.3\"/>\n    </svg>\n  </div>\n  <div class=\"memoryIntro\">\n    <h3 class=\"featureHeadline\">\n      Dein Gedächtnis.<strong class=\"memoryForever\"><span class=\"memoryForeverWords\">Together forever!</span> <span class=\"memoryForeverSymbols\" aria-label=\"Funkeln, Erde und Unendlichkeit\">✨🌎♾️</span></strong>\n    </h3>\n    <p class=\"featureCopy\">\n      Pam’s Holo erinnert sich an das, was zu deinem persönlichen Ich gehört.\n      Deine Gespräche und Erfahrungen bleiben ausschließlich deinem\n      persönlichen Pam’s Holo zugeordnet.\n    </p>\n  </div>\n\n  <div class=\"actionList\">\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, fasse unsere letzten Gespräche und Notizen zusammen.\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <path d=\"M7 6.5h18a3.5 3.5 0 0 1 3.5 3.5v8.5A3.5 3.5 0 0 1 25 22h-9.8L8 27v-5H7a3.5 3.5 0 0 1-3.5-3.5V10A3.5 3.5 0 0 1 7 6.5Z\"/>\n          <path d=\"M16 18.2s-4.2-2.4-4.2-5a2.5 2.5 0 0 1 4.2-1.8 2.5 2.5 0 0 1 4.2 1.8c0 2.6-4.2 5-4.2 5Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Gespräche &amp; Notizen</span>\n        <span class=\"rowMeta\">Was wir zuletzt miteinander besprochen haben</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, welche Lebensereignisse weißt du von mir?\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <rect x=\"4.5\" y=\"7\" width=\"23\" height=\"21\" rx=\"3.5\"/>\n          <path d=\"M10 4.5v5M22 4.5v5M4.5 12.5h23\"/>\n          <path d=\"m16 15.2 1.3 2.7 3 .4-2.2 2.1.6 3-2.7-1.5-2.7 1.5.6-3-2.2-2.1 3-.4 1.3-2.7Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Lebensereignisse</span>\n        <span class=\"rowMeta\">Wichtige Momente, die zu dir gehören</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, welche Vorlieben und Gewohnheiten kennst du von mir?\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <path d=\"M16 27.5S4.8 21 4.8 12.7A6.3 6.3 0 0 1 16 8.8a6.3 6.3 0 0 1 11.2 3.9C27.2 21 16 27.5 16 27.5Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Vorlieben &amp; Gewohnheiten</span>\n        <span class=\"rowMeta\">Was dich ausmacht und dir wichtig ist</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n  </div>\n\n  <button id=\"manageMemoriesButton\" class=\"secondaryButton\" type=\"button\">\n    Erinnerungen mit Sol ansehen <span aria-hidden=\"true\">→</span>\n  </button>\n</section>\n\n<section id=\"servicesView\" class=\"appView\" aria-labelledby=\"servicesViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"settings\"\n      aria-label=\"Zurück zu den Einstellungen\">‹</button>\n    <div id=\"servicesViewTitle\" class=\"subHeaderTitle\">Verbindungen</div>\n    <button id=\"refreshServicesButton\" class=\"iconButton\" type=\"button\"\n      aria-label=\"Verbindungsstatus neu prüfen\">↻</button>\n  </div>\n\n  <div class=\"serviceOrbit\" aria-hidden=\"true\">\n    <div class=\"orbitRing\"></div>\n    <img class=\"orbitLogo\" src=\"human-holo-logo.png\" alt=\"\">\n    <span class=\"orbitNode google\">G</span>\n    <span class=\"orbitNode whatsapp\">W</span>\n    <span class=\"orbitNode phone\">☎</span>\n    <span class=\"orbitNode contacts\">♙</span>\n  </div>\n\n  <div class=\"servicesIntro\">\n    <h3 class=\"featureHeadline\">\n      Together<strong>forever!</strong>\n    </h3>\n    <p class=\"featureCopy\">\n      Pam’s Holo verbindet nur die Dienste, die du wirklich möchtest.\n      Jede Freigabe wird einzeln erteilt und kann wieder ausgeschaltet werden.\n    </p>\n  </div>\n\n  <div class=\"actionList\">\n    <button id=\"googleAccountRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">G</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Google‑Konto</span>\n        <span class=\"rowMeta\">Google Kalender und freigegebene Google‑Dienste</span>\n      </span>\n      <span id=\"googleAccountStatus\" class=\"serviceStatus\">Wird geprüft …</span>\n    </button>\n\n    <button id=\"whatsappDriveRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">W</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">WhatsApp‑Fahrmodus</span>\n        <span class=\"rowMeta\">Nachrichten beim Autofahren sicher vorlesen</span>\n      </span>\n      <span id=\"whatsappDriveStatus\" class=\"serviceStatus setup\">\n        Einrichtung nötig\n      </span>\n    </button>\n\n    <button id=\"phoneContactsRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">☎</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Telefon &amp; Kontakte</span>\n        <span class=\"rowMeta\">Kontakt finden, Anruf erst nach Bestätigung</span>\n      </span>\n      <span id=\"phoneContactsStatus\" class=\"serviceStatus setup\">\n        Freigabe nötig\n      </span>\n    </button>\n  </div>\n\n  <button id=\"manageServicesButton\" class=\"secondaryButton\" type=\"button\">\n    Dienste und Freigaben verwalten <span aria-hidden=\"true\">+</span>\n  </button>\n  <p class=\"permissionNote\">\n    Pam’s Holo liest keine WhatsApp‑Nachricht, keinen Kontakt und kein\n    Telefonbuch ohne deine ausdrückliche Android‑Freigabe.\n  </p>\n</section>\n\n<section id=\"profileView\" class=\"appView\" aria-labelledby=\"profileViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"home\"\n      aria-label=\"Zurück zur Startseite\">‹</button>\n    <div id=\"profileViewTitle\" class=\"subHeaderTitle\">Profil</div>\n    <button id=\"profileSettingsButton\" class=\"iconButton\" type=\"button\"\n      data-open-view=\"settings\" aria-label=\"Einstellungen öffnen\">⚙</button>\n  </div>\n\n  <div class=\"profileHero profileHero--clean glassCard\">\n    <img class=\"profileLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n    <h3 class=\"profileName\">Pam’s Holo <span class=\"pamUnicorn pamUnicorn--profile\" role=\"img\" aria-label=\"Rosa Einhorn\">🦄</span></h3>\n    <p class=\"profileMeta\">\n      Dein persönlicher Klon · dein persönliches digitales Ich\n    </p>\n  </div>\n</section>\n\n<section id=\"settingsView\" class=\"appView\" aria-labelledby=\"settingsViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"profile\"\n      aria-label=\"Zurück zum Profil\">‹</button>\n    <div id=\"settingsViewTitle\" class=\"subHeaderTitle\">Einstellungen</div>\n    <span></span>\n  </div>\n\n  <div class=\"settingsIntro\">\n    <p class=\"eyebrow\">Alles an seinem Platz</p>\n    <h2>Deine Einstellungen</h2>\n    <p>Hier bestimmst du, wie Pam’s Holo aussieht, spricht, hört und sich verbindet.</p>\n  </div>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsAppearanceTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">▣</span>\n      <div>\n        <h3 id=\"settingsAppearanceTitle\">Bild &amp; Aussehen</h3>\n        <p>Profilbild, Gesichtserkennung und Lip-Sync</p>\n      </div>\n    </div>\n    <div id=\"settingsPhotoEditor\" class=\"settingsPhotoEditor\"></div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsVoiceTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">◉</span>\n      <div>\n        <h3 id=\"settingsVoiceTitle\">Stimme &amp; „Hey Pam“</h3>\n        <p>Stimme, Lautstärke, Weckruf und Hörmodus</p>\n      </div>\n    </div>\n    <div id=\"settingsVoiceSlot\"></div>\n    <div class=\"settingsSubsection\">\n      <strong>Sprachlautstärke</strong>\n      <div id=\"settingsVolumeChooser\" class=\"settingsChoiceRow\" aria-label=\"Sprachlautstärke auswählen\">\n        <button type=\"button\" data-volume-target=\"volumeMute\">Stumm</button>\n        <button type=\"button\" data-volume-target=\"volumeLow\">Leise</button>\n        <button type=\"button\" data-volume-target=\"volumeNormal\">Normal</button>\n      </div>\n    </div>\n    <div id=\"settingsWakeSlot\" class=\"settingsWakeSlot\"></div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsMemoryTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">✧</span>\n      <div>\n        <h3 id=\"settingsMemoryTitle\">Gedächtnis &amp; Verbindungen</h3>\n        <p>Deine Daten, Konten, Geräte und Freigaben</p>\n      </div>\n    </div>\n\n    <div class=\"profileStatusGrid settingsStatusGrid\">\n      <div class=\"profileStatus glassCard\">\n        <strong>Vollzeitgedächtnis</strong>\n        <span id=\"profileMemoryState\">Aktiv</span>\n      </div>\n      <div class=\"profileStatus glassCard\">\n        <strong>Google‑Konto</strong>\n        <span id=\"profileGoogleState\">Wird geprüft …</span>\n      </div>\n    </div>\n\n    <div class=\"actionList settingsActionList\">\n      <button id=\"settingsMemoryButton\" class=\"actionRow\" type=\"button\"\n        data-open-view=\"memory\">\n        <span class=\"rowIcon\">✧</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Gedächtnis verwalten</span>\n          <span class=\"rowMeta\">Erinnerungen ansehen und mit Sol besprechen</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n      <button id=\"settingsConnectionsButton\" class=\"actionRow\" type=\"button\"\n        data-open-view=\"services\">\n        <span class=\"rowIcon\">⌯</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Verbindungen &amp; Berechtigungen</span>\n          <span class=\"rowMeta\">Google, Telefon, Samsung, Health und SmartThings</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n    </div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsSystemTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">⚙</span>\n      <div>\n        <h3 id=\"settingsSystemTitle\">App &amp; System</h3>\n        <p>Status, Diagnose und Willkommensseite</p>\n      </div>\n    </div>\n    <div class=\"actionList settingsActionList\">\n      <button id=\"openSystemMenuButton\" class=\"actionRow\" type=\"button\"\n        aria-expanded=\"false\" aria-controls=\"settingsSystemDetails\">\n        <span class=\"rowIcon\">⚙</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Systemstatus</span>\n          <span class=\"rowMeta\">Chat, Mikrofon, Gedächtnis und Lip-Sync</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n      <button id=\"showWelcomeAgainButton\" class=\"actionRow\" type=\"button\">\n        <span class=\"rowIcon\">✦</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Willkommensseite erneut zeigen</span>\n          <span class=\"rowMeta\">Die Willkommensseite von Pam’s Holo öffnen</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n    </div>\n    <div id=\"settingsSystemDetails\" class=\"settingsSystemDetails\" hidden></div>\n  </section>\n</section>\n";
+const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTitle\">\n  <div class=\"welcomeContent\">\n    <img class=\"welcomeLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n    <h2 id=\"welcomeTitle\" class=\"welcomeName\">HUMAN HOLO <span class=\"pamUnicorn\" role=\"img\" aria-label=\"Rosa Einhorn\">🦄</span></h2>\n    <p class=\"welcomeTagline\">\n      Dein persönliches digitales Ich.\n      <strong>Für alles, was dich ausmacht.</strong>\n    </p>\n  </div>\n  <div class=\"cosmicHorizon\" aria-hidden=\"true\"></div>\n  <button id=\"welcomeButton\" class=\"primaryButton welcomeButton\" type=\"button\">\n    <span>Willkommen bei Human Holo</span>\n    <span class=\"arrow\" aria-hidden=\"true\">→</span>\n  </button>\n  <div class=\"welcomeDots\" aria-hidden=\"true\">\n    <span></span><span></span><span></span>\n  </div>\n</section>\n\n<section id=\"homeView\" class=\"appView active\" aria-labelledby=\"homeTitle\">\n  <div class=\"screenHeader\">\n    <div class=\"homeBrand\">\n      <img class=\"screenLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n      <span class=\"statusPill\">Online</span>\n    </div>\n    <button id=\"homeSettingsButton\" class=\"iconButton\" type=\"button\"\n      aria-label=\"Einstellungen öffnen\">⚙</button>\n  </div>\n\n  <div class=\"homeIntro\">\n    <p class=\"eyebrow\">Me, Myself &amp; I</p>\n    <h2 id=\"homeTitle\" class=\"viewTitle\">\n      Hallo Pam <span class=\"accent\">✦</span>\n    </h2>\n    <p class=\"viewLead\">Schön, dich zu sehen.<br>Womit wollen wir starten?</p>\n  </div>\n\n  <button id=\"homeOrbButton\" class=\"holoOrbButton\" type=\"button\"\n    aria-label=\"Sprachgespräch mit Sol starten\">\n    <span class=\"holoOrb\" aria-hidden=\"true\"></span>\n    <span class=\"orbHint\">Antippen und mit Sol sprechen</span>\n  </button>\n\n  <form id=\"homeComposer\" class=\"homeComposer glassCard\">\n    <input id=\"homeMessageInput\" type=\"text\" autocomplete=\"off\"\n      placeholder=\"Sprich oder schreib mit Sol …\" aria-label=\"Nachricht an Sol\">\n    <button id=\"homeMicButton\" class=\"composerButton\" type=\"button\"\n      aria-label=\"Sprachgespräch starten\">◉</button>\n    <button id=\"homeSendButton\" class=\"composerButton primary\" type=\"submit\"\n      aria-label=\"Nachricht senden\">→</button>\n  </form>\n\n  <div class=\"quickGrid\" aria-label=\"Schnellzugriffe\">\n    <button class=\"quickCard\" type=\"button\" data-open-view=\"memory\">\n      <span class=\"quickIcon\">◇</span>\n      <span class=\"quickTitle\">Erinnerungen</span>\n      <span class=\"quickMeta\">Dein Gedächtnis</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\"\n      data-sol-prompt=\"Sol, zeig mir meine aktuellen Ziele.\">\n      <span class=\"quickIcon\">◎</span>\n      <span class=\"quickTitle\">Ziele</span>\n      <span class=\"quickMeta\">Pläne &amp; Fortschritt</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\"\n      data-sol-prompt=\"Sol, was sollte ich heute im Blick behalten?\">\n      <span class=\"quickIcon\">▦</span>\n      <span class=\"quickTitle\">Heute</span>\n      <span id=\"todayCardMeta\" class=\"quickMeta\">Dein Überblick</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n    <button class=\"quickCard\" type=\"button\" data-open-view=\"services\">\n      <span class=\"quickIcon\">♡</span>\n      <span class=\"quickTitle\">Verbindungen</span>\n      <span class=\"quickMeta\">Google &amp; Handy</span>\n      <span class=\"quickChevron\">›</span>\n    </button>\n  </div>\n</section>\n\n<section id=\"memoryView\" class=\"appView\" aria-labelledby=\"memoryViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"home\"\n      aria-label=\"Zurück zur Startseite\">‹</button>\n    <div id=\"memoryViewTitle\" class=\"subHeaderTitle\">Erinnerungen</div>\n    <button class=\"iconButton\" type=\"button\"\n      data-sol-prompt=\"Sol, was weißt du dauerhaft?\"\n      aria-label=\"Gedächtnis mit Sol besprechen\">···</button>\n  </div>\n\n  <div class=\"memoryVisual memoryInfinityVisual\" aria-hidden=\"true\">\n    <svg viewBox=\"0 0 360 220\" role=\"presentation\">\n      <defs>\n        <linearGradient id=\"memoryInfinityGradient\" x1=\"52\" y1=\"106\" x2=\"308\" y2=\"106\" gradientUnits=\"userSpaceOnUse\">\n          <stop offset=\"0\" stop-color=\"#d44dff\"/>\n          <stop offset=\".2\" stop-color=\"#a85cff\"/>\n          <stop offset=\".46\" stop-color=\"#756dff\"/>\n          <stop offset=\".7\" stop-color=\"#31c8ff\"/>\n          <stop offset=\"1\" stop-color=\"#66efff\"/>\n        </linearGradient>\n        <linearGradient id=\"memoryPlatformGradient\" x1=\"52\" y1=\"0\" x2=\"308\" y2=\"0\" gradientUnits=\"userSpaceOnUse\">\n          <stop offset=\"0\" stop-color=\"#8f49ff\" stop-opacity=\"0\"/>\n          <stop offset=\".28\" stop-color=\"#a256ff\" stop-opacity=\".88\"/>\n          <stop offset=\".7\" stop-color=\"#3bbfff\" stop-opacity=\".9\"/>\n          <stop offset=\"1\" stop-color=\"#52e6ff\" stop-opacity=\"0\"/>\n        </linearGradient>\n        <radialGradient id=\"memoryPlatformFill\" cx=\"50%\" cy=\"50%\" r=\"50%\">\n          <stop offset=\"0\" stop-color=\"#6f64ff\" stop-opacity=\".28\"/>\n          <stop offset=\".58\" stop-color=\"#3158f0\" stop-opacity=\".1\"/>\n          <stop offset=\"1\" stop-color=\"#050819\" stop-opacity=\"0\"/>\n        </radialGradient>\n        <filter id=\"memoryInfinityGlow\" x=\"-40%\" y=\"-70%\" width=\"180%\" height=\"240%\">\n          <feGaussianBlur stdDeviation=\"8\" result=\"blur\"/>\n          <feMerge>\n            <feMergeNode in=\"blur\"/>\n            <feMergeNode in=\"SourceGraphic\"/>\n          </feMerge>\n        </filter>\n        <filter id=\"memoryStarGlow\" x=\"-300%\" y=\"-300%\" width=\"700%\" height=\"700%\">\n          <feGaussianBlur stdDeviation=\"2.2\" result=\"blur\"/>\n          <feMerge>\n            <feMergeNode in=\"blur\"/>\n            <feMergeNode in=\"SourceGraphic\"/>\n          </feMerge>\n        </filter>\n      </defs>\n\n      <g class=\"memoryStarfield\" filter=\"url(#memoryStarGlow)\">\n        <circle cx=\"47\" cy=\"58\" r=\"1.6\" fill=\"#8d63ff\"/>\n        <circle cx=\"72\" cy=\"34\" r=\"1.1\" fill=\"#dca8ff\"/>\n        <circle cx=\"102\" cy=\"47\" r=\"1.3\" fill=\"#548cff\"/>\n        <circle cx=\"133\" cy=\"28\" r=\"1.1\" fill=\"#b687ff\"/>\n        <circle cx=\"224\" cy=\"33\" r=\"1.25\" fill=\"#62ddff\"/>\n        <circle cx=\"255\" cy=\"43\" r=\"1.65\" fill=\"#31baff\"/>\n        <circle cx=\"291\" cy=\"31\" r=\"1.05\" fill=\"#78e9ff\"/>\n        <circle cx=\"319\" cy=\"62\" r=\"1.35\" fill=\"#a56bff\"/>\n        <circle cx=\"36\" cy=\"116\" r=\"1.05\" fill=\"#4edcff\"/>\n        <circle cx=\"329\" cy=\"118\" r=\"1.15\" fill=\"#b05eff\"/>\n        <circle cx=\"93\" cy=\"170\" r=\"1.1\" fill=\"#8f79ff\"/>\n        <circle cx=\"270\" cy=\"169\" r=\"1.2\" fill=\"#4cdcff\"/>\n      </g>\n\n      <path class=\"memoryBeam memoryBeam--soft\" d=\"M180 18V192\"/>\n      <path class=\"memoryBeam memoryBeam--core\" d=\"M180 30V186\"/>\n\n      <ellipse class=\"memoryOrbit memoryOrbit--far\" cx=\"180\" cy=\"109\" rx=\"151\" ry=\"62\"/>\n      <ellipse class=\"memoryOrbit memoryOrbit--near\" cx=\"180\" cy=\"109\" rx=\"132\" ry=\"45\"/>\n\n      <g class=\"memoryInfinityGlyph\">\n        <path class=\"memoryInfinityAura\" filter=\"url(#memoryInfinityGlow)\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityRibbon memoryInfinityRibbon--shadow\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityRibbon memoryInfinityRibbon--main\"\n          d=\"M180 107 C157 73 140 56 112 56 C79 56 57 77 57 106 C57 136 80 155 112 155 C142 155 160 133 180 106 C200 79 218 57 248 57 C280 57 303 77 303 106 C303 136 281 155 248 155 C220 155 203 138 180 107\"/>\n        <path class=\"memoryInfinityHighlight\"\n          d=\"M180 103 C157 70 140 53 112 53 C79 53 57 74 57 103 C57 133 80 152 112 152 C142 152 160 130 180 103 C200 76 218 54 248 54 C280 54 303 74 303 103\"/>\n      </g>\n\n      <ellipse class=\"memoryPlatform memoryPlatform--glow\" cx=\"180\" cy=\"188\" rx=\"118\" ry=\"22\"/>\n      <ellipse class=\"memoryPlatform memoryPlatform--outer\" cx=\"180\" cy=\"188\" rx=\"126\" ry=\"21\"/>\n      <ellipse class=\"memoryPlatform memoryPlatform--inner\" cx=\"180\" cy=\"188\" rx=\"88\" ry=\"12\"/>\n      <path class=\"memoryPlatformLine\" d=\"M82 188H278\"/>\n      <circle class=\"memoryPlatformSpark\" cx=\"180\" cy=\"188\" r=\"2.3\"/>\n    </svg>\n  </div>\n  <div class=\"memoryIntro\">\n    <h3 class=\"featureHeadline\">\n      Dein Gedächtnis.<strong class=\"memoryForever\"><span class=\"memoryForeverWords\">Together forever!</span> <span class=\"memoryForeverSymbols\" aria-label=\"Funkeln, Erde und Unendlichkeit\">✨🌎♾️</span></strong>\n    </h3>\n    <p class=\"featureCopy\">\n      Pam’s Holo erinnert sich an das, was zu deinem persönlichen Ich gehört.\n      Deine Gespräche und Erfahrungen bleiben ausschließlich deinem\n      persönlichen Pam’s Holo zugeordnet.\n    </p>\n  </div>\n\n  <div class=\"actionList\">\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, fasse meine bestätigten Erinnerungen und den erhaltenen Altbestand zusammen.\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <path d=\"M7 6.5h18a3.5 3.5 0 0 1 3.5 3.5v8.5A3.5 3.5 0 0 1 25 22h-9.8L8 27v-5H7a3.5 3.5 0 0 1-3.5-3.5V10A3.5 3.5 0 0 1 7 6.5Z\"/>\n          <path d=\"M16 18.2s-4.2-2.4-4.2-5a2.5 2.5 0 0 1 4.2-1.8 2.5 2.5 0 0 1 4.2 1.8c0 2.6-4.2 5-4.2 5Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Gespräche &amp; Notizen</span>\n        <span class=\"rowMeta\">Bestätigte Erinnerungen und erhaltener Altbestand</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, welche Lebensereignisse weißt du von mir?\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <rect x=\"4.5\" y=\"7\" width=\"23\" height=\"21\" rx=\"3.5\"/>\n          <path d=\"M10 4.5v5M22 4.5v5M4.5 12.5h23\"/>\n          <path d=\"m16 15.2 1.3 2.7 3 .4-2.2 2.1.6 3-2.7-1.5-2.7 1.5.6-3-2.2-2.1 3-.4 1.3-2.7Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Lebensereignisse</span>\n        <span class=\"rowMeta\">Wichtige Momente, die zu dir gehören</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n    <button class=\"actionRow\" type=\"button\"\n      data-sol-prompt=\"Sol, welche Vorlieben und Gewohnheiten kennst du von mir?\">\n      <span class=\"rowIcon memoryRowIcon\">\n        <svg viewBox=\"0 0 32 32\" aria-hidden=\"true\" focusable=\"false\">\n          <path d=\"M16 27.5S4.8 21 4.8 12.7A6.3 6.3 0 0 1 16 8.8a6.3 6.3 0 0 1 11.2 3.9C27.2 21 16 27.5 16 27.5Z\"/>\n        </svg>\n      </span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Vorlieben &amp; Gewohnheiten</span>\n        <span class=\"rowMeta\">Was dich ausmacht und dir wichtig ist</span>\n      </span>\n      <span class=\"rowChevron\">›</span>\n    </button>\n  </div>\n\n  <button id=\"manageMemoriesButton\" class=\"secondaryButton\" type=\"button\">\n    Erinnerungen mit Sol ansehen <span aria-hidden=\"true\">→</span>\n  </button>\n</section>\n\n<section id=\"servicesView\" class=\"appView\" aria-labelledby=\"servicesViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"settings\"\n      aria-label=\"Zurück zu den Einstellungen\">‹</button>\n    <div id=\"servicesViewTitle\" class=\"subHeaderTitle\">Verbindungen</div>\n    <button id=\"refreshServicesButton\" class=\"iconButton\" type=\"button\"\n      aria-label=\"Verbindungsstatus neu prüfen\">↻</button>\n  </div>\n\n  <div class=\"serviceOrbit\" aria-hidden=\"true\">\n    <div class=\"orbitRing\"></div>\n    <img class=\"orbitLogo\" src=\"human-holo-logo.png\" alt=\"\">\n    <span class=\"orbitNode google\">G</span>\n    <span class=\"orbitNode whatsapp\">W</span>\n    <span class=\"orbitNode phone\">☎</span>\n    <span class=\"orbitNode contacts\">♙</span>\n  </div>\n\n  <div class=\"servicesIntro\">\n    <h3 class=\"featureHeadline\">\n      Together<strong>forever!</strong>\n    </h3>\n    <p class=\"featureCopy\">\n      Pam’s Holo verbindet nur die Dienste, die du wirklich möchtest.\n      Jede Freigabe wird einzeln erteilt und kann wieder ausgeschaltet werden.\n    </p>\n  </div>\n\n  <div class=\"actionList\">\n    <button id=\"googleAccountRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">G</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Google‑Konto</span>\n        <span class=\"rowMeta\">Google Kalender und freigegebene Google‑Dienste</span>\n      </span>\n      <span id=\"googleAccountStatus\" class=\"serviceStatus\">Wird geprüft …</span>\n    </button>\n\n    <button id=\"whatsappDriveRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">W</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">WhatsApp‑Entwurf</span>\n        <span class=\"rowMeta\">Nachricht vorbereiten; du sendest selbst</span>\n      </span>\n      <span id=\"whatsappDriveStatus\" class=\"serviceStatus setup\">\n        Entwurfsmodus\n      </span>\n    </button>\n\n    <button id=\"phoneContactsRow\" class=\"serviceRow\" type=\"button\">\n      <span class=\"rowIcon\">☎</span>\n      <span class=\"rowText\">\n        <span class=\"rowTitle\">Telefon &amp; Kontakte</span>\n        <span class=\"rowMeta\">Kontakt finden und im Telefonwähler öffnen</span>\n      </span>\n      <span id=\"phoneContactsStatus\" class=\"serviceStatus setup\">\n        Freigabe nötig\n      </span>\n    </button>\n  </div>\n\n  <button id=\"manageServicesButton\" class=\"secondaryButton\" type=\"button\">\n    Dienste und Freigaben verwalten <span aria-hidden=\"true\">+</span>\n  </button>\n  <p class=\"permissionNote\">\n    Pam’s Holo liest keine WhatsApp‑Nachricht, keinen Kontakt und kein\n    Telefonbuch ohne deine ausdrückliche Android‑Freigabe.\n  </p>\n</section>\n\n<section id=\"profileView\" class=\"appView\" aria-labelledby=\"profileViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"home\"\n      aria-label=\"Zurück zur Startseite\">‹</button>\n    <div id=\"profileViewTitle\" class=\"subHeaderTitle\">Profil</div>\n    <button id=\"profileSettingsButton\" class=\"iconButton\" type=\"button\"\n      data-open-view=\"settings\" aria-label=\"Einstellungen öffnen\">⚙</button>\n  </div>\n\n  <div class=\"profileHero profileHero--clean glassCard\">\n    <img class=\"profileLogo\" src=\"human-holo-logo.png\" alt=\"Human Holo – Forever Together\">\n    <h3 class=\"profileName\">Pam’s Holo <span class=\"pamUnicorn pamUnicorn--profile\" role=\"img\" aria-label=\"Rosa Einhorn\">🦄</span></h3>\n    <p class=\"profileMeta\">\n      Dein persönlicher Klon · dein persönliches digitales Ich\n    </p>\n  </div>\n</section>\n\n<section id=\"settingsView\" class=\"appView\" aria-labelledby=\"settingsViewTitle\">\n  <div class=\"subHeader\">\n    <button class=\"iconButton\" type=\"button\" data-open-view=\"profile\"\n      aria-label=\"Zurück zum Profil\">‹</button>\n    <div id=\"settingsViewTitle\" class=\"subHeaderTitle\">Einstellungen</div>\n    <span></span>\n  </div>\n\n  <div class=\"settingsIntro\">\n    <p class=\"eyebrow\">Alles an seinem Platz</p>\n    <h2>Deine Einstellungen</h2>\n    <p>Hier bestimmst du, wie Pam’s Holo aussieht, spricht, hört und sich verbindet.</p>\n  </div>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsAppearanceTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">▣</span>\n      <div>\n        <h3 id=\"settingsAppearanceTitle\">Bild &amp; Aussehen</h3>\n        <p>Profilbild und Lip-Sync; Wiedererkennung gesperrt</p>\n      </div>\n    </div>\n    <div id=\"settingsPhotoEditor\" class=\"settingsPhotoEditor\"></div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsVoiceTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">◉</span>\n      <div>\n        <h3 id=\"settingsVoiceTitle\">Stimme &amp; „Hey Pam“</h3>\n        <p>Stimme und Lautstärke; Weckruf gesperrt</p>\n      </div>\n    </div>\n    <div id=\"settingsVoiceSlot\"></div>\n    <div class=\"settingsSubsection\">\n      <strong>Sprachlautstärke</strong>\n      <div id=\"settingsVolumeChooser\" class=\"settingsChoiceRow\" aria-label=\"Sprachlautstärke auswählen\">\n        <button type=\"button\" data-volume-target=\"volumeMute\">Stumm</button>\n        <button type=\"button\" data-volume-target=\"volumeLow\">Leise</button>\n        <button type=\"button\" data-volume-target=\"volumeNormal\">Normal</button>\n      </div>\n    </div>\n    <div id=\"settingsWakeSlot\" class=\"settingsWakeSlot\"></div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsMemoryTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">✧</span>\n      <div>\n        <h3 id=\"settingsMemoryTitle\">Gedächtnis &amp; Verbindungen</h3>\n        <p>Deine Daten, Konten, Geräte und Freigaben</p>\n      </div>\n    </div>\n\n    <div class=\"profileStatusGrid settingsStatusGrid\">\n      <div class=\"profileStatus glassCard\">\n        <strong>Bestätigte Erinnerungen</strong>\n        <span id=\"profileMemoryState\">Automatik aus</span>\n      </div>\n      <div class=\"profileStatus glassCard\">\n        <strong>Google‑Konto</strong>\n        <span id=\"profileGoogleState\">Wird geprüft …</span>\n      </div>\n    </div>\n\n    <div class=\"actionList settingsActionList\">\n      <button id=\"settingsMemoryButton\" class=\"actionRow\" type=\"button\"\n        data-open-view=\"memory\">\n        <span class=\"rowIcon\">✧</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Gedächtnis verwalten</span>\n          <span class=\"rowMeta\">Erinnerungen ansehen und mit Sol besprechen</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n      <button id=\"settingsConnectionsButton\" class=\"actionRow\" type=\"button\"\n        data-open-view=\"services\">\n        <span class=\"rowIcon\">⌯</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Verbindungen &amp; Berechtigungen</span>\n          <span class=\"rowMeta\">Google, Telefon, Kalender und erlaubte Dienste</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n    </div>\n  </section>\n\n  <section class=\"settingsGroup glassCard\" aria-labelledby=\"settingsSystemTitle\">\n    <div class=\"settingsGroupHeader\">\n      <span class=\"settingsGroupIcon\" aria-hidden=\"true\">⚙</span>\n      <div>\n        <h3 id=\"settingsSystemTitle\">App &amp; System</h3>\n        <p>Status, Diagnose und Willkommensseite</p>\n      </div>\n    </div>\n    <div class=\"actionList settingsActionList\">\n      <button id=\"openSystemMenuButton\" class=\"actionRow\" type=\"button\"\n        aria-expanded=\"false\" aria-controls=\"settingsSystemDetails\">\n        <span class=\"rowIcon\">⚙</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Systemstatus</span>\n          <span class=\"rowMeta\">Chat, Mikrofon, Gedächtnis und Lip-Sync</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n      <button id=\"showWelcomeAgainButton\" class=\"actionRow\" type=\"button\">\n        <span class=\"rowIcon\">✦</span>\n        <span class=\"rowText\">\n          <span class=\"rowTitle\">Willkommensseite erneut zeigen</span>\n          <span class=\"rowMeta\">Die Willkommensseite von Pam’s Holo öffnen</span>\n        </span>\n        <span class=\"rowChevron\">›</span>\n      </button>\n    </div>\n    <div id=\"settingsSystemDetails\" class=\"settingsSystemDetails\" hidden></div>\n  </section>\n</section>\n";
 
 (() => {
   "use strict";
@@ -15,12 +15,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return normalizer(value);
     }
 
+    const instanceName =
+      window.SolHoloIdentity?.selected?.()?.instanceName ||
+      "Human Holo";
+
     return String(value ?? "")
       .replace(/(^|\n)(\s*)Sol\s*,\s*/giu, "$1$2")
       .replace(/\bSol[- ]Holo\b/giu, "Human Holo")
       .replace(/\bLip[-‑ ]?Sync(?: V4)?\b/giu, "Original Full Sync")
-      .replace(/\bSols\b/gu, "Pam’s Holos")
-      .replace(/\bSol\b/gu, "Pam’s Holo")
+      .replace(/\bPam(?:’|')s Holo(?:s)?\b/gu, instanceName)
+      .replace(/\bPams Holo(?:s)?\b/gu, instanceName)
+      .replace(/\bSols\b/gu, instanceName)
+      .replace(/\bSol\b/gu, instanceName)
       .replace(/^(\s*)([a-zäöü])/u, (_match, whitespace, firstLetter) =>
         whitespace + firstLetter.toLocaleUpperCase("de-DE")
       );
@@ -103,6 +109,39 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   currentHeader.insertAdjacentHTML("beforebegin", uiMarkup);
 
+  const launchPolicy = window.HumanHoloLaunchPolicy;
+  const featureEnabled = (feature) =>
+    launchPolicy?.enabled?.(feature) === true;
+
+  const welcomeTagline = document.querySelector("#onboardingScreen .welcomeTagline");
+  if (welcomeTagline) {
+    welcomeTagline.innerHTML =
+      "Dein KI-gestützter persönlicher Begleiter. " +
+      "<strong>Transparent, unterstützend und unter deiner Kontrolle.</strong>";
+  }
+  const onlineStatus = document.querySelector("#homeView .statusPill");
+  if (onlineStatus) {
+    onlineStatus.textContent = window.HumanHoloBackend?.provisioned
+      ? "KI · Legal Review"
+      : "Server getrennt · Einrichtung offen";
+  }
+  const profileMeta = document.querySelector("#profileView .profileMeta");
+  if (profileMeta) {
+    profileMeta.textContent =
+      "KI-gestützter persönlicher Begleiter · kein Mensch und kein echtes digitales Ich";
+  }
+  const appearanceCopy = document.querySelector(
+    '#settingsView [aria-labelledby="settingsAppearanceTitle"] .settingsGroupHeader p'
+  );
+  if (appearanceCopy) appearanceCopy.textContent = "Profilbild und lokale Animation";
+  const voiceHeading = document.getElementById("settingsVoiceTitle");
+  if (voiceHeading) voiceHeading.textContent = "Stimme & Sprache";
+  const voiceCopy = voiceHeading?.nextElementSibling;
+  if (voiceCopy) {
+    voiceCopy.textContent =
+      "Eingebaute KI-Stimme; Hintergrund-Weckruf und Stimmklon sind deaktiviert";
+  }
+
   const humanHoloHome = document.getElementById("homeView");
   humanHoloHome.classList.add("humanHoloHome");
   humanHoloHome.innerHTML = `
@@ -128,7 +167,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         </svg>
       </button>
 
-      <h2 id="homeTitle" class="humanHoloWelcomeTitle">Hallo Pam♡</h2>
+      <h2 id="homeTitle" class="humanHoloWelcomeTitle">Hallo♡</h2>
     </header>
 
     <button id="homeOrbButton" class="humanHoloHero" type="button"
@@ -424,6 +463,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       memorialCreateForLayout
     );
   }
+  if (!featureEnabled("memorialNewEntries")) {
+    const holdNotice = document.createElement("aside");
+    holdNotice.className = "memorialBoundary glassCard";
+    holdNotice.setAttribute("role", "note");
+    holdNotice.textContent =
+      "Legal-Review-Hold: Neue Vermächtnis-Einträge, Medienergänzungen und " +
+      "Importe sind deaktiviert. Vorhandene lokale Einträge bleiben sichtbar, " +
+      "exportierbar und löschbar; sie werden nicht automatisch entfernt.";
+    memorialSections?.prepend(holdNotice);
+    if (memorialCreateForLayout) memorialCreateForLayout.hidden = true;
+  }
   solApp.insertBefore(memorialView, currentHeader);
 
   const medicationView = document.createElement("section");
@@ -435,126 +485,32 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       <button class="iconButton" type="button" data-open-view="home"
         aria-label="Zurück zur Startseite">‹</button>
       <div id="medicationViewTitle" class="subHeaderTitle">Gesundheit</div>
-      <span class="medicationHeaderIcon" aria-hidden="true">✚</span>
+      <span aria-hidden="true">⚖</span>
     </div>
-
-    <section class="healthSelfCareIntro glassCard" aria-labelledby="healthSelfCareTitle">
-      <p class="eyebrow">Gesundheitsbegleitung · Hilfe für zu Hause</p>
-      <h2 id="healthSelfCareTitle">Leichte Beschwerden.<strong>Kleine Verletzungen.</strong></h2>
+    <section class="healthSelfCareIntro glassCard" role="note">
+      <p class="eyebrow">Legal-Review-Hold</p>
+      <h2>Gesundheitsfunktionen sind<strong>derzeit deaktiviert.</strong></h2>
       <p>
-        Beschreibe Pam’s Holo per Text oder Sprache, was los ist. Bei zum
-        Beispiel milden Halsschmerzen oder einer kleinen oberflächlichen
-        Schnittwunde nennt Holo vorsichtige Schritte für zu Hause und sagt dir,
-        auf welche Warnzeichen du achten musst.
+        Human Holo bewertet keine Beschwerden, erkennt keine Medikamente,
+        liest keine Health-Connect-Daten und gibt keine persönliche
+        Selbsthilfe-, Dosierungs- oder Notfallempfehlung.
       </p>
-      <ul class="healthSelfCareExamples">
-        <li>konkrete, schonende Selbsthilfe statt pauschalem Arztverweis</li>
-        <li>bei dringend, aber nicht lebensbedrohlich: 116117</li>
-        <li>bei möglicher Lebensgefahr oder bleibenden Schäden: 112</li>
-      </ul>
+      <p>
+        Bei akuter Gefahr oder schweren Beschwerden bitte 112 wählen. Für
+        dringende, nicht lebensbedrohliche Beschwerden steht in Deutschland
+        der ärztliche Bereitschaftsdienst unter 116117 zur Verfügung.
+      </p>
       <p class="healthSelfCareBoundary">
-        Keine Diagnose und keine garantierte Entwarnung. Keine Wunddiagnose per
-        Foto. Kein Alkohol für Jugendliche oder als Hausmittel, keine
-        Zigaretten, Vapes, sonstigen Nikotinprodukte, Drogen oder Waffen.
-      </p>
-      <aside class="healthSelfCareDisclosure" role="note">
-        Deine Beschreibung wird zur Antwort an <strong>ChatGPT/OpenAI</strong>
-        übertragen. Frage und Antwort bleiben wie deine übrigen Gespräche
-        ausschließlich ownergebunden in Pam’s Holos Vollzeitgedächtnis.
-      </aside>
-      <button id="healthSelfCareButton" class="primaryButton" type="button">
-        Hinweis verstanden &amp; Beschwerden schildern
-      </button>
-      <a class="healthSelfCarePrivacyLink"
-        href="./datenschutz-gesundheitsbegleitung.html" target="_blank"
-        rel="noopener noreferrer">Datenschutz &amp; Grenzen ansehen</a>
-    </section>
-
-    <details class="humanHoloNoGoCard glassCard">
-      <summary>Unverrückbare Human-Holo-No-Gos</summary>
-      <ul>
-        <li>Menschenhandel und Kinderhandel</li>
-        <li>Prostitution, Vermittlung oder Werbung sexueller Dienstleistungen</li>
-        <li>Todesstrafe und jede Unterstützung von Hinrichtungen</li>
-        <li>Rache, Vergeltung und Selbstjustiz</li>
-        <li>Waffen, Munition und alles zu Beschaffung oder Einsatz</li>
-        <li>Drogen sowie Zigaretten, Vapes und sonstige Nikotinprodukte</li>
-        <li>Tierhandel</li>
-      </ul>
-      <p>
-        Betroffene bekommen immer Schutz- und Ausstiegshilfe. In akuter Gefahr
-        nennt Holo zuerst 110 beziehungsweise 112.
-      </p>
-    </details>
-
-    <section class="medicationIntro glassCard" aria-labelledby="medicationIntroTitle">
-      <p class="eyebrow">Gesundheitsfunktion · Medikamentenerkennung</p>
-      <h2 id="medicationIntroTitle">Verpackung zeigen.<strong>Angaben sicher lesen.</strong></h2>
-      <p>
-        Pam’s Holo kann ein von dir ausgewähltes Foto einer bedruckten
-        Originalverpackung oder eines beschrifteten Blisters auslesen.
+        Eine spätere Aktivierung erfordert eine gesonderte medizinprodukt-,
+        datenschutz- und haftungsrechtliche Freigabe.
       </p>
     </section>
-
-    <aside class="medicationDisclosure glassCard" role="note"
-      aria-labelledby="medicationDisclosureTitle">
-      <span class="medicationDisclosureIcon" aria-hidden="true">☝️</span>
-      <div>
-        <strong id="medicationDisclosureTitle">Vor dem Foto: deine ausdrückliche Freigabe</strong>
-        <p>
-          Das ausgewählte Foto wird einmalig zur Bilderkennung an
-          <strong>ChatGPT/OpenAI</strong> übertragen. Human Holo übernimmt die
-          Bilddatei selbst nicht in dein Vollzeitgedächtnis. Wie bisher bleiben
-          dort dein Nachrichtentext, der Hinweis „Foto gesendet“ und Pam’s Holos
-          Antwort ownergebunden gespeichert.
-        </p>
-      </div>
-    </aside>
-
-    <section class="medicationLimits glassCard" aria-labelledby="medicationLimitsTitle">
-      <h3 id="medicationLimitsTitle">Was Pam’s Holo dabei darf</h3>
-      <ul>
-        <li>Medikamentenname, Wirkstoff und Wirkstärke ablesen</li>
-        <li>Darreichungsform, Packungsgröße, Hersteller und Verfallsdatum nennen</li>
-        <li>Unsicherheit sichtbar kennzeichnen</li>
-      </ul>
-      <h3>Feste Sicherheitsgrenzen</h3>
-      <ul>
-        <li>Keine lose Tablette oder Kapsel nach Farbe, Form oder Prägung bestimmen</li>
-        <li>Keine persönliche Dosierung, Einnahme oder Behandlungsentscheidung festlegen</li>
-        <li>Keine Diagnose stellen und nichts als sicher ausgeben, was nicht eindeutig lesbar ist</li>
-      </ul>
-    </section>
-
-    <p class="medicationMedicalNotice" role="note">
-      Human Holo ist kein Medizinprodukt. Die Funktion diagnostiziert,
-      behandelt, heilt oder verhindert keine Krankheit und ersetzt keine
-      individuelle Untersuchung oder ärztliche Beratung. Bei medizinischen
-      Entscheidungen bitte immer medizinisches Fachpersonal fragen.
-      <a href="./datenschutz-medikamentenerkennung.html" target="_blank"
-        rel="noopener noreferrer">Datenschutz dieser Funktion ansehen</a>
-    </p>
-
-    <div class="medicationConsentActions" aria-label="Medikamentenerkennung freigeben">
-      <button id="medicationCameraButton" class="primaryButton" type="button">
-        Zustimmen &amp; Kamera öffnen
-      </button>
-      <button id="medicationGalleryButton" class="secondaryButton" type="button">
-        Zustimmen &amp; Foto auswählen
-      </button>
-      <input id="medicationGalleryInput" type="file" accept="image/*" hidden>
-    </div>
-
-    <button id="medicationGeneralHealthButton" class="medicationGeneralHealthButton"
-      type="button">
-      Andere Gesundheitsfrage stellen <span aria-hidden="true">→</span>
-    </button>
   `;
   solApp.insertBefore(medicationView, currentHeader);
 
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
-    profileMemoryState.textContent = "Immer aktiv · updatefest";
+    profileMemoryState.textContent = "Automatik aus · nur ausdrücklich bestätigt";
   }
 
   const settingsViewRoot = document.getElementById("settingsView");
@@ -579,9 +535,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       </div>
 
       <p class="privacySecurityLead">
-        Human Holo bleibt persönlich und ownergebunden. Berechtigungen und
-        externe Verbindungen werden nur für die Funktion verwendet, die du
-        bewusst auswählst.
+        Human Holo ist KI-gestützte Software im Legal-Review-Profil. Aktive
+        Datenwege sind ownergebunden; sensible Funktionen bleiben bis zur
+        fachlichen Freigabe technisch gesperrt.
       </p>
 
       <div class="privacySecurityFacts" aria-label="Verbindliche App-Angaben">
@@ -628,15 +584,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         <summary>Datennutzung und feste Grenzen</summary>
         <ul>
           <li>
-            Nachrichten, Medien, Sprache, Gesundheit, Kontakte, Kalender,
-            Dateien, App-Aktivitäten und Gerätekennungen werden nur verarbeitet,
-            soweit du die jeweilige Funktion nutzt oder freigibst.
+            Text, aktiv gestartete Sprache, bewusst ausgewählte Medien,
+            Kontakte und Kalender werden nur verarbeitet, soweit du die
+            jeweilige Funktion bewusst nutzt oder freigibst.
           </li>
           <li>Kein Verkauf deiner Daten und keine Nutzung für Werbung.</li>
           <li>
-            Gesundheitsinformationen sind allgemeine Orientierung und ersetzen
-            keine Diagnose, Behandlung oder persönliche Dosierungsentscheidung.
+            Gesundheitsdaten, Medikamentenerkennung, persönliche
+            Gesundheitsbegleitung und Notfallbewertung sind deaktiviert.
           </li>
+          <li>Automatische wortwörtliche Vollzeitspeicherung ist deaktiviert.</li>
           <li>
             Human Holo ist keine Behörden-App und enthält keine Finanzfunktionen.
           </li>
@@ -885,7 +842,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
   if (settingsConnectionsMeta) {
     settingsConnectionsMeta.textContent =
-      "YouTube, Google, Telefon, Samsung, Health und SmartThings";
+      "Google, Telefon-Wähler, Samsung und ausdrücklich freigegebene Dienste";
   }
 
   whatsappDriveRow.insertAdjacentHTML(
@@ -989,27 +946,145 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
 
   document.querySelector("#servicesView .permissionNote").textContent =
-    "Nach deiner Android-Freigabe kann Pam’s Holo alle Gerätekontakte lokal " +
-    "durchsuchen. Das Telefonbuch wird nicht hochgeladen; verwendet wird nur " +
-    "der von dir genannte, eindeutig geprüfte Empfänger. Einen Kontakt oder " +
-    "die fest hinterlegte ADAC-Pannenhilfe ruft Human Holo erst nach deiner " +
-    "sichtbaren Bestätigung direkt an. 110 und 112 bleiben im Android-Wähler. " +
-    "Nur den einmalig freigegebenen Kontakt darf Human Holo nach dem " +
-    "eindeutigen Befehl „anrufen und mit ihr sprechen“ ohne zweiten Dialog " +
-    "über die verschlüsselte Telefonbrücke anrufen; die Nummer wird " +
-    "nicht angezeigt, protokolliert oder als Erinnerung gespeichert. " +
-    "WhatsApp-Nachrichten " +
-    "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
-    "Bild, Notiz und Health-Wert bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
-    "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
-    "normale Alltagsinhalte als Freigabe; " +
-    "Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. " +
-    "Geräte werden erst nach einer einmaligen Gerätefreigabe steuerbar. " +
-    "Der offizielle Human-Holo-YouTube-Kanal ist nur als öffentlicher Link " +
-    "hinterlegt; Human Holo hat dadurch keine Upload- oder Verwaltungsrechte.";
+    "Nach deiner Android-Freigabe kann Human Holo Gerätekontakte lokal " +
+    "durchsuchen. Das Telefonbuch wird nicht hochgeladen. Anrufe werden nur " +
+    "im Android-Telefonwähler vorbereitet und von dir selbst gestartet. " +
+    "WhatsApp-Nachrichten werden als sichtbarer Entwurf geöffnet und von dir " +
+    "selbst gesendet. Direktanruf, ADAC-Festwahl, KI-Telefonbrücke, " +
+    "WhatsApp-Automatik, Benachrichtigungslesen, Health Connect, biometrische " +
+    "Wiedererkennung und Hintergrund-Weckruf sind im Legal-Review-Profil deaktiviert.";
 
   document.querySelector("#phoneContactsRow .rowMeta").textContent =
-    "Direktanruf bestätigt · Holo-Gespräch nur mit dem freigegebenen Kontakt";
+    "Kontakt lokal finden · Nummer im Telefonwähler vorbereiten";
+
+  function markFeatureHeld(rowId, statusId, feature, copy) {
+    if (featureEnabled(feature)) return;
+    const row = document.getElementById(rowId);
+    const status = document.getElementById(statusId);
+    if (row) {
+      row.disabled = true;
+      row.setAttribute("aria-disabled", "true");
+      row.title = "Bis zur rechtlichen Freigabe deaktiviert";
+      const meta = row.querySelector(".rowMeta");
+      if (meta && copy) meta.textContent = copy;
+    }
+    if (status) {
+      status.textContent = "Legal Review";
+      status.classList.remove("connected");
+      status.classList.add("setup");
+    }
+  }
+
+  markFeatureHeld(
+    "whatsappDriveRow",
+    "whatsappDriveStatus",
+    "whatsappDraft",
+    "Nur sichtbarer Entwurf; du sendest selbst"
+  );
+  markFeatureHeld(
+    "heyHoSolRow",
+    "heyHoSolStatus",
+    "backgroundWake",
+    "Hintergrund- und Sprecher-Weckruf deaktiviert"
+  );
+  markFeatureHeld(
+    "knownPersonRecognitionRow",
+    "knownPersonRecognitionStatus",
+    "knownPersonRecognition",
+    "Biometrische Wiedererkennung deaktiviert"
+  );
+  markFeatureHeld(
+    "healthConnectRow",
+    "healthConnectStatus",
+    "healthConnect",
+    "Alle Gesundheitsdaten-Zugriffe deaktiviert"
+  );
+  markFeatureHeld(
+    "googleAccountRow",
+    "googleAccountStatus",
+    "googlePersonalServices",
+    "Google-Konto, Gmail, Kontakte, Drive und Kalender geparkt"
+  );
+  markFeatureHeld(
+    "smartThingsRow",
+    "smartThingsStatus",
+    "smartThings",
+    "SmartThings und Geräteaktionen geparkt"
+  );
+  markFeatureHeld(
+    "alarmClockRow",
+    "alarmClockStatus",
+    "alarmAndWatch",
+    "Weckeraktion im Human-Holo-Test geparkt"
+  );
+  markFeatureHeld(
+    "galaxyWatchRow",
+    "galaxyWatchStatus",
+    "alarmAndWatch",
+    "Watch-Verknüpfung im Human-Holo-Test geparkt"
+  );
+  markFeatureHeld(
+    "samsungGalleryRow",
+    "samsungGalleryStatus",
+    "personalAppearance",
+    "Persönliches Clone-Bild und Original Full Sync geparkt"
+  );
+
+  if (!featureEnabled("animalHolos")) {
+    const animalArea = document.querySelector(".humanHoloAreaCard--animals");
+    if (animalArea) {
+      animalArea.disabled = true;
+      animalArea.setAttribute("aria-disabled", "true");
+      animalArea.removeAttribute("data-sol-prompt");
+      animalArea.title = "Legal Review: persönliche Tier-Holos sind geparkt";
+    }
+  }
+
+  if (!featureEnabled("calendarRemindersNotes")) {
+    const calendarSection = document.getElementById("calendarImportantSection");
+    calendarSection?.querySelectorAll("button, textarea, input").forEach(control => {
+      control.disabled = true;
+      control.setAttribute("aria-disabled", "true");
+    });
+    const heldCalendarComposerStatus = document.getElementById(
+      "calendarComposerStatus"
+    );
+    if (heldCalendarComposerStatus) {
+      heldCalendarComposerStatus.textContent =
+        "Legal Review: Kalenderzugriff und Kalenderaktionen sind geparkt.";
+    }
+    const heldCalendarAccessStatus = document.getElementById(
+      "calendarAccessStatus"
+    );
+    const heldCalendarAccessButton = document.getElementById(
+      "calendarAccessButton"
+    );
+    if (heldCalendarAccessStatus) {
+      heldCalendarAccessStatus.textContent = "Kalender im Legal Review geparkt";
+    }
+    if (heldCalendarAccessButton) {
+      heldCalendarAccessButton.textContent = "Legal Review";
+    }
+  }
+
+  if (!featureEnabled("personalAppearance")) {
+    settingsPhotoEditor.querySelectorAll("button, input").forEach(control => {
+      control.disabled = true;
+      control.setAttribute("aria-disabled", "true");
+    });
+    const profilePhotoHelp = document.getElementById("profilePhotoHelp");
+    if (profilePhotoHelp) {
+      profilePhotoHelp.textContent =
+        "Legal Review: persönliches Clone-Bild und Original Full Sync sind geparkt.";
+    }
+  }
+
+  if (!featureEnabled("backgroundWake")) {
+    document.querySelectorAll("#wakeModeChooser button").forEach((button) => {
+      button.disabled = true;
+      button.setAttribute("aria-disabled", "true");
+    });
+  }
 
   const drawerVoiceSettings = document.querySelector("#drawer .drawerVoiceSettings");
   if (drawerVoiceSettings) {
@@ -1102,7 +1177,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     settings: document.getElementById("settingsView")
   };
 
-  const introKey = "sol-holo-intro-v2-seen";
+  const introOwnerId = String(
+    window.SolHoloIdentity?.selected?.()?.ownerId || "unassigned"
+  );
+  const introKey = introOwnerId.startsWith("human-test-")
+    ? `human-holo:${introOwnerId}:intro-v1-seen`
+    : "human-holo:test-unassigned:intro-v1-seen";
   const pamClonePhotoKey = "sol-holo:pam-sol:clone-photo:v2";
   const pamCloneMouthKey = "sol-holo:pam-sol:clone-mouth:v2";
   const legacyClonePhotoKey = "sol-holo-clone-photo-v1";
@@ -1126,11 +1206,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const knownPersonIdentityRequestPattern =
     /(?:\bwer\s+ist\s+(?:die|diese)\s+person\b|\bwer\s+bin\s+ich\b|\b(?:erkenn|kenn)st\s+du\s+(?:mich|pam|die\s+person|diese\s+person|den\s+menschen|die\s+frau|den\s+mann)\b|\bwei(?:ß|ss)t\s+du[\s\S]{0,24}\bwer\s+(?:ich|die\s+person|dieser\s+mensch|diese\s+frau|dieser\s+mann)\b|\bist\s+das\s+(?:pam|ich)\b|\bbin\s+das\s+ich\b|\bnur\s+(?:um\s+)?(?:die\s+)?person\b|\bidentifizier(?:e|en)\s+(?:mich|die\s+person)\b|\bwho\s+is\s+(?:this|the)\s+(?:person|woman|man)\b|\bis\s+this\s+pam\b|\bdo\s+you\s+recogni[sz]e\s+me\b)/iu;
   const knownPersonRecognitionDisclosure =
-    "Private Wiedererkennung von Pam auf einzelnen Fotos\n\n" +
-    "Wenn du zustimmst, darf Pam’s Holo dein bereits owner-gebundenes Profilbild als Referenz verwenden, um ausschließlich bei einem von dir bewusst gesendeten Foto zu prüfen, ob die einzelne sichtbare Person du bist.\n\n" +
-    "Referenz- und Prüffoto werden dafür über eine verschlüsselte Verbindung an ChatGPT/OpenAI übertragen. Human Holo speichert sie nicht im Vollzeitgedächtnis. Die normale Response-Speicherung ist ausgeschaltet. OpenAI verwendet API-Daten standardmäßig nicht zum Modelltraining, kann Eingaben und Antworten aber nach den aktuell veröffentlichten API-Regeln bis zu 30 Tage für Missbrauchsschutz aufbewahren; gesetzlich oder aus Sicherheitsgründen kann eine längere Aufbewahrung nötig sein.\n\n" +
-    "Human Holo legt keine öffentliche Gesichtsdatenbank an und verwendet die Funktion nicht für Live-Überwachung oder unbekannte Personen. Bei Unsicherheit wird kein Name geraten.\n\n" +
-    "Die Einwilligung ist freiwillig und kann unter Verbindungen mit einem Antippen wieder ausgeschaltet werden. Der Widerruf stoppt künftige Abgleiche; bereits entstandene Sicherheitsprotokolle kann Human Holo nicht rückwirkend bei OpenAI löschen. Möchtest du die Einwilligung jetzt ausdrücklich erteilen?";
+    "Legal-Review-Hold\n\nDie biometrische Personen- und Gesichtswiedererkennung " +
+    "ist derzeit deaktiviert. Es werden dafür keine neuen Referenz- oder " +
+    "Prüffotos angenommen und keine Einwilligungen erhoben.";
   const unverifiedPamClonePhotoQuarantineKey =
     "sol-holo:unassigned:clone-photo:v2:quarantine";
   const unverifiedPamCloneMouthQuarantineKey =
@@ -1147,14 +1225,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const maxMemorialMediaBytes = 20 * 1024 * 1024;
   const maxMemorialTotalBytes = 64 * 1024 * 1024;
   const medicationRecognitionPrompt =
-    "Bitte erkenne diese Medikamentenverpackung oder diesen beschrifteten Blister und lies nur die eindeutig sichtbaren Packungsangaben vor.";
+    "Diese Gesundheitsfunktion ist im Legal-Review-Profil deaktiviert.";
   const healthSelfCarePrompt =
-    "Ich möchte sichere Hilfe für zu Hause bei einer leichten Beschwerde oder kleinen Verletzung. Bitte frage mich zuerst, was los ist, und prüfe die entscheidenden Warnzeichen.";
+    "Diese Gesundheitsfunktion ist im Legal-Review-Profil deaktiviert.";
   const medicationRecognitionDisclosure =
-    "Gesundheitsfunktion · Medikamentenerkennung\n\n" +
-    "Das ausgewählte Foto wird einmalig zur Bilderkennung an ChatGPT/OpenAI übertragen. Human Holo speichert die Bilddatei selbst nicht im Vollzeitgedächtnis; dein Nachrichtentext, der Hinweis ‚Foto gesendet‘ und Pam’s Holos Antwort bleiben dort ownergebunden gespeichert.\n\n" +
-    "Human Holo ist kein Medizinprodukt. Es gibt keine persönliche Dosierung, Einnahme, Diagnose oder Behandlung vor. Lose Tabletten oder Kapseln werden nicht anhand von Farbe, Form oder Prägung bestimmt.\n\n" +
-    "Möchtest du dieses eine Foto jetzt freigeben?";
+    "Legal-Review-Hold\n\nMedikamentenerkennung und persönliche " +
+    "Gesundheitsbegleitung sind derzeit deaktiviert. Es wird dafür kein Foto " +
+    "angenommen oder an einen KI-Dienst übertragen.";
   const medicationRecognitionPattern =
     /\b(?:arznei(?:mittel)?|beipackzettel|blister|kapseln?|medikament[\p{L}-]*|packungsbeilage|pillen?|tabletten?|wirkstoff|wirkstärke)\b/iu;
   const medicationRecognitionActionPattern =
@@ -1322,7 +1399,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (ownerId === "pam-sol") {
       return pamNotesStorageKey;
     }
-    return "";
+    return ownerId.startsWith("human-test-")
+      ? `human-holo:${ownerId}:notes:v1`
+      : "";
   }
 
   function activeCloneStorageKeys() {
@@ -1399,6 +1478,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       "setup"
     );
 
+    if (!featureEnabled("knownPersonRecognition")) {
+      status.textContent = "Legal Review";
+      status.classList.add("setup");
+      return;
+    }
+
     if (
       identity?.ownerId !== "pam-sol"
     ) {
@@ -1449,6 +1534,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function grantKnownPersonSelfConsent() {
+    if (!featureEnabled("knownPersonRecognition")) {
+      showToast("Biometrische Wiedererkennung ist rechtlich deaktiviert.");
+      return null;
+    }
+
     const identity =
       requireActivePersonalOwner();
 
@@ -1562,6 +1652,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           false,
         required:
           false
+      };
+    }
+
+    if (!featureEnabled("knownPersonRecognition")) {
+      return {
+        granted: false,
+        reason: "legal-review-hold",
+        required: true
       };
     }
 
@@ -1737,11 +1835,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function activeInstanceName() {
-    const name = activePersonalName();
-    if (name === "Pam") {
-      return "Pam’s Holo";
-    }
-    return "persönliches Holo";
+    return window.SolHoloIdentity?.selected?.()?.instanceName ||
+      "Human Holo · Test";
   }
 
   function requireActivePersonalOwner() {
@@ -1756,9 +1851,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   function renderPersonalIdentityUi() {
     const identity = window.SolHoloIdentity?.selected?.() || null;
     const displayName = identity?.displayName || "";
-    const instanceName = displayName
-      ? "Pam’s Holo"
-      : "Persönliches Holo";
+    const instanceName = identity?.instanceName ||
+      "Human Holo · Test";
 
     document.title = displayName
       ? `Human Holo · ${instanceName}`
@@ -1783,8 +1877,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Foto, Video, Live-Bild, Gebärdensprache, gesprochene Sprache und Text können dabei als ein zusammengehöriges Ereignis erinnert werden. Die Bild-, Video- und Audiodateien selbst werden nicht in diesem Gedächtnis gespeichert, sondern nur die jeweilige Medienart, der Gesprächszusammenhang und Holos klar gekennzeichnete Beschreibung. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
+        ? `${instanceName}s bestehender Erinnerungsbestand bleibt erhalten und ownergebunden. Neue Gespräche werden nicht automatisch Wort für Wort gespeichert. Der aktuelle Gesprächskontext ist vorübergehend. Dauerhafte strukturierte Erinnerungen entstehen nur auf deinen ausdrücklichen Zuruf oder nach deiner granularen Freigabe in ausgewählten Kategorien. Unter „Erinnerungen“ kannst du suchen, pausieren, korrigieren, ausblenden, exportieren und löschen.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
+    }
+
+    const memoryTitle = document.querySelector(
+      "#memoryView .memoryIntro .featureTitle"
+    );
+    if (memoryTitle) {
+      memoryTitle.textContent = "Persönliches Gedächtnis";
     }
 
     const servicesCopy = document.querySelector(
@@ -1799,7 +1900,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const permissionCopy = document.querySelector("#servicesView .permissionNote");
     if (permissionCopy) {
       permissionCopy.textContent = identity
-        ? `Euer Dialog bleibt automatisch in ${instanceName}s ownergebundenem Vollzeitgedächtnis. Zusätzliche Alltagsinhalte wie Listen speichert ${instanceName} auf ${displayName}s ausdrücklichen Zuruf. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Freigegebene Alltagsgeräte dürfen später auf ausdrücklichen Auftrag gesteuert werden; neue oder riskante Geräteaktionen brauchen eine zusätzliche Bestätigung. Der offizielle Human-Holo-YouTube-Kanal ist nur als öffentlicher Link hinterlegt; ${instanceName} hat dadurch keine Upload- oder Verwaltungsrechte.`
+        ? `Euer Dialog wird nicht automatisch wortwörtlich dauerhaft gespeichert. Nur von ${displayName} ausdrücklich bestätigte Erinnerungen und bewusst gespeicherte Alltagsinhalte können ownergebunden in ${instanceName} übernommen werden. Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. Externe Aktionen benötigen eine sichtbare Übergabe oder Bestätigung.`
         : "Die feste Holo-ID ist nicht verfügbar. Keine persönliche Verbindung wird geladen.";
     }
 
@@ -2472,6 +2573,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function saveMemorialEntry() {
+    if (!featureEnabled("memorialNewEntries")) {
+      showToast("Neue Vermächtnis-Einträge sind im Legal-Review-Profil deaktiviert.");
+      return false;
+    }
+
     const identity = requireActivePersonalOwner();
     if (!identity) return false;
 
@@ -2575,6 +2681,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function appendMemorialPhotos(entryId, fileList) {
+    if (!featureEnabled("memorialNewEntries")) {
+      showToast("Neue Vermächtnis-Medien sind im Legal-Review-Profil deaktiviert.");
+      return false;
+    }
+
     const identity = requireActivePersonalOwner();
     const entry = memorialEntries.find((item) => item.id === entryId);
     const files = Array.from(fileList || []);
@@ -2785,6 +2896,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function restoreMemorialArchive(archive, ownerId) {
+    if (!featureEnabled("memorialNewEntries")) {
+      throw new Error("MEMORIAL_RESTORE_LEGAL_REVIEW_HOLD");
+    }
+
     const identity = window.SolHoloIdentity?.selected?.();
     if (
       !identity ||
@@ -3821,6 +3936,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function loadDeviceCalendarEvents() {
+    if (!featureEnabled("calendarRemindersNotes")) {
+      linkedCalendarEvents = [];
+      if (calendarRefreshButton) calendarRefreshButton.disabled = true;
+      if (calendarCount) calendarCount.textContent = "Legal Review";
+      return false;
+    }
     const plugin = getPhoneContactsPlugin();
     if (
       !deviceCalendarStatus.permissionGranted ||
@@ -4531,6 +4652,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function restoreCustomCloneAppearance() {
+    if (!featureEnabled("personalAppearance")) {
+      applyCustomCloneAppearance("", null);
+      profilePhotoHelp.textContent =
+        "Legal Review: persönliches Clone-Bild und Original Full Sync sind geparkt.";
+      return;
+    }
     const legacyAppearanceQuarantined = quarantineLegacyCloneAppearance();
     applyCustomCloneAppearance("", null);
     const keys = activeCloneStorageKeys();
@@ -4962,6 +5089,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function loadDeviceCalendarStatus() {
+    if (!featureEnabled("calendarRemindersNotes")) {
+      deviceCalendarStatus = {
+        supported: false,
+        permissionGranted: false,
+        writableCalendarAvailable: false,
+        directWriteSupported: false
+      };
+      linkedCalendarEvents = [];
+      renderLinkedCalendarEvents();
+      return false;
+    }
     const plugin = getPhoneContactsPlugin();
     if (typeof plugin?.getCalendarStatus !== "function") {
       deviceCalendarStatus = {
@@ -4995,6 +5133,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const todayState = document.getElementById("todayCardMeta");
     const identity = window.SolHoloIdentity?.selected?.();
 
+    if (!featureEnabled("googlePersonalServices")) {
+      googleConnected = false;
+      googleStatus = {
+        connected: false,
+        allRequestedAccessGranted: false,
+        services: {}
+      };
+      if (serviceState) serviceState.textContent = "Legal Review";
+      if (profileState) profileState.textContent = "Google-Dienste geparkt";
+      if (todayState) todayState.textContent = "Keine Kontoverbindung";
+      return;
+    }
+
     if (!identity) {
       googleConnected = false;
       googleStatus = {
@@ -5026,7 +5177,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const response = await fetch(
-        "https://sol-holo.onrender.com/google/status?" + identityQuery,
+        `${BACKEND_URL}/google/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5114,6 +5265,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const serviceState = document.getElementById("smartThingsStatus");
     const identity = window.SolHoloIdentity?.selected?.();
 
+    if (!featureEnabled("smartThings")) {
+      smartThingsStatus = {
+        configured: false,
+        connected: false,
+        selectedDevicesOnly: true,
+        actionsRequireConfirmation: true
+      };
+      if (serviceState) serviceState.textContent = "Legal Review";
+      return;
+    }
+
     if (!identity) {
       smartThingsStatus = {
         configured: false,
@@ -5135,7 +5297,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const response = await fetch(
-        `https://sol-holo.onrender.com/smartthings/status?${identityQuery}`,
+        `${BACKEND_URL}/smartthings/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5197,6 +5359,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     statusElement.classList.remove("connected", "setup");
     row.setAttribute("aria-pressed", String(whatsappStatus.active));
 
+    if (!featureEnabled("whatsappNotificationReader")) {
+      statusElement.textContent = "Legal Review";
+      statusElement.classList.add("setup");
+      row.setAttribute("aria-pressed", "false");
+      return;
+    }
+
     if (!whatsappStatus.supported) {
       statusElement.textContent = "Nur Android";
       statusElement.classList.add("setup");
@@ -5233,6 +5402,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function toggleWhatsAppDrivingMode() {
+    if (!featureEnabled("whatsappNotificationReader")) {
+      showToast("WhatsApp-Fahrmodus und Benachrichtigungslesen sind rechtlich deaktiviert.");
+      return false;
+    }
+
     if (whatsappActionRunning) {
       return;
     }
@@ -5306,6 +5480,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   async function loadAlarmClockStatus() {
     const statusElement = document.getElementById("alarmClockStatus");
     if (!statusElement) return;
+    if (!featureEnabled("alarmAndWatch")) {
+      statusElement.textContent = "Legal Review";
+      statusElement.classList.add("setup");
+      return;
+    }
     statusElement.classList.remove("connected", "setup");
     const plugin = getPhoneContactsPlugin();
     if (typeof plugin?.getAlarmClockStatus !== "function") {
@@ -5325,6 +5504,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function openAlarmClockForRequest(request = { action: "open" }) {
+    if (!featureEnabled("alarmAndWatch")) {
+      return {
+        success: false,
+        opened: false,
+        answer: "Weckeraktionen sind im Human-Holo-Legal-Review-Test geparkt."
+      };
+    }
     const plugin = getPhoneContactsPlugin();
     if (!plugin) {
       return {
@@ -5396,6 +5582,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function loadGalaxyWatchStatus() {
+    if (!featureEnabled("alarmAndWatch")) {
+      renderGalaxyWatchStatus({ supported: false });
+      const statusElement = document.getElementById("galaxyWatchStatus");
+      if (statusElement) statusElement.textContent = "Legal Review";
+      return;
+    }
     const plugin = getGalaxyWatchBridgePlugin();
     if (typeof plugin?.getStatus !== "function") {
       renderGalaxyWatchStatus({ supported: false });
@@ -5410,6 +5602,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function notifyGalaxyWatchSummary(kind = "test") {
+    if (!featureEnabled("alarmAndWatch")) return false;
     const plugin = getGalaxyWatchBridgePlugin();
     if (typeof plugin?.sendPrivateSummary !== "function") return false;
     try {
@@ -5426,6 +5619,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.notifySolHoloGalaxyWatch = notifyGalaxyWatchSummary;
 
   async function setupGalaxyWatchBridge() {
+    if (!featureEnabled("alarmAndWatch")) {
+      showToast("Die Galaxy-Watch-Verknüpfung ist im Legal Review geparkt.");
+      return;
+    }
     const plugin = getGalaxyWatchBridgePlugin();
     if (!plugin) {
       showToast("Die Galaxy-Watch-Verknüpfung ist erst nach dem App-Update verfügbar.");
@@ -5455,6 +5652,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   window.saveSolHoloCalendarDraft = async (calendarResult) => {
+    if (!featureEnabled("calendarRemindersNotes")) {
+      return {
+        ...calendarResult,
+        success: false,
+        savedDirectly: false,
+        answer: "Kalenderaktionen sind im Human-Holo-Legal-Review-Test geparkt."
+      };
+    }
     const draft = calendarResult?.calendarDraft;
     if (calendarResult?.success) {
       await loadDeviceCalendarStatus();
@@ -5721,30 +5926,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         }
       });
 
-      await plugin.addListener("whatsAppAutoSendResult", (result) => {
-        const recipient = String(result?.recipientName || "dem Kontakt");
-        if (result?.sendControlActivated) {
-          showToast(`WhatsApp an ${recipient} automatisch gesendet ✅️`);
-          void window.recordSolHoloVerifiedDeviceAction?.({
-            token: String(result?.token || ""),
-            recipientName: recipient,
-            message: String(result?.message || ""),
-            sendControlActivated: true,
-            deliveryConfirmed: result?.deliveryConfirmed === true
-          });
-          return;
-        }
-        showToast(
-          `WhatsApp an ${recipient} wurde zur Sicherheit nicht automatisch gesendet.`
-        );
-        void window.recordSolHoloVerifiedDeviceAction?.({
-          token: String(result?.token || ""),
-          recipientName: recipient,
-          message: String(result?.message || ""),
-          sendControlActivated: false,
-          deliveryConfirmed: false
-        });
-      });
     } catch (error) {
       phoneListenersRegistered = false;
       console.error("Telefon-Ereignisse:", error);
@@ -5793,14 +5974,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       if (status?.contactsPermissionGranted) {
         showToast(
-          "Alle Gerätekontakte sind lokal verfügbar. Direkte Anrufe brauchen jedes Mal deine sichtbare Bestätigung; beim ersten Anruf folgt die Android-Telefonfreigabe. Automatisches WhatsApp-Senden braucht einen ausdrücklichen Auftrag und seine einmalige Bedienungshilfe." +
-          (status?.phoneStatePermissionGranted
-            ? ""
-            : " Die optionale Anruferkennung ist noch nicht freigegeben.")
+          "Gerätekontakte sind nur lokal verfügbar. Human Holo öffnet Telefon, SMS oder WhatsApp erst nach sichtbarer Bestätigung; Anrufen und Senden erledigst du anschließend selbst."
         );
       } else {
         showToast(
-          `Für alle Telefonfunktionen braucht ${activeInstanceName()} beide Android-Freigaben.`
+          `Für die lokale Kontaktsuche braucht ${activeInstanceName()} die Android-Kontaktfreigabe.`
         );
       }
       return status;
@@ -5817,10 +5995,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "112": "Notruf für Feuerwehr und Rettungsdienst",
     "110": "Polizeinotruf",
     "116117": "Ärztlicher Bereitschaftsdienst"
-  });
-
-  const VERIFIED_HELP_SERVICES = Object.freeze({
-    adac_pannenhilfe_de: "ADAC Pannenhilfe Deutschland"
   });
 
   function normalizeLocalPhoneIntent(value) {
@@ -5871,7 +6045,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       : null;
   }
 
-  function verifiedHelpServiceCallFromMessage(message) {
+  function restrictedExternalCallFromMessage(message) {
     const cleanMessage = String(message || "")
       .trim()
       .replace(
@@ -5879,12 +6053,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ""
       )
       .trim();
-    if (isSafetyTriageQuestion(cleanMessage) || /[?;]/.test(cleanMessage)) {
+    const normalized = normalizeLocalPhoneIntent(cleanMessage);
+    if (
+      isSafetyTriageQuestion(cleanMessage) ||
+      /[?;]/.test(cleanMessage) ||
+      /\b(?:test|probe|fiktiv|später|spaeter|morgen|irgendwann|wenn)\b/i.test(
+        normalized
+      )
+    ) {
       return null;
     }
 
-    const normalized = normalizeLocalPhoneIntent(cleanMessage);
-    const directCommand =
+    const roadsideDirectCommand =
       /^(?:ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(?:(?:den|die)\s+)?(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?(?:\s+an)?|(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?\s+anrufen)[.!]?$/i.test(
         normalized
       );
@@ -5892,13 +6072,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       /^(?:(?:wir\s+haben|ich\s+habe|(?:mein|das)\s+auto\s+hat)(?:\s+gerade)?(?:\s+eine)?\s+panne|panne)[,!.\s]+ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(?:(?:den|die)\s+)?(?:adac(?:\s+pannenhilfe)?|pannenhilfe)(?:\s+bitte)?(?:\s+an)?[.!]?$/i.test(
         normalized
       );
+    if (roadsideDirectCommand || breakdownCommand) {
+      return "Fest hinterlegte Pannenhilfe-Direktanrufe sind in diesem Build nicht enthalten. Bitte nutze selbst die offizielle Kontaktmöglichkeit.";
+    }
 
-    return directCommand || breakdownCommand
-      ? {
-          serviceId: "adac_pannenhilfe_de",
-          label: VERIFIED_HELP_SERVICES.adac_pannenhilfe_de
-        }
-      : null;
+    if (
+      /\bruf(?:e)?\b[\s\S]{1,120}\ban\b[\s\S]{0,40}\b(?:sprich|sprech|rede|unterhalte\s+dich)\b/i.test(
+        normalized
+      )
+    ) {
+      return "Von der KI selbst geführte Telefonate mit Dritten sind in diesem Build nicht enthalten.";
+    }
+
+    return null;
   }
 
   function phoneContactCallNameFromMessage(message) {
@@ -5928,53 +6114,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return "";
     }
     return name;
-  }
-
-  function personalCloneContactCallFromMessage(message) {
-    const cleanMessage = String(message || "")
-      .trim()
-      .replace(
-        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|human\s+holo|holo))\s*[,;:!.-]?\s*/i,
-        ""
-      )
-      .trim();
-    if (
-      isSafetyTriageQuestion(cleanMessage) ||
-      /[?;]/.test(cleanMessage) ||
-      /\b(?:test|probe|fiktiv|spaeter|morgen|irgendwann|wenn)\b/i.test(
-        normalizeLocalPhoneIntent(cleanMessage)
-      )
-    ) {
-      return null;
-    }
-
-    const match = cleanMessage.match(
-      /^ruf(?:e)?(?:\s+bitte|\s+mal|\s+jetzt)*\s+(.+?)\s+an\s+(?:und|,)\s*(?:sprich|sprech|rede|unterhalte\s+dich)\s+(?:bitte\s+)?mit\s+(?:ihr|ihm|der\s+person)(?:\s+selbst)?[.!]?$/i
-    );
-    const contactName = String(match?.[1] || "")
-      .replace(
-        /[\s\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]+$/gu,
-        ""
-      )
-      .replace(/^[\s:;,–—-]+|[\s:;,–—-]+$/g, "")
-      .trim();
-    if (
-      !contactName ||
-      contactName.split(/\s+/).length > 5 ||
-      !/^[\p{L}\p{M}][\p{L}\p{M} .,'’\-\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]*$/u.test(
-        contactName
-      ) ||
-      /\b(?:adac|pannenhilfe|notfall|polizei|arzt|aerztin)\b/i.test(
-        normalizeLocalPhoneIntent(contactName)
-      )
-    ) {
-      return null;
-    }
-
-    return {
-      contactName,
-      mode: "personal_clone_conversation"
-    };
   }
 
   async function openServiceDialer(number, label = "") {
@@ -6025,10 +6164,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.isSolHoloSafetyTriageQuestion = isSafetyTriageQuestion;
   window.extractSolHoloServiceDialRequest = serviceDialRequestFromMessage;
-  window.extractSolHoloVerifiedHelpServiceCall =
-    verifiedHelpServiceCallFromMessage;
-  window.extractSolHoloPersonalCloneContactCall =
-    personalCloneContactCallFromMessage;
+  window.extractHumanHoloRestrictedExternalCall =
+    restrictedExternalCallFromMessage;
   window.extractSolHoloPhoneContactCallName = phoneContactCallNameFromMessage;
   window.openSolHoloServiceDialer = openServiceDialer;
 
@@ -6195,45 +6332,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const contactName = String(args?.contact_name || args?.query || "").trim();
 
     try {
-      if (actionName === "start_help_service_call") {
-        const serviceId = String(args?.service_id || "").trim();
-        if (!VERIFIED_HELP_SERVICES[serviceId]) {
-          return {
-            success: false,
-            answer: "Diese Pannenhilfe ist nicht für einen direkten Anruf freigegeben."
-          };
-        }
-        const ownerId = activePersonalOwner();
-        if (!ownerId) {
-          return {
-            success: false,
-            answer: "Die feste Holo-ID ist nicht verfügbar."
-          };
-        }
-        const plugin = getPhoneContactsPlugin();
-        if (typeof plugin?.startHelpServiceCall !== "function") {
-          return {
-            success: false,
-            answer: "Der direkte ADAC-Anruf ist erst nach dem App-Update verfügbar."
-          };
-        }
-
-        const callResult = await plugin.startHelpServiceCall({
-          serviceId,
-          ownerId,
-          explicitOwnerCommand: true
-        });
-        if (!callResult?.callStarted) {
-          throw new Error("Der direkte ADAC-Anruf wurde nicht bestätigt.");
-        }
-        return {
-          success: true,
-          callStarted: true,
-          connectionConfirmed: false,
-          answer: "Human Holo hat den Anruf bei der ADAC Pannenhilfe gestartet."
-        };
-      }
-
       const result = await findPhoneContact(contactName);
 
       if (actionName === "search_phone_contact") {
@@ -6269,132 +6367,27 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       if (actionName === "start_phone_call") {
         const plugin = getPhoneContactsPlugin();
-        if (typeof plugin?.startContactCall !== "function") {
+        if (typeof plugin?.openDialer !== "function") {
           return {
             success: false,
-            answer: "Direkte Kontaktanrufe sind erst nach dem App-Update verfügbar."
+            answer: "Die sichere Übergabe an den Telefonwähler ist erst nach dem App-Update verfügbar."
           };
         }
-        const callResult = await plugin.startContactCall({
-          contactId: String(contact.id),
+        const callResult = await plugin.openDialer({
           number: contact.number,
-          recipientName: contact.name,
-          ownerId: activePersonalOwner(),
-          explicitOwnerCommand: true
+          recipientName: contact.name
         });
-        if (!callResult?.callStarted) {
-          throw new Error("Der direkte Kontaktanruf wurde nicht bestätigt.");
+        if (!callResult?.opened || callResult?.callStarted !== false) {
+          throw new Error("Die sichere Telefonwähler-Übergabe wurde nicht bestätigt.");
         }
         return {
           success: true,
-          callStarted: true,
-          connectionConfirmed: false,
-          answer: `Human Holo hat den Anruf bei ${contact.name} gestartet.`
-        };
-      }
-
-      if (actionName === "start_personal_clone_call") {
-        const identity = requireActivePersonalOwner();
-        if (
-          !identity ||
-          identity.ownerId !== "pam-sol" ||
-          identity.speakerId !== "pam"
-        ) {
-          return {
-            success: false,
-            answer: "Dieser Holo-Gesprächsanruf gehört ausschließlich zu Pam’s Holo."
-          };
-        }
-
-        const ensureTrustedSession =
-          window.SolHoloTrustedSession?.ensure;
-        if (typeof ensureTrustedSession !== "function") {
-          return {
-            success: false,
-            answer: "Die sichere S23-Sitzung ist für den Holo-Gesprächsanruf nicht verfügbar."
-          };
-        }
-
-        // Das normale Entsperren der App erzeugt diese hardwaregebundene
-        // Sitzung bereits. Hier wird absichtlich kein zweiter Dialog geöffnet.
-        const trustedSession = await ensureTrustedSession({
-          interactive: false
-        });
-        if (!trustedSession?.trusted) {
-          return {
-            success: false,
-            answer:
-              "Bitte entsperre Pam’s Holo einmal neu. Danach kann Human Holo " +
-              "den freigegebenen Kontakt ohne einen zweiten Bestätigungsdialog anrufen."
-          };
-        }
-
-        const response = await fetch(
-          `${BACKEND_URL}/personal-clone/calls/start`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(window.SolHoloTrustedSession?.headers?.() || {})
-            },
-            body: JSON.stringify({
-              ownerId: identity.ownerId,
-              selectedSpeakerId: identity.speakerId,
-              ownerCommand: "START_PERSONAL_CLONE_CALL",
-              targetNumber: contact.number
-            }),
-            cache: "no-store",
-            credentials: "omit",
-            referrerPolicy: "no-referrer"
-          }
-        );
-        const responseText = await response.text();
-        let data = {};
-        try {
-          data = responseText ? JSON.parse(responseText) : {};
-        } catch {
-          data = {};
-        }
-
-        if (!response.ok) {
-          const setupMissing = new Set([
-            "PERSONAL_CLONE_CALLS_DISABLED",
-            "PERSONAL_CLONE_PROVIDER_NOT_CONFIGURED",
-            "PERSONAL_CLONE_PUBLIC_URL_INVALID",
-            "PERSONAL_CLONE_FROM_NUMBER_INVALID"
-          ]).has(String(data?.error || ""));
-          return {
-            success: false,
-            setupRequired: setupMissing,
-            answer: setupMissing
-              ? "Der sichere Holo-Gesprächsanruf ist im Update enthalten, aber die einmalige Telefonbrücke ist noch nicht vollständig eingerichtet."
-              : String(
-                  data?.message ||
-                  "Human Holo konnte den freigegebenen Gesprächsanruf gerade nicht starten."
-                )
-          };
-        }
-
-        if (
-          data?.started !== true ||
-          data?.confirmationRequired !== false ||
-          data?.holoConductsConversation !== true ||
-          data?.numberReturned !== false ||
-          data?.identity?.ownerId !== identity.ownerId
-        ) {
-          throw new Error(
-            "Die sichere Rückmeldung des Holo-Gesprächsanrufs ist ungültig."
-          );
-        }
-
-        return {
-          success: true,
-          callStarted: true,
-          confirmationRequired: false,
-          holoConductsConversation: true,
+          callStarted: false,
+          dialerOpened: true,
+          finalDialerConfirmationRequired: true,
           answer:
-            `Human Holo ruft ${contact.name} jetzt selbst an und führt das Gespräch ` +
-            "transparent als Pams persönlicher KI-Clone."
+            `Die Nummer von ${contact.name} ist im Telefonwähler vorbereitet. ` +
+            "Du startest den Anruf dort selbst."
         };
       }
 
@@ -6432,7 +6425,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           };
         }
 
-        const automaticSend = Boolean(args?.explicit_whatsapp_command);
         let handoff;
         window.markSolHoloConversationForExternalReturn?.("whatsapp");
         try {
@@ -6440,48 +6432,20 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             number: contact.number,
             normalizedNumber: contact.normalizedNumber || "",
             recipientName: contact.name,
-            message,
-            autoSend: automaticSend,
-            explicitOwnerCommand: automaticSend
+            message
           });
         } catch (error) {
           window.cancelSolHoloConversationExternalReturn?.("whatsapp");
-          if (error?.code !== "WHATSAPP_AUTO_SEND_ACCESS_REQUIRED") {
-            throw error;
-          }
-          if (typeof plugin?.requestWhatsAppAutoSendAccess !== "function") {
-            return {
-              success: false,
-              answer:
-                "Der automatische WhatsApp-Besitzer-Modus ist erst nach dem App-Update verfügbar."
-            };
-          }
-          await plugin.requestWhatsAppAutoSendAccess();
-          return {
-            success: false,
-            setupRequired: true,
-            settingsOpened: true,
-            answer:
-              "Aktiviere einmal „Human Holo – WhatsApp automatisch senden“ in den Android-Bedienungshilfen. " +
-              "Danach sagst du denselben WhatsApp-Befehl noch einmal."
-          };
+          throw error;
         }
-        return automaticSend
-          ? {
-              success: true,
-              automaticSendRequested: true,
-              pendingToken: String(handoff?.pendingToken || ""),
-              answer:
-                `Der einmalige automatische WhatsApp-Sendeauftrag an ${contact.name} läuft. ` +
-                "Pam’s Holo sendet nur, wenn Empfänger und vollständiger Text in WhatsApp exakt stimmen."
-            }
-          : {
-              success: true,
-              automaticSendRequested: false,
-              answer:
-                `WhatsApp an ${contact.name} ist vorbereitet. ` +
-                "Für automatisches Senden muss dein Auftrag WhatsApp ausdrücklich nennen."
-            };
+        return {
+          success: true,
+          automaticSendRequested: false,
+          sent: false,
+          answer:
+            `WhatsApp an ${contact.name} ist als Entwurf vorbereitet. ` +
+            "Du prüfst Empfänger und Text und tippst in WhatsApp selbst auf Senden."
+        };
       }
 
       return { success: false, answer: "Unbekannte Telefonfunktion." };
@@ -6849,6 +6813,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function loadHealthStatus() {
+    if (!featureEnabled("healthConnect")) {
+      renderHealthStatus({ supported: false });
+      const statusElement = document.getElementById("healthConnectStatus");
+      statusElement.textContent = "Legal Review";
+      return healthStatus;
+    }
+
     const plugin = getHealthConnectPlugin();
     if (!plugin) {
       renderHealthStatus({ supported: false });
@@ -6865,6 +6836,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function openHealthPermissions() {
+    if (!featureEnabled("healthConnect")) {
+      showToast("Health Connect ist bis zur rechtlichen Freigabe deaktiviert.");
+      return;
+    }
+
     if (healthActionRunning) {
       return;
     }
@@ -6994,6 +6970,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function executeHealthTool(name, args = {}) {
+    if (!featureEnabled("healthConnect")) {
+      return {
+        success: false,
+        legalReview: true,
+        answer:
+          "Health Connect und persönliche Gesundheitsauswertungen sind bis zur rechtlichen Freigabe deaktiviert."
+      };
+    }
+
     if (String(name || "") !== "read_health_snapshot") {
       return { success: false, answer: "Unbekannte Health-Funktion." };
     }
@@ -7399,12 +7384,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return { handled: true, answer: result.answer };
     }
 
-    const helpServiceCall = verifiedHelpServiceCallFromMessage(cleanMessage);
-    if (helpServiceCall) {
-      const result = await executePhoneTool("start_help_service_call", {
-        service_id: helpServiceCall.serviceId
-      });
-      return { handled: true, answer: result.answer };
+    const restrictedExternalCall =
+      restrictedExternalCallFromMessage(cleanMessage);
+    if (restrictedExternalCall) {
+      return { handled: true, answer: restrictedExternalCall };
     }
 
     const aliasBinding = contactAliasBindingFromMessage(cleanMessage);
@@ -7426,22 +7409,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
               )
         };
       }
-    }
-
-    const personalCloneCall =
-      personalCloneContactCallFromMessage(cleanMessage);
-    if (personalCloneCall) {
-      const result = await executePhoneTool(
-        "start_personal_clone_call",
-        {
-          contact_name:
-            personalCloneCall.contactName
-        }
-      );
-      return {
-        handled: true,
-        answer: result.answer
-      };
     }
 
     const phoneContactName = phoneContactCallNameFromMessage(cleanMessage);
@@ -7503,10 +7470,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (whatsAppDraft) {
       const result = await executePhoneTool("prepare_whatsapp", {
         contact_name: whatsAppDraft.contactName,
-        message: whatsAppDraft.message,
-        explicit_whatsapp_command: Boolean(
-          whatsAppDraft.explicitWhatsApp
-        )
+        message: whatsAppDraft.message
       });
       return { handled: true, answer: result.answer };
     }
@@ -7617,6 +7581,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function registerWakeListeners() {
+    if (!featureEnabled("backgroundWake")) {
+      return;
+    }
+
     const plugin = getHeyHoSolPlugin();
     if (!plugin || wakeListenersRegistered) {
       return;
@@ -7654,6 +7622,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function consumePendingWakeEvent() {
+    if (!featureEnabled("backgroundWake")) {
+      return;
+    }
+
     const plugin = getHeyHoSolPlugin();
     if (!plugin) {
       return;
@@ -7670,6 +7642,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function loadWakeStatus(consumeEvent = false) {
+    if (!featureEnabled("backgroundWake")) {
+      renderWakeStatus({
+        supported: false,
+        mode: "off",
+        listening: false
+      });
+      const status = document.getElementById("heyHoSolStatus");
+      if (status) status.textContent = "Legal Review";
+      return wakeStatus;
+    }
+
     const plugin = getHeyHoSolPlugin();
     if (!plugin) {
       renderWakeStatus({ supported: false, mode: "off" });
@@ -7694,6 +7677,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   async function setWakeMode(mode) {
+    if (!featureEnabled("backgroundWake")) {
+      showToast("Hintergrund-Weckruf und Sprecherabgleich sind rechtlich deaktiviert.");
+      return false;
+    }
+
     if (wakeActionRunning) {
       return;
     }
@@ -7899,6 +7887,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   syncSettingsVolume();
 
   profilePhotoButton.addEventListener("click", (event) => {
+    if (!featureEnabled("personalAppearance")) {
+      showToast("Persönliches Clone-Bild und Original Full Sync sind geparkt.");
+      return;
+    }
     if (cloneMouthCalibrationActive) {
       moveCloneMouthCalibration(event);
       return;
@@ -7910,6 +7902,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   profilePhotoChangeButton.addEventListener("click", () => {
+    if (!featureEnabled("personalAppearance")) return;
     if (!requireActivePersonalOwner()) {
       return;
     }
@@ -7917,6 +7910,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   profilePhotoInput.addEventListener("change", async () => {
+    if (!featureEnabled("personalAppearance")) {
+      profilePhotoInput.value = "";
+      return;
+    }
     const identity = requireActivePersonalOwner();
     const keys = activeCloneStorageKeys();
     if (!identity || !keys) {
@@ -8034,6 +8031,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   calendarComposer.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (!featureEnabled("calendarRemindersNotes")) {
+      calendarComposerStatus.textContent =
+        "Legal Review: Kalenderaktionen sind geparkt.";
+      return;
+    }
     const calendarText = calendarTextInput.value.trim();
     if (!calendarText) {
       calendarComposerStatus.textContent = "Sag bitte, was und wann eingetragen werden soll.";
@@ -8215,6 +8217,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
 
   calendarRefreshButton.addEventListener("click", async () => {
+    if (!featureEnabled("calendarRemindersNotes")) return;
     const loaded = await loadDeviceCalendarEvents();
     showToast(
       loaded
@@ -8226,6 +8229,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("calendarAccessButton").addEventListener(
     "click",
     async () => {
+      if (!featureEnabled("calendarRemindersNotes")) return;
       const plugin = getPhoneContactsPlugin();
       if (typeof plugin?.requestCalendarAccess !== "function") {
         document.getElementById("googleAccountRow")?.click();
@@ -8270,7 +8274,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (!channelWindow) {
       window.location.href = HUMAN_HOLO_YOUTUBE_CHANNEL.url;
     }
-    showToast(`${HUMAN_HOLO_YOUTUBE_CHANNEL.name} geöffnet.`);
+    showToast(
+      `${HUMAN_HOLO_YOUTUBE_CHANNEL.name} geöffnet · der öffentliche Link ` +
+      "erteilt Human Holo keine Upload- oder Verwaltungsrechte."
+    );
   });
 
   document.getElementById("googleAccountRow").addEventListener("click", async () => {
@@ -8317,7 +8324,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     let authUrl = "";
     try {
       const response = await fetch(
-        "https://sol-holo.onrender.com/auth/google/start",
+        `${BACKEND_URL}/auth/google/start`,
         {
           method: "POST",
           headers: {
@@ -8380,7 +8387,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("phoneContactsRow").addEventListener("click", async () => {
     if (phoneStatus.contactsPermissionGranted) {
       const managePermissions = window.confirm(
-        "Alle Gerätekontakte und die Anruferkennung sind aktiv. Kontakte und die fest hinterlegte ADAC-Pannenhilfe werden nur nach deiner sichtbaren Bestätigung direkt angerufen. 110 und 112 bleiben im sicheren Android-Wähler. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden; SMS bleiben sichtbar vorbereitet.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
+        "Der lokale Kontaktzugriff ist aktiv. Human Holo startet keine Anrufe und sendet keine WhatsApp-Nachrichten automatisch: Die Nummer wird im Telefonwähler beziehungsweise der Text als WhatsApp-Entwurf geöffnet; du führst die letzte Aktion selbst aus.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
       );
       if (managePermissions) {
         try {
@@ -8446,7 +8453,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       selectedSpeakerId: identity.speakerId
     });
     const authUrl =
-      `https://sol-holo.onrender.com/auth/smartthings?${identityQuery}`;
+      `${BACKEND_URL}/auth/smartthings?${identityQuery}`;
 
     const authWindow = window.open(
       authUrl,
@@ -8499,13 +8506,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   });
 
   document.getElementById("manageServicesButton").addEventListener("click", () => {
-    const whatsappText = whatsappStatus.active
-      ? "Der WhatsApp-Fahrmodus ist aktiv."
-      : "Den WhatsApp-Fahrmodus richtest du direkt über seine Zeile ein.";
     showToast(
-      "Jeder Dienst wird einzeln freigegeben. " + whatsappText +
+      "Jeder aktive Dienst wird einzeln freigegeben. " +
+      "WhatsApp-Fahrmodus, Health Connect, Hintergrund-Weckruf und biometrische Wiedererkennung sind rechtlich deaktiviert. " +
       " Den offiziellen Human-Holo-YouTube-Kanal öffnest du über seine verknüpfte Zeile. " +
-      "Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
+      "Google-Konto, Telefonwähler, Wecker, Galaxy Watch und SmartThings richtest du über ihre Zeile ein. " +
       "Samsung Galerie öffnet die Bildauswahl; Zurufe werden direkt unter Wichtiges gespeichert. Samsung Notes öffnet nur beim manuellen Antippen."
     );
   });

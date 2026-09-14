@@ -90,6 +90,9 @@ function revealApp() {
   bootScreen.hidden = true;
   bootScreen.setAttribute("aria-hidden", "true");
   app?.removeAttribute("aria-hidden");
+  window.dispatchEvent(
+    new CustomEvent("human-holo-app-unlocked")
+  );
 }
 
 function lockAfterBackground() {

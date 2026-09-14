@@ -67,7 +67,7 @@ test("Android-Plugin liest Deutsch, unterstützt lange Antworten und kann stoppe
   assert.match(nativePlugin, /public void stop\(PluginCall call\)/u);
 });
 
-test("Android-Build kopiert und registriert die lokale Vorlesefunktion", () => {
+test("der historische Android-Installer enthält die lokale Vorlesefunktion", () => {
   assert.match(installer, /"SolReadAloudPlugin\.java"/u);
   assert.match(
     installer,

@@ -114,7 +114,7 @@ if (!visionBundle.includes(telemetryEndpoint)) {
 }
 
 const modificationHeader = [
-  "// SOL HOLO MODIFICATION NOTICE",
+  "// HUMAN HOLO · LEGAL REVIEW MODIFICATION NOTICE",
   `// Original package: @mediapipe/tasks-vision ${mediaPipePackage.version} (Apache-2.0).`,
   "// This build modifies the copied vision_bundle.mjs by replacing only the",
   "// Google telemetry/logging endpoint with a local data: URL so that this",
@@ -130,7 +130,7 @@ await writeFile(
   "utf8"
 );
 
-const modificationNotice = `SOL HOLO / PAM'S HOLO - MEDIAPIPE MODIFICATION NOTICE
+const modificationNotice = `HUMAN HOLO · LEGAL REVIEW - MEDIAPIPE MODIFICATION NOTICE
 
 Original package:
 @mediapipe/tasks-vision ${mediaPipePackage.version}
@@ -139,7 +139,7 @@ Declared license: ${mediaPipePackage.license || "Apache-2.0"}
 Modified file:
 vision_bundle.mjs
 
-Modification performed by the Sol Holo build process:
+Modification performed by the Human Holo review-source process:
 The endpoint
 ${telemetryEndpoint}
 

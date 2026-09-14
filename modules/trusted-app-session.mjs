@@ -483,6 +483,25 @@ export function createTrustedAppSessionManager({
     };
   }
 
+  function revokeOwner(ownerId) {
+    const safeOwnerId = requiredOwnerId(ownerId);
+    let revokedChallenges = 0;
+    let revokedSessions = 0;
+    for (const [challengeId, challenge] of challenges) {
+      if (challenge.ownerId === safeOwnerId) {
+        challenges.delete(challengeId);
+        revokedChallenges += 1;
+      }
+    }
+    for (const [tokenHash, session] of sessions) {
+      if (session.ownerId === safeOwnerId) {
+        sessions.delete(tokenHash);
+        revokedSessions += 1;
+      }
+    }
+    return { revokedChallenges, revokedSessions };
+  }
+
   return Object.freeze({
     initialize,
     parseDeviceRegistration,
@@ -490,6 +509,7 @@ export function createTrustedAppSessionManager({
     loadDevice,
     createChallenge,
     completeChallenge,
-    validateRequest
+    validateRequest,
+    revokeOwner
   });
 }

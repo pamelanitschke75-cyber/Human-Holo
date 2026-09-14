@@ -38,7 +38,7 @@ vm.runInNewContext(
   `${parserSource}\n` +
     "globalThis.parsers = { " +
     "isSafetyTriageQuestion, serviceDialRequestFromMessage, " +
-    "verifiedHelpServiceCallFromMessage, phoneContactCallNameFromMessage };",
+    "restrictedExternalCallFromMessage, phoneContactCallNameFromMessage };",
   parserContext
 );
 const parsers = parserContext.parsers;
@@ -49,7 +49,7 @@ test("die Ohrenschmerzfrage erreicht Sol und wird nicht als Kontaktname behandel
 
   assert.equal(parsers.isSafetyTriageQuestion(message), true);
   assert.equal(parsers.serviceDialRequestFromMessage(message), null);
-  assert.equal(parsers.verifiedHelpServiceCallFromMessage(message), null);
+  assert.equal(parsers.restrictedExternalCallFromMessage(message), null);
   assert.equal(parsers.phoneContactCallNameFromMessage(message), "");
 
   const handler = between(
@@ -97,7 +97,7 @@ test("Testmodus blockiert Wähler, echte klare Servicenummern bleiben möglich",
     "Steffi"
   );
   assert.equal(
-    parsers.verifiedHelpServiceCallFromMessage(
+    parsers.restrictedExternalCallFromMessage(
       "Nur ein Test: Ruf den ADAC an."
     ),
     null

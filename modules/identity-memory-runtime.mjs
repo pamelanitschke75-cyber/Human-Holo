@@ -196,6 +196,18 @@ export function createVolatileConversationStore({
 
     cleanup,
 
+    revokeOwner(ownerId) {
+      const cleanOwnerId = cleanKey(ownerId).toLocaleLowerCase("de-DE");
+      let revoked = 0;
+      for (const [conversationId, conversation] of conversations) {
+        if (conversation.ownerId === cleanOwnerId) {
+          conversations.delete(conversationId);
+          revoked += 1;
+        }
+      }
+      return revoked;
+    },
+
     size() {
       cleanup();
       return conversations.size;

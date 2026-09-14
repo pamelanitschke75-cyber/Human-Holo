@@ -24,7 +24,11 @@ export const MEMORY_DECISION = Object.freeze({
  * ihren eigenen Owner-Speicher.
  */
 export const MEMORY_PERSISTENCE_CONTRACT = Object.freeze({
-  alwaysOn: true,
+  automaticRawTranscriptStorage: false,
+  existingMemoryPreserved: true,
+  volatileConversationContext: true,
+  confirmedMemory: true,
+  optionalCategoryBasedMemory: true,
   updateSafe: true,
   additiveChangesOnly: true,
   correctionsPreserveHistory: true,
@@ -306,8 +310,12 @@ export function resolveMemoryIdentity(
 }
 
 const MEMORY_COMMAND_PATTERNS = Object.freeze([
-  /^\s*(?:sol[\s,:\-]*)?merke\s+dir\s+dauerhaft\s*:?\s*(.*)$/iu,
-  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?speichere\s+(?:das\s+)?dauerhaft\s*:?\s*(.*)$/iu
+  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?merk(?:e)?\s+dir(?:\s+dauerhaft)?\s*:?\s*(.*)$/iu,
+  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?speichere\s+(?:das\s+)?(?:dauerhaft\s*)?:?\s*(.*)$/iu,
+  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?behalte\s+(?:das\s+)?(?:dauerhaft\s+)?im\s+gedächtnis\s*:?\s*(.*)$/iu,
+  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?erinnere\s+dich\s+(?:dauerhaft\s+)?daran\s*:?\s*(.*)$/iu,
+  /^\s*(?:sol[\s,:\-]*)?pass\s+(?:bitte\s+)?(?:mal\s+)?auf\s*[,;:\-]?\s*(.*)$/iu,
+  /^\s*(?:sol[\s,:\-]*)?hör\s+(?:bitte\s+)?(?:mal\s+)?zu\s*[,;:\-]?\s*(.*)$/iu
 ]);
 
 /**
@@ -454,7 +462,12 @@ export function evaluateIdentityMemoryWrite(
       speakerId: identity.speakerId,
       role: "user",
       sourceType,
+      sourceModalities: Array.isArray(input?.sourceModalities)
+        ? [...input.sourceModalities]
+        : [sourceType],
       content,
+      category: input?.memoryCategory,
+      captureMode: "explicit",
       confirmed: true,
       confirmedBy,
       confirmationMethod

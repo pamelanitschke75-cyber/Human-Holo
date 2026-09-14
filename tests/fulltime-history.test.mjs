@@ -33,10 +33,26 @@ const durableMemory = fs.readFileSync(
 );
 
 function routeBlock(path, nextPath) {
-  const start = server.indexOf(path);
-  const end = nextPath
-    ? server.indexOf(nextPath, start + path.length)
-    : server.length;
+  const declaration = routePath => {
+    const escaped = routePath.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    return new RegExp(
+      `app\\.(?:get|post|put|delete|patch)\\(\\s*${escaped}`,
+      "u"
+    );
+  };
+  const startMatch = path.startsWith('"/')
+    ? declaration(path).exec(server)
+    : null;
+  const start = startMatch?.index ?? server.indexOf(path);
+  const remainderStart = start + (startMatch?.[0].length || path.length);
+  const endMatch = nextPath?.startsWith('"/')
+    ? declaration(nextPath).exec(server.slice(remainderStart))
+    : null;
+  const end = !nextPath
+    ? server.length
+    : endMatch
+      ? remainderStart + endMatch.index
+      : server.indexOf(nextPath, remainderStart);
 
   assert.ok(start >= 0, `${path} route missing`);
   assert.ok(end > start, `${path} route boundary missing`);
@@ -75,55 +91,54 @@ test("Vollzeitgedächtnis bleibt additiv und idempotent", () => {
 });
 
 test("geschützte Erinnerungen werden durch Updates niemals destruktiv migriert", () => {
-  const protectedMemorySources = `${server}\n${identityStore}`;
+  const initializeStart = identityStore.indexOf("async initialize()");
+  const initializeEnd = identityStore.indexOf("async saveConfirmed", initializeStart);
+  const initialization = identityStore.slice(initializeStart, initializeEnd);
 
+  assert.ok(initializeStart >= 0 && initializeEnd > initializeStart);
   assert.doesNotMatch(
-    protectedMemorySources,
+    initialization,
     /(?:DROP\s+TABLE(?:\s+IF\s+EXISTS)?|TRUNCATE(?:\s+TABLE)?|DELETE\s+FROM)\s+(?:sol_fulltime_memory|sol_identity_memory|sol_identity_memory_supersession)\b/iu
   );
+  assert.doesNotMatch(initialization, /ALTER\s+TABLE[\s\S]*?\b(?:DROP|RENAME|TYPE)\b/iu);
+  assert.match(initialization, /ALTER TABLE sol_identity_memory[\s\S]*?ADD COLUMN IF NOT EXISTS/u);
   assert.match(identityStore, /SET recall_status = 'blocked'/u);
   assert.match(identityStore, /sol_identity_memory_supersession/u);
+  assert.match(identityStore, /PERSONAL_MEMORY_DELETE_CONFIRMATION/u);
+  assert.match(identityStore, /understandIrreversible !== true/u);
+  assert.match(identityStore, /return withTransaction/u);
 });
 
-test("Text und Sol-Antwort werden Wort für Wort ownergebunden gespeichert", () => {
+test("neue Textdialoge bleiben flüchtig und werden nicht als Rohverlauf gespeichert", () => {
   const solRoute = routeBlock(
     'app.post("/sol"',
     "const PORT ="
   );
 
   assert.match(solRoute, /resolveRequestIdentity\(/u);
-  assert.match(
-    solRoute,
-    /saveFulltimeMemory\(\s*"user",\s*userMemoryMessage/u
-  );
-  assert.match(
-    solRoute,
-    /const saveFulltimeAssistant\s*=[\s\S]*?saveFulltimeMemory\(\s*"assistant"/u
-  );
+  assert.doesNotMatch(solRoute, /await saveFulltimeMemory\(/u);
+  assert.match(solRoute, /const saveFulltimeAssistant = async \(\) => false/u);
   assert.match(solRoute, /await saveFulltimeAssistant\(\s*answer/u);
-  assert.match(
-    solRoute,
-    /Der vollständige Dialog[\s\S]*?Wort für Wort ownergebunden gespeichert/u
-  );
+  assert.match(solRoute, /appendConversationMessage\(/u);
+  assert.match(solRoute, /Neue Text-, Sprach- und Mediengespräche werden nicht mehr/u);
 });
 
-test("Sprachtranskripte beider Rollen landen im Vollzeitgedächtnis", () => {
+test("neue Sprachtranskripte aktualisieren nur den flüchtigen Kontext", () => {
   const liveRoute = routeBlock(
     '"/live/memory"',
     "LANGZEITGEDÄCHTNIS"
   );
 
   assert.match(liveRoute, /resolveRequestIdentity\(/u);
+  assert.doesNotMatch(liveRoute, /saveFulltimeMemory\(/u);
+  assert.match(liveRoute, /const fulltimeSaved = false/u);
+  assert.match(liveRoute, /appendConversationMessage\(/u);
   assert.match(
     liveRoute,
-    /saveFulltimeMemory\(\s*role,\s*transcript/u
+    /fulltimeStoredRoles:\s*\[\]/u
   );
-  assert.match(liveRoute, /fulltimeSaved/u);
-  assert.match(
-    liveRoute,
-    /fulltimeStoredRoles:\s*\[\s*"user",\s*"assistant"\s*\]/u
-  );
-  assert.match(liveRoute, /alwaysOn:\s*\n\s*true/u);
+  assert.match(liveRoute, /alwaysOn:\s*\n\s*false/u);
+  assert.match(liveRoute, /assistant_context_updated_without_durable_transcript/u);
 });
 
 test("privater Verlauf wird nur der signierten App-Sitzung paginiert geliefert", () => {
@@ -159,6 +174,11 @@ test("vollständige Gedächtnissicherung ist ownergebunden, geprüft und nur add
   assert.match(restoreRoute, /ownerMemoryBackups[\s\S]*?\.restoreChunk/u);
   assert.match(restoreRoute, /additive:\s*\n\s*true/u);
   assert.doesNotMatch(restoreRoute, /\b(?:DELETE|DROP|TRUNCATE)\b/iu);
+  assert.match(server, /feature: "memoryRestore"/u);
+  assert.match(
+    server,
+    /pathValue === "\/memory\/backup\/restore-chunk"[\s\S]*?pathValue === "\/memory\/import-confirmed"/u
+  );
   assert.match(backup, /\/memory\/backup\/export/u);
   assert.match(backup, /\/memory\/backup\/restore-chunk/u);
   assert.match(backup, /vollständige verschlüsselte Kopie/iu);
@@ -235,7 +255,7 @@ test("persönliche Rückfragen durchsuchen bestätigte und vollständige Histori
   assert.match(server, /latest_current_row/u);
   assert.match(
     server,
-    /PASSENDE EINTRÄGE AUS BESTÄTIGTEN ERINNERUNGEN UND VOLLZEITGEDÄCHTNIS/u
+    /PASSENDE EINTRÄGE AUS BESTÄTIGTEN ERINNERUNGEN UND ERHALTENEM ALTBESTAND/u
   );
 });
 
@@ -381,7 +401,9 @@ test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest
   assert.match(importRoute, /identity\.speakerId !== "pam"/u);
   assert.match(importRoute, /batchConfirmation !== true/u);
   assert.match(importRoute, /identityMemoryStore\.importConfirmedBatch/u);
-  assert.match(importRoute, /alwaysOn:\s*true/u);
+  assert.match(importRoute, /alwaysOn:\s*false/u);
+  assert.match(importRoute, /fulltimeMemory:\s*"legal-review-hold"/u);
+  assert.match(importRoute, /confirmedMemory:\s*"active"/u);
   assert.match(importRoute, /updateSafe:\s*true/u);
   assert.match(backup, /Alle Erinnerungen übernehmen/u);
   assert.match(backup, /humanHoloMemoryImportList/u);
@@ -391,12 +413,9 @@ test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest
     backup,
     /batchConfirmation:\s*true[\s\S]*?selectedSpeakerId:\s*identity\.speakerId[\s\S]*?ownerId:\s*identity\.ownerId/u
   );
-  assert.match(ui, /Immer aktiv · updatefest/u);
-  assert.match(ui, /Vollzeitgedächtnis ist immer aktiv/u);
-  assert.match(
-    ui,
-    /bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten/u
-  );
+  assert.match(ui, /bestehender Erinnerungsbestand bleibt erhalten/u);
+  assert.match(ui, /Neue Gespräche werden nicht automatisch Wort für Wort gespeichert/u);
+  assert.match(ui, /suchen, pausieren, korrigieren, ausblenden, exportieren und löschen/u);
 });
 
 test("signierte Bestands-App darf ihre Identität sicher aus der Sitzung ableiten", () => {

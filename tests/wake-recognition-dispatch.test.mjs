@@ -268,12 +268,11 @@ test("blockierter Hintergrundstart bleibt sichtbar und hat einen sicheren Tipp-R
   );
 });
 
-test("Hey Pam bleibt bei ausgeschaltetem Bildschirm aufnahmebereit", () => {
+test("Hey Pam bleibt historisch erhalten, wird aber nicht in Human Holo eingebaut", () => {
   assert.match(serviceSource, /PowerManager\.PARTIAL_WAKE_LOCK/u);
   assert.match(serviceSource, /:hey-pam-listening/u);
   assert.match(serviceSource, /acquireRecognitionWakeLock\(\)/u);
   assert.match(serviceSource, /releaseRecognitionWakeLock\(\)/u);
-  assert.match(drivingInstallerSource, /android\.permission\.WAKE_LOCK/u);
   assert.match(serviceSource, /Intent\.ACTION_SCREEN_OFF/u);
   assert.match(serviceSource, /rearmAfterScreenTransition/u);
   const restart = methodSource(
@@ -282,6 +281,15 @@ test("Hey Pam bleibt bei ausgeschaltetem Bildschirm aufnahmebereit", () => {
   );
   assert.match(restart, /shouldKeepWakeLockForRestart/u);
   assert.match(restart, /acquireRecognitionWakeLock\(\)/u);
+  assert.match(
+    drivingInstallerSource,
+    /for \(const fileName of \[[\s\S]*?"HeyHoSolService\.java"[\s\S]*?rmSync\(join\(javaTarget, fileName\), \{ force: true \}\)/u
+  );
+  const allowedPermissions = drivingInstallerSource.match(
+    /const allowedPermissions = \[[\s\S]*?\n\];/u
+  )?.[0] ?? "";
+  assert.notEqual(allowedPermissions, "");
+  assert.doesNotMatch(allowedPermissions, /WAKE_LOCK|FOREGROUND_SERVICE/u);
 });
 
 test("Sperren und Entsperren ersetzen eine festgefahrene Mikrofonsitzung", () => {
@@ -322,7 +330,7 @@ test("ein laufender Dienst pausiert und startet intern ohne verbotenen FGS-Neust
   );
 });
 
-test("nach erkanntem Hey Pam bleibt die CPU bis zum sichtbaren Sperrbildschirm-Start wach", () => {
+test("Pams Weckruf-Übergabe bleibt im Quellstand, aber nicht im Human-Build", () => {
   const handleWake = methodSource(
     "private void handleWakePhrase(String phrase)",
     "private void registerSystemStateReceiver()"
@@ -338,21 +346,10 @@ test("nach erkanntem Hey Pam bleibt die CPU bis zum sichtbaren Sperrbildschirm-S
     serviceSource,
     /handoffWakeLock\.acquire\(WAKE_HANDOFF_CPU_TIMEOUT_MILLIS\)/u
   );
-  assert.match(
+  assert.match(drivingInstallerSource, /"HeyHoSolPlugin\.java"/u);
+  assert.match(drivingInstallerSource, /"HeyHoSolService\.java"/u);
+  assert.doesNotMatch(
     drivingInstallerSource,
-    /WindowManager\.LayoutParams\.FLAG_KEEP_SCREEN_ON/u
+    /WindowManager\.LayoutParams\.FLAG_KEEP_SCREEN_ON|applyWakeScreenBehavior/u
   );
-
-  const createStart = drivingInstallerSource.indexOf(
-    "public void onCreate(Bundle savedInstanceState)"
-  );
-  const wakeFlags = drivingInstallerSource.indexOf(
-    "applyWakeScreenBehavior(getIntent());",
-    createStart
-  );
-  const superCreate = drivingInstallerSource.indexOf(
-    "super.onCreate(savedInstanceState);",
-    createStart
-  );
-  assert.ok(createStart >= 0 && wakeFlags > createStart && superCreate > wakeFlags);
 });

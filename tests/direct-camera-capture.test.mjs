@@ -244,7 +244,7 @@ test(
 
 
 test(
-  "Sofortfoto und Live-Bild bleiben als zwei getrennte Kameramodi erhalten",
+  "Sofortfoto bleibt erhalten und der fortlaufende Live-Bildmodus ist entfernt",
   () => {
 
     assert.match(
@@ -252,14 +252,8 @@ test(
       /id="imageInput"[\s\S]*?capture="environment"/u
     );
 
-    assert.match(
-      html,
-      /id="liveCameraButton"[\s\S]*?Live-Bild starten/u
-    );
-
-    assert.match(
-      html,
-      /LIVE AN HOLO/u
-    );
+    assert.doesNotMatch(html, /id="liveCameraButton"/u);
+    assert.doesNotMatch(html, /LIVE AN HOLO/u);
+    assert.match(html, /fortlaufende Live-Bildmodus ist deaktiviert/u);
   }
 );

@@ -1,4 +1,6 @@
-const BACKEND_URL = "https://sol-holo.onrender.com";
+const BACKEND_URL =
+  globalThis.HumanHoloBackend?.baseUrl ||
+  "https://human-holo-backend.invalid";
 const OWNER_ID = "pam-sol";
 const SESSION_HEADER = "x-sol-holo-trusted-session";
 const SESSION_ACTION = "bind_trusted_app_session";

@@ -13,7 +13,8 @@ permissions:
 
 jobs:
   verify-build89-signature:
-    if: github.event.workflow_run.conclusion == 'success'
+    # Gehört zur geschützten Pam-Signaturlinie und ist in Human Holo geparkt.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Artefakte des Android-Builds laden

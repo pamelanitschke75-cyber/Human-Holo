@@ -45,7 +45,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-293-animal-floating-dock/u);
+  assert.match(serviceWorker, /human-holo-legal-review-separated-backend-1/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -60,7 +60,7 @@ test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
   assert.match(prompt, /spekuliere nicht über technische\nFehlerursachen/u);
 });
 
-test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () => {
+test("persönliche Sprachfragen lesen Altbestand und strukturierte Erinnerungen", () => {
   const createServerDetector = new Function(
     "isAssistantHistoryRecallRequest",
     `${sourceFunction("normalizeNaturalIntentText", "looksLikeLiveWeatherRequest")}\n` +
@@ -148,7 +148,9 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
     "was hast du uns gestern zum essen empfohlen"
   );
   assert.match(server, /buildPersonalRecallResult\(\s*identity,\s*transcript/u);
-  assert.match(server, /alwaysOn:\s*\n\s*true/u);
+  assert.match(server, /alwaysOn:\s*\n\s*false/u);
+  assert.match(server, /Erhaltener Altbestand/u);
+  assert.match(server, /Neue Sprachtranskripte, Texte,[\s\S]*nicht automatisch wortwörtlich/u);
   assert.match(server, /recall:\s*\n\s*recallResult/u);
   assert.match(server, /LOKALES_ERINNERUNGSERGEBNIS/u);
   assert.match(server, /LOKALER_DAUERKONTEXT/u);

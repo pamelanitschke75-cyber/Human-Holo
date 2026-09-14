@@ -40,26 +40,21 @@ const parserSource = between(
 const parserContext = {};
 vm.runInNewContext(
   `${parserSource}\n` +
-    "globalThis.parsers = { verifiedHelpServiceCallFromMessage, " +
+    "globalThis.parsers = { restrictedExternalCallFromMessage, " +
     "phoneContactCallNameFromMessage };",
   parserContext
 );
 const parsers = parserContext.parsers;
 
-test("klare ADAC-Aufträge werden lokal erkannt, Fragen und Tests nicht", () => {
+test("Pannenhilfe-Direktanruf wird erklärt, aber technisch nicht ausgeführt", () => {
   for (const message of [
     "Ruf den ADAC an.",
     "Holo, ruf bitte die ADAC Pannenhilfe an!",
-    "Wir haben eine Panne, ruf den ADAC an.",
-    "Wir haben eine Panne ruf den ADAC an",
-    "ADAC anrufen"
+    "Wir haben eine Panne, ruf den ADAC an."
   ]) {
-    assert.deepEqual(
-      { ...parsers.verifiedHelpServiceCallFromMessage(message) },
-      {
-        serviceId: "adac_pannenhilfe_de",
-        label: "ADAC Pannenhilfe Deutschland"
-      },
+    assert.match(
+      parsers.restrictedExternalCallFromMessage(message),
+      /nicht enthalten/u,
       message
     );
   }
@@ -67,127 +62,103 @@ test("klare ADAC-Aufträge werden lokal erkannt, Fragen und Tests nicht", () => 
   for (const message of [
     "Nur ein Test: Ruf den ADAC an.",
     "Kannst du den ADAC anrufen?",
-    "Was macht der ADAC bei einer Panne?",
-    "Wenn wir morgen eine Panne haben, ruf den ADAC an."
+    "Was macht der ADAC bei einer Panne?"
   ]) {
-    assert.equal(
-      parsers.verifiedHelpServiceCallFromMessage(message),
-      null,
-      message
-    );
+    assert.equal(parsers.restrictedExternalCallFromMessage(message), null);
   }
   assert.equal(parsers.phoneContactCallNameFromMessage("Ruf den ADAC an."), "");
 });
 
-test("ADAC wird vor einer allgemeinen Kontaktsuche abgefangen", () => {
+test("KI-geführte Telefonate mit Dritten werden lokal abgefangen", () => {
+  assert.match(
+    parsers.restrictedExternalCallFromMessage(
+      "Ruf Steffi an und sprich mit ihr selbst."
+    ),
+    /KI selbst geführte Telefonate/u
+  );
+
   const handler = between(
     ui,
     "window.handleSolHoloLocalAction = async",
     "window.handleSolHoloRealtimeNoteTranscript"
   );
   assert.ok(
-    handler.indexOf("verifiedHelpServiceCallFromMessage(cleanMessage)") <
+    handler.indexOf("restrictedExternalCallFromMessage(cleanMessage)") <
       handler.indexOf("phoneContactCallNameFromMessage(cleanMessage)")
   );
-  assert.match(handler, /executePhoneTool\("start_help_service_call"/u);
+  assert.doesNotMatch(handler, /start_help_service_call|start_personal_clone_call/u);
 });
 
-test("Kontaktanrufe werden ownergebunden und unmittelbar vorher erneut geprüft", () => {
-  const method = between(
-    nativePhone,
-    "public void startContactCall",
-    "public void startHelpServiceCall"
-  );
-  assert.match(method, /contactsGranted\(\)/u);
-  assert.match(method, /explicitOwnerCallAuthorized\(call\)/u);
-  assert.match(method, /Long\.parseLong\(contactIdText\)/u);
-  assert.match(method, /findContactRecord\(contactId, expectedNumber\)/u);
-  assert.match(method, /"device_contact",\s*\n\s*true/u);
-
+test("Kontaktanruf öffnet ausschließlich den Telefonwähler", () => {
   const uiTool = between(
     ui,
     "async function executePhoneTool",
     "window.executeSolHoloPhoneTool"
   );
-  assert.match(uiTool, /plugin\.startContactCall/u);
-  assert.match(uiTool, /contactId: String\(contact\.id\)/u);
-  assert.match(uiTool, /explicitOwnerCommand: true/u);
-  assert.doesNotMatch(uiTool, /openDialer\(/u);
-});
-
-test("ADAC nutzt nur die fest hinterlegte offizielle Deutschland-Nummer", () => {
-  const method = between(
+  const nativeDialer = between(
     nativePhone,
-    "public void startHelpServiceCall",
+    "public void openDialer",
     "public void openServiceDialer"
   );
-  assert.match(nativePhone, /ADAC_PANNENHILFE_DE_NUMBER\s*=\s*\n\s*"08920204000"/u);
-  assert.match(method, /ADAC_PANNENHILFE_DE_SERVICE_ID\.equals\(serviceId\)/u);
-  assert.match(method, /ADAC_PANNENHILFE_DE_NUMBER/u);
-  assert.doesNotMatch(method, /getString\("number"/u);
-  assert.match(method, /explicitOwnerCallAuthorized\(call\)/u);
+
+  assert.match(uiTool, /actionName === "start_phone_call"/u);
+  assert.match(uiTool, /plugin\.openDialer/u);
+  assert.match(uiTool, /callStarted: false/u);
+  assert.match(uiTool, /finalDialerConfirmationRequired: true/u);
+  assert.doesNotMatch(uiTool, /startContactCall|startHelpServiceCall/u);
+  assert.match(nativeDialer, /confirmExternalAction\(/u);
+  assert.match(nativeDialer, /Intent\.ACTION_DIAL/u);
+  assert.match(nativeDialer, /"callStarted", false/u);
 });
 
-test("direkter Anruf folgt nur auf sichtbare Bestätigung und Laufzeitfreigabe", () => {
-  const confirmation = between(
-    nativePhone,
-    "private void confirmAndStartDirectCall",
-    "private void requestDirectCallPermissionOrStart"
-  );
-  const permission = between(
-    nativePhone,
-    "private void requestDirectCallPermissionOrStart",
-    "private void directCallPermissionCallback"
-  );
-  const launch = between(
-    nativePhone,
-    "private void launchDirectCall",
-    "private String normalizedDirectCallNumber"
+test("Direktanruf-Berechtigung und ausführender Android-Code fehlen", () => {
+  const allowedPermissions = between(
+    installer,
+    "const allowedPermissions",
+    "// Falls ein Upstream-Template"
   );
 
-  assert.match(confirmation, /confirmExternalAction\(/u);
-  assert.match(confirmation, /"Jetzt anrufen"/u);
-  assert.match(permission, /requestPermissionForAlias\(\s*\n\s*"directCall"/u);
-  assert.match(nativePhone, /Manifest\.permission\.CALL_PHONE/u);
-  assert.match(launch, /Intent\.ACTION_CALL/u);
-  assert.match(launch, /"callStarted", true/u);
-  assert.match(launch, /"connectionConfirmed", false/u);
-  assert.match(launch, /"emergencyCall", false/u);
-  assert.equal((nativePhone.match(/Intent\.ACTION_CALL/g) || []).length, 1);
+  assert.doesNotMatch(allowedPermissions, /CALL_PHONE|READ_PHONE_STATE/u);
+  assert.doesNotMatch(nativePhone, /Manifest\.permission\.CALL_PHONE/u);
+  assert.doesNotMatch(nativePhone, /Intent\.ACTION_CALL/u);
+  assert.doesNotMatch(nativePhone, /public void startContactCall/u);
+  assert.doesNotMatch(nativePhone, /public void startHelpServiceCall/u);
+  assert.doesNotMatch(nativePhone, /ADAC_PANNENHILFE_DE_NUMBER/u);
+  assert.match(installer, /"WhatsAppAutoSendAccessibilityService\.java"/u);
+  assert.match(installer, /rmSync\(join\(javaTarget, fileName\)/u);
 });
 
-test("Notrufnummern bleiben vom direkten Anrufweg ausgeschlossen", () => {
-  const validation = between(
-    nativePhone,
-    "private String normalizedDirectCallNumber",
-    "private String cleanDestination"
-  );
+test("Servicenummern bleiben eine enge Wähler-Positivliste", () => {
   const emergencyDialer = between(
     nativePhone,
     "public void openServiceDialer",
     "public void prepareSms"
   );
-  assert.match(validation, /isEmergencyDestination\(normalized\)/u);
-  assert.match(validation, /SAFE_SERVICE_DIALER_NUMBERS\.contains\(digits\)/u);
+
+  assert.match(nativePhone, /SAFE_SERVICE_DIALER_NUMBERS\.add\("112"\)/u);
+  assert.match(nativePhone, /SAFE_SERVICE_DIALER_NUMBERS\.add\("110"\)/u);
+  assert.match(nativePhone, /SAFE_SERVICE_DIALER_NUMBERS\.add\("116117"\)/u);
+  assert.match(emergencyDialer, /SAFE_SERVICE_DIALER_NUMBERS\.contains/u);
   assert.match(emergencyDialer, /Intent\.ACTION_DIAL/u);
   assert.doesNotMatch(emergencyDialer, /Intent\.ACTION_CALL/u);
+  assert.match(emergencyDialer, /"finalDialerConfirmationRequired", true/u);
 });
 
-test("Android-Manifest, Realtime-Werkzeug und Client-Routing sind ergänzt", () => {
-  assert.match(installer, /android\.permission\.CALL_PHONE/u);
-  assert.match(installer, /android\.hardware\.telephony/u);
-  assert.match(server, /name:\s*\n\s*"start_help_service_call"/u);
-  assert.match(server, /"adac_pannenhilfe_de"/u);
-  assert.match(index, /"start_help_service_call"/u);
-});
-
-test("Human Holo pausiert auch während eines ausgehenden Telefonats", () => {
-  const listeners = between(
-    ui,
-    "async function registerPhoneListeners",
-    "async function loadPhoneStatus"
+test("Realtime bietet weder Pannenhilfe-Direktanruf noch Health-Werkzeug an", () => {
+  const realtimeTools = between(
+    server,
+    "const sessionConfig = {",
+    "if (\n      identity.ownerId !=="
   );
-  assert.match(listeners, /status\?\.callState === "offhook"/u);
-  assert.match(listeners, /stopLiveConversation\(\)/u);
-  assert.match(listeners, /pauseWakeListeningForConversation\(\)/u);
+  const localToolNames = between(
+    index,
+    "const REALTIME_LOCAL_TOOL_NAMES",
+    "function getRealtimeMemoryToolCall"
+  );
+
+  assert.match(realtimeTools, /name:\s*\n\s*"start_phone_call"/u);
+  assert.match(realtimeTools, /nur den Telefonwähler/u);
+  assert.doesNotMatch(realtimeTools, /start_help_service_call|read_health_snapshot/u);
+  assert.doesNotMatch(localToolNames, /start_help_service_call|read_health_snapshot/u);
+  assert.doesNotMatch(ui, /start_help_service_call|start_personal_clone_call/u);
 });

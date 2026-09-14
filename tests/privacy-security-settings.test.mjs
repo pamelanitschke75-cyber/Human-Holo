@@ -25,7 +25,8 @@ test("sichtbare Pflichtangaben und Schutzgrenzen sind vollständig", () => {
   assert.match(ui, /bei Übertragung/u);
   assert.match(ui, /ownergebundener Zugriff/u);
   assert.match(ui, /keine Behörden-App und enthält keine Finanzfunktionen/u);
-  assert.match(ui, /ersetzen\s*\n\s*keine Diagnose, Behandlung oder persönliche Dosierungsentscheidung/u);
+  assert.match(ui, /bewertet keine Beschwerden, erkennt keine Medikamente/u);
+  assert.match(ui, /keine persönliche\s*\n\s*Selbsthilfe-, Dosierungs- oder Notfallempfehlung/u);
   assert.match(ui, /Menschen- und Kinderhandel, Prostitution, Todesstrafe, Vergeltung/u);
   assert.match(ui, /Waffen, Drogen, Nikotinprodukte und Tierhandel bleiben absolute No-Gos/u);
 });
@@ -35,10 +36,13 @@ test("neue UI-Assets erhalten eigene Cache-Versionen", () => {
   assert.match(html, /sol-holo-ui\.js\?v=83/u);
 });
 
-test("derselbe dauerhafte Build liefert APK und signiertes Google-Play-Bundle", () => {
+test("der Android-Pfad ist geparkt und enthält keine Pam-Signierung", () => {
+  assert.match(
+    androidWorkflow,
+    /build-android:[\s\S]*?if: \$\{\{ false \}\}/u
+  );
   assert.match(androidWorkflow, /\.\/gradlew assembleRelease bundleRelease/u);
-  assert.match(androidWorkflow, /Human-Holo-Play\.aab/u);
-  assert.match(androidWorkflow, /jarsigner\s+\\/u);
-  assert.match(androidWorkflow, /jarsigner -verify -verbose -certs/u);
-  assert.match(androidWorkflow, /SOL_HOLO_KEYSTORE_BASE64/u);
+  assert.match(androidWorkflow, /Android-Artefakte nur zur Buildprüfung kompilieren/u);
+  assert.match(androidWorkflow, /keine Signierung, kein Upload und keine Marktfreigabe/u);
+  assert.doesNotMatch(androidWorkflow, /jarsigner|upload-artifact|SOL_HOLO_KEYSTORE_BASE64/u);
 });

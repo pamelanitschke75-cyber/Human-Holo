@@ -41,7 +41,7 @@ test("die Migration ergänzt nur Ereignis-ID und Modalitäten", () => {
   );
 });
 
-test("Foto und Video verbinden Nutzerbeitrag und semantische Holo-Antwort", () => {
+test("Foto und Video bleiben im RAM-Turn und erzeugen keinen neuen Rohverlauf", () => {
   const solRoute = routeBlock(
     'app.post("/sol"',
     "const PORT ="
@@ -53,16 +53,12 @@ test("Foto und Video verbinden Nutzerbeitrag und semantische Holo-Antwort", () =
   );
   assert.match(
     solRoute,
-    /saveFulltimeMemory\([\s\S]*?"user"[\s\S]*?memoryEventId:[\s\S]*?memoryEventId/u
-  );
-  assert.match(
-    solRoute,
-    /saveFulltimeMemory\([\s\S]*?"assistant"[\s\S]*?memoryEventId:[\s\S]*?memoryEventId/u
-  );
-  assert.match(
-    solRoute,
     /const userMemoryMessage[\s\S]*?originalMessage \|\| message[\s\S]*?mediaMemoryLabel/u
   );
+  assert.match(solRoute, /const saveFulltimeAssistant = async \(\) => false/u);
+  assert.match(solRoute, /evaluateIdentityMemoryWrite/u);
+  assert.match(solRoute, /identityMemoryStore[\s\S]*?\.saveConfirmed/u);
+  assert.doesNotMatch(solRoute, /await saveFulltimeMemory\(/u);
   assert.doesNotMatch(
     server,
     /(?:BYTEA|data:image[^\n]*INSERT INTO sol_fulltime_memory)/iu
@@ -84,7 +80,7 @@ test("spätere Ergänzungen bleiben auch nach vielen Nachrichten am Ereignis", (
   );
 });
 
-test("Live-Bild, Sprache und Holos Antwort teilen dieselbe Turn-ID", () => {
+test("Sprachturns teilen ihre RAM-Turn-ID ohne Live-Bild oder Rohtranskript", () => {
   const liveRoute = routeBlock(
     '"/live/memory"',
     "LANGZEITGEDÄCHTNIS"
@@ -98,35 +94,41 @@ test("Live-Bild, Sprache und Holos Antwort teilen dieselbe Turn-ID", () => {
     liveRoute,
     /existingAssociation[\s\S]*?memory_event_id/u
   );
+  assert.match(liveRoute, /const fulltimeSaved = false/u);
+  assert.match(liveRoute, /keinen[\s\S]*?Rohverlauf-Speicher/u);
+  assert.match(liveRoute, /evaluateIdentityMemoryWrite/u);
   assert.match(
     html,
-    /const transcriptModalities =[\s\S]*?liveCameraIsActive\(\)[\s\S]*?"live_image"/u
+    /const cleanSourceModalities =[\s\S]*?"sign_language"[\s\S]*?\.includes\(modality\)/u
   );
+  assert.doesNotMatch(html, /"live_image"/u);
   assert.match(
     html,
     /const sourceTurnEventId =[\s\S]*?currentRealtimeMemoryEventId[\s\S]*?sendLiveTranscriptToMemory\([\s\S]*?"assistant",[\s\S]*?sourceTurnEventId/u
   );
 });
 
-test("Gedächtnisregel gilt ausdrücklich ohne Themenbegrenzung", () => {
+test("Gedächtnisregel trennt RAM, Altbestand und bestätigte Erinnerungen", () => {
   assert.match(
     server,
-    /Das gilt ohne\s+Themenbegrenzung für Essen,[\s\S]*?Tiere, Menschen, Haushalt, Reisen, Dokumente und\s+jedes andere Thema/u
+    /Du besitzt drei klar getrennte Kontextbereiche/u
+  );
+  assert.match(server, /Neue Nachrichten, Antworten,[\s\S]*?nicht automatisch als[\s\S]*?wortwörtlicher Dauerverlauf/u);
+  assert.match(server, /Dauerhaft sind nur Inhalte,[\s\S]*?ausdrücklich mit[\s\S]*?Speicherbefehl bestätigt/u);
+  assert.match(
+    server,
+    /im Abruf gilt die jüngste\s*\n\s*aktive Fassung/u
   );
   assert.match(
     server,
-    /jüngste Aussage Vorrang/u
-  );
-  assert.match(
-    server,
-    /Wenn der Bezug[\s\S]*?nicht\s+eindeutig ist, frage kurz nach/u
+    /Erfinde keine Erinnerungen/u
   );
 });
 
 test("Gebärdensprache ist eine eigene sichere Modalität für Kinder und Erwachsene", () => {
   assert.match(
     server,
-    /ARRAY\['image', 'video', 'live_image', 'sign_language'\]::TEXT\[\]/u
+    /hasVisualMedia &&[\s\S]*?mentionsSignLanguage\(message\)[\s\S]*?"sign_language"/u
   );
   assert.match(
     server,
@@ -138,10 +140,10 @@ test("Gebärdensprache ist eine eigene sichere Modalität für Kinder und Erwach
   );
   assert.match(
     server,
-    /frage bei fehlender Bewegung, verdeckten Händen oder anderer Unsicherheit[\s\S]*?statt eine Übersetzung zu erfinden/u
+    /bei fehlenden Bewegungsphasen, verdeckten Händen oder Unsicherheit nach,[\s\S]*?statt Inhalt zu erfinden/u
   );
   assert.match(
     server,
-    /mentionsSignLanguage\(answer\)[\s\S]*?"sign_language"/u
+    /mentionsSignLanguage\(transcript\)[\s\S]*?"sign_language"/u
   );
 });

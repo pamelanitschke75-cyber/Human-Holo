@@ -51,9 +51,15 @@ test("Realtime wartet auf serverseitigen Kontext bevor die Antwort erzeugt wird"
   assert.match(html, /LOKALER_DAUERKONTEXT/u);
 });
 
-test("Gebärdensprache bleibt visueller Eingang aber hat denselben Memory-Kern", () => {
+test("bewusst ausgewähltes Gebärdensprachvideo nutzt denselben Memory-Kern", () => {
   assert.match(server, /sign_language/u);
-  assert.match(server, /gesprochene, geschriebene und sicher erkannte gebärdensprachliche persönliche Fragen/u);
-  assert.match(html, /GEBAERDENSPRACHE_SEQUENZ_START/u);
+  assert.match(server, /gesprochene, geschriebene und bewusst gesendete gebärdensprachliche persönliche Fragen/u);
+  assert.match(html, /accept="image\/\*,video\/\*"/u);
+  assert.match(
+    html,
+    /fortlaufende Kamera- und Gebärdensprachmodus ist im Legal-Review-Build deaktiviert/u
+  );
+  assert.doesNotMatch(html, /GEBAERDENSPRACHE_(?:FRAME|SEQUENZ_START)/u);
   assert.match(server, /name:\s*\n\s*"search_personal_memory"/u);
+  assert.match(server, /Neue Sprachtranskripte, Texte,[\s\S]*nicht automatisch wortwörtlich/u);
 });

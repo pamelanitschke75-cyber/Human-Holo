@@ -159,10 +159,8 @@ for (const requiredSource of [
   '"Empfänger: " + recipient',
   '"SMS-Inhalt:\\n" + message',
   "Intent.ACTION_DIAL",
-  "Intent.ACTION_CALL",
-  "Manifest.permission.CALL_PHONE",
-  "public void startContactCall",
-  "public void startHelpServiceCall",
+  "public void openDialer",
+  "public void openServiceDialer",
   "Intent.ACTION_SENDTO"
 ]) {
   if (!phonePluginSource.includes(requiredSource)) {
@@ -172,32 +170,13 @@ for (const requiredSource of [
   }
 }
 
-if (phonePluginSource.includes("SmsManager")) {
-  throw new Error(
-    "SMS darf nicht direkt ohne die sichtbare Ziel-App ausgelöst werden."
-  );
-}
-
-const directCallStart = phonePluginSource.indexOf(
-  "private void launchDirectCall"
-);
-const directCallEnd = phonePluginSource.indexOf(
-  "\n    private String normalizedDirectCallNumber",
-  directCallStart
-);
-const directCallSource = phonePluginSource.slice(
-  directCallStart,
-  directCallEnd
-);
 if (
-  directCallStart < 0 ||
-  directCallEnd < 0 ||
-  !directCallSource.includes("Intent.ACTION_CALL") ||
-  !directCallSource.includes('result.put("callStarted", true)') ||
-  !directCallSource.includes('result.put("emergencyCall", false)')
+  phonePluginSource.includes("SmsManager") ||
+  phonePluginSource.includes("Intent.ACTION_CALL") ||
+  phonePluginSource.includes("Manifest.permission.CALL_PHONE")
 ) {
   throw new Error(
-    "Der bestätigte direkte Anrufweg ist nicht vollständig abgesichert."
+    "Anrufe und SMS dürfen nicht direkt ohne die sichtbare Ziel-App ausgelöst werden."
   );
 }
 
@@ -227,12 +206,25 @@ const nativeInstallerSource = fs.readFileSync(
   "scripts/install-whatsapp-driving-mode.mjs",
   "utf8"
 );
+const allowedPermissionsStart = nativeInstallerSource.indexOf(
+  "const allowedPermissions = ["
+);
+const allowedPermissionsEnd = nativeInstallerSource.indexOf(
+  "];",
+  allowedPermissionsStart
+);
+const allowedPermissionsSource = nativeInstallerSource.slice(
+  allowedPermissionsStart,
+  allowedPermissionsEnd
+);
 if (
-  !nativeInstallerSource.includes("android.permission.CALL_PHONE") ||
-  nativeInstallerSource.includes("android.permission.SEND_SMS")
+  allowedPermissionsStart < 0 ||
+  allowedPermissionsEnd < 0 ||
+  /CALL_PHONE|SEND_SMS/u.test(allowedPermissionsSource) ||
+  !nativeInstallerSource.includes("CALL_PHONE")
 ) {
   throw new Error(
-    "Direkte bestätigte Anrufe brauchen CALL_PHONE; direktes SMS-Senden bleibt verboten."
+    "Der Legal-Review-Build muss CALL_PHONE entfernen und darf weder direkte Anrufe noch direktes SMS-Senden erlauben."
   );
 }
 

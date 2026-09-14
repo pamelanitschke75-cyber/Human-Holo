@@ -30,6 +30,10 @@ const server = fs.readFileSync(
   new URL("../server.mjs", import.meta.url),
   "utf8"
 );
+const launchPolicy = fs.readFileSync(
+  new URL("../modules/human-holo-launch-policy.mjs", import.meta.url),
+  "utf8"
+);
 
 function sourceBetween(source, startMarker, endMarker) {
   const start = source.indexOf(startMarker);
@@ -54,7 +58,7 @@ const routeParser = new Function(
   "return googleMapsDestinationFromMessage;"
 )();
 
-test("Hey Pam stellt und öffnet den Android-Wecker", () => {
+test("historischer Weckerparser bleibt erhalten, die Human-Ausführung ist geparkt", () => {
   assert.deepEqual(
     alarmParser("Hey Pam, stell einen Wecker auf 7 Uhr"),
     { action: "set", hour: 7, minute: 0, label: "Human Holo" }
@@ -88,7 +92,17 @@ test("Hey Pam stellt und öffnet den Android-Wecker", () => {
   assert.equal(alarmParser("Erzähl mir etwas über Wecker um 7 Uhr"), null);
   assert.match(phonePlugin, /AlarmClock\.ACTION_SET_ALARM/u);
   assert.match(phonePlugin, /AlarmClock\.ACTION_SHOW_ALARMS/u);
-  assert.match(installer, /com\.android\.alarm\.permission\.SET_ALARM/u);
+  const allowedPermissions = sourceBetween(
+    installer,
+    "const allowedPermissions = [",
+    "];"
+  );
+  assert.doesNotMatch(
+    allowedPermissions,
+    /com\.android\.alarm\.permission\.SET_ALARM/u
+  );
+  assert.match(launchPolicy, /alarmAndWatch:\s*false/u);
+  assert.match(ui, /Weckeraktionen sind im Human-Holo-Legal-Review-Test geparkt/u);
   assert.match(ui, /id="alarmClockRow"/u);
   assert.match(ui, /Handy-Wecker · Samsung Uhr/u);
   assert.match(ui, /Dein Wecker auf dem Handy ist auf/u);
@@ -107,7 +121,7 @@ test("Routenplaner versteht natürliche Ziele", () => {
   assert.match(ui, /Routenplaner · Google Maps/u);
 });
 
-test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo", () => {
+test("historischer Kalendercode bleibt erhalten, aber Berechtigung und Route sind geparkt", () => {
   const endpoint = sourceBetween(
     server,
     'app.post(\n  "/calendar/action"',
@@ -118,8 +132,16 @@ test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo
   assert.match(server, /nativeFallbackAvailable:\s*true/u);
   assert.match(phonePlugin, /Manifest\.permission\.READ_CALENDAR/u);
   assert.match(phonePlugin, /Manifest\.permission\.WRITE_CALENDAR/u);
-  assert.match(installer, /android\.permission\.READ_CALENDAR/u);
-  assert.match(installer, /android\.permission\.WRITE_CALENDAR/u);
+  const allowedPermissions = sourceBetween(
+    installer,
+    "const allowedPermissions = [",
+    "];"
+  );
+  assert.doesNotMatch(allowedPermissions, /android\.permission\.READ_CALENDAR/u);
+  assert.doesNotMatch(allowedPermissions, /android\.permission\.WRITE_CALENDAR/u);
+  assert.match(launchPolicy, /calendarRemindersNotes:\s*false/u);
+  assert.match(server, /feature: "calendarRemindersNotes"/u);
+  assert.match(ui, /Kalenderaktionen sind im Human-Holo-Legal-Review-Test geparkt/u);
   assert.match(phonePlugin, /CalendarContract\.Events\.CONTENT_URI/u);
   assert.match(phonePlugin, /CalendarContract\.Instances\.CONTENT_URI/u);
   assert.match(phonePlugin, /public void saveCalendarEvent/u);
@@ -161,7 +183,7 @@ test("Notizen werden wirklich lokal gesucht, geändert und gelöscht", () => {
   assert.match(ui, /result\?\.clipboardPrepared/u);
 });
 
-test("Galaxy Watch erhält nur fest definierte, inhaltsarme Hinweise", () => {
+test("historische Watch-Brücke bleibt als Quelle, wird aber nicht in Human eingebaut", () => {
   assert.match(watchPlugin, /@CapacitorPlugin\(\s*name = "GalaxyWatchBridge"/u);
   assert.match(watchPlugin, /Galaxy Watch 8/u);
   assert.match(watchPlugin, /ownerScopedSummaryOnly", true/u);
@@ -170,7 +192,8 @@ test("Galaxy Watch erhält nur fest definierte, inhaltsarme Hinweise", () => {
   assert.match(watchPlugin, /NotificationCompat\.VISIBILITY_PRIVATE/u);
   assert.doesNotMatch(watchPlugin, /call\.getString\("(?:text|title|message)"/u);
   assert.match(installer, /GalaxyWatchBridgePlugin\.java/u);
-  assert.match(installer, /registerPlugin\(GalaxyWatchBridgePlugin\.class\)/u);
+  assert.doesNotMatch(installer, /registerPlugin\(GalaxyWatchBridgePlugin\.class\)/u);
+  assert.match(launchPolicy, /alarmAndWatch:\s*false/u);
   assert.match(installer, /com\.samsung\.android\.app\.watchmanager/u);
   assert.match(ui, /id="galaxyWatchRow"/u);
 });

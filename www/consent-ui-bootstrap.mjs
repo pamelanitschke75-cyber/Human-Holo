@@ -2,18 +2,10 @@ import {
   createConsentSignatureComponent
 } from "./consent-signature.mjs";
 
-const CONSENT_PURPOSES = Object.freeze({
-  "health-read-v1": Object.freeze({
-    purpose:
-      "Ausgewählte Health-Connect-Daten ausschließlich nach einer sichtbaren Android-Freigabe lesen.",
-    version: "health-read-v1"
-  }),
-  "voice-enrollment-v1": Object.freeze({
-    purpose:
-      "Eine neue persönliche Stimmprobe für die lokale Sprechererkennung einrichten oder eine bestehende Stimmprobe ersetzen.",
-    version: "voice-enrollment-v1"
-  })
-});
+// Sensible Zweckfreigaben bleiben sichtbar gesperrt, bis Rechtsgrundlage,
+// DSFA und die jeweilige Fachprüfung abgeschlossen sind. Alte lokal signierte
+// Belege werden dabei nicht gelöscht, berechtigen aber keine neue Verarbeitung.
+const CONSENT_PURPOSES = Object.freeze({});
 
 function selectedIdentity() {
   return window.SolHoloIdentity?.selected?.() || null;
@@ -63,15 +55,14 @@ if (settingsSystemGroup) {
       Diese Installation registriert ausschließlich Pams fest gebundene Holo-ID.
     </p>
     <div class="settingsSubsection">
-      <label for="consentPurposeSelect"><strong>Neue Einwilligung auswählen</strong></label>
-      <select id="consentPurposeSelect">
-        <option value="">Keine Vorauswahl</option>
-        <option value="voice-enrollment-v1">Neue Stimmprobe einrichten oder ersetzen</option>
-        <option value="health-read-v1">Ausgewählte Health-Daten lesen</option>
+      <label for="consentPurposeSelect"><strong>Sensible Einwilligungen</strong></label>
+      <select id="consentPurposeSelect" disabled aria-disabled="true">
+        <option value="">Legal Review · derzeit keine Freigabe möglich</option>
       </select>
       <p class="permissionNote">
-        Es wird nichts automatisch freigegeben. Erst Zweck wählen, vollständig ausfüllen
-        und den nativen Android-Sicherheitsdialog bestätigen.
+        Health Connect, Sprecherprofil, biometrische Wiedererkennung und eigene
+        Stimme sind technisch deaktiviert. Ein Android-Berechtigungsdialog allein
+        gilt nicht als datenschutzrechtliche Freigabe.
       </p>
       <div id="consentSignatureSlot"></div>
     </div>

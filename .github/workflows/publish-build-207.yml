@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   publish:
+    # Geparkt in der Human-Holo-Linie; Pam-Holo bleibt im Schutz-Branch erhalten.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Download verified Build 207 artifact

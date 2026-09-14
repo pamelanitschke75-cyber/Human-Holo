@@ -118,8 +118,9 @@ const inventoryLines = [
   )
 ];
 
-const output = `SOL HOLO / PAM'S HOLO - ANDROID RUNTIME LICENSES
-Generated from the resolved releaseRuntimeClasspath of this exact Android build.
+const output = `HUMAN HOLO · LEGAL REVIEW - ANDROID RUNTIME LICENSES
+Generated from the resolved releaseRuntimeClasspath of a future separately
+authorized Human Holo Android build.
 
 The build fails when it encounters an Android runtime dependency whose license
 has not been explicitly reviewed for this project.

@@ -366,13 +366,13 @@ MediaPipe Face Landmarker model bundle
 Source:
 https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task
 
-Pinned SHA-256 used by Sol Holo:
+Pinned SHA-256 used by Human Holo:
 64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff
 
 The downloadable Face Landmarker bundle contains the BlazeFace face detector,
 FaceMesh-V2 and Blendshape models. Google's published model cards identify
 these model components as licensed under the Apache License, Version 2.0.
-The Sol Holo build stores the downloaded model bundle without modifying its
+The Human Holo source stores the downloaded model bundle without modifying its
 binary contents. A full Apache-2.0 license text is included in this file.
 `;
 
@@ -392,12 +392,12 @@ Installed package inventory:
 ${npmInventoryRows.join("\n")}
 `;
 
-const header = `SOL HOLO / PAM'S HOLO - THIRD-PARTY LICENSES
+const header = `HUMAN HOLO · LEGAL REVIEW - THIRD-PARTY LICENSES
 Generated and verified for the exact dependency and bundled-asset state of
-this build.
+this Human Holo review source.
 
 This file does not transfer ownership of third-party software, models,
-trademarks or other rights to Pamela Nitschke or Sol Holo. Each component
+trademarks or other rights to Pamela Nitschke or Human Holo. Each component
 remains subject to its own license and the rights of its respective rights
 holders.
 
@@ -438,7 +438,7 @@ for (const target of [
 }
 
 const npmInventoryOutput =
-  "SOL HOLO / PAM'S HOLO - NPM LICENSE INVENTORY\n\n" +
+  "HUMAN HOLO · LEGAL REVIEW - NPM LICENSE INVENTORY\n\n" +
   npmInventoryRows.join("\n") +
   "\n";
 

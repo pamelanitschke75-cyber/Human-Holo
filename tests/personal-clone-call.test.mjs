@@ -737,7 +737,7 @@ test("GPT-Live erhält Telefon-Audio und beginnt mit transparenter KI-Einleitung
   assert.equal(service._testing.activeOwners.size, 0);
 });
 
-test("App-Befehl ist eindeutig, fragt nicht erneut und läuft vor dem normalen Direktanruf", async () => {
+test("App fängt KI-geführte Drittanrufe ab und bietet kein Ausführungswerkzeug", async () => {
   const ui = await readFile(
     new URL("../www/sol-holo-ui.js", import.meta.url),
     "utf8"
@@ -748,7 +748,7 @@ test("App-Befehl ist eindeutig, fragt nicht erneut und läuft vor dem normalen D
   const parserContext = {};
   vm.runInNewContext(
     `${ui.slice(start, end)}\n` +
-      "globalThis.parser = personalCloneContactCallFromMessage;",
+      "globalThis.parser = restrictedExternalCallFromMessage;",
     parserContext
   );
 
@@ -757,13 +757,12 @@ test("App-Befehl ist eindeutig, fragt nicht erneut und läuft vor dem normalen D
     "Human Holo, ruf bitte Steffi an und rede mit ihr!",
     "Holo, rufe jetzt Schatz ❤️ an und unterhalte dich mit ihr selbst."
   ]) {
-    assert.equal(parserContext.parser(message)?.mode, "personal_clone_conversation");
+    assert.match(parserContext.parser(message), /nicht enthalten/u);
   }
   for (const message of [
     "Kann Holo Steffi anrufen und mit ihr sprechen?",
     "Später ruf Steffi an und sprich mit ihr.",
-    "Test: Ruf Steffi an und sprich mit ihr.",
-    "Ruf den ADAC an und sprich mit ihm."
+    "Test: Ruf Steffi an und sprich mit ihr."
   ]) {
     assert.equal(parserContext.parser(message), null, message);
   }
@@ -773,7 +772,7 @@ test("App-Befehl ist eindeutig, fragt nicht erneut und läuft vor dem normalen D
     ui.indexOf("window.handleSolHoloRealtimeNoteTranscript")
   );
   assert.ok(
-    handler.indexOf("personalCloneContactCallFromMessage(cleanMessage)") <
+    handler.indexOf("restrictedExternalCallFromMessage(cleanMessage)") <
       handler.indexOf("phoneContactCallNameFromMessage(cleanMessage)")
   );
 
@@ -781,14 +780,9 @@ test("App-Befehl ist eindeutig, fragt nicht erneut und läuft vor dem normalen D
     ui.indexOf("async function executePhoneTool"),
     ui.indexOf("window.executeSolHoloPhoneTool")
   );
-  const personalStart = tool.slice(
-    tool.indexOf('actionName === "start_personal_clone_call"')
-  );
-  assert.match(personalStart, /interactive: false/u);
-  assert.match(personalStart, /\/personal-clone\/calls\/start/u);
-  assert.match(personalStart, /START_PERSONAL_CLONE_CALL/u);
-  assert.doesNotMatch(personalStart, /window\.confirm/u);
-  assert.doesNotMatch(personalStart, /startContactCall/u);
+  assert.doesNotMatch(tool, /start_personal_clone_call/u);
+  assert.doesNotMatch(tool, /\/personal-clone\/calls\/start/u);
+  assert.doesNotMatch(tool, /START_PERSONAL_CLONE_CALL/u);
 });
 
 test("Produktionsquellen enthalten keine fest eingetragene Empfängernummer", async () => {
@@ -804,7 +798,7 @@ test("Produktionsquellen enthalten keine fest eingetragene Empfängernummer", as
   assert.match(production, /numberReturned:\s*false/u);
 });
 
-test("Telnyx-Statuswebhook wird ohne Speicherung oder Protokollierung bestätigt", async () => {
+test("Telnyx-Statuswebhook wird im Legal-Review-Build vor Verarbeitung gesperrt", async () => {
   const server = await readFile(
     new URL("../server.mjs", import.meta.url),
     "utf8"
@@ -819,6 +813,8 @@ test("Telnyx-Statuswebhook wird ohne Speicherung oder Protokollierung bestätigt
   assert.ok(start >= 0 && end > start);
 
   const webhook = server.slice(start, end);
+  assert.match(webhook, /!isLaunchFeatureEnabled\("personalCloneCall"\)/u);
+  assert.match(webhook, /respondLegalReviewHold/u);
   assert.match(webhook, /status\(204\)\.end\(\)/u);
   assert.match(webhook, /no-store/u);
   assert.doesNotMatch(webhook, /console\./u);

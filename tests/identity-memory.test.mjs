@@ -68,9 +68,13 @@ test("Legacy-Owner-ID pam-sol-001 wird sicher auf pam-sol abgebildet", () => {
   );
 });
 
-test("Always-on-Vertrag bleibt updatefest, ownergebunden und verlustfrei", () => {
+test("strukturierter Gedächtnisvertrag bleibt updatefest und ownergebunden", () => {
   assert.deepEqual(MEMORY_PERSISTENCE_CONTRACT, {
-    alwaysOn: true,
+    automaticRawTranscriptStorage: false,
+    existingMemoryPreserved: true,
+    volatileConversationContext: true,
+    confirmedMemory: true,
+    optionalCategoryBasedMemory: true,
     updateSafe: true,
     additiveChangesOnly: true,
     correctionsPreserveHistory: true,
@@ -223,15 +227,19 @@ test("Text und Sprachtranskript benutzen dieselbe Speicherregel", () => {
   assert.deepEqual(
     {
       ...textDecision.memory,
-      sourceType: null
+      sourceType: null,
+      sourceModalities: null
     },
     {
       ...voiceDecision.memory,
-      sourceType: null
+      sourceType: null,
+      sourceModalities: null
     }
   );
   assert.equal(textDecision.memory.sourceType, "text");
   assert.equal(voiceDecision.memory.sourceType, "voice");
+  assert.deepEqual(textDecision.memory.sourceModalities, ["text"]);
+  assert.deepEqual(voiceDecision.memory.sourceModalities, ["voice"]);
 });
 
 test("zweistufige Speicherung verlangt ausdrueckliche Bestaetigung derselben Person", () => {
@@ -328,7 +336,10 @@ test("Store legt nur additive Tabellen/Indizes an und veraendert Legacy-Daten ni
   const schemaSql = database.calls.map(({ sql }) => sql).join("\n");
   assert.match(schemaSql, /CREATE TABLE IF NOT EXISTS sol_identity_memory/u);
   assert.match(schemaSql, /CREATE INDEX IF NOT EXISTS/u);
-  assert.doesNotMatch(schemaSql, /\b(?:DROP|DELETE|TRUNCATE|ALTER)\b/iu);
+  assert.match(schemaSql, /ALTER TABLE sol_identity_memory[\s\S]*?ADD COLUMN IF NOT EXISTS memory_category/u);
+  assert.match(schemaSql, /CREATE TABLE IF NOT EXISTS sol_personal_memory_preferences/u);
+  assert.doesNotMatch(schemaSql, /\b(?:DROP|DELETE|TRUNCATE)\b/iu);
+  assert.doesNotMatch(schemaSql, /ALTER\s+TABLE[\s\S]*?\b(?:DROP|RENAME|TYPE)\b/iu);
 });
 
 test("bestätigter Pam-Stapel wird atomar ergänzt und ersetzt alte Fakten nur im Abruf", async () => {

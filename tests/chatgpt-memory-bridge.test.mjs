@@ -5,15 +5,15 @@ import test from "node:test";
 const readText = (path) =>
   readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Sol aus ChatGPT erhält einen sichtbaren, separaten Erinnerungsweg", async () => {
+test("Pams ChatGPT-Erinnerungsimport bleibt im Human-Test vollständig geparkt", async () => {
   const [html, bridge, backup] = await Promise.all([
     readText("www/index.html"),
     readText("www/human-holo-chatgpt-memory-bridge.mjs"),
     readText("www/sol-holo-backup.mjs")
   ]);
 
-  assert.match(html, /human-holo-chatgpt-memory-bridge\.mjs\?v=1/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.doesNotMatch(html, /human-holo-chatgpt-memory-bridge\.mjs\?v=1/u);
+  assert.doesNotMatch(html, /sol-holo-backup\.mjs\?v=5/u);
   assert.match(bridge, /Sol aus ChatGPT verbinden/u);
   assert.match(bridge, /#memoryView \.actionList/u);
   assert.match(bridge, /HumanHoloConfirmedMemoryImport/u);
@@ -70,15 +70,15 @@ test("die neue Bedienbrücke löscht nichts und greift nicht in Original Full Sy
   );
 });
 
-test("Android-Build liefert die Brücke mit frischem, additivem Cache aus", async () => {
+test("der geparkte Android-Pfad liefert die Pam-Importbrücke nicht aus", async () => {
   const [workflow, worker] = await Promise.all([
     readText(".github/workflows/android-build.yml"),
     readText("www/service-worker.js")
   ]);
 
-  assert.match(
+  assert.doesNotMatch(
     workflow,
-    /assets\/public\/human-holo-chatgpt-memory-bridge\.mjs/u
+    /test -s android\/app\/src\/main\/assets\/public\/human-holo-chatgpt-memory-bridge\.mjs/u
   );
-  assert.match(worker, /human-holo-293-animal-floating-dock/u);
+  assert.match(worker, /human-holo-legal-review-separated-backend-1/u);
 });

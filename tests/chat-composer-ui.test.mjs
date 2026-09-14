@@ -106,10 +106,14 @@ test("Build #115 gibt dem Antwortsfeld den Platz des Holo-Bildes", () => {
   );
 });
 
-test("Human-Holo-Chat zeigt Pam klein im Header und kein altes Einhorn", () => {
+test("Human-Holo-Chat zeigt nur das Projektlogo und kein persönliches Pam-Bild", () => {
   assert.match(
     html,
-    /id="subtitle"[\s\S]*?id="chatOwnerPortrait"[\s\S]*?alt="Pam"/u
+    /id="subtitle"[\s\S]*?id="chatOwnerPortrait"[\s\S]*?src="\.\/human-holo-logo\.png"[\s\S]*?alt="Human-Holo-Testlogo"/u
+  );
+  assert.doesNotMatch(
+    html,
+    /file_000000009bf88246b8f682a46e1a429d\.png/u
   );
   assert.doesNotMatch(html, /id="chatUnicornSignature"/u);
   assert.doesNotMatch(html, /pamUnicorn--chatHeader/u);

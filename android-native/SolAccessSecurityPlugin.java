@@ -64,6 +64,8 @@ public final class SolAccessSecurityPlugin extends Plugin {
     private static final String PREFS = "sol_holo_access_security_v1";
     private static final String DEVICE_KEY_ALIAS_PREFIX =
         "sol_holo_registered_device_signing_v1_";
+    private static final String OWNER_ERASURE_CONFIRMATION =
+        "MEINE HUMAN HOLO DATEN ENDGÜLTIG LÖSCHEN";
 
     private static final String PREF_DEVICE_CERT_SHA256 =
         "registered_device_certificate_sha256";
@@ -307,6 +309,87 @@ public final class SolAccessSecurityPlugin extends Plugin {
         String ownerId = requiredOwnerId(call);
         if (ownerId == null) return;
         call.resolve(buildStatus(ownerId));
+    }
+
+    @PluginMethod
+    public void eraseOwnerDeviceData(PluginCall call) {
+        String ownerId = requiredOwnerId(call);
+        if (ownerId == null) return;
+        String confirmation = call.getString("confirmation", "");
+        boolean serverErasureConfirmed = Boolean.TRUE.equals(
+            call.getBoolean("serverErasureConfirmed", false)
+        );
+        if (
+            !OWNER_ERASURE_CONFIRMATION.equals(confirmation)
+                || !serverErasureConfirmed
+        ) {
+            call.reject(
+                "Lokale Daten werden erst nach der bestätigten Serverlöschung entfernt.",
+                "OWNER_DEVICE_ERASURE_CONFIRMATION_REQUIRED"
+            );
+            return;
+        }
+
+        try {
+            KeyStore keyStore = androidKeyStore();
+            String alias = deviceKeyAlias(ownerId);
+            if (keyStore.containsAlias(alias)) {
+                keyStore.deleteEntry(alias);
+            }
+            boolean securityCleared = prefs(ownerId).edit().clear().commit();
+            boolean aliasesCleared = getContext()
+                .getSharedPreferences(
+                    "sol_holo_contact_aliases",
+                    Context.MODE_PRIVATE
+                )
+                .edit()
+                .clear()
+                .commit();
+            boolean notesCleared = getContext()
+                .getSharedPreferences(
+                    "sol_holo_shared_notes",
+                    Context.MODE_PRIVATE
+                )
+                .edit()
+                .clear()
+                .commit();
+            boolean calendarCleared = getContext()
+                .getSharedPreferences(
+                    "human_holo_direct_calendar",
+                    Context.MODE_PRIVATE
+                )
+                .edit()
+                .clear()
+                .commit();
+            getContext()
+                .getSharedPreferences(
+                    "sol_holo_speaker_identity",
+                    Context.MODE_PRIVATE
+                )
+                .edit()
+                .clear()
+                .commit();
+            grants.clear();
+            watchChallenges.clear();
+            consumedWatchChallenges.clear();
+            watchProofs.clear();
+
+            JSObject result = new JSObject();
+            result.put("erased", true);
+            result.put("ownerId", ownerId);
+            result.put("hardwareKeyDeleted", true);
+            result.put("securityMetadataDeleted", securityCleared);
+            result.put("contactAliasesDeleted", aliasesCleared);
+            result.put("sharedNotesDeleted", notesCleared);
+            result.put("calendarMetadataDeleted", calendarCleared);
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject(
+                "Die lokalen Sicherheitsdaten konnten nicht vollständig entfernt werden.",
+                "OWNER_DEVICE_ERASURE_FAILED",
+                error
+            );
+        }
     }
 
     /**

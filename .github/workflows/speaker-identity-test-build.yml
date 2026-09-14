@@ -5,6 +5,8 @@ on:
 
 jobs:
   speaker-identity-test:
+    # Persönlicher Pam-Stimmentest; in der Human-Holo-Linie geparkt.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Repository laden

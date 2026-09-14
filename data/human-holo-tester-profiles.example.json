@@ -1,0 +1,9 @@
+[
+  {
+    "testerId": "example-reviewer",
+    "displayName": "Beispieltester",
+    "accessCodeSha256": "REPLACE_WITH_64_LOWERCASE_HEX_CHARACTERS",
+    "expiresAt": "2026-09-30T23:59:59.000Z",
+    "role": "tester"
+  }
+]

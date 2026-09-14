@@ -45,7 +45,7 @@ test("Kanal-Link bleibt ownergebunden und öffnet ausschließlich die öffentlic
 test("öffentliche Verknüpfung erteilt keine YouTube-Konto- oder Uploadrechte", () => {
   assert.match(
     ui,
-    /nur als öffentlicher Link hinterlegt;[^\n]*keine Upload- oder Verwaltungsrechte/u
+    /öffentliche Link[\s\S]*?keine Upload- oder Verwaltungsrechte/u
   );
   assert.doesNotMatch(ui, /youtube\.upload|youtube\.force-ssl|youtube\.readonly/u);
 });

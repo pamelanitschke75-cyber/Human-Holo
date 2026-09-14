@@ -22,10 +22,7 @@ import android.provider.AlarmClock;
 import android.provider.CalendarContract;
 import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 
 import androidx.core.content.ContextCompat;
 
@@ -50,14 +47,6 @@ import java.util.Set;
         @Permission(
             alias = "contacts",
             strings = { Manifest.permission.READ_CONTACTS }
-        ),
-        @Permission(
-            alias = "phoneState",
-            strings = { Manifest.permission.READ_PHONE_STATE }
-        ),
-        @Permission(
-            alias = "directCall",
-            strings = { Manifest.permission.CALL_PHONE }
         ),
         @Permission(
             alias = "calendar",
@@ -105,12 +94,6 @@ public class PhoneContactsPlugin extends Plugin {
         "com.whatsapp.w4b";
     private static final String CONTACT_ALIAS_PREFERENCES =
         "sol_holo_contact_aliases";
-    private static final String ADAC_PANNENHILFE_DE_SERVICE_ID =
-        "adac_pannenhilfe_de";
-    private static final String ADAC_PANNENHILFE_DE_NUMBER =
-        "08920204000";
-    private static final String ADAC_PANNENHILFE_DE_LABEL =
-        "ADAC Pannenhilfe Deutschland";
     private static final Set<String> SAFE_SERVICE_DIALER_NUMBERS =
         new HashSet<>();
     static {
@@ -120,14 +103,8 @@ public class PhoneContactsPlugin extends Plugin {
     }
     private static volatile PhoneContactsPlugin activePlugin;
 
-    private TelephonyManager telephonyManager;
-    private TelephonyCallback telephonyCallback;
-    private PhoneStateListener legacyPhoneStateListener;
-    private int currentCallState = TelephonyManager.CALL_STATE_IDLE;
     private PluginCall pendingExternalActionCall;
     private AlertDialog pendingExternalActionDialog;
-    private PluginCall pendingDirectCallPermissionCall;
-    private DirectCallTarget pendingDirectCallPermissionTarget;
 
     private static final class SamsungNoteLaunch {
         final Intent intent;
@@ -173,48 +150,20 @@ public class PhoneContactsPlugin extends Plugin {
         }
     }
 
-    private static final class DirectCallTarget {
-        final String number;
-        final String recipientName;
-        final String targetType;
-        final boolean contactReverifiedOnDevice;
-
-        DirectCallTarget(
-            String number,
-            String recipientName,
-            String targetType,
-            boolean contactReverifiedOnDevice
-        ) {
-            this.number = number == null ? "" : number;
-            this.recipientName = recipientName == null ? "" : recipientName;
-            this.targetType = targetType == null ? "" : targetType;
-            this.contactReverifiedOnDevice = contactReverifiedOnDevice;
-        }
-    }
-
     @Override
     public void load() {
         activePlugin = this;
-        registerCallStateListener();
     }
 
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
-        registerCallStateListener();
         notifyListeners("phoneStatusChanged", status(), true);
     }
 
     @Override
     protected void handleOnDestroy() {
-        unregisterCallStateListener();
         cancelPendingExternalAction();
-        cancelPendingDirectCallPermission();
-        WhatsAppAutoSendCommand.Pending pending =
-            WhatsAppAutoSendCommand.peek();
-        if (pending != null) {
-            WhatsAppAutoSendCommand.cancel(pending.token);
-        }
         if (activePlugin == this) {
             activePlugin = null;
         }
@@ -275,53 +224,10 @@ public class PhoneContactsPlugin extends Plugin {
         return true;
     }
 
-    public static void publishWhatsAppAutoSendResult(
-        String token,
-        String recipientName,
-        String message,
-        boolean sendControlActivated,
-        String reason
-    ) {
-        PhoneContactsPlugin plugin = activePlugin;
-        if (plugin == null) {
-            return;
-        }
-        JSObject event = new JSObject();
-        event.put("token", token == null ? "" : token);
-        event.put(
-            "recipientName",
-            recipientName == null ? "" : recipientName
-        );
-        event.put("message", message == null ? "" : message);
-        event.put("automaticSendRequested", true);
-        event.put("sendControlActivated", sendControlActivated);
-        event.put("sent", sendControlActivated);
-        event.put("deliveryConfirmed", false);
-        event.put("manualTypingRequired", false);
-        event.put("manualSendRequired", false);
-        event.put("executedBy", "Pam’s Holo");
-        event.put("reason", reason == null ? "" : reason);
-        plugin.notifyListeners("whatsAppAutoSendResult", event, true);
-    }
-
     private boolean contactsGranted() {
         return ContextCompat.checkSelfPermission(
             getContext(),
             Manifest.permission.READ_CONTACTS
-        ) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private boolean phoneStateGranted() {
-        return ContextCompat.checkSelfPermission(
-            getContext(),
-            Manifest.permission.READ_PHONE_STATE
-        ) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private boolean directCallGranted() {
-        return ContextCompat.checkSelfPermission(
-            getContext(),
-            Manifest.permission.CALL_PHONE
         ) == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -415,54 +321,6 @@ public class PhoneContactsPlugin extends Plugin {
         return result;
     }
 
-    private ComponentName whatsAppAutoSendComponent() {
-        return new ComponentName(
-            getContext(),
-            WhatsAppAutoSendAccessibilityService.class
-        );
-    }
-
-    private boolean whatsAppAutoSendAccessEnabled() {
-        String enabledServices = Settings.Secure.getString(
-            getContext().getContentResolver(),
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        );
-        if (TextUtils.isEmpty(enabledServices)) {
-            return false;
-        }
-
-        ComponentName expected = whatsAppAutoSendComponent();
-        TextUtils.SimpleStringSplitter splitter =
-            new TextUtils.SimpleStringSplitter(':');
-        splitter.setString(enabledServices);
-        while (splitter.hasNext()) {
-            ComponentName enabled = ComponentName.unflattenFromString(
-                splitter.next()
-            );
-            if (expected.equals(enabled)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private JSObject whatsAppAutoSendStatus() {
-        JSObject result = new JSObject();
-        result.put("supported", true);
-        result.put("accessEnabled", whatsAppAutoSendAccessEnabled());
-        result.put("explicitOwnerCommandRequired", true);
-        result.put("contactMustBeUnique", true);
-        result.put("messageMustMatchExactly", true);
-        result.put("singleUseCommand", true);
-        result.put("commandExpiresAfterMillis", 30_000);
-        result.put("packageScope", "com.whatsapp,com.whatsapp.w4b");
-        result.put("screenDataStored", false);
-        result.put("screenDataUploaded", false);
-        result.put("messagePersisted", false);
-        result.put("canBeDisabledInAndroidSettings", true);
-        return result;
-    }
-
     private boolean telephonySupported() {
         return getContext()
             .getPackageManager()
@@ -473,12 +331,9 @@ public class PhoneContactsPlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("supported", telephonySupported());
         result.put("contactsPermissionGranted", contactsGranted());
-        result.put("phoneStatePermissionGranted", phoneStateGranted());
-        result.put("directCallPermissionGranted", directCallGranted());
-        result.put(
-            "connected",
-            contactsGranted() && phoneStateGranted()
-        );
+        result.put("phoneStatePermissionGranted", false);
+        result.put("directCallPermissionGranted", false);
+        result.put("connected", contactsGranted());
         result.put("permissionsCanBeRevoked", true);
         result.put(
             "contactsPermissionPurpose",
@@ -489,99 +344,32 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("contactAliasesOwnerScoped", true);
         result.put(
             "phoneStatePermissionPurpose",
-            "Der Telefonstatus wird nur erkannt, damit Pam’s Holo während eines Anrufs pausiert."
+            "Nicht aktiv: Human Holo fordert keinen Telefonstatus an."
         );
         result.put(
             "directCallPermissionPurpose",
-            "Nach einem ausdrücklichen Auftrag und einer sichtbaren Bestätigung startet Human Holo genau einen Anruf an den erneut geprüften Kontakt oder die fest hinterlegte ADAC-Pannenhilfe."
+            "Nicht aktiv: Human Holo öffnet nur den Telefonwähler; den Anruf startet die Nutzerin selbst."
         );
-        result.put("directContactCallsSupported", telephonySupported());
-        result.put("directHelpServiceCallsSupported", telephonySupported());
-        result.put("outgoingCallsDirectlyStarted", true);
+        result.put("directContactCallsSupported", false);
+        result.put("directHelpServiceCallsSupported", false);
+        result.put("outgoingCallsDirectlyStarted", false);
+        result.put("dialerHandoffSupported", telephonySupported());
         result.put("emergencyCallsDirectlyStarted", false);
         result.put("emergencyCallsRequireDefaultDialer", true);
         result.put("smsDirectlySent", false);
-        result.put(
-            "whatsAppDirectSendEnabled",
-            whatsAppAutoSendAccessEnabled()
-        );
-        result.put("whatsAppAutoSendRequiresExplicitCommand", true);
+        result.put("whatsAppDirectSendEnabled", false);
+        result.put("whatsAppAutoSendRequiresExplicitCommand", false);
+        result.put("externalActionsLegalReviewHold", true);
         result.put("whatsAppAutoSendScreenDataStored", false);
         result.put("visibleActionConfirmationRequired", true);
-        result.put("callState", callStateName(currentCallState));
-        result.put(
-            "incomingCall",
-            currentCallState == TelephonyManager.CALL_STATE_RINGING
-        );
+        result.put("callState", "unavailable");
+        result.put("incomingCall", false);
         return result;
     }
 
     @PluginMethod
     public void getStatus(PluginCall call) {
         call.resolve(status());
-    }
-
-    @PluginMethod
-    public void getWhatsAppAutoSendStatus(PluginCall call) {
-        call.resolve(whatsAppAutoSendStatus());
-    }
-
-    @PluginMethod
-    public void requestWhatsAppAutoSendAccess(PluginCall call) {
-        if (whatsAppAutoSendAccessEnabled()) {
-            call.resolve(whatsAppAutoSendStatus());
-            return;
-        }
-
-        Activity activity = getActivity();
-        if (activity == null) {
-            call.reject(
-                "Die Android-Bedienungshilfe konnte gerade nicht geöffnet werden.",
-                "WHATSAPP_AUTO_SEND_SETTINGS_UNAVAILABLE"
-            );
-            return;
-        }
-
-        String disclosure =
-            "Damit Human Holo nach deinem ausdrücklichen Auftrag in WhatsApp " +
-            "automatisch auf Senden tippen kann, benötigt sie die Android-" +
-            "Bedienungshilfe.\n\n" +
-            "Android bezeichnet diese Freigabe als weitreichenden Bildschirm- " +
-            "und Steuerungszugriff. Human Holos technische Begrenzung lässt die " +
-            "Funktion trotzdem ausschließlich in WhatsApp arbeiten.\n\n" +
-            "Die Funktion reagiert ausschließlich auf einen kurzlebigen " +
-            "Einmal-Auftrag, ausschließlich in WhatsApp und nur wenn " +
-            "Empfänger sowie vollständiger Nachrichtentext übereinstimmen.\n\n" +
-            "Human Holo speichert oder überträgt dabei keine sichtbaren " +
-            "WhatsApp-Inhalte. Du kannst den Zugriff jederzeit in den " +
-            "Android-Einstellungen ausschalten.";
-
-        confirmExternalAction(
-            call,
-            activity,
-            "WhatsApp automatisch senden",
-            disclosure,
-            "Bedienungshilfe öffnen",
-            () -> {
-                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                try {
-                    activity.startActivity(intent);
-                    JSObject result = whatsAppAutoSendStatus();
-                    result.put("settingsOpened", true);
-                    result.put(
-                        "instructions",
-                        "Wähle Human Holo – WhatsApp automatisch senden und aktiviere den Zugriff. Danach den WhatsApp-Befehl einmal wiederholen."
-                    );
-                    call.resolve(result);
-                } catch (ActivityNotFoundException | SecurityException error) {
-                    call.reject(
-                        "Die Android-Bedienungshilfe konnte gerade nicht geöffnet werden.",
-                        "WHATSAPP_AUTO_SEND_SETTINGS_UNAVAILABLE",
-                        error
-                    );
-                }
-            }
-        );
     }
 
     @PluginMethod
@@ -1361,17 +1149,13 @@ public class PhoneContactsPlugin extends Plugin {
 
     @PluginMethod
     public void requestAccess(PluginCall call) {
-        if (
-            getPermissionState("contacts") == PermissionState.GRANTED
-                && getPermissionState("phoneState") == PermissionState.GRANTED
-        ) {
-            registerCallStateListener();
+        if (getPermissionState("contacts") == PermissionState.GRANTED) {
             call.resolve(status());
             return;
         }
 
         requestPermissionForAliases(
-            new String[] { "contacts", "phoneState" },
+            new String[] { "contacts" },
             call,
             "phonePermissionsCallback"
         );
@@ -1379,7 +1163,6 @@ public class PhoneContactsPlugin extends Plugin {
 
     @PermissionCallback
     private void phonePermissionsCallback(PluginCall call) {
-        registerCallStateListener();
         JSObject result = status();
         notifyListeners("phoneStatusChanged", result, true);
         call.resolve(result);
@@ -1407,7 +1190,7 @@ public class PhoneContactsPlugin extends Plugin {
             result.put("settingsOpened", true);
             result.put(
                 "instructions",
-                "Unter Berechtigungen können Kontakte, Telefonstatus und direkte Anrufe jederzeit einzeln widerrufen werden."
+                "Unter Berechtigungen kann der lokale Kontaktzugriff jederzeit widerrufen werden."
             );
             call.resolve(result);
         } catch (ActivityNotFoundException | SecurityException error) {
@@ -1766,112 +1549,6 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
-    public void startContactCall(PluginCall call) {
-        if (!contactsGranted()) {
-            call.reject(
-                "Ohne Kontaktfreigabe kann Human Holo den Anrufkontakt nicht prüfen.",
-                "CONTACTS_PERMISSION_REQUIRED"
-            );
-            return;
-        }
-        if (!telephonySupported()) {
-            call.reject(
-                "Dieses Gerät unterstützt keine Telefonanrufe.",
-                "TELEPHONY_UNAVAILABLE"
-            );
-            return;
-        }
-        if (!explicitOwnerCallAuthorized(call)) {
-            call.reject(
-                "Der direkte Anruf braucht einen ausdrücklichen ownergebundenen Auftrag.",
-                "DIRECT_CALL_OWNER_CONFIRMATION_REQUIRED"
-            );
-            return;
-        }
-
-        String contactIdText = call.getString("contactId", "").trim();
-        String expectedNumber = cleanDestination(call.getString("number", ""));
-        long contactId = -1L;
-        try {
-            contactId = Long.parseLong(contactIdText);
-        } catch (NumberFormatException ignored) {
-            // Die Prüfung unten lehnt eine fehlende oder ungültige ID geschlossen ab.
-        }
-        if (contactId < 0L || expectedNumber.isEmpty()) {
-            call.reject(
-                "Der ausgewählte Anrufkontakt ist nicht eindeutig.",
-                "DIRECT_CALL_CONTACT_REQUIRED"
-            );
-            return;
-        }
-
-        ContactRecord contact = findContactRecord(contactId, expectedNumber);
-        if (contact == null) {
-            call.reject(
-                "Der ausgewählte Kontakt wurde vor dem Anruf nicht mehr im Android-Telefonbuch gefunden.",
-                "DIRECT_CALL_CONTACT_STALE"
-            );
-            return;
-        }
-
-        String directNumber = normalizedDirectCallNumber(contact.number);
-        if (directNumber.isEmpty()) {
-            call.reject(
-                "Diese Kontaktnummer darf nicht direkt angerufen werden.",
-                "DIRECT_CALL_DESTINATION_NOT_ALLOWED"
-            );
-            return;
-        }
-
-        confirmAndStartDirectCall(
-            call,
-            new DirectCallTarget(
-                directNumber,
-                contact.name,
-                "device_contact",
-                true
-            )
-        );
-    }
-
-    @PluginMethod
-    public void startHelpServiceCall(PluginCall call) {
-        if (!telephonySupported()) {
-            call.reject(
-                "Dieses Gerät unterstützt keine Telefonanrufe.",
-                "TELEPHONY_UNAVAILABLE"
-            );
-            return;
-        }
-        if (!explicitOwnerCallAuthorized(call)) {
-            call.reject(
-                "Der direkte Anruf braucht einen ausdrücklichen ownergebundenen Auftrag.",
-                "DIRECT_CALL_OWNER_CONFIRMATION_REQUIRED"
-            );
-            return;
-        }
-
-        String serviceId = call.getString("serviceId", "").trim();
-        if (!ADAC_PANNENHILFE_DE_SERVICE_ID.equals(serviceId)) {
-            call.reject(
-                "Diese Pannenhilfe ist nicht für einen direkten Anruf freigegeben.",
-                "HELP_SERVICE_NOT_ALLOWED"
-            );
-            return;
-        }
-
-        confirmAndStartDirectCall(
-            call,
-            new DirectCallTarget(
-                ADAC_PANNENHILFE_DE_NUMBER,
-                ADAC_PANNENHILFE_DE_LABEL,
-                "verified_help_service",
-                false
-            )
-        );
-    }
-
-    @PluginMethod
     public void openServiceDialer(PluginCall call) {
         String number = cleanDestination(call.getString("number", ""))
             .replace(" ", "");
@@ -2003,13 +1680,6 @@ public class PhoneContactsPlugin extends Plugin {
         String recipientName = cleanRecipientName(
             call.getString("recipientName", "")
         );
-        boolean autoSend = Boolean.TRUE.equals(
-            call.getBoolean("autoSend", false)
-        );
-        boolean explicitOwnerCommand = Boolean.TRUE.equals(
-            call.getBoolean("explicitOwnerCommand", false)
-        );
-
         if (number.isEmpty()) {
             call.reject(
                 "Keine Telefonnummer für WhatsApp erhalten.",
@@ -2031,21 +1701,6 @@ public class PhoneContactsPlugin extends Plugin {
             );
             return;
         }
-        if (autoSend && recipientName.isEmpty()) {
-            call.reject(
-                "Automatisches Senden braucht einen eindeutig geprüften Kontaktnamen.",
-                "WHATSAPP_AUTO_SEND_RECIPIENT_REQUIRED"
-            );
-            return;
-        }
-        if (autoSend && !explicitOwnerCommand) {
-            call.reject(
-                "Automatisches Senden braucht einen ausdrücklichen WhatsApp-Auftrag der Besitzerin.",
-                "WHATSAPP_AUTO_SEND_EXPLICIT_COMMAND_REQUIRED"
-            );
-            return;
-        }
-
         String whatsAppDigits = internationalWhatsAppDigits(
             normalizedNumber,
             number
@@ -2079,67 +1734,6 @@ public class PhoneContactsPlugin extends Plugin {
                 "WhatsApp oder WhatsApp Business wurde auf diesem Gerät nicht gefunden.",
                 "WHATSAPP_NOT_INSTALLED"
             );
-            return;
-        }
-
-        if (autoSend) {
-            if (!whatsAppAutoSendAccessEnabled()) {
-                call.reject(
-                    "Für automatisches WhatsApp-Senden muss der einmalige Besitzer-Modus in den Android-Bedienungshilfen aktiviert werden.",
-                    "WHATSAPP_AUTO_SEND_ACCESS_REQUIRED"
-                );
-                return;
-            }
-
-            WhatsAppAutoSendCommand.Pending pending;
-            try {
-                pending = WhatsAppAutoSendCommand.arm(
-                    packageName,
-                    recipientName,
-                    whatsAppDigits,
-                    message
-                );
-            } catch (IllegalArgumentException error) {
-                call.reject(
-                    "Der automatische WhatsApp-Sendeauftrag war nicht vollständig oder nicht eindeutig.",
-                    "WHATSAPP_AUTO_SEND_COMMAND_REJECTED",
-                    error
-                );
-                return;
-            }
-
-            Intent intent = new Intent(Intent.ACTION_VIEW, whatsAppUri);
-            intent.setPackage(packageName);
-            try {
-                activity.startActivity(intent);
-                WhatsAppAutoSendAccessibilityService.wakeForPendingCommand();
-
-                JSObject result = new JSObject();
-                result.put("opened", true);
-                result.put("packageName", packageName);
-                result.put("number", number);
-                result.put("recipientName", recipientName);
-                result.put("confirmationShown", false);
-                result.put("explicitOwnerCommandAccepted", true);
-                result.put("messagePrepared", true);
-                result.put("messageLength", message.length());
-                result.put("automaticSendRequested", true);
-                result.put("sendControlActivated", false);
-                result.put("sent", false);
-                result.put("deliveryConfirmed", false);
-                result.put("finalWhatsAppSendRequired", false);
-                result.put("singleUseCommand", true);
-                result.put("commandExpiresAfterMillis", 30_000);
-                result.put("pendingToken", pending.token);
-                call.resolve(result);
-            } catch (ActivityNotFoundException | SecurityException error) {
-                WhatsAppAutoSendCommand.cancel(pending.token);
-                call.reject(
-                    "WhatsApp konnte den automatischen Sendeauftrag gerade nicht öffnen.",
-                    "WHATSAPP_OPEN_FAILED",
-                    error
-                );
-            }
             return;
         }
 
@@ -2283,235 +1877,6 @@ public class PhoneContactsPlugin extends Plugin {
                 "Die sichtbare Bestätigung wurde geschlossen.",
                 "EXTERNAL_ACTION_CONFIRMATION_CLOSED"
             );
-        }
-    }
-
-    private boolean explicitOwnerCallAuthorized(PluginCall call) {
-        String ownerId = cleanOwnerId(call.getString("ownerId", ""));
-        boolean explicitOwnerCommand = Boolean.TRUE.equals(
-            call.getBoolean("explicitOwnerCommand", false)
-        );
-        return !ownerId.isEmpty() && explicitOwnerCommand;
-    }
-
-    private void confirmAndStartDirectCall(
-        PluginCall call,
-        DirectCallTarget target
-    ) {
-        Activity activity = getActivity();
-        if (activity == null) {
-            call.reject(
-                "Der Anruf konnte gerade nicht bestätigt werden.",
-                "DIRECT_CALL_ACTIVITY_UNAVAILABLE"
-            );
-            return;
-        }
-
-        String recipient = target.recipientName.isEmpty()
-            ? target.number
-            : target.recipientName + " (" + target.number + ")";
-        String confirmationText =
-            "Anrufziel: " + recipient + "\n\n" +
-            "Nach deiner Bestätigung startet Human Holo genau diesen Anruf sofort. " +
-            "Beim ersten Mal folgt zusätzlich die Android-Freigabe für Telefonanrufe.\n\n" +
-            "110, 112 und andere Notrufnummern werden auf diesem Weg nicht direkt angerufen.";
-
-        confirmExternalAction(
-            call,
-            activity,
-            "Direkten Anruf bestätigen",
-            confirmationText,
-            "Jetzt anrufen",
-            () -> requestDirectCallPermissionOrStart(call, target)
-        );
-    }
-
-    private void requestDirectCallPermissionOrStart(
-        PluginCall call,
-        DirectCallTarget target
-    ) {
-        if (directCallGranted()) {
-            launchDirectCall(call, target);
-            return;
-        }
-
-        synchronized (this) {
-            if (pendingDirectCallPermissionCall != null) {
-                call.reject(
-                    "Bitte schließe zuerst die bereits geöffnete Telefonfreigabe.",
-                    "DIRECT_CALL_PERMISSION_ACTIVE"
-                );
-                return;
-            }
-            pendingDirectCallPermissionCall = call;
-            pendingDirectCallPermissionTarget = target;
-        }
-
-        try {
-            requestPermissionForAlias(
-                "directCall",
-                call,
-                "directCallPermissionCallback"
-            );
-        } catch (RuntimeException error) {
-            clearPendingDirectCallPermission(call);
-            call.reject(
-                "Die Android-Freigabe für den Anruf konnte gerade nicht geöffnet werden.",
-                "DIRECT_CALL_PERMISSION_UNAVAILABLE",
-                error
-            );
-        }
-    }
-
-    @PermissionCallback
-    private void directCallPermissionCallback(PluginCall call) {
-        DirectCallTarget target = clearPendingDirectCallPermission(call);
-        if (target == null) {
-            call.reject(
-                "Der bestätigte Anrufauftrag ist nicht mehr aktiv.",
-                "DIRECT_CALL_REQUEST_EXPIRED"
-            );
-            return;
-        }
-        if (!directCallGranted()) {
-            call.reject(
-                "Ohne Android-Telefonfreigabe wurde kein Anruf gestartet.",
-                "DIRECT_CALL_PERMISSION_REQUIRED"
-            );
-            return;
-        }
-        launchDirectCall(call, target);
-    }
-
-    private synchronized DirectCallTarget clearPendingDirectCallPermission(
-        PluginCall call
-    ) {
-        if (pendingDirectCallPermissionCall != call) {
-            return null;
-        }
-        DirectCallTarget target = pendingDirectCallPermissionTarget;
-        pendingDirectCallPermissionCall = null;
-        pendingDirectCallPermissionTarget = null;
-        return target;
-    }
-
-    private void cancelPendingDirectCallPermission() {
-        PluginCall call;
-        synchronized (this) {
-            call = pendingDirectCallPermissionCall;
-            pendingDirectCallPermissionCall = null;
-            pendingDirectCallPermissionTarget = null;
-        }
-        if (call != null) {
-            call.reject(
-                "Die Android-Telefonfreigabe wurde geschlossen.",
-                "DIRECT_CALL_PERMISSION_CLOSED"
-            );
-        }
-    }
-
-    private void launchDirectCall(PluginCall call, DirectCallTarget target) {
-        String number = normalizedDirectCallNumber(target.number);
-        if (number.isEmpty()) {
-            call.reject(
-                "Dieses Anrufziel darf nicht direkt angerufen werden.",
-                "DIRECT_CALL_DESTINATION_NOT_ALLOWED"
-            );
-            return;
-        }
-        if (!directCallGranted()) {
-            call.reject(
-                "Ohne Android-Telefonfreigabe wurde kein Anruf gestartet.",
-                "DIRECT_CALL_PERMISSION_REQUIRED"
-            );
-            return;
-        }
-
-        Activity activity = getActivity();
-        if (activity == null) {
-            call.reject(
-                "Der Anruf konnte gerade nicht gestartet werden.",
-                "DIRECT_CALL_ACTIVITY_UNAVAILABLE"
-            );
-            return;
-        }
-
-        Intent intent = new Intent(
-            Intent.ACTION_CALL,
-            Uri.fromParts("tel", number, null)
-        );
-        try {
-            activity.startActivity(intent);
-            JSObject result = new JSObject();
-            result.put("opened", true);
-            result.put("number", number);
-            result.put("recipientName", target.recipientName);
-            result.put("targetType", target.targetType);
-            result.put(
-                "contactReverifiedOnDevice",
-                target.contactReverifiedOnDevice
-            );
-            result.put("confirmationShown", true);
-            result.put("userConfirmed", true);
-            result.put("explicitOwnerCommandAccepted", true);
-            result.put("callStarted", true);
-            result.put("connectionConfirmed", false);
-            result.put("finalDialerConfirmationRequired", false);
-            result.put("emergencyCall", false);
-            call.resolve(result);
-        } catch (ActivityNotFoundException | SecurityException error) {
-            call.reject(
-                "Der bestätigte Anruf konnte auf diesem Gerät nicht gestartet werden.",
-                "DIRECT_CALL_START_FAILED",
-                error
-            );
-        }
-    }
-
-    private String normalizedDirectCallNumber(String value) {
-        String clean = cleanDestination(value);
-        if (
-            clean.isEmpty()
-                || clean.contains("*")
-                || clean.contains("#")
-                || clean.contains(",")
-                || clean.contains(";")
-                || !clean.matches("[+0-9()/.\\s-]+")
-                || clean.indexOf('+') > 0
-                || clean.indexOf('+') != clean.lastIndexOf('+')
-        ) {
-            return "";
-        }
-
-        String normalized = comparablePhoneNumber(clean);
-        String digits = normalized.replaceAll("[^0-9]", "");
-        if (digits.length() < 5 || digits.length() > 15) {
-            return "";
-        }
-        if (
-            SAFE_SERVICE_DIALER_NUMBERS.contains(digits)
-                || isEmergencyDestination(normalized)
-        ) {
-            return "";
-        }
-        return normalized;
-    }
-
-    @SuppressWarnings("deprecation")
-    private boolean isEmergencyDestination(String number) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                TelephonyManager manager = getContext().getSystemService(
-                    TelephonyManager.class
-                );
-                return manager == null || manager.isEmergencyNumber(number);
-            }
-            return PhoneNumberUtils.isLocalEmergencyNumber(
-                getContext(),
-                number
-            );
-        } catch (RuntimeException ignored) {
-            return true;
         }
     }
 
@@ -2753,99 +2118,4 @@ public class PhoneContactsPlugin extends Plugin {
         return "";
     }
 
-    private String callStateName(int state) {
-        if (state == TelephonyManager.CALL_STATE_RINGING) {
-            return "ringing";
-        }
-        if (state == TelephonyManager.CALL_STATE_OFFHOOK) {
-            return "offhook";
-        }
-        return "idle";
-    }
-
-    private void publishCallState(int state) {
-        currentCallState = state;
-        JSObject event = status();
-        notifyListeners("callStateChanged", event, true);
-        notifyListeners("phoneStatusChanged", event, true);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void registerCallStateListener() {
-        if (!phoneStateGranted() || !telephonySupported()) {
-            unregisterCallStateListener();
-            currentCallState = TelephonyManager.CALL_STATE_IDLE;
-            return;
-        }
-
-        if (telephonyCallback != null || legacyPhoneStateListener != null) {
-            return;
-        }
-
-        telephonyManager =
-            (TelephonyManager) getContext().getSystemService(Context.TELEPHONY_SERVICE);
-        if (telephonyManager == null) {
-            return;
-        }
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                telephonyCallback = new SolHoloCallStateCallback();
-                telephonyManager.registerTelephonyCallback(
-                    getContext().getMainExecutor(),
-                    telephonyCallback
-                );
-            } else {
-                legacyPhoneStateListener = new PhoneStateListener() {
-                    @Override
-                    public void onCallStateChanged(int state, String ignoredNumber) {
-                        publishCallState(state);
-                    }
-                };
-                telephonyManager.listen(
-                    legacyPhoneStateListener,
-                    PhoneStateListener.LISTEN_CALL_STATE
-                );
-            }
-        } catch (SecurityException error) {
-            telephonyCallback = null;
-            legacyPhoneStateListener = null;
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void unregisterCallStateListener() {
-        if (telephonyManager == null) {
-            return;
-        }
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (telephonyCallback != null) {
-                    telephonyManager.unregisterTelephonyCallback(telephonyCallback);
-                }
-            } else if (legacyPhoneStateListener != null) {
-                telephonyManager.listen(
-                    legacyPhoneStateListener,
-                    PhoneStateListener.LISTEN_NONE
-                );
-            }
-        } catch (SecurityException ignored) {
-            // Android kann die Freigabe während der Laufzeit entziehen.
-        }
-
-        telephonyCallback = null;
-        legacyPhoneStateListener = null;
-        telephonyManager = null;
-    }
-
-    private final class SolHoloCallStateCallback
-        extends TelephonyCallback
-        implements TelephonyCallback.CallStateListener {
-
-        @Override
-        public void onCallStateChanged(int state) {
-            publishCallState(state);
-        }
-    }
 }

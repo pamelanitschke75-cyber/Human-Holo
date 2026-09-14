@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-293-animal-floating-dock";
+const CACHE_VERSION = "human-holo-legal-review-separated-backend-1";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -19,7 +19,7 @@ self.addEventListener("activate", event => {
 /*
   Absichtlich kein Fetch-Cache.
 
-  Dadurch lädt Pam’s Holo index.html,
-  das Holo-Bild und alle anderen Dateien
+  Dadurch lädt Human Holo index.html,
+  die verbindliche Backend-Sperre und alle anderen Dateien
   direkt vom aktuellen Stand.
 */

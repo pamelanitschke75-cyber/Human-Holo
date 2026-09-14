@@ -275,61 +275,39 @@ test("sichtbare Antwort bestätigt Pam nur nach geprüftem Treffer", () => {
   assert.match(unavailable, /keinen Namen/u);
 });
 
-test("Backend prüft Sitzung, Owner und Einwilligung vor Bildauswertung", () => {
+test("Backend blockiert biometrische Bildauswertung vor Sitzung und Anbieteraufruf", () => {
   const route =
     server.slice(
       server.indexOf('app.post("/sol"')
     );
-  const recognitionGate =
+  const recognitionRequest =
     route.indexOf(
-      "if (ownerSelfRecognitionRequested)"
+      "const ownerSelfRecognitionRequested"
     );
-  const memoryWrite =
+  const legalReviewGate =
     route.indexOf(
-      'saveFulltimeMemory(\n      "user"'
+      '!isLaunchFeatureEnabled("knownPersonRecognition")'
     );
+  const trustedSessionCheck = route.indexOf(
+    "trustedAppSessions\n          .validateRequest",
+    legalReviewGate
+  );
+  const providerRequest = route.indexOf(
+    "createOwnerSelfRecognitionRequest",
+    legalReviewGate
+  );
 
-  assert.ok(recognitionGate >= 0);
-  assert.ok(memoryWrite > recognitionGate);
+  assert.ok(recognitionRequest >= 0);
+  assert.ok(legalReviewGate > recognitionRequest);
+  assert.ok(trustedSessionCheck > legalReviewGate);
+  assert.ok(providerRequest > legalReviewGate);
   assert.match(
     route,
-    /trustedAppSessions\s*\n\s*\.validateRequest\(\s*\n\s*req/u
-  );
-  assert.match(
-    route,
-    /trustedRecognitionSession\s*\n\s*\.ownerId !==\s*\n\s*identity\.ownerId/u
-  );
-  assert.match(
-    route,
-    /identity\.ownerId !== "pam-sol"/u
-  );
-  assert.match(
-    route,
-    /hasValidOwnerSelfConsent/u
-  );
-  assert.match(
-    route,
-    /createOwnerSelfRecognitionRequest/u
-  );
-  assert.match(
-    route,
-    /providerApplicationStateStorageDisabled:\s*\n\s*true/u
-  );
-  assert.match(
-    route,
-    /providerAbuseMonitoringRetentionPossibleDays:\s*\n\s*30/u
-  );
-  assert.match(
-    route,
-    /publicOrLiveRecognition:\s*\n\s*false/u
-  );
-  assert.match(
-    route,
-    /rawImagesStoredInFulltimeMemory:\s*\n\s*false/u
+    /respondLegalReviewHold\([\s\S]*?"knownPersonRecognition"[\s\S]*?Biometrische Personen-Wiedererkennung ist bis zur rechtlichen Freigabe deaktiviert/u
   );
 });
 
-test("App bietet ausdrückliche Freigabe und Ein-Klick-Widerruf", () => {
+test("App zeigt den Legal-Review-Hold und erteilt keine biometrische Freigabe", () => {
   const sendStart =
     html.indexOf(
       "async function sendMessage("
@@ -342,30 +320,15 @@ test("App bietet ausdrückliche Freigabe und Ein-Klick-Widerruf", () => {
   const sendSource =
     html.slice(sendStart, sendEnd);
 
-  assert.match(
-    ui,
-    /Pam auf Fotos wiedererkennen/u
-  );
-  assert.match(
-    ui,
-    /Die Einwilligung ist freiwillig/u
-  );
-  assert.match(
-    ui,
-    /bis zu 30 Tage für Missbrauchsschutz/u
-  );
-  assert.match(
-    ui,
-    /standardmäßig nicht zum Modelltraining/u
-  );
-  assert.match(
-    ui,
-    /Widerruf stoppt künftige Abgleiche/u
-  );
-  assert.match(
-    ui,
-    /revokeKnownPersonSelfConsent/u
-  );
+  assert.match(ui, /Biometrische Wiedererkennung deaktiviert/u);
+  assert.match(ui, /Biometrische Wiedererkennung ist rechtlich deaktiviert/u);
+  assert.match(ui, /reason: "legal-review-hold"/u);
+  const grantStart = ui.indexOf("function grantKnownPersonSelfConsent()");
+  const grantOwnerCheck = ui.indexOf("requireActivePersonalOwner()", grantStart);
+  const grantGate = ui.indexOf('!featureEnabled("knownPersonRecognition")', grantStart);
+  assert.ok(grantStart >= 0);
+  assert.ok(grantGate > grantStart);
+  assert.ok(grantOwnerCheck > grantGate);
   assert.match(
     sendSource,
     /SolHoloKnownPersonRecognition/u

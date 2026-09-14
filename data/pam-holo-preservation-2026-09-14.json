@@ -1,0 +1,39 @@
+{
+  "record_version": "1.0",
+  "recorded_at": "2026-09-14",
+  "repository": "pamelanitschke75-cyber/Human-Holo",
+  "protected_product": "Pam-Holo",
+  "code_snapshot": {
+    "branch": "pam-holo-preserved-2026-09-14",
+    "commit": "14a977af3cb503f78a0157e2b45dd185dda8559b",
+    "remote_branch_created": true,
+    "source_was_unmodified_main": true
+  },
+  "protected_invariants": {
+    "owner_id": "pam-sol",
+    "instance_name": "Pam’s Holo",
+    "android_application_id": "com.solholo.app",
+    "backend_origin": "https://sol-holo.onrender.com",
+    "signing_line": "Pam-Holo original update signature only",
+    "memory_rule": "Existing Always-on memory remains unchanged; no reset, overwrite, migration, deletion or correction without Pam’s explicit authenticated approval."
+  },
+  "human_holo_boundary": {
+    "git_default_line": "main",
+    "separate_backend_required": true,
+    "separate_database_required": true,
+    "shared_personal_memory": false,
+    "may_use_pam_holo_backend": false,
+    "may_use_pam_holo_signing_key": false,
+    "android_application_id_status": "unconfigured",
+    "android_config_placeholder": "invalid.humanholo.unconfigured",
+    "android_build_allowed": false,
+    "human_changes_apply_to_pam_automatically": false,
+    "pam_function_change_requires_explicit_prior_approval": true
+  },
+  "database_safety": {
+    "pam_database_changed_by_this_work": false,
+    "pam_database_read_by_this_work": false,
+    "provider_side_backup_created_by_this_work": false,
+    "note": "The protected Git branch is a code snapshot. A provider-side database snapshot must be verified separately before changing the Pam-Holo deployment source."
+  }
+}

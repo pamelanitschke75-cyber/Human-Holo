@@ -226,17 +226,17 @@ test("Bildwechsel setzt die alte Zuordnung vor jeder neuen Analyse zurueck", asy
   );
 });
 
-test("In der sichtbaren App heisst der Bereich Original Full Sync", async () => {
+test("Im sichtbaren Human-Test ist Original Full Sync klar geparkt", async () => {
   const html = await readFile(
     new URL("../www/index.html", import.meta.url),
     "utf8"
   );
 
+  assert.match(html, /Neutrale KI-Sprachanimation bereit · Original Full Sync geparkt\./u);
   assert.match(
     html,
-    /Lip\[-‑ \]\?Sync\(\?: V4\)\?\\b\/giu,[\s\S]*?"Original Full Sync"/u
+    /HumanHoloLaunchPolicy\?\.enabled\?\.\("originalFullSync"\) === true/u
   );
-  assert.match(html, /✨ Original Full Sync bereit\./u);
 });
 
 test("Bewegungscode speichert oder uebertraegt keine Bilddateien", async () => {
@@ -308,9 +308,10 @@ test("Android-Audiofehler kann Original Full Sync nicht mehr still deaktivieren"
   );
   assert.match(deltaFunction, /activateOriginalFullSync\(\)/u);
   assert.match(html, /human-holo-ai-policy\.js\?v=1/u);
-  assert.match(html, /sol-motion-profile\.js\?v=6/u);
+  assert.doesNotMatch(html, /src="\.\/sol-motion-profile\.js\?v=6/u);
   assert.match(html, /voice-motion-driver\.js\?v=1/u);
-  assert.match(html, /original-full-sync\.js\?v=3/u);
+  assert.doesNotMatch(html, /src="\.\/original-full-sync\.js\?v=3/u);
+  assert.match(html, /enabled\?\.\("originalFullSync"\) === true/u);
   assert.match(html, /full-face-rig\.mjs\?v=5/u);
 });
 
