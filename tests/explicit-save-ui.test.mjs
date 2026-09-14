@@ -77,6 +77,47 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
     );
   }
 
+  for (const phrase of [
+    "Maggi Einkaufsliste setzen",
+    "Maggi Eikaufsliste setzen",
+    "Schreib Maggi auf die Einkaufsliste",
+    "Füge Maggi zur Einkaufsliste hinzu",
+    "Füge der Einkaufsliste Maggi hinzu",
+    "Hinterlege Maggi in der Einkaufsliste",
+    "Maggi auf die Einkaufsliste setzen",
+    "Maggi zur Einkaufsliste hinzufügen",
+    "Maggi gehört auf die Einkaufsliste",
+    "Maggi muss auf die Einkaufsliste",
+    "Kannst du bitte Maggi auf die Einkaufsliste setzen?",
+    "Schreib mer Maggi uff de Einkaufslischt",
+    "Tu Maggi auf'n Einkaufszettel",
+    "Maggi uf d Iichaufslischte tue",
+    "Maggi op de Einkaufsliste"
+  ]) {
+    assert.deepEqual(
+      extract(phrase),
+      {
+        category: "Einkaufsliste",
+        content: "Maggi",
+        kind: "list-item",
+        listTitle: "Einkaufsliste"
+      },
+      phrase
+    );
+  }
+
+  for (const phrase of [
+    "Steht Maggi auf der Einkaufsliste?",
+    "Hast du Maggi auf die Einkaufsliste gesetzt?",
+    "Schreib Maggi nicht auf die Einkaufsliste"
+  ]) {
+    assert.equal(
+      extract(phrase),
+      null,
+      `Kein Speicherauftrag: ${phrase}`
+    );
+  }
+
   assert.deepEqual(
     extract("Schwip schwap auf die einkaufsliste bittec"),
     {
@@ -242,6 +283,8 @@ test("Speicheraufträge nutzen die feste Holo-ID, lokale Persistenz und Geheimni
   assert.match(appendFunction, /noteSecurityWarning\(cleanItem\)/u);
   assert.match(appendFunction, /storePersonalNotes/u);
   assert.match(saveFunction, /createPersonalNote/u);
+  assert.match(appendFunction, /executeShoppingListTool/u);
+  assert.match(appendFunction, /executeSolHoloShoppingListTool/u);
   assert.match(handler, /explicitSaveRequestFromMessage/u);
   assert.match(handler, /Auf Zuruf dauerhaft gespeichert/u);
   assert.match(ui, /Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt/u);
@@ -255,7 +298,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=82/u);
+  assert.match(html, /sol-holo-ui\.js\?v=83/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {
