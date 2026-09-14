@@ -57,7 +57,13 @@ function cleanTimestamp(value) {
 
 function cleanOptionalDate(value) {
   if (value === undefined || value === null || value === "") return null;
-  const clean = String(value).trim();
+  const clean = value instanceof Date
+    ? [
+        String(value.getFullYear()).padStart(4, "0"),
+        String(value.getMonth() + 1).padStart(2, "0"),
+        String(value.getDate()).padStart(2, "0")
+      ].join("-")
+    : String(value).trim();
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(clean)) {
     throw new OwnerMemoryBackupError("BACKUP_EVENT_DATE_INVALID");
   }
@@ -776,7 +782,7 @@ export function createOwnerMemoryBackupStore({ database }) {
                 source_event_id,
                 memory_event_id,
                 source_modalities,
-                event_occurred_on,
+                event_occurred_on::text AS event_occurred_on,
                 content_sha256,
                 created_at
               FROM sol_fulltime_memory
