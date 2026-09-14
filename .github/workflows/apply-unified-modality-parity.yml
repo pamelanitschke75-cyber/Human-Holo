@@ -1,0 +1,36 @@
+name: Apply unified modality parity
+
+on:
+  push:
+    branches:
+      - fix/unified-modalities-german-pam
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/unified-modalities-german-pam
+
+      - name: Apply modality parity patch
+        run: python scripts/apply-unified-modality-parity.py
+
+      - name: Check unified behavior
+        run: |
+          node --check server.mjs
+          node --test tests/automatic-language.test.mjs tests/modality-parity.test.mjs tests/alltags-actions-wiring.test.mjs
+
+      - name: Commit clean source change
+        run: |
+          rm .github/workflows/apply-unified-modality-parity.yml
+          rm scripts/apply-unified-modality-parity.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server.mjs modules/automatic-language.mjs tests/automatic-language.test.mjs tests/modality-parity.test.mjs .github/workflows/apply-unified-modality-parity.yml scripts/apply-unified-modality-parity.py
+          git commit -m "Unify text voice and sign-language owner context"
+          git push origin HEAD:fix/unified-modalities-german-pam
