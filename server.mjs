@@ -4262,7 +4262,7 @@ async function handleLiveEverydayWebRequest(message, identity) {
       searchContextSize: "medium",
       maxOutputTokens: 450,
       instructions: `
-${automaticReplyLanguageInstructions()}
+${automaticReplyLanguageInstructions(identity?.displayName || "")}
 Aktuelles Datum und Uhrzeit in Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche und bevorzuge offizielle oder primäre Quellen.
 Ordne bei Öffnungszeiten die konkrete Filiale und Adresse genau zu und beachte
@@ -4395,7 +4395,7 @@ async function handleLiveWeatherRequest(
       maxOutputTokens: 350,
       instructions: `
 Du beantwortest ausschließlich eine aktuelle Wetterfrage.
-${automaticReplyLanguageInstructions()}
+${automaticReplyLanguageInstructions(identity?.displayName || "")}
 Heute in der Zeitzone Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche. Nenne Ort, Zeitraum, Temperatur, Niederschlag und
 einen kurzen praktischen Hinweis, soweit die Quellen das hergeben.
@@ -8593,6 +8593,15 @@ function contextualPersonalRecallSearch(
   });
 }
 
+
+const PERSONAL_MEMORY_MODALITY_PARITY_LIMITS = Object.freeze({
+  confirmed: 36,
+  fulltime: 60,
+  legacy: 40,
+  legacyLongTerm: 30,
+  recentMultimodalEvents: 4
+});
+
 async function buildPersonalRecallResult(
   identity,
   message,
@@ -8653,12 +8662,12 @@ async function buildPersonalRecallResult(
             searchText:
               query,
             limit:
-              8
+              PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.confirmed
           }),
       loadRelevantOwnerRecallHistory(
         identity,
         query,
-        16,
+        PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.fulltime,
         {
           currentMessage:
             message
@@ -8669,14 +8678,14 @@ async function buildPersonalRecallResult(
         : loadLegacyPamMemoryEvidence(
             identity,
             query,
-            16
+            PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacy
           ),
       strictRelativeDayRecall
         ? Promise.resolve([])
         : loadLegacyPamLongTermMemoryEvidence(
             identity,
             query,
-            16
+            PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacyLongTerm
           ),
       !strictRelativeDayRecall &&
       mayReferToRecentMultimodalEvent(
@@ -8684,7 +8693,7 @@ async function buildPersonalRecallResult(
       )
         ? loadRecentOwnerMultimodalRows(
             identity,
-            4
+            PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.recentMultimodalEvents
           )
         : Promise.resolve(
             []
@@ -9424,12 +9433,12 @@ app.post(
                 searchText:
                   searchQuery,
                 limit:
-                  8
+                  PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.confirmed
               }),
           loadRelevantOwnerRecallHistory(
             tokenIdentity,
             searchQuery,
-            16,
+            PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.fulltime,
             {
               currentMessage:
                 query
@@ -9440,14 +9449,14 @@ app.post(
             : loadLegacyPamMemoryEvidence(
                 tokenIdentity,
                 searchQuery,
-                16
+                PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacy
               ),
           strictRelativeDayRecall
             ? Promise.resolve([])
             : loadLegacyPamLongTermMemoryEvidence(
                 tokenIdentity,
                 searchQuery,
-                16
+                PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacyLongTerm
               ),
           !strictRelativeDayRecall &&
           mayReferToRecentMultimodalEvent(
@@ -9455,7 +9464,7 @@ app.post(
           )
             ? loadRecentOwnerMultimodalRows(
                 tokenIdentity,
-                4
+                PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.recentMultimodalEvents
               )
             : Promise.resolve([])
         ]);
@@ -9596,6 +9605,11 @@ app.post(
         });
       }
 
+      const realtimeSearchDisplayName =
+        personalHoloProfile(
+          tokenSession.ownerId
+        )?.displayName || "";
+
       const query =
         String(
           req.body?.query ||
@@ -9616,7 +9630,7 @@ app.post(
           maxOutputTokens:
             500,
           instructions: `
-${automaticReplyLanguageInstructions()}
+${automaticReplyLanguageInstructions(realtimeSearchDisplayName)}
 Aktuelles Datum und Uhrzeit in Europe/Berlin: ${getBerlinCurrentDateTimeText()}.
 Nutze die Live-Websuche und nenne nur Informationen, die sich aus passenden,
 möglichst offiziellen oder primären Quellen zuverlässig ergeben. Das gilt
@@ -10792,7 +10806,7 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "search_personal_memory",
 
             description:
-              `Durchsucht ausschließlich ${identity.displayName}s ownergebundenes Vollzeitgedächtnis und bestätigte persönliche Erinnerungen. Verwende dieses Tool, bevor du bei einer persönlichen Erinnerungsfrage sagst, dass du etwas nicht weißt.`,
+              `Durchsucht ausschließlich ${identity.displayName}s ownergebundenes Vollzeitgedächtnis und bestätigte persönliche Erinnerungen. Der gleiche Abruf gilt für gesprochene, geschriebene und sicher erkannte gebärdensprachliche persönliche Fragen. Verwende dieses Tool, bevor du bei einer persönlichen Erinnerungsfrage sagst, dass du etwas nicht weißt.`,
 
             parameters: {
               type:
@@ -13115,12 +13129,12 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
                     searchText:
                       memorySearchText,
                     limit:
-                      36
+                      PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.confirmed
                   }),
             loadRelevantOwnerRecallHistory(
               identity,
               memorySearchText,
-              60,
+              PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.fulltime,
               {
                 currentMessage:
                   message
@@ -13131,14 +13145,14 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
               : loadLegacyPamMemoryEvidence(
                   identity,
                   memorySearchText,
-                  40
+                  PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacy
                 ),
             strictRelativeDayRecall
               ? Promise.resolve([])
               : loadLegacyPamLongTermMemoryEvidence(
                   identity,
                   memorySearchText,
-                  30
+                  PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.legacyLongTerm
                 )
           ]);
 
