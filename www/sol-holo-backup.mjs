@@ -120,16 +120,46 @@ function browserDownload(fileName, contents) {
   window.setTimeout(() => URL.revokeObjectURL(url), 5_000);
 }
 
+function isNativeApp() {
+  const capacitor = window.Capacitor;
+  if (typeof capacitor?.isNativePlatform === "function") {
+    return capacitor.isNativePlatform();
+  }
+  if (typeof capacitor?.getPlatform === "function") {
+    return capacitor.getPlatform() !== "web";
+  }
+  return false;
+}
+
 async function saveEncryptedFile(fileName, contents) {
   const plugin = backupPlugin();
   if (plugin?.saveEncryptedBackup) {
     const result = await plugin.saveEncryptedBackup({ fileName, contents });
-    if (result?.saved !== true) {
+    const expectedBytes = new TextEncoder().encode(contents).byteLength;
+    if (
+      result?.saved !== true ||
+      Number(result?.bytesWritten || 0) !== expectedBytes
+    ) {
       throw new Error("Android hat die Sicherungsdatei nicht bestätigt.");
     }
-    return;
+    return {
+      fileName: String(result.fileName || fileName),
+      location: String(result.location || "Downloads"),
+      bytesWritten: expectedBytes
+    };
+  }
+  if (isNativeApp()) {
+    throw new Error(
+      "Die sichere Android-Speicherbrücke fehlt in diesem Build. " +
+      "Es wurde keine Sicherungsdatei erstellt."
+    );
   }
   browserDownload(fileName, contents);
+  return {
+    fileName,
+    location: "Browser-Downloads",
+    bytesWritten: new TextEncoder().encode(contents).byteLength
+  };
 }
 
 async function trustedMemorySession() {
@@ -328,11 +358,13 @@ async function createEncryptedBackup() {
     );
     const encrypted = await encryptBackup(snapshot, password);
     const fileName = backupFileName();
-    await saveEncryptedFile(fileName, encrypted);
+    const savedFile = await saveEncryptedFile(fileName, encrypted);
     clearPasswords();
     const counts = ownerMemory.integrity.counts;
     setStatus(
-      `Vollständige Sicherung gespeichert: ${counts.fulltimeHistory} Dialogeinträge, ` +
+      `Vollständige Sicherung ${savedFile.fileName} in ${savedFile.location} ` +
+      `gespeichert (${savedFile.bytesWritten} Byte): ` +
+      `${counts.fulltimeHistory} Dialogeinträge, ` +
       `${counts.confirmedMemories} bestätigte Erinnerungen, ` +
       `${counts.supersessions} historische Ersetzungen, ` +
       `${counts.legacyConversation + counts.legacyLongTerm} ältere Erinnerungsbestände, ` +
@@ -704,8 +736,11 @@ function markup() {
             minlength="${BACKUP_MIN_PASSWORD_LENGTH}" autocomplete="off"
             spellcheck="false">
           <button id="solBackupCreate" class="primaryButton" type="button"
-            data-sol-backup-action>Verschlüsselte Kopie speichern</button>
+            data-sol-backup-action>Verschlüsselte Kopie in Downloads speichern</button>
           <p class="solBackupHint">
+            Auf Android wird die verschlüsselte Datei direkt im sichtbaren
+            Downloads-Ordner abgelegt. Sie wird erst nach vollständig
+            bestätigtem Schreiben als gespeichert gemeldet.<br>
             Das Passwort wird nicht gespeichert und kann von Pam’s Holo nicht
             wiederhergestellt werden. Bewahre es getrennt von der Datei auf.
           </p>

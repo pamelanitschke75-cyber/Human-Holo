@@ -430,7 +430,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   ]);
 
   assert.match(html, /human-holo-animal-holos\.mjs\?v=7/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=6/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
   assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);
@@ -457,7 +457,7 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
   assert.match(server, /verlange keinen besonderen Befehlssatz/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-core\.mjs/u);
   assert.match(workflow, /assets\/public\/human-holo-animal-holos\.mjs/u);
-  assert.match(worker, /human-holo-293-animal-floating-dock/u);
+  assert.match(worker, /human-holo-295-backup-direct-download/u);
 });
 
 test("Tier-Holos folgen Pams kompakter Ein-Seiten-Ansicht", async () => {
