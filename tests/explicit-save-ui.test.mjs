@@ -99,13 +99,10 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
     "Ein automatisch gesetztes Komma vor Bitte muss sofort lokal speichern"
   );
 
-  assert.deepEqual(
+  assert.equal(
     extract("Bitte merke dir, dass der Airfryer später über HomeID eingerichtet wird."),
-    {
-      category: "Gespeicherter Inhalt",
-      content: "der Airfryer später über HomeID eingerichtet wird",
-      kind: "content"
-    }
+    null,
+    "‚Merk dir‘ darf nicht mehr als sichtbare Notiz abgefangen werden"
   );
   assert.equal(
     extract("Kannst du alles speichern?"),
@@ -132,6 +129,28 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
     null,
     "Ein Notizauftrag muss den Notes-Adapter erreichen"
   );
+  assert.equal(
+    extract("Schreib mal auf: Zucker kaufen"),
+    null,
+    "‚Schreib mal auf‘ muss als Notizauftrag getrennt bleiben"
+  );
+});
+
+test("natürliche Notizformulierungen liefern vollständigen Notizinhalt", () => {
+  const source = [
+    functionSource("normalizeNoteSearchText", "noteSecurityWarning"),
+    functionSource("stripHoloInvocation", "noteSecurityWarning"),
+    functionSource("cleanExplicitSaveContent", "explicitListTitle"),
+    functionSource("explicitSaveRequestFromMessage", "noteTitleFromText"),
+    "return explicitPersonalNoteContentFromMessage;"
+  ].join("\n");
+  const extract = new Function(source)();
+
+  assert.equal(extract("Notiere Zucker"), "Zucker");
+  assert.equal(extract("Schreib auf: Milch kaufen"), "Milch kaufen");
+  assert.equal(extract("Schreib mal auf, Salz kaufen"), "Salz kaufen");
+  assert.equal(extract("Mach mir eine Notiz: Tierarzt anrufen"), "Tierarzt anrufen");
+  assert.equal(extract("Merk dir: Salt sitzt am Fenster"), "");
 });
 
 test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", () => {
@@ -244,6 +263,7 @@ test("Speicheraufträge nutzen die feste Holo-ID, lokale Persistenz und Geheimni
   assert.match(saveFunction, /createPersonalNote/u);
   assert.match(handler, /explicitSaveRequestFromMessage/u);
   assert.match(handler, /Auf Zuruf dauerhaft gespeichert/u);
+  assert.match(handler, /explicitPersonalNoteContentFromMessage/u);
   assert.match(ui, /Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt/u);
 });
 
@@ -255,7 +275,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=82/u);
+  assert.match(html, /sol-holo-ui\.js\?v=83/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {

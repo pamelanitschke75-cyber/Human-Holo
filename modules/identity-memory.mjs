@@ -213,6 +213,20 @@ export function normalizeMemorySource(source) {
     return "voice";
   }
 
+  /*
+   * Eine sicher erkannte Gebaerdensprach-Aussage erreicht diesen Speicher als
+   * semantisches Texttranskript. In der bestehenden Datenbank bleibt sie
+   * deshalb schema-kompatibel vom Typ `text`; die visuelle Originalmodalitaet
+   * wird getrennt im Vollzeitereignis und in der Bestaetigungsmethode bewahrt.
+   */
+  if (
+    ["sign_language", "signed_language", "dgs_transcript"].includes(
+      normalized
+    )
+  ) {
+    return "text";
+  }
+
   return null;
 }
 
@@ -306,8 +320,10 @@ export function resolveMemoryIdentity(
 }
 
 const MEMORY_COMMAND_PATTERNS = Object.freeze([
-  /^\s*(?:sol[\s,:\-]*)?merke\s+dir\s+dauerhaft\s*:?\s*(.*)$/iu,
-  /^\s*(?:sol[\s,:\-]*)?(?:bitte\s+)?speichere\s+(?:das\s+)?dauerhaft\s*:?\s*(.*)$/iu
+  /^\s*(?:(?:hey\s+)?(?:sol|pam|holo|human\s+holo)[\s,:!\-]*)?(?:bitte\s+)?merk(?:e)?\s+dir(?:\s+bitte)?(?:\s+dauerhaft)?\s*[,;:\-]?\s*(.*)$/iu,
+  /^\s*(?:(?:hey\s+)?(?:sol|pam|holo|human\s+holo)[\s,:!\-]*)?(?:bitte\s+)?pass(?:\s+bitte)?\s+mal(?:\s+mal)?\s+auf\s*[,;:\-]?\s*(.*)$/iu,
+  /^\s*(?:(?:hey\s+)?(?:sol|pam|holo|human\s+holo)[\s,:!\-]*)?(?:bitte\s+)?h(?:o|oe|ö)r(?:e)?(?:\s+bitte)?\s+mal\s+zu\s*[,;:\-]?\s*(.*)$/iu,
+  /^\s*(?:(?:hey\s+)?(?:sol|pam|holo|human\s+holo)[\s,:!\-]*)?(?:bitte\s+)?speichere\s+(?:das\s+)?dauerhaft\s*[,;:\-]?\s*(.*)$/iu
 ]);
 
 /**
@@ -321,9 +337,14 @@ export function extractExplicitMemoryRequest(value) {
     const match = original.match(pattern);
 
     if (match) {
+      const content = String(match[1] ?? "")
+        .replace(/^[\s,;:\-]+/u, "")
+        .replace(/^dass\s+/iu, "")
+        .trim();
+
       return {
         requested: true,
-        content: String(match[1] ?? "").trim(),
+        content,
         confirmationMethod: "direct_memory_command"
       };
     }
@@ -416,6 +437,15 @@ export function evaluateIdentityMemoryWrite(
 
   let confirmationMethod = explicitRequest.confirmationMethod;
   let confirmedBy = identity.speakerId;
+
+  if (
+    explicitRequest.requested &&
+    ["sign_language", "signed_language", "dgs_transcript"].includes(
+      normalizeKey(input?.source)
+    )
+  ) {
+    confirmationMethod = "direct_sign_language_command";
+  }
 
   if (!explicitRequest.requested) {
     const confirmer = resolveConfirmedBy(

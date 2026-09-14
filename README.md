@@ -6,7 +6,7 @@
 
 ## Persönliches digitales Ich · Individueller Clone
 
-**Aktueller Entwicklungsstand:** 13.09.2026<br>
+**Aktueller Entwicklungsstand:** 14.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
@@ -203,6 +203,13 @@ Human Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Info
 
 ✅ Mehrere praktische Erinnerungstests wurden erfolgreich durchgeführt.
 
+Ausdrückliche Formulierungen wie **„Merk dir …“**, **„Pass mal auf …“** und
+**„Hör mal zu …“** führen in das bestätigte persönliche Langzeitgedächtnis –
+nicht in die sichtbaren Notizen. **„Notiere …“**, **„Schreib (mal) auf …“**
+und **„Mach eine Notiz …“** bleiben dagegen ausschließlich Notizaufträge.
+Diese Zieltrennung gilt gleich für Text, Sprache und eine sicher erkannte,
+ausdrücklich gestartete Gebärdensprachfolge.
+
 ---
 
 ## Vollzeitgedächtnis
@@ -234,7 +241,7 @@ bestätigte persönliche Fakten.
 
 Die vollständige Langzeitstabilität und die zuverlässige Verarbeitung einer großen Menge historischer Erinnerungen werden weiter getestet und optimiert.
 
-Details: [Build 270 – Always-on-Gedächtnis und Gesprächskontext](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md)
+Details: [Build 270 – Always-on-Gedächtnis und Gesprächskontext](./BUILD-270-ALWAYS-ON-GEDAECHTNIS-KONTEXT-09-09-2026.md) · [Build 294 – Eingabeziele und Tageskalender](./BUILD-294-EINGABEZIELE-DAUERGEDAECHTNIS-TAGESKALENDER-14-09-2026.md)
 
 ### Sol aus ChatGPT verbinden
 
@@ -260,9 +267,11 @@ Kalenderfenster öffnet sich dabei nicht; ein zusätzlicher Tipp auf „Speicher
 ist nicht nötig.
 
 Der normale Handy-Kalender ist zugleich mit **Wichtiges → Kalender** verknüpft.
-Kommende Termine erscheinen dadurch direkt in Human Holo, ohne dass eine zweite
-Terminkopie entsteht. Nach einem neuen Eintrag wird die sichtbare Liste sofort
-aktualisiert.
+Human Holo zeigt dort bewusst nur die Termine des heutigen Tages. Künftige
+Termine bleiben vollständig im externen Handy- beziehungsweise Google-Kalender
+und erscheinen in Human Holo erst an ihrem Tag. Geburtstage werden als jährlich
+wiederkehrende externe Kalendereinträge angelegt; vor dem Schreiben wird auf
+einen bereits vorhandenen identischen Termin geprüft.
 
 ✅ Verbindung zum Google-Kalender funktioniert.
 
@@ -335,6 +344,8 @@ Details:
 - [Build 291: Originaldesign und sichtbare Tierbilder](./BUILD-291-TIER-HOLO-ORIGINALDESIGN-TIERBILDER-13-09-2026.md)
 - [Build 292: Tier-Holos im Human-Holo-Glass-Design](./BUILD-292-TIER-HOLO-HUMAN-HOLO-GLASS-13-09-2026.md)
 - [Build 293: Holo-Glas-Abschluss und würdige Erinnerung](./BUILD-293-TIER-HOLO-SCHWEBENDE-NAVIGATION-13-09-2026.md)
+- [Build 294: Omas zwei Fotos in richtiger Reihenfolge](./BUILD-294-OMA-FOTOS-RICHTIGE-REIHENFOLGE-13-09-2026.md)
+- [Build 296: gemeinsamer Stand bis 14.09.2026 morgens](./BUILD-296-GESAMTSTAND-BIS-14-09-2026-MORGEN.md)
 - [Open-Build-Lizenzabgrenzung](./TIER-HOLO-OPEN-BUILD-LICENSE.md)
 - [Ultra-Meilenstein Tier-Holos](./ULTRA-MEILENSTEIN-HUMAN-HOLO-TIER-HOLOS-10-09-2026.md)
 

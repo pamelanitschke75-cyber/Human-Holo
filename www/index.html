@@ -1926,7 +1926,7 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=53">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=54">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
@@ -3673,6 +3673,12 @@ let currentRealtimeMemoryEventId =
 
 let currentRealtimeMemoryModalities =
   ["voice"];
+
+let lastCompletedSignLanguageSequence = {
+  eventId:"",
+  languageCode:"",
+  completedAt:0
+};
 
 
 /*
@@ -11908,10 +11914,18 @@ async function sendLiveTranscriptToMemory(
     );
 
 
+  const isPersonalMemoryCommand =
+    role === "user" &&
+    /^(?:(?:hey\s+)?(?:sol|pam|holo|human\s+holo)[\s,:!\-]*)?(?:bitte\s+)?(?:merk(?:e)?\s+dir|pass(?:\s+bitte)?\s+mal(?:\s+mal)?\s+auf|h(?:o|oe|ö)r(?:e)?(?:\s+bitte)?\s+mal\s+zu|speichere\s+(?:das\s+)?dauerhaft)\b[\s,:;\-]+\S/iu.test(
+      cleanTranscript
+    );
+
+
   if(
     isCalendarCommand ||
     isWeatherCommand ||
-    isPersonalRecallCommand
+    isPersonalRecallCommand ||
+    isPersonalMemoryCommand
   ){
 
     cancelRealtimeResponse();
@@ -12012,6 +12026,35 @@ async function sendLiveTranscriptToMemory(
 
       return data?.contextUpdated ===
         true;
+    }
+
+
+    if(
+      role === "user" &&
+      (data?.saved || data?.alreadyStored) &&
+      data?.memoryAnswer
+    ){
+
+      showExecutedRealtimeResult({
+        marker:
+          "[LOKALES_GEDAECHTNISERGEBNIS]",
+        result:{
+          success:true,
+          answer:
+            data.memoryAnswer
+        },
+        fallback:
+          "Der persönliche Gedächtnisauftrag wurde geprüft.",
+        successStatus:
+          data?.saved
+            ? "Persönliche Erinnerung dauerhaft gespeichert."
+            : "Persönliche Erinnerung war bereits gespeichert.",
+        failureStatus:
+          "Persönliche Erinnerung wurde nicht gespeichert."
+      });
+
+
+      return true;
     }
 
 
@@ -13478,6 +13521,26 @@ async function sendSignLanguageSequence(
     }
 
 
+    const signMemoryEventId =
+      currentRealtimeMemoryEventId ||
+      createFulltimeEventId();
+
+    currentRealtimeMemoryEventId =
+      signMemoryEventId;
+
+    currentRealtimeMemoryModalities =
+      ["sign_language", "live_image"];
+
+    lastCompletedSignLanguageSequence = {
+      eventId:
+        signMemoryEventId,
+      languageCode:
+        String(language.code || "").trim(),
+      completedAt:
+        Date.now()
+    };
+
+
     liveCameraStatus.textContent =
       `${language.code} · ${frames.length} Bewegungsbilder gemeinsam zur Prüfung gesendet.`;
 
@@ -14339,6 +14402,12 @@ function stopLiveConversation({
   currentRealtimeMemoryModalities =
     ["voice"];
 
+  lastCompletedSignLanguageSequence = {
+    eventId:"",
+    languageCode:"",
+    completedAt:0
+  };
+
 stopLipSync();
 
 
@@ -14643,6 +14712,235 @@ async function searchRealtimePersonalMemory(
 }
 
 
+function consumeRecentSignLanguageSequence(
+  request = {}
+){
+
+  const expectedLanguageCode =
+    String(request?.language_code || "").trim().toLowerCase();
+
+  const sequence =
+    lastCompletedSignLanguageSequence;
+
+  const valid =
+    Boolean(sequence?.eventId) &&
+    Date.now() - Number(sequence?.completedAt || 0) <= 45_000 &&
+    Boolean(expectedLanguageCode) &&
+    String(sequence?.languageCode || "").toLowerCase() ===
+      expectedLanguageCode;
+
+  if(!valid){
+    return null;
+  }
+
+  lastCompletedSignLanguageSequence = {
+    eventId:"",
+    languageCode:"",
+    completedAt:0
+  };
+
+  return sequence;
+}
+
+
+async function rememberRealtimeSignedPersonalFact(
+  request = {}
+){
+
+  const content =
+    String(request?.content || "").trim();
+
+  const signSequence =
+    consumeRecentSignLanguageSequence(
+      request
+    );
+
+  if(
+    !content ||
+    !signSequence ||
+    request?.explicit_memory_command !== true ||
+    request?.input_modality !== "sign_language" ||
+    request?.recognition_confidence !== "high"
+  ){
+    return "Die Gebärde war nicht eindeutig genug für eine Speicherung. Bitte wiederhole sie kurz; es wurde nichts gespeichert.";
+  }
+
+  if(!realtimeMemoryToken){
+    return "Das persönliche Gedächtnis ist in dieser Gebärdensprach-Sitzung nicht autorisiert. Es wurde nichts gespeichert.";
+  }
+
+  const memoryEventId =
+    signSequence.eventId;
+
+  currentRealtimeMemoryEventId =
+    memoryEventId;
+
+  currentRealtimeMemoryModalities =
+    ["sign_language", "live_image"];
+
+  const response =
+    await fetch(
+      `${BACKEND_URL}/memory/remember-recognized`,
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":`Bearer ${realtimeMemoryToken}`
+        },
+        body:JSON.stringify({
+          content,
+          languageCode:
+            String(request?.language_code || "").trim(),
+          inputModality:
+            "sign_language",
+          recognitionConfidence:
+            "high",
+          explicitMemoryCommand:
+            true,
+          fulltimeEventId:
+            memoryEventId
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if(!response.ok){
+    throw new Error(
+      data?.error ||
+      "Die Gebärde konnte nicht sicher im Gedächtnis gespeichert werden."
+    );
+  }
+
+  memoryStatus.textContent =
+    data?.saved
+      ? "🧠 Gebärde sicher erkannt · dauerhaft gespeichert."
+      : "🧠 Diese Erinnerung war bereits dauerhaft gespeichert.";
+
+  return String(
+    data?.answer ||
+    "Der Gedächtnisauftrag wurde sicher geprüft."
+  );
+}
+
+
+async function createRealtimeSignedCalendarEntry(
+  request = {}
+){
+
+  const cleanRequest =
+    String(request?.request || "").trim();
+
+  const signSequence =
+    consumeRecentSignLanguageSequence(
+      request
+    );
+
+  if(
+    !cleanRequest ||
+    !signSequence ||
+    request?.input_modality !== "sign_language" ||
+    request?.recognition_confidence !== "high"
+  ){
+    return "Die Gebärde war nicht eindeutig genug für einen Kalendereintrag. Bitte wiederhole sie mit Termin und Datum; es wurde nichts eingetragen.";
+  }
+
+  const identity =
+    requireSelectedIdentity();
+
+  if(!identity){
+    return "Die feste persönliche Holo-ID ist nicht ausgewählt. Es wurde nichts in den Kalender eingetragen.";
+  }
+
+  try{
+    await window.SolHoloTrustedSession
+      ?.ensure?.({
+        interactive:true
+      });
+  }catch(error){
+    console.error(
+      "Gebärdensprach-Kalendersitzung:",
+      error?.name || "Fehler"
+    );
+  }
+
+  const response =
+    await fetch(
+      `${BACKEND_URL}/calendar/action`,
+      {
+        method:"POST",
+        headers:
+          backendJsonHeaders(),
+        body:JSON.stringify({
+          message:
+            cleanRequest,
+          selectedSpeakerId,
+          ownerId:
+            identity.ownerId,
+          conversationId
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if(!response.ok){
+    throw new Error(
+      data?.error ||
+      "Der gebärdete Kalenderauftrag konnte nicht geprüft werden."
+    );
+  }
+
+  let calendarResult =
+    data?.calendar || {
+      success:false,
+      answer:
+        data?.answer ||
+        "Der Kalenderauftrag wurde nicht bestätigt."
+    };
+
+  if(
+    typeof window.saveSolHoloCalendarDraft ===
+      "function"
+  ){
+    calendarResult =
+      await window.saveSolHoloCalendarDraft(
+        calendarResult
+      );
+  }
+
+  const memoryEventId =
+    signSequence.eventId;
+
+  currentRealtimeMemoryEventId =
+    memoryEventId;
+
+  currentRealtimeMemoryModalities =
+    ["sign_language", "live_image"];
+
+  void persistFulltimeDialog(
+    [{
+      role:"user",
+      content:cleanRequest
+    }],
+    `${memoryEventId}:signed-calendar`,
+    ["sign_language", "live_image"]
+  );
+
+  chatStatus.textContent =
+    calendarResult?.success
+      ? "Gebärdeter Kalenderauftrag sicher ausgeführt."
+      : "Kalender hat keinen Eintrag bestätigt.";
+
+  return String(
+    calendarResult?.answer ||
+    "Der gebärdete Kalenderauftrag wurde geprüft."
+  );
+}
+
+
 async function searchRealtimeLiveWeb(
   query
 ){
@@ -14828,6 +15126,11 @@ const REALTIME_NOTE_TOOL_NAMES = new Set([
   "delete_personal_note"
 ]);
 
+const REALTIME_SIGN_ACTION_TOOL_NAMES = new Set([
+  "remember_personal_fact",
+  "create_calendar_entry"
+]);
+
 const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "search_personal_memory",
   "search_live_web",
@@ -14839,6 +15142,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "prepare_whatsapp",
   "read_health_snapshot",
   "save_animal_holo_observation",
+  ...REALTIME_SIGN_ACTION_TOOL_NAMES,
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14895,6 +15199,14 @@ async function handleRealtimeMemoryToolCall(
     if(toolCall?.name === "search_personal_memory"){
       output = await searchRealtimePersonalMemory(
         String(parsedArguments?.query || "").trim()
+      );
+    }else if(toolCall?.name === "remember_personal_fact"){
+      output = await rememberRealtimeSignedPersonalFact(
+        parsedArguments
+      );
+    }else if(toolCall?.name === "create_calendar_entry"){
+      output = await createRealtimeSignedCalendarEntry(
+        parsedArguments
       );
     }else if(toolCall?.name === "search_live_web"){
       const result = await searchRealtimeLiveWeb(
@@ -14984,6 +15296,10 @@ async function handleRealtimeMemoryToolCall(
     console.error("Realtime Tool Fehler:", error);
     output = toolCall?.name === "search_personal_memory"
       ? "Die persönliche Gedächtnissuche ist gerade technisch fehlgeschlagen. Erfinde keine Erinnerung."
+      : toolCall?.name === "remember_personal_fact"
+        ? "Die sicher erkannte Gebärde konnte gerade nicht dauerhaft gespeichert werden. Behaupte keine Speicherung."
+      : toolCall?.name === "create_calendar_entry"
+        ? "Der gebärdete Kalenderauftrag konnte gerade nicht sicher ausgeführt werden. Behaupte keinen Eintrag."
       : toolCall?.name === "search_live_web"
         ? "Die aktuelle Information konnte gerade nicht zuverlässig geprüft werden. Erfinde keine Live-Daten."
       : toolCall?.name === "search_gmail"
@@ -16119,7 +16435,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=293",
+          "./service-worker.js?v=296",
           {
             updateViaCache:"none"
           }
@@ -16155,11 +16471,11 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=82"></script>
+<script src="./sol-holo-ui.js?v=83"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
-<script type="module" src="./sol-holo-backup.mjs?v=5"></script>
+<script type="module" src="./sol-holo-backup.mjs?v=6"></script>
 <script type="module" src="./human-holo-chatgpt-memory-bridge.mjs?v=1"></script>
 </body>
 </html>

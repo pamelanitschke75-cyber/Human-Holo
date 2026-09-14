@@ -261,7 +261,7 @@ test("ein Speicherfehler rollt die Wiederherstellung vollständig zurück", () =
   assert.equal(storage.getItem(BACKUP_STORAGE_KEYS.pendingDialogs), null);
 });
 
-test("Android-Dateibrücke nutzt den Systempicker und speichert nur Chiffretext", async () => {
+test("Android-Dateibrücke speichert Chiffretext verlässlich in Downloads", async () => {
   const source = await readFile(
     new URL("../android-native/SolBackupPlugin.java", import.meta.url),
     "utf8"
@@ -271,14 +271,25 @@ test("Android-Dateibrücke nutzt den Systempicker und speichert nur Chiffretext"
     "utf8"
   );
   const html = await readFile(new URL("../www/index.html", import.meta.url), "utf8");
+  const backupUi = await readFile(
+    new URL("../www/sol-holo-backup.mjs", import.meta.url),
+    "utf8"
+  );
 
+  assert.match(source, /MediaStore\.Downloads\.EXTERNAL_CONTENT_URI/u);
+  assert.match(source, /Environment\.DIRECTORY_DOWNLOADS/u);
+  assert.match(source, /MediaStore\.MediaColumns\.IS_PENDING/u);
+  assert.match(source, /Build\.VERSION\.SDK_INT >= Build\.VERSION_CODES\.Q/u);
   assert.match(source, /Intent\.ACTION_CREATE_DOCUMENT/u);
   assert.match(source, /Intent\.ACTION_OPEN_DOCUMENT/u);
   assert.match(source, /MAX_BACKUP_BYTES = 128 \* 1024 \* 1024/u);
   assert.doesNotMatch(source, /READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE/u);
+  assert.match(backupUi, /Verschlüsselte Kopie in Downloads speichern/u);
+  assert.match(backupUi, /bytesWritten/u);
+  assert.match(backupUi, /sichere Android-Speicherbrücke fehlt/u);
   assert.match(installer, /registerPlugin\(SolBackupPlugin\.class\)/u);
   assert.match(installer, /sol_holo_access_security_v1_pam-sol\.xml/u);
   assert.match(installer, /sol_holo_speaker_identity\.xml/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=6/u);
   assert.match(html, /sol-holo-backup\.css\?v=2/u);
 });
