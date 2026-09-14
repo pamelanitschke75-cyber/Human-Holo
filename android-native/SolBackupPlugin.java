@@ -1,8 +1,13 @@
 package com.solholo.app;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
 import androidx.activity.result.ActivityResult;
@@ -20,12 +25,14 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Android Storage Access Framework bridge for encrypted Sol-Holo backups.
+ * Android storage bridge for encrypted Sol-Holo backups.
  *
  * <p>The plugin never receives plaintext memories or passwords. JavaScript
  * encrypts the allow-listed payload first and only passes the authenticated
- * ciphertext envelope to this bridge. Android's system picker decides the
- * destination/source; no broad storage permission is requested.</p>
+ * ciphertext envelope to this bridge. On Android 10 and newer, an explicit
+ * tap stores the encrypted file directly in the public Downloads collection.
+ * Older Android versions keep using the system document picker. No broad
+ * storage permission is requested.</p>
  */
 @CapacitorPlugin(name = "SolBackup")
 public final class SolBackupPlugin extends Plugin {
@@ -47,11 +54,92 @@ public final class SolBackupPlugin extends Plugin {
             return;
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            execute(
+                () -> saveEncryptedBackupToDownloads(call, fileName, bytes)
+            );
+            return;
+        }
+
+        openLegacyCreateDocument(call, fileName);
+    }
+
+    private void openLegacyCreateDocument(PluginCall call, String fileName) {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
             .addCategory(Intent.CATEGORY_OPENABLE)
             .setType(MIME_TYPE)
             .putExtra(Intent.EXTRA_TITLE, fileName);
         startActivityForResult(call, intent, "saveEncryptedBackupResult");
+    }
+
+    private void saveEncryptedBackupToDownloads(
+        PluginCall call,
+        String fileName,
+        byte[] bytes
+    ) {
+        ContentResolver resolver = getContext().getContentResolver();
+        ContentValues pendingFile = new ContentValues();
+        pendingFile.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+        pendingFile.put(MediaStore.MediaColumns.MIME_TYPE, MIME_TYPE);
+        pendingFile.put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            Environment.DIRECTORY_DOWNLOADS
+        );
+        pendingFile.put(MediaStore.MediaColumns.IS_PENDING, 1);
+
+        Uri uri = null;
+        try {
+            uri = resolver.insert(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                pendingFile
+            );
+            if (uri == null) {
+                call.reject(
+                    "Android konnte keine neue Datei im Downloads-Ordner anlegen.",
+                    "BACKUP_TARGET_UNAVAILABLE"
+                );
+                return;
+            }
+
+            try (OutputStream output = resolver.openOutputStream(uri, "w")) {
+                if (output == null) {
+                    throw new IllegalStateException(
+                        "Android konnte die neue Downloads-Datei nicht öffnen."
+                    );
+                }
+                output.write(bytes);
+                output.flush();
+            }
+
+            ContentValues completedFile = new ContentValues();
+            completedFile.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            int updated = resolver.update(uri, completedFile, null, null);
+            if (updated != 1) {
+                throw new IllegalStateException(
+                    "Android konnte die Downloads-Datei nicht freigeben."
+                );
+            }
+
+            JSObject response = new JSObject();
+            response.put("saved", true);
+            response.put("fileName", displayName(uri));
+            response.put("bytesWritten", bytes.length);
+            response.put("location", "Downloads");
+            call.resolve(response);
+        } catch (Exception error) {
+            if (uri != null) {
+                try {
+                    resolver.delete(uri, null, null);
+                } catch (Exception ignored) {
+                    // Eine unvollständige, noch ausstehende Datei wird bestmöglich entfernt.
+                }
+            }
+            call.reject(
+                "Die verschlüsselte Sicherung konnte nicht im Downloads-Ordner gespeichert werden.",
+                "BACKUP_SAVE_FAILED",
+                error
+            );
+        }
     }
 
     @ActivityCallback
@@ -82,6 +170,7 @@ public final class SolBackupPlugin extends Plugin {
             response.put("saved", true);
             response.put("fileName", safeFileName(call.getString("fileName", "")));
             response.put("bytesWritten", bytes.length);
+            response.put("location", "Ausgewählter Ordner");
             call.resolve(response);
         } catch (Exception error) {
             call.reject("Die verschlüsselte Sicherung konnte nicht gespeichert werden.", "BACKUP_SAVE_FAILED", error);

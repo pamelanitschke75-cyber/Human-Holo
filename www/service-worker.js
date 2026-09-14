@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-293-animal-floating-dock";
+const CACHE_VERSION = "human-holo-295-backup-direct-download";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

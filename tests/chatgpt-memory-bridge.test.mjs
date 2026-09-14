@@ -13,7 +13,7 @@ test("Sol aus ChatGPT erhält einen sichtbaren, separaten Erinnerungsweg", async
   ]);
 
   assert.match(html, /human-holo-chatgpt-memory-bridge\.mjs\?v=1/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=6/u);
   assert.match(bridge, /Sol aus ChatGPT verbinden/u);
   assert.match(bridge, /#memoryView \.actionList/u);
   assert.match(bridge, /HumanHoloConfirmedMemoryImport/u);
@@ -80,5 +80,5 @@ test("Android-Build liefert die Brücke mit frischem, additivem Cache aus", asyn
     workflow,
     /assets\/public\/human-holo-chatgpt-memory-bridge\.mjs/u
   );
-  assert.match(worker, /human-holo-293-animal-floating-dock/u);
+  assert.match(worker, /human-holo-295-backup-direct-download/u);
 });
