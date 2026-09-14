@@ -22,6 +22,9 @@ const androidInstaller =
 const server =
   readText("server.mjs");
 
+const ui =
+  readText("www/sol-holo-ui.js");
+
 const privacy =
   readText("Datenschutz.md");
 
@@ -470,6 +473,38 @@ test(
     assert.match(
       html,
       /Ich konnte die Gebärde nicht sicher erkennen/u
+    );
+  }
+);
+
+
+test(
+  "sicher erkannte Gebärdenaufträge nutzen denselben lokalen Einkaufslistenspeicher",
+  () => {
+
+    assert.match(
+      server,
+      /name:\s*"append_shopping_list_item"[\s\S]*?konkrete Einkaufsartikel/u
+    );
+
+    assert.match(
+      server,
+      /Gebärdensprachfolge den eindeutigen Auftrag[\s\S]*?append_shopping_list_item[\s\S]*?unklarer Gebärde/u
+    );
+
+    assert.match(
+      html,
+      /REALTIME_LOCAL_TOOL_NAMES[\s\S]*?"append_shopping_list_item"/u
+    );
+
+    assert.match(
+      html,
+      /toolCall\?\.name === "append_shopping_list_item"[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
+      ui,
+      /function executeShoppingListTool\([\s\S]*?appendPersonalListItem\([\s\S]*?"Einkaufsliste"[\s\S]*?window\.executeSolHoloShoppingListTool/u
     );
   }
 );

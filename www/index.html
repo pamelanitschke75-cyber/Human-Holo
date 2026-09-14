@@ -14839,6 +14839,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "prepare_whatsapp",
   "read_health_snapshot",
   "save_animal_holo_observation",
+  "append_shopping_list_item",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14918,6 +14919,27 @@ async function handleRealtimeMemoryToolCall(
       );
       chatStatus.textContent =
         "Gmail-Posteingang sicher und nur lesend geprüft.";
+    }else if(toolCall?.name === "append_shopping_list_item"){
+      if(typeof window.executeSolHoloShoppingListTool === "function"){
+        const result = await window.executeSolHoloShoppingListTool(
+          toolCall?.name,
+          {
+            item:
+              String(parsedArguments?.item || "").trim()
+          }
+        );
+        output = String(
+          result?.answer ||
+          "Die Einkaufsliste hat keine verlässliche Rückmeldung geliefert."
+        );
+        chatStatus.textContent =
+          result?.success
+            ? "Einkaufsartikel direkt gespeichert."
+            : "Einkaufsartikel wurde nicht gespeichert.";
+      }else{
+        output =
+          "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
+      }
     }else if(toolCall?.name === "save_animal_holo_observation"){
       if(typeof window.HumanHoloAnimalHolos?.saveObservation === "function"){
         const result = await window.HumanHoloAnimalHolos.saveObservation({
@@ -14988,6 +15010,8 @@ async function handleRealtimeMemoryToolCall(
         ? "Die aktuelle Information konnte gerade nicht zuverlässig geprüft werden. Erfinde keine Live-Daten."
       : toolCall?.name === "search_gmail"
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
+      : toolCall?.name === "append_shopping_list_item"
+        ? "Der Einkaufsartikel konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung."
       : toolCall?.name === "save_animal_holo_observation"
         ? "Die Tier-Beobachtung konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung und frage nicht erneut nach Erlaubnis."
       : REALTIME_NOTE_TOOL_NAMES.has(toolCall?.name)
@@ -16155,7 +16179,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=82"></script>
+<script src="./sol-holo-ui.js?v=83"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
