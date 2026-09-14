@@ -4824,6 +4824,71 @@ async function saveCalendarAction(
   ==========================================================
 */
 
+function googleCalendarEventMatchesRequest(event, requestBody) {
+  const expectedTitle = String(requestBody?.summary || "").trim();
+  const eventTitle = String(event?.summary || "").trim();
+  if (
+    !expectedTitle ||
+    eventTitle.localeCompare(expectedTitle, "de", {
+      sensitivity: "base"
+    }) !== 0
+  ) {
+    return false;
+  }
+
+  const expectedStart =
+    requestBody?.start?.date || requestBody?.start?.dateTime || "";
+  const expectedEnd =
+    requestBody?.end?.date || requestBody?.end?.dateTime || "";
+  const eventStart = event?.start?.date || event?.start?.dateTime || "";
+  const eventEnd = event?.end?.date || event?.end?.dateTime || "";
+
+  if (requestBody?.start?.date) {
+    return eventStart === expectedStart && eventEnd === expectedEnd;
+  }
+
+  return (
+    Number.isFinite(Date.parse(eventStart)) &&
+    Number.isFinite(Date.parse(eventEnd)) &&
+    Date.parse(eventStart) === Date.parse(expectedStart) &&
+    Date.parse(eventEnd) === Date.parse(expectedEnd)
+  );
+}
+
+async function findExistingGoogleCalendarEvent(calendar, requestBody) {
+  const startValue =
+    requestBody?.start?.date || requestBody?.start?.dateTime || "";
+  const endValue =
+    requestBody?.end?.date || requestBody?.end?.dateTime || "";
+  const startMillis = Date.parse(startValue);
+  const endMillis = Date.parse(endValue);
+
+  if (
+    !Number.isFinite(startMillis) ||
+    !Number.isFinite(endMillis) ||
+    endMillis <= startMillis
+  ) {
+    return null;
+  }
+
+  const response = await calendar.events.list({
+    calendarId: GOOGLE_CALENDAR_ID,
+    timeMin: new Date(startMillis - 60_000).toISOString(),
+    timeMax: new Date(endMillis + 60_000).toISOString(),
+    timeZone: GOOGLE_CALENDAR_TIMEZONE,
+    singleEvents: true,
+    orderBy: "startTime",
+    maxResults: 25,
+    q: String(requestBody.summary || "").trim()
+  });
+
+  return (
+    response.data?.items?.find((event) =>
+      googleCalendarEventMatchesRequest(event, requestBody)
+    ) || null
+  );
+}
+
 async function createGoogleCalendarEvent(
   parsedCommand,
   originalMessage,
@@ -4943,6 +5008,20 @@ async function createGoogleCalendarEvent(
       : {})
   };
 
+  const existingEvent =
+    await findExistingGoogleCalendarEvent(
+      calendar,
+      requestBody
+    );
+
+  if (existingEvent?.id) {
+    return {
+      ...existingEvent,
+      humanHoloDuplicate:
+        true
+    };
+  }
+
   const response =
     await calendar.events.insert({
       calendarId:
@@ -5029,7 +5108,16 @@ function calendarDraftForClient(parsed) {
     description: String(parsed?.description || "").trim().slice(0, 2000),
     start,
     end,
-    allDay: parsed?.allDay === true
+    allDay: parsed?.allDay === true,
+    recurrence:
+      parsed?.recurrence === "yearly"
+        ? "yearly"
+        : null,
+    reminderMinutes:
+      parsed?.reminderMinutes === null ||
+      parsed?.reminderMinutes === undefined
+        ? null
+        : Math.max(0, Number(parsed.reminderMinutes) || 0)
   };
 }
 
@@ -5067,6 +5155,8 @@ async function commitCalendarAction(
       originalMessage,
       identity
     );
+    const duplicateAtProvider =
+      googleEvent?.humanHoloDuplicate === true;
     await saveCalendarAction(
       fingerprint,
       originalMessage,
@@ -5081,10 +5171,14 @@ async function commitCalendarAction(
     return {
       handled: true,
       success: true,
+      duplicate:
+        duplicateAtProvider,
       googleEventId: googleEvent.id,
       htmlLink: googleEvent.htmlLink || null,
       answer:
-        `Ja, ${identity.displayName}. Google Calendar hat bestätigt: „${googleEvent.summary || parsed.summary}“ ist gespeichert.`
+        duplicateAtProvider
+          ? `${identity.displayName}, „${googleEvent.summary || parsed.summary}“ steht bereits in deinem Google Kalender. Es wurde kein zweiter Eintrag angelegt.`
+          : `Ja, ${identity.displayName}. Google Calendar hat bestätigt: „${googleEvent.summary || parsed.summary}“ ist gespeichert.`
     };
   } catch (error) {
     console.error(
@@ -9400,6 +9494,138 @@ app.post(
   }
 );
 
+/*
+  Eine Gebärdensprachfolge wird ausschließlich semantisch gespeichert. Das
+  Realtime-Modell darf diesen Weg nur nach sicherer Erkennung eines
+  ausdrücklichen Gedächtnisauftrags aufrufen; rohe Kamerabilder erreichen
+  diesen Endpunkt nie.
+*/
+app.post(
+  "/memory/remember-recognized",
+  async (req, res) => {
+    try {
+      const authorization = String(req.headers.authorization || "");
+      const token = authorization.startsWith("Bearer ")
+        ? authorization.slice(7).trim()
+        : "";
+      const tokenSession = validateRealtimeMemoryToken(token);
+
+      if (!tokenSession) {
+        return res.status(401).json({
+          error: "Gebärdensprach-Gedächtnis nicht autorisiert."
+        });
+      }
+
+      const identity = resolveMemoryIdentity({
+        selectedSpeakerId: tokenSession.speakerId,
+        ownerId: tokenSession.ownerId
+      });
+      if (identity.kind !== "resolved") {
+        return res.status(401).json({
+          error: "Gebärdensprach-Gedächtnis nicht autorisiert."
+        });
+      }
+
+      const content = String(req.body?.content || "").trim();
+      const explicitMemoryCommand =
+        req.body?.explicitMemoryCommand === true;
+      const recognitionConfidence = String(
+        req.body?.recognitionConfidence || ""
+      ).trim().toLowerCase();
+      const inputModality = String(
+        req.body?.inputModality || ""
+      ).trim().toLowerCase();
+
+      if (
+        !content ||
+        content.length > 4000 ||
+        !explicitMemoryCommand ||
+        recognitionConfidence !== "high" ||
+        inputModality !== "sign_language"
+      ) {
+        return res.status(400).json({
+          error:
+            "Die Gebärde wurde nicht als sicherer ausdrücklicher Gedächtnisauftrag bestätigt."
+        });
+      }
+
+      const memoryDecision = evaluateIdentityMemoryWrite({
+        source: "sign_language",
+        role: "user",
+        content: `Merk dir: ${content}`,
+        selectedSpeakerId: identity.speakerId,
+        ownerId: identity.ownerId
+      });
+      if (memoryDecision.kind !== MEMORY_DECISION.PERSIST) {
+        return res.status(400).json({
+          error: "Der Gedächtnisauftrag konnte nicht eindeutig gespeichert werden."
+        });
+      }
+
+      const savedMemory = await identityMemoryStore.saveConfirmed(
+        memoryDecision
+      );
+      const persisted = Boolean(savedMemory);
+      const rememberContent =
+        savedMemory?.content ||
+        prepareDurableMemoryContent(memoryDecision.memory.content).content;
+      const requestedEventId = String(
+        req.body?.fulltimeEventId || ""
+      ).trim();
+      const memoryEventId = /^[a-zA-Z0-9:_-]{16,160}$/.test(
+        requestedEventId
+      )
+        ? requestedEventId
+        : `sign-${randomUUID()}`;
+      const semanticTranscript = `Merk dir: ${rememberContent}`;
+
+      await saveFulltimeMemory("user", semanticTranscript, {
+        memoryEventId,
+        ownerId: identity.ownerId,
+        sourceEventId: `${memoryEventId}:sign-user`,
+        sourceModalities: ["sign_language", "live_image"]
+      });
+      appendConversationMessage(
+        tokenSession.conversationId,
+        identity,
+        "user",
+        semanticTranscript
+      );
+
+      const answer = persisted
+        ? savedMemory?.secretRedacted
+          ? `${identity.displayName}, den persönlichen Inhalt habe ich dauerhaft gespeichert. Zugangsdaten habe ich zu deinem Schutz nicht übernommen.`
+          : `Ja, ${identity.displayName}. Das habe ich dauerhaft gespeichert: ${rememberContent}`
+        : `${identity.displayName}, diese bestätigte Erinnerung ist bereits gespeichert.`;
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          saved: persisted,
+          persisted,
+          alreadyStored: !persisted,
+          answer,
+          memory: rememberContent,
+          inputModality: "sign_language",
+          rawMediaStored: false,
+          identity: publicIdentity(identity)
+        });
+    } catch (error) {
+      console.error(
+        "Gebärdensprach-Gedächtnis:",
+        error?.code || error?.name || "Fehler"
+      );
+      return res.status(500).json({
+        error:
+          "Die sicher erkannte Gebärde konnte gerade nicht gespeichert werden."
+      });
+    }
+  }
+);
+
 app.post(
   "/realtime/web-search",
   async (req, res) => {
@@ -9788,12 +10014,13 @@ app.post(
 
       let persisted = false;
       let alreadyStored = false;
+      let savedMemory = null;
 
       if (
         memoryDecision.kind ===
         MEMORY_DECISION.PERSIST
       ) {
-        const savedMemory =
+        savedMemory =
           await identityMemoryStore
             .saveConfirmed(
               memoryDecision
@@ -9804,6 +10031,22 @@ app.post(
         alreadyStored =
           !savedMemory;
       }
+
+      const rememberContent =
+        memoryDecision.kind === MEMORY_DECISION.PERSIST
+          ? savedMemory?.content ||
+            prepareDurableMemoryContent(
+              memoryDecision.memory.content
+            ).content
+          : null;
+      const memoryAnswer =
+        memoryDecision.kind === MEMORY_DECISION.PERSIST
+          ? persisted
+            ? savedMemory?.secretRedacted
+              ? `${identity.displayName}, den persönlichen Inhalt habe ich dauerhaft gespeichert. Zugangsdaten habe ich zu deinem Schutz nicht übernommen.`
+              : `Ja, ${identity.displayName}. Das habe ich dauerhaft gespeichert: ${rememberContent}`
+            : `${identity.displayName}, diese bestätigte Erinnerung ist bereits gespeichert.`
+          : null;
 
       let calendarResult =
         null;
@@ -9954,9 +10197,10 @@ app.post(
           true,
         role,
         memory:
-          persisted
-            ? memoryDecision.memory.content
-            : null,
+          rememberContent,
+        memoryAnswer,
+        memorySecretRedacted:
+          Boolean(savedMemory?.secretRedacted),
         conversationId:
           conversation.conversationId,
         identity:
@@ -10336,6 +10580,25 @@ Du besitzt dabei drei Gedächtnisbereiche:
    Bereits vorhandene ausdrücklich gespeicherte
    Langzeiterinnerungen.
 
+VERBINDLICHE ZIELTRENNUNG – in Text, Sprache und Gebärdensprache gleich:
+„Merk dir …“, „Pass mal auf …“ und „Hör mal zu …“ sind ausdrückliche Aufträge
+für das bestätigte ownergebundene Langzeitgedächtnis. Sie sind niemals Notizen.
+Bei Text oder Sprache führt die App diesen Speicherweg bereits vor deiner
+Antwort aus. Bei einer ausdrücklich gestarteten Gebärdensprachfolge rufst du
+remember_personal_fact nur dann auf, wenn die vollständige Folge das
+Gedächtnissignal und den folgenden Inhalt mit hoher Sicherheit erkennen lässt.
+Bei Unsicherheit fragst du nach einer Wiederholung und speicherst nichts.
+
+„Notiere …“, „Schreib auf …“, „Schreib mal auf …“ und „Mach eine Notiz …“
+gehören dagegen ausschließlich ins sichtbare persönliche Notizfach. Verwende
+dafür bei sicher erkannter Gebärdensprache create_personal_note und niemals
+remember_personal_fact.
+
+Wenn eine Nutzernachricht mit [LOKALES_GEDAECHTNISERGEBNIS] beginnt, hat die
+App den ownergebundenen Speicherauftrag bereits verbindlich ausgeführt. Sprich
+den folgenden Satz kurz und unverändert aus, rufe kein weiteres Tool auf und
+lege insbesondere keine Notiz an.
+
 Eine zusätzliche bestätigte Langzeiterinnerung bleibt vom automatischen
 Vollzeitverlauf getrennt. Frage ${identity.displayName} nicht bei jeder
 normalen Aussage nach einer zusätzlichen Bestätigung.
@@ -10444,8 +10707,9 @@ Die App erledigt diesen lokalen Eintrag vor der Modellantwort. Beginnt eine
 Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], führe deshalb kein Notiz-Tool
 erneut aus, sondern bestätige das gelieferte Ergebnis kurz und unverändert.
 
-Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Mach eine Notiz …“
-oder sinngleich sagt, verwende create_personal_note mit genau dem genannten
+Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Schreib mal auf …“,
+„Mach eine Notiz …“ oder sinngleich sagt oder sicher gebärdet, verwende
+create_personal_note mit genau dem genannten
 Inhalt. Die App speichert ihn sofort im persönlichen Fach „Notizen“ unter
 „Wichtiges“. Sie öffnet dabei Samsung Notes nicht und verlangt keine zweite
 Speicherbestätigung.
@@ -10469,7 +10733,7 @@ Notiz. Die App blockiert die Speicherung solcher Inhalte zusätzlich.
 
 WICHTIG ZU GOOGLE CALENDAR:
 
-Wenn ${identity.displayName} per Sprache verlangt,
+Wenn ${identity.displayName} per Text oder Sprache verlangt,
 einen Termin oder eine Erinnerung in ihren
 Google Kalender einzutragen,
 darfst du NICHT behaupten,
@@ -10491,6 +10755,14 @@ Erfinde niemals einen erfolgreichen Kalender-Schreibvorgang.
 Wenn eine Nutzernachricht mit [LOKALES_KALENDERERGEBNIS] beginnt, stammt
 der nachfolgende Satz aus der bereits ausgeführten Kalenderprüfung. Sprich
 diesen Satz kurz und unverändert aus und erfinde keinen anderen Kalenderstatus.
+
+Eine sicher erkannte ausdrückliche Gebärdensprachfolge mit einem vollständigen
+Kalenderauftrag führt über create_calendar_entry denselben Kalenderweg aus.
+Bei unsicherer Erkennung oder fehlendem Datum darfst du das Tool nicht aufrufen.
+Geburtstage werden jährlich im externen Handy- oder Google-Kalender gespeichert
+und nicht als Holo-Notiz. Human Holo zeigt aus dem verknüpften Kalender nur die
+Termine des jeweils heutigen Tages; ein künftiger Termin erscheint dort erst
+an seinem Tag.
 
 WICHTIG ZUM LIVE-WETTER:
 
@@ -10636,6 +10908,73 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               "function",
 
             name:
+              "remember_personal_fact",
+
+            description:
+              `Speichert ausschließlich nach einer sicher erkannten, ausdrücklich gestarteten Gebärdensprachfolge einen persönlichen Fakt in ${identity.displayName}s bestätigtem Langzeitgedächtnis. Nur verwenden, wenn die vollständige Folge eindeutig „Merk dir“, „Pass mal auf“ oder „Hör mal zu“ plus einen konkreten Inhalt bedeutet. Niemals für „Notiere“ oder „Schreib (mal) auf“ verwenden und niemals bei unsicherer Erkennung. Text und Sprache werden bereits von der App verarbeitet.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                content: {
+                  type:
+                    "string",
+
+                  description:
+                    "Der sicher erkannte persönliche Inhalt nach dem Gedächtnissignal, ohne das Signal selbst und ohne Ergänzungen."
+                },
+                language_code: {
+                  type:
+                    "string",
+
+                  description:
+                    "Code der vor der Aufnahme ausdrücklich ausgewählten Gebärdensprache."
+                },
+                input_modality: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "sign_language"
+                  ]
+                },
+                recognition_confidence: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "high"
+                  ]
+                },
+                explicit_memory_command: {
+                  type:
+                    "boolean",
+
+                  enum: [
+                    true
+                  ]
+                }
+              },
+
+              required: [
+                "content",
+                "language_code",
+                "input_modality",
+                "recognition_confidence",
+                "explicit_memory_command"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
               "search_gmail",
 
             description:
@@ -10657,6 +10996,61 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
               required: [
                 "request"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "create_calendar_entry",
+
+            description:
+              `Führt ausschließlich einen sicher erkannten Kalenderauftrag aus einer ausdrücklich gestarteten Gebärdensprachfolge aus. Geburtstage werden im externen Kalender jährlich wiederholt; Human Holo zeigt daraus nur den jeweils heutigen Tag. Nur bei hoher Sicherheit verwenden, nie anhand einer einzelnen Pose und nie ohne Datum beziehungsweise eindeutig belegten Gedächtniskontext.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                request: {
+                  type:
+                    "string",
+
+                  description:
+                    "Der vollständig und sicher erkannte natürliche Kalenderauftrag mit Termin und Datum."
+                },
+                language_code: {
+                  type:
+                    "string"
+                },
+                input_modality: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "sign_language"
+                  ]
+                },
+                recognition_confidence: {
+                  type:
+                    "string",
+
+                  enum: [
+                    "high"
+                  ]
+                }
+              },
+
+              required: [
+                "request",
+                "language_code",
+                "input_modality",
+                "recognition_confidence"
               ],
 
               additionalProperties:
@@ -13156,6 +13550,13 @@ Du besitzt drei klar getrennte Kontextbereiche:
    Nur Inhalte, die ${identity.displayName} ausdrücklich mit einem
    engen Speicherbefehl oder einer bestätigten Rückfrage freigegeben hat.
 
+Die Speicherziele sind für geschriebene, gesprochene und sicher erkannte
+gebärdete Eingaben gleich und strikt getrennt: „Merk dir …“, „Pass mal auf …“
+und „Hör mal zu …“ bedeuten bestätigtes ownergebundenes Langzeitgedächtnis und
+niemals eine sichtbare Notiz. „Notiere …“, „Schreib auf …“, „Schreib mal auf …“
+und „Mach eine Notiz …“ bedeuten dagegen ausschließlich das sichtbare
+persönliche Notizfach. Erfinde weder eine Speicherung noch einen Zielwechsel.
+
 Frage nicht bei jeder normalen Aussage nach einer Speicherung. Der
 Vollzeitverlauf läuft automatisch; eine zusätzliche bestätigte
 Langzeiterinnerung bleibt davon getrennt. Erfinde keine Speicherbestätigung.
@@ -13242,7 +13643,9 @@ Speicherung im Notizbuch von ${instanceName} darfst du dagegen klar benennen.
 Wenn eine Notizanfrage in dieser normalen Server-Antwort ankommt,
 wurde sie von der lokalen App nicht eindeutig ausgeführt. Verstehe
 natürliche Formulierungen wie „Schreib bitte Zucker in Notes“,
-„Schreib Zucker in Noten“ oder „Notiere Zucker“. Verlange niemals
+„Schreib Zucker in Noten“, „Schreib mal Zucker auf“ oder „Notiere Zucker“.
+„Merk dir“, „Pass mal auf“ und „Hör mal zu“ sind ausdrücklich keine Notizen.
+Verlange niemals
 eine besondere Schreibweise wie „Notiz:“ oder „Notes:“.
 Erfinde keine Speicherung.
 
@@ -13260,6 +13663,9 @@ wird dieser bereits vor dieser normalen Antwort
 vom Human-Holo-Backend verarbeitet.
 
 Du darfst daher niemals einen Kalender-Erfolg erfinden.
+Geburtstage gehören als jährlich wiederkehrende Einträge in den externen
+Handy- oder Google-Kalender. Human Holo selbst zeigt aus der Verknüpfung nur
+die Termine des jeweils heutigen Tages und keine Liste künftiger Geburtstage.
 
 WICHTIG ZU GMAIL:
 

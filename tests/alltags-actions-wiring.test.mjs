@@ -45,7 +45,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-293-animal-floating-dock/u);
+  assert.match(serviceWorker, /human-holo-296-complete-through-morning/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -168,6 +168,26 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
   assert.match(
     html,
     /await handleRealtimeLocalNoteTranscript\([\s\S]*?await sendLiveTranscriptToMemory/u
+  );
+});
+
+test("Gedächtnisauftrag bestätigt technisch statt eine sichtbare Notiz anzulegen", () => {
+  assert.match(
+    server,
+    /const memoryAnswer =[\s\S]*?Das habe ich dauerhaft gespeichert/u
+  );
+  assert.match(html, /\[LOKALES_GEDAECHTNISERGEBNIS\]/u);
+  assert.match(
+    html,
+    /\(data\?\.saved \|\| data\?\.alreadyStored\)[\s\S]*?data\?\.memoryAnswer/u
+  );
+  assert.match(
+    html,
+    /const isPersonalMemoryCommand =[\s\S]*?isPersonalRecallCommand \|\|[\s\S]*?isPersonalMemoryCommand/u
+  );
+  assert.match(
+    server,
+    /„Merk dir …“, „Pass mal auf …“ und „Hör mal zu …“[\s\S]*?niemals eine sichtbare Notiz/u
   );
 });
 

@@ -115,13 +115,25 @@ test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo
   );
   assert.match(endpoint, /answer:\s*\n\s*calendarResult\?\.answer/u);
   assert.match(server, /function calendarDraftForClient/u);
+  assert.match(
+    sourceBetween(server, "function calendarDraftForClient", "async function commitCalendarAction"),
+    /recurrence:[\s\S]*?yearly[\s\S]*?reminderMinutes/u
+  );
   assert.match(server, /nativeFallbackAvailable:\s*true/u);
+  assert.match(
+    server,
+    /async function findExistingGoogleCalendarEvent[\s\S]*?calendar\.events\.list/u
+  );
+  assert.match(server, /humanHoloDuplicate:\s*\n\s*true/u);
   assert.match(phonePlugin, /Manifest\.permission\.READ_CALENDAR/u);
   assert.match(phonePlugin, /Manifest\.permission\.WRITE_CALENDAR/u);
   assert.match(installer, /android\.permission\.READ_CALENDAR/u);
   assert.match(installer, /android\.permission\.WRITE_CALENDAR/u);
   assert.match(phonePlugin, /CalendarContract\.Events\.CONTENT_URI/u);
   assert.match(phonePlugin, /CalendarContract\.Instances\.CONTENT_URI/u);
+  assert.match(phonePlugin, /findExistingCalendarEventId/u);
+  assert.match(phonePlugin, /CalendarContract\.Events\.RRULE, "FREQ=YEARLY"/u);
+  assert.match(phonePlugin, /CalendarContract\.Events\.DURATION/u);
   assert.match(phonePlugin, /public void saveCalendarEvent/u);
   assert.match(phonePlugin, /public void listCalendarEvents/u);
   assert.match(phonePlugin, /public void requestCalendarAccess/u);
@@ -133,6 +145,16 @@ test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo
   assert.match(html, /saveSolHoloCalendarDraft/u);
   assert.match(ui, /window\.saveSolHoloCalendarDraft/u);
   assert.match(ui, /plugin\.listCalendarEvents/u);
+  assert.match(
+    sourceBetween(ui, "async function loadDeviceCalendarEvents", "function isShoppingListNote"),
+    /rangeEnd\.setDate\(rangeEnd\.getDate\(\) \+ 1\)/u
+  );
+  assert.doesNotMatch(
+    sourceBetween(ui, "async function loadDeviceCalendarEvents", "function isShoppingListNote"),
+    /setFullYear/u
+  );
+  assert.match(ui, /recurrence: String\(draft\.recurrence \|\| ""\)/u);
+  assert.match(ui, /erscheint an diesem Tag in Human Holo/u);
   assert.match(ui, /id="calendarList"/u);
   assert.match(ui, /Mit deinem Handy-Kalender verknüpft/u);
   assert.match(ui, /linkedInHumanHolo:\s*true/u);

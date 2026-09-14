@@ -680,7 +680,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           <span class="importantSectionIcon" aria-hidden="true">📅</span>
           <div>
             <h3 id="calendarImportantTitle">Kalender</h3>
-            <p>Datum oder „morgen“ plus Uhrzeit kommt hierhin.</p>
+            <p>Hier siehst du nur die Termine des heutigen Tages.</p>
           </div>
         </div>
         <div class="importantComposerFooter" aria-label="Kalenderverknüpfung">
@@ -699,7 +699,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           </div>
         </form>
         <div class="importantSectionToolbar">
-          <strong id="calendarCount">0 Termine</strong>
+          <strong id="calendarCount">0 Termine heute</strong>
           <button id="calendarRefreshButton" class="calendarRefreshButton"
             type="button">Aktualisieren</button>
         </div>
@@ -749,7 +749,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           <span class="importantSectionIcon" aria-hidden="true">✏️</span>
           <div>
             <h3 id="notesImportantTitle">Notizen</h3>
-            <p>„Notiere …“ und „Schreib auf …“ landen nur hier.</p>
+            <p>„Notiere …“ und „Schreib (mal) auf …“ landen nur hier.</p>
           </div>
         </div>
         <form id="noteComposer" class="noteComposer importantComposer">
@@ -2318,6 +2318,22 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return mediaElement;
   }
 
+  function memorialDisplayMedia(entry) {
+    const media = Array.isArray(entry?.media) ? entry.media : [];
+    if (!isGrandmotherMemorial(entry)) return media;
+
+    const photos = media.filter((item) =>
+      String(item?.type || "").startsWith("image/")
+    );
+    const otherMedia = media.filter((item) =>
+      !String(item?.type || "").startsWith("image/")
+    );
+
+    // Neu hinzugefuegte Oma-Fotos sind das Titelbild. Aeltere Bilder bleiben
+    // privat erhalten und erscheinen darunter als ruhige, fokussierte Galerie.
+    return [...photos].reverse().concat(otherMedia);
+  }
+
   function renderMemorialEntries() {
     releaseMemorialObjectUrls();
     memorialList.replaceChildren();
@@ -2328,7 +2344,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       const card = document.createElement("article");
       card.className = "memorialCard glassCard";
       card.dataset.memorialId = entry.id;
-      if (isGrandmotherMemorial(entry)) {
+      const isGrandmother = isGrandmotherMemorial(entry);
+      if (isGrandmother) {
         card.classList.add("memorialCard--grandmotherPortrait");
       }
 
@@ -2356,16 +2373,28 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         card.append(story);
       }
 
-      if (entry.media.length) {
+      const displayMedia = memorialDisplayMedia(entry);
+      if (displayMedia.length) {
         const mediaGrid = document.createElement("div");
         mediaGrid.className = "memorialMediaGrid";
-        for (const item of entry.media) {
+        for (const [mediaIndex, item] of displayMedia.entries()) {
           const figure = document.createElement("figure");
+          const isPhoto = String(item?.type || "").startsWith("image/");
+          if (isGrandmother && isPhoto) {
+            figure.classList.add(
+              mediaIndex === 0
+                ? "memorialMediaFigure--grandmotherCover"
+                : "memorialMediaFigure--grandmotherSecondary"
+            );
+          }
           const mediaElement = memorialMediaElement(item);
           if (!mediaElement) continue;
-          const caption = document.createElement("figcaption");
-          caption.textContent = cleanMemorialText(item.name, 160);
-          figure.append(mediaElement, caption);
+          figure.append(mediaElement);
+          if (!(isGrandmother && isPhoto)) {
+            const caption = document.createElement("figcaption");
+            caption.textContent = cleanMemorialText(item.name, 160);
+            figure.append(caption);
+          }
           mediaGrid.append(figure);
         }
         if (mediaGrid.childElementCount) {
@@ -2949,7 +2978,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       /\b(?:einkaufs?liste|besorgungsliste|aufgabenliste|to[-\s]?do[-\s]?liste|packliste|wunschliste)\b/u.test(text);
     const explicitNoteRequest =
       /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
-      /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
+      /^(?:bitte\s+)?schreib(?:e)?(?:\s+mal)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
       /^(?:bitte\s+)?(?:mach|mache)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?notiz\b/u.test(text) ||
       /^(?:neue\s+)?notiz\s*[:,-]/u.test(text);
     if (explicitListRequest || explicitNoteRequest) {
@@ -3364,8 +3393,24 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return null;
     }
 
+    /*
+     * Direkte Gedaechtnisauftraege duerfen hier niemals als sichtbare Notiz
+     * abgefangen werden. Sie laufen weiter zum ownergebundenen Backend; Text
+     * und Sprachtranskript verwenden dort dieselbe Memory-Entscheidung.
+     */
+    if (
+      /^(?:bitte\s+)?(?:merk(?:e)?\s+dir|pass(?:\s+bitte)?\s+mal(?:\s+mal)?\s+auf|h(?:o|oe|ö)r(?:e)?(?:\s+bitte)?\s+mal\s+zu)\b/i.test(
+        cleanMessage
+      ) ||
+      /^(?:bitte\s+)?speichere\s+(?:das\s+)?dauerhaft\b/i.test(
+        cleanMessage
+      )
+    ) {
+      return null;
+    }
+
     const directMatch = cleanMessage.match(
-      /^(?:bitte\s+)?(?:speicher(?:e)?|merk(?:e)?(?:\s+dir\b[,:]?)?|halt(?:e)?\s+(?:das\s+)?fest)\s+(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!?]*$/i
+      /^(?:bitte\s+)?(?:speicher(?:e)?|halt(?:e)?\s+(?:das\s+)?fest)\s+(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!?]*$/i
     );
     const content = cleanExplicitSaveContent(directMatch?.[1] || "");
     if (!content) return null;
@@ -3375,6 +3420,27 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       content,
       kind: "content"
     };
+  }
+
+  function explicitPersonalNoteContentFromMessage(message) {
+    const cleanMessage = stripHoloInvocation(message);
+    if (!cleanMessage) return "";
+
+    const patterns = [
+      /^(?:bitte\s+)?notier(?:e)?\b\s*(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!]?$/i,
+      /^(?:bitte\s+)?(?:mach|mache|schreib|schreibe)\s+(?:mir\s+)?(?:bitte\s+)?eine\s+notiz(?:\s+daraus)?\s*[:,-]?\s+(.+?)[.!]?$/i,
+      /^(?:bitte\s+)?schreib(?:e)?(?:\s+mal)?\s+(?:mir\s+)?(?:bitte\s+)?(?:als\s+notiz|in\s+meine\s+notizen|auf)\s*[:,-]?\s+(.+?)[.!]?$/i,
+      /^(?:neue\s+)?notiz\s*[:,-]\s*(.+?)[.!]?$/i
+    ];
+
+    for (const pattern of patterns) {
+      const content = cleanExplicitSaveContent(
+        cleanMessage.match(pattern)?.[1] || ""
+      );
+      if (content) return content;
+    }
+
+    return "";
   }
 
   function explicitSaveUsesPreviousMessage(request) {
@@ -3579,7 +3645,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const quickMeta = document.getElementById("notesQuickMeta");
     if (quickMeta) {
       quickMeta.textContent =
-        `${linkedCalendarEvents.length} Termine · ` +
+        `${linkedCalendarEvents.length} Termine heute · ` +
         `${shoppingItemCount} Einkäufe · ${regularNoteCount} Notizen`;
     }
   }
@@ -3591,17 +3657,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     calendarList.replaceChildren();
     const eventCount = linkedCalendarEvents.length;
     calendarCount.textContent =
-      `${eventCount} ${eventCount === 1 ? "Termin" : "Termine"}`;
+      `${eventCount} ${eventCount === 1 ? "Termin" : "Termine"} heute`;
     calendarEmpty.hidden = eventCount > 0;
     const emptyTitle = calendarEmpty.querySelector("strong");
     const emptyCopy = calendarEmpty.querySelector("p");
     if (emptyTitle && emptyCopy) {
       emptyTitle.textContent = deviceCalendarStatus.permissionGranted
-        ? "Keine kommenden Termine gefunden."
+        ? "Heute stehen keine Termine an."
         : "Kalender noch nicht verknüpft.";
       emptyCopy.textContent = deviceCalendarStatus.permissionGranted
-        ? "Neue Termine erscheinen hier automatisch."
-        : "Gib den Kalenderzugriff einmal frei; danach zeigt Holo die Termine hier.";
+        ? "Künftige Termine bleiben im Handy-Kalender und erscheinen hier an ihrem Tag."
+        : "Gib den Kalenderzugriff einmal frei; danach zeigt Holo hier die Termine des Tages.";
     }
     linkedCalendarEvents.forEach((event) => {
       calendarList.appendChild(buildLinkedCalendarCard(event));
@@ -3626,7 +3692,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const rangeStart = new Date();
     rangeStart.setHours(0, 0, 0, 0);
     const rangeEnd = new Date(rangeStart);
-    rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
+    rangeEnd.setDate(rangeEnd.getDate() + 1);
 
     try {
       const result = await plugin.listCalendarEvents({
@@ -3638,6 +3704,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ? result.events
           .map(normalizeLinkedCalendarEvent)
           .filter(Boolean)
+          .filter(
+            (event) =>
+              event.startMillis < rangeEnd.getTime() &&
+              (
+                event.startMillis >= rangeStart.getTime() ||
+                event.endMillis > rangeStart.getTime()
+              )
+          )
+          .filter(
+            (event, index, events) =>
+              events.findIndex((candidate) => candidate.id === event.id) ===
+              index
+          )
           .sort((left, right) => left.startMillis - right.startMillis)
         : [];
       renderLinkedCalendarEvents();
@@ -5266,7 +5345,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         description: String(draft.description || ""),
         startMillis,
         endMillis,
-        allDay: Boolean(draft.allDay)
+        allDay: Boolean(draft.allDay),
+        recurrence: String(draft.recurrence || ""),
+        reminderMinutes:
+          Number.isFinite(Number(draft.reminderMinutes)) &&
+          draft.reminderMinutes !== null
+            ? Math.max(0, Number(draft.reminderMinutes))
+            : null
       });
       if (!saved?.saved) {
         throw new Error("CALENDAR_DIRECT_SAVE_NOT_CONFIRMED");
@@ -5274,6 +5359,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       renderDeviceCalendarStatus(saved);
       await loadDeviceCalendarEvents();
       void notifyGalaxyWatchSummary("calendar");
+      const today = new Date();
+      const startsAt = new Date(startMillis);
+      const visibleToday =
+        startsAt.getFullYear() === today.getFullYear() &&
+        startsAt.getMonth() === today.getMonth() &&
+        startsAt.getDate() === today.getDate();
+      const title = String(draft.title || "Termin");
+      const calendarVisibility = visibleToday
+        ? "und ist heute auch in Human Holo sichtbar"
+        : "und erscheint an diesem Tag in Human Holo";
+
       return {
         ...calendarResult,
         success: true,
@@ -5286,8 +5382,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         deviceCalendarEventId: saved?.eventId,
         answer:
           saved?.duplicate
-            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Kalender und ist mit Human Holo verknüpft ✅️`
-            : `„${String(draft.title || "Termin")}“ ist gespeichert und jetzt auch in Human Holo sichtbar ✅️`
+            ? `„${title}“ steht bereits in deinem Handy-Kalender ${calendarVisibility} ✅️`
+            : `„${title}“ ist in deinem Handy-Kalender gespeichert ${calendarVisibility} ✅️`
       };
     } catch (error) {
       console.error("Android-Kalender direkt speichern:", error?.code || error?.name);
@@ -7048,26 +7144,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return finishNoteCreation(naturalSamsungNoteText);
     }
 
-    let noteMatch = noteMessage.match(
-      /^(?:bitte\s+)?notier(?:e)?\b\s*(?:mir\s+)?(?:bitte\s+)?[:,-]?\s*(.+?)[.!]?$/i
-    );
-    if (!noteMatch) {
-      noteMatch = noteMessage.match(
-        /^(?:bitte\s+)?(?:mach|mache|schreib|schreibe)\s+(?:mir\s+)?(?:bitte\s+)?eine\s+notiz(?:\s+daraus)?\s*[:,-]?\s+(.+?)[.!]?$/i
-      );
-    }
-    if (!noteMatch) {
-      noteMatch = noteMessage.match(
-        /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:als\s+notiz|in\s+meine\s+notizen|auf)\s*[:,-]?\s+(.+?)[.!]?$/i
-      );
-    }
-    if (!noteMatch) {
-      noteMatch = noteMessage.match(
-        /^(?:neue\s+)?notiz\s*[:,-]\s*(.+?)[.!]?$/i
-      );
-    }
-    if (noteMatch) {
-      return finishNoteCreation(noteMatch[1]);
+    const explicitNoteContent =
+      explicitPersonalNoteContentFromMessage(noteMessage);
+    if (explicitNoteContent) {
+      return finishNoteCreation(explicitNoteContent);
     }
 
     if (pendingPersonalNoteText) {
@@ -7100,7 +7180,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       };
     }
 
-    noteMatch = noteMessage.match(
+    let noteMatch = noteMessage.match(
       /^(?:suche|finde)\s+(?:in\s+)?(?:meinen\s+)?notizen\s+(?:nach\s+)?(.+?)[.!]?$/i
     );
     if (noteMatch) {
