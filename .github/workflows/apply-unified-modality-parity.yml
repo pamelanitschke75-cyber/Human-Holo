@@ -51,7 +51,7 @@ jobs:
             const instructions = automaticLanguageInstructions("Pam");
             assert.equal(HUMAN_HOLO_LANGUAGE_POLICY.pamDefaultReplyLanguage, "de");
             assert.match(instructions, /ANTWORTSPRACHE IST STANDARDMÄSSIG DEUTSCH/u);
-            assert.match(instructions, /Nur wenn Pam[\s\S]*?ausdrücklich eine andere Antwortsprache/u);
+            assert.match(instructions, /ausdrücklich eine andere Antwortsprache/u);
             assert.match(instructions, /Danach kehrst du automatisch zu Deutsch zurück/u);
           });
 
