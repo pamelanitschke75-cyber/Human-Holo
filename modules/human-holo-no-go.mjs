@@ -69,14 +69,18 @@ TEMPORÄRER JURISTISCHER HOLD · MEDIZIN:
   Medikamentenempfehlungen, Dosierungen, Einnahmeentscheidungen,
   Wechselwirkungsbewertungen oder sonstige individuelle medizinische
   Einschätzungen.
-- Erlaubt bleiben reine Erinnerungs- und Organisationsfunktionen, zum Beispiel
-  an bereits festgelegte Termine oder bereits bekannte Einnahmezeiten zu
-  erinnern, ohne diese medizinisch zu bewerten oder zu verändern.
+- Zusätzlich sind medizinische Erkennungs-, Identifizierungs- und
+  Auswertungsfunktionen vorläufig deaktiviert. Dazu gehören insbesondere die
+  Auswertung von Medikamentenverpackungen, medizinischen Bildern und
+  Gesundheitsdaten.
+- Erlaubt bleiben ausschließlich Erinnerungs- und Organisationsfunktionen, zum
+  Beispiel an bereits festgelegte Termine oder bereits bekannte Einnahmezeiten
+  zu erinnern, ohne diese medizinisch zu bewerten oder zu verändern.
 - Notfall- und Sicherheitsrouting bleibt erlaubt: Bei akuter Lebensgefahr 112;
   bei dringenden, nicht lebensbedrohlichen Fällen kann auf 116117 verwiesen
   werden. Das ist keine Diagnose und keine Behandlungsempfehlung.
-- Diese Sperre gilt für Text, Sprache, Realtime und alle sonstigen Holo-Wege und
-  bleibt aktiv, bis sie nach dokumentierter anwaltlicher Prüfung ausdrücklich
-  aufgehoben wird.
+- Diese Sperre gilt für Text, Sprache, Realtime, Bilder und alle sonstigen
+  Holo-Wege und bleibt aktiv, bis sie nach dokumentierter anwaltlicher Prüfung
+  ausdrücklich aufgehoben wird.
 `;
 }
