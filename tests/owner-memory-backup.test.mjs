@@ -145,6 +145,26 @@ test("Export erfasst alle aktiven und älteren Gedächtnisbereiche vollständig"
   assert.equal(client.released, true);
 });
 
+test("Export verarbeitet PostgreSQL-Datumswerte ohne Tagesverschiebung", async () => {
+  const rows = sourceRows();
+  // node-postgres bildet DATE als Date am lokalen Tagesbeginn ab.
+  rows.fulltime[0].event_occurred_on = new Date(2026, 8, 11);
+  rows.fulltime[1].event_occurred_on = new Date(2026, 8, 11);
+
+  const client = new FakeClient(rows);
+  const store = createOwnerMemoryBackupStore({ database: new FakePool(client) });
+  const backup = await store.exportSnapshot({ ownerId, speakerId, cloneId });
+
+  assert.deepEqual(
+    backup.data.fulltimeHistory.map(row => row.eventOccurredOn),
+    ["2026-09-11", "2026-09-11"]
+  );
+  assert.match(
+    client.calls.find(call => /FROM sol_fulltime_memory/u.test(call.sql)).sql,
+    /event_occurred_on::text AS event_occurred_on/u
+  );
+});
+
 test("Manipulation und fremde Owner-Bindung werden abgewiesen", () => {
   const rows = sourceRows();
   const backup = buildOwnerMemoryBackup({
