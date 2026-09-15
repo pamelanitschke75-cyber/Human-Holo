@@ -14869,6 +14869,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "read_health_snapshot",
   "save_animal_holo_observation",
   "append_shopping_list_item",
+  "read_shopping_list",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14948,7 +14949,10 @@ async function handleRealtimeMemoryToolCall(
       );
       chatStatus.textContent =
         "Gmail-Posteingang sicher und nur lesend geprüft.";
-    }else if(toolCall?.name === "append_shopping_list_item"){
+    }else if(
+      toolCall?.name === "append_shopping_list_item" ||
+      toolCall?.name === "read_shopping_list"
+    ){
       if(typeof window.executeSolHoloShoppingListTool === "function"){
         const result = await window.executeSolHoloShoppingListTool(
           toolCall?.name,
@@ -14962,12 +14966,20 @@ async function handleRealtimeMemoryToolCall(
           "Die Einkaufsliste hat keine verlässliche Rückmeldung geliefert."
         );
         chatStatus.textContent =
-          result?.success
-            ? "Einkaufsartikel direkt gespeichert."
-            : "Einkaufsartikel wurde nicht gespeichert.";
+          toolCall?.name === "read_shopping_list"
+            ? result?.success
+              ? result?.empty
+                ? "Einkaufsliste gelesen · leer."
+                : "Einkaufsliste sicher gelesen."
+              : "Einkaufsliste konnte nicht gelesen werden."
+            : result?.success
+              ? "Einkaufsartikel direkt gespeichert."
+              : "Einkaufsartikel wurde nicht gespeichert.";
       }else{
         output =
-          "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
+          toolCall?.name === "read_shopping_list"
+            ? "Die lokale Einkaufsliste ist gerade nicht verfügbar. Erfinde keine Einträge."
+            : "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
       }
     }else if(toolCall?.name === "save_animal_holo_observation"){
       if(typeof window.HumanHoloAnimalHolos?.saveObservation === "function"){
@@ -15041,6 +15053,8 @@ async function handleRealtimeMemoryToolCall(
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
       : toolCall?.name === "append_shopping_list_item"
         ? "Der Einkaufsartikel konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung."
+      : toolCall?.name === "read_shopping_list"
+        ? "Die Einkaufsliste konnte gerade nicht sicher gelesen werden. Erfinde keine Einträge."
       : toolCall?.name === "save_animal_holo_observation"
         ? "Die Tier-Beobachtung konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung und frage nicht erneut nach Erlaubnis."
       : REALTIME_NOTE_TOOL_NAMES.has(toolCall?.name)
