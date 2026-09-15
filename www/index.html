@@ -14869,6 +14869,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "save_animal_holo_observation",
   "append_shopping_list_item",
   "read_shopping_list",
+  "read_calendar",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14948,6 +14949,25 @@ async function handleRealtimeMemoryToolCall(
       );
       chatStatus.textContent =
         "Gmail-Posteingang sicher und nur lesend geprüft.";
+    }else if(toolCall?.name === "read_calendar"){
+      if(typeof window.executeSolHoloCalendarReadTool === "function"){
+        const result = await window.executeSolHoloCalendarReadTool({
+          request:
+            String(parsedArguments?.request || "").trim()
+        });
+        output = String(
+          result?.answer ||
+          "Der Handy-Kalender hat keine verlässliche Rückmeldung geliefert."
+        );
+        chatStatus.textContent = result?.success
+          ? result?.empty
+            ? "Handy-Kalender gelesen · kein Treffer."
+            : "Handy-Kalender sicher gelesen."
+          : "Handy-Kalender konnte nicht gelesen werden.";
+      }else{
+        output =
+          "Der lokale Handy-Kalender ist gerade nicht verfügbar. Erfinde keine Termine.";
+      }
     }else if(
       toolCall?.name === "append_shopping_list_item" ||
       toolCall?.name === "read_shopping_list"
@@ -15037,6 +15057,8 @@ async function handleRealtimeMemoryToolCall(
         ? "Die aktuelle Information konnte gerade nicht zuverlässig geprüft werden. Erfinde keine Live-Daten."
       : toolCall?.name === "search_gmail"
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
+      : toolCall?.name === "read_calendar"
+        ? "Der Handy-Kalender konnte gerade nicht sicher gelesen werden. Erfinde keine Termine."
       : toolCall?.name === "append_shopping_list_item"
         ? "Der Einkaufsartikel konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung."
       : toolCall?.name === "read_shopping_list"
