@@ -12,10 +12,11 @@
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
-## Verbindlicher Ausschluss medizinischer Funktionen
+## Verbindliche Pause der medizinischen Funktionen
 
-**Die medizinischen Funktionen wurden am 15.09.2026 technisch aus Human Holo
-und aus Pam’s Holo entfernt. Sie sind nicht verfügbar.**
+**Die medizinischen Funktionen sind seit dem 15.09.2026 in Human Holo und in
+Pam’s Holo vollständig pausiert und derzeit nicht verfügbar. Sie wurden nicht
+endgültig aufgegeben.**
 
 Das betrifft insbesondere:
 
@@ -78,10 +79,12 @@ Pam’s Holo bleibt eine getrennte private, ownergebundene Instanz. Persönliche
 Daten, Bilder, Erinnerungen und Einstellungen bleiben erhalten.
 
 Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 15.09.2026
-wurden die medizinischen Funktionen jedoch **auch technisch aus Pam’s Holo
-entfernt**. Gesundheitskachel, Medikamentenerkennung, Health Connect,
-Gesundheitsdaten-Berechtigungen und medizinische Beratung sind weder in Human
-Holo noch in Pam’s Holo verfügbar.
+sind die medizinischen Funktionen jedoch **auch in Pam’s Holo vollständig
+pausiert**. Gesundheitskachel, Medikamentenerkennung, Health Connect,
+Gesundheitsdaten-Berechtigungen und medizinische Beratung sind derzeit weder
+in Human Holo noch in Pam’s Holo verfügbar. Die Funktionen dürfen erst nach
+dokumentierter rechtlicher Prüfung, technischer Freigabe und ausdrücklicher
+Zustimmung von Pamela Christina Nitschke wieder aktiviert werden.
 
 ## Historische Entwicklungsstände
 
