@@ -2,7 +2,7 @@
 
 **Stand: 15.09.2026**  
 **Gilt für:** das allgemeine Human Holo, Vorführungen, Anwalt und externe Tester  
-**Medizinische Ausnahme:** Auf Pams ausdrückliche Entscheidung wurden medizinische Funktionen auch aus Pam’s Holo entfernt
+**Medizinische Ausnahme:** Auf Pams ausdrückliche Entscheidung sind die medizinischen Funktionen auch in Pam’s Holo vollständig pausiert und technisch gesperrt
 
 ## Aktuell zugelassener Umfang
 
@@ -77,8 +77,15 @@ Pam’s Holo bleibt als private, ownergebundene Instanz mit persönlichen Daten,
 Bildern, Erinnerungen und Einstellungen erhalten. Auf ausdrückliche Entscheidung
 von Pamela Christina Nitschke vom 15.09.2026 gilt für Medizin jedoch keine
 Ausnahme: Gesundheitskachel, Medikamentenerkennung, Health Connect,
-Gesundheitsdaten-Berechtigungen und medizinische Beratung wurden auch technisch
-aus Pam’s Holo entfernt.
+Gesundheitsdaten-Berechtigungen und medizinische Beratung sind auch in Pam’s
+Holo vollständig pausiert, technisch gesperrt und derzeit nicht verfügbar.
+Sie bleiben für eine mögliche spätere Aktivierung nach dokumentierter
+rechtlicher Prüfung, technischer Freigabe und ausdrücklicher Zustimmung von
+Pamela Christina Nitschke erhalten.
+
+**Für Pam’s Holo gilt aus diesem Dokument ausschließlich diese medizinische
+Sperre. Alle anderen persönlichen Funktionen, Daten, Bilder, Erinnerungen und
+Einstellungen von Pam’s Holo bleiben davon unberührt.**
 
 ## Vorrangregel
 
