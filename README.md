@@ -6,11 +6,39 @@
 
 ## Persönliches digitales Ich · Individueller Clone
 
-**Aktueller Entwicklungsstand:** 13.09.2026<br>
+**Aktueller Entwicklungsstand:** 15.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath<br>
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
-**Status:** FUNKTIONSFÄHIGER ENTWICKLUNGSSTAND ✅
+**Status:** INTERNER ENTWICKLUNGS- UND TESTSTAND · KEINE PRODUKTIONSFREIGABE
+
+## ⚠️ Verbindlicher aktueller Rechts-Hold vom 15.09.2026
+
+Bis zur ausdrücklichen rechtlichen Prüfung und Freigabe gehören zu **Human Holo**
+keine medizinische Beratung, Diagnosen, Therapie- oder Selbsthilfeempfehlungen,
+persönliche Dosierungs- oder Einnahmehinweise, Medikamentenauswertung oder
+Auswertung von Gesundheitsdaten. Diese Funktionen sind **pausiert und nicht für
+den Testbetrieb freigegeben**.
+
+Erinnerungen und organisatorische Funktionen dürfen bestehen bleiben. Frühere
+Gesundheitsbeschreibungen, Quellstände und Meilensteine bleiben ausschließlich
+als historische Entwicklungsnachweise erhalten und dürfen nicht als aktuelle
+aktive Funktion verstanden werden. Pam’s Holo und ihre persönlichen Daten,
+Bilder, Erinnerungen und Einstellungen werden durch diese Dokumentationskorrektur
+nicht verändert.
+
+## Verbindliche GitHub- und Erledigt-Regel
+
+Eine Änderung ist erst dann **erledigt**, wenn sie im richtigen GitHub-Zweig
+vorhanden, durch eine Commit-SHA nachgewiesen und anschließend direkt aus GitHub
+erneut geprüft wurde. Code, sichtbare Funktion, README und Fachdokumentation
+müssen denselben Status zeigen. Geplant, integriert, automatisiert geprüft,
+praktisch getestet, freigegeben, pausiert und gesperrt werden strikt getrennt.
+
+**Ohne diese Nachweise lautet der Status: „Noch nicht abschließend erledigt.“**
+
+Vollständige Regel:
+[Verbindliche GitHub- und Erledigt-Regel](./VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md)
 
 ## Verbindliche Namensentscheidung vom 07.09.2026
 
@@ -375,56 +403,46 @@ Der aktuelle Entwicklungsstand wurde unter anderem auf einem:
 
 entwickelt und praktisch getestet.
 
-## Neu integriert: Samsung Notes und Health Connect
+## Samsung Notes und pausierter Health-Connect-Entwicklungsstand
 
-Der aktuelle Android-Build erweitert Human Holo um zwei bewusst begrenzte Wege für persönliche Handydaten:
+- **Samsung Notes:** Eine einzelne, bewusst ausgewählte Textnotiz kann über
+  `Teilen → Human Holo` übergeben werden. Vor einer dauerhaften Speicherung
+  erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten
+  Notizbuchs findet nicht statt.
+- **Health Connect / Samsung Health:** Frühere Quellstände und Dokumente zu
+  einem lesenden Zugriff bleiben als historische Entwicklungsnachweise erhalten.
+  **Abruf, Auswertung und Nutzung von Gesundheitsdaten sind im aktuellen
+  Human-Holo-Teststand bis zur ausdrücklichen rechtlichen Freigabe pausiert.**
 
-- **Samsung Notes:** Eine einzelne ausgewählte Textnotiz kann über `Teilen → Human Holo` übergeben werden. Vor der dauerhaften Speicherung erscheint eine sichtbare Bestätigung. Ein automatischer Import des gesamten Notizbuchs findet nicht statt.
-- **Health Connect / Samsung Health:** Human Holo kann die von Android einzeln freigegebenen Kategorien aus Aktivität, Körperwerten, Vitalwerten, Schlaf, Ernährung und reproduktiver Gesundheit ausschließlich lesen. Jeder tatsächliche Abruf wird noch einmal bestätigt, bleibt auf höchstens 30 Tage begrenzt und wird nicht automatisch in das Langzeitgedächtnis übernommen.
+Der Health-Connect-Datentyp **„Sexuelle Aktivität“ bleibt vollständig
+ ausgeschlossen**: Human Holo deklariert diese Berechtigung nicht, fordert sie
+nicht an und besitzt dafür keinen Lesepfad.
 
-Der Health-Connect-Datentyp **„Sexuelle Aktivität“ ist ausdrücklich ausgeschlossen**: Human Holo deklariert diese Berechtigung nicht, fordert sie nicht an und besitzt dafür keinen Lesepfad. Wer eine solche Information für sich selbst festhalten möchte, kann sie ausschließlich bewusst als privaten, ownergebundenen Inhalt manuell hinzufügen; daraus entsteht kein Zugriff auf Health Connect.
+## 🩹 Gesundheitsbegleitung – PAUSIERT
 
-Health Connect besitzt in Human Holo keine Schreib- oder Löschfunktion und keinen automatischen Hintergrundzugriff. Die Werte dienen der persönlichen Übersicht, nicht einer medizinischen Diagnose. Geschäftliche Inhalte, PINs, Passwörter, TANs, Banking- und Authenticator-Daten bleiben ausgeschlossen.
+**Nicht aktive Funktion. Keine Freigabe für den aktuellen Testbetrieb.**
 
-Diese beiden Erweiterungen sind technisch integriert; die praktische Freigabe und Prüfung erfolgt nach Installation des zugehörigen Android-Builds auf dem Galaxy S23.
+Human Holo gibt bis zur ausdrücklichen rechtlichen Prüfung und Freigabe keine
+Diagnosen, Therapieempfehlungen, medizinischen Selbsthilfeempfehlungen oder
+individuellen Gesundheitsbewertungen. Bei einer akuten Gefahr darf lediglich
+auf die zuständigen offiziellen Notruf- und Hilfswege verwiesen werden; daraus
+entsteht keine medizinische Beratung.
 
-## 🩹 Gesundheitsbegleitung & Selbsthilfe
+Die frühere Dokumentation bleibt ausschließlich als historischer
+Entwicklungsnachweis bestehen:
+[Historischer Stand Gesundheitsbegleitung & Selbsthilfe](./HUMAN-HOLO-GESUNDHEITSBEGLEITUNG-10-09-2026.md)
 
-Im sichtbaren Bereich **Gesundheit** kann Human Holo bei leichten menschlichen
-Beschwerden und kleinen, oberflächlichen Verletzungen konkrete, vorsichtige
-Schritte für zu Hause erklären. Die Antwort prüft zuerst Warnzeichen, nennt dann
-Selbsthilfe, ungeeignete Maßnahmen und klare Grenzen für Apotheke,
-Hausarztpraxis, 116117 oder 112. Human Holo stellt dabei keine Diagnose und gibt
-keine garantierte Entwarnung oder persönliche Dosierung vor.
+## 💊 Medikamentenerkennung – PAUSIERT
 
-Kinder- und Gesundheitsschutz sind fest: kein Alkohol für Jugendliche oder als
-Hausmittel, keine Zigaretten, Vapes oder sonstigen Nikotinprodukte und keine
-illegalen oder berauschenden Drogen. Waffen und alles, was ihre Beschaffung,
-Herstellung oder Nutzung ermöglicht, sowie Tierhandel sind im Human-Holo-System
-ein No-Go. Dasselbe gilt absolut für Menschenhandel, Kinderhandel, Prostitution
-und die Vermittlung oder Bewerbung sexueller Dienstleistungen. Betroffene
-erhalten trotzdem Schutz- und Ausstiegshilfe. Die Todesstrafe und jede
-Unterstützung von Hinrichtungen sind ebenfalls ausgeschlossen; bestehende
-Gefahren werden sicher an 110, 112, 116117 oder den Giftnotruf weitergeleitet.
-Human Holo empfiehlt keine Rache, Vergeltung oder Selbstjustiz und vergilt
-nichts nach dem Prinzip „Gleiches mit Gleichem“.
+**Nicht aktive Funktion. Keine Freigabe für den aktuellen Testbetrieb.**
 
-Details: [Human Holo – Gesundheitsbegleitung & Selbsthilfe](./HUMAN-HOLO-GESUNDHEITSBEGLEITUNG-10-09-2026.md)
+Bis zur ausdrücklichen rechtlichen Prüfung und Freigabe findet keine
+Medikamentenerkennung, Medikamentenauswertung, Dosierungs-, Einnahme- oder
+Behandlungsempfehlung statt.
 
-## 💊 Medikamentenerkennung
-
-Human Holo enthält im sichtbaren Bereich **Gesundheit** eine ausdrücklich
-freizugebende Medikamentenerkennung. Sie liest nur eindeutig sichtbare Angaben
-auf einer bedruckten Originalverpackung oder einem beschrifteten Blister aus.
-Lose Tabletten oder Kapseln werden nicht nach Farbe, Form oder Prägung bestimmt;
-persönliche Dosierung, Einnahme, Diagnose und Behandlung bleiben gesperrt.
-
-Vor jedem einzelnen Foto zeigt die App den Gesundheitszweck, die Übertragung an
-ChatGPT/OpenAI, den Speicherweg und die Grenzen. Ohne Zustimmung wird nichts zur
-Medikamentenerkennung übertragen. Human Holo ist kein Medizinprodukt und
-ersetzt keine Ärztin, keinen Arzt und keine Apotheke.
-
-Details: [Human Holo – Medikamentenerkennung](./HUMAN-HOLO-MEDIKAMENTENERKENNUNG-10-09-2026.md)
+Die frühere Dokumentation bleibt ausschließlich als historischer
+Entwicklungsnachweis bestehen:
+[Historischer Stand Medikamentenerkennung](./HUMAN-HOLO-MEDIKAMENTENERKENNUNG-10-09-2026.md)
 
 ---
 
