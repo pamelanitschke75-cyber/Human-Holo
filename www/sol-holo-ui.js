@@ -627,6 +627,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           </li>
           <li>Kein Verkauf deiner Daten und keine Nutzung für Werbung.</li>
           <li>
+            Der einschaltbare Draußen-Schutz erkennt Gesichtsflächen nur lokal
+            auf dem Handy und verpixelt sie vor dem Senden. Er identifiziert
+            keine Person und speichert kein Gesichtsprofil. Bei der Frontkamera
+            kann ausschließlich die zentral gerahmte Kameranutzerin sichtbar
+            bleiben; alle weiteren erkannten Gesichter werden verpixelt.
+          </li>
+          <li>
             Gesundheitsinformationen sind allgemeine Orientierung und ersetzen
             keine Diagnose, Behandlung oder persönliche Dosierungsentscheidung.
           </li>

@@ -37,6 +37,7 @@ on:
       - "www/consent-ui-bootstrap.mjs"
       - "www/model-en-mixed.b64"
       - "www/media-tools.js"
+      - "www/public-face-privacy.mjs"
       - "www/sol-holo-logo.png"
       - "www/human-holo-logo.png"
       - "www/human-holo-ai-policy.js"
@@ -424,6 +425,13 @@ jobs:
           grep -q 'id="liveCameraButton"' "$app_html"
           grep -q '"input_image"' "$app_html"
           grep -q 'LIVE_KAMERA_START' "$app_html"
+          face_privacy="android/app/src/main/assets/public/public-face-privacy.mjs"
+          test -s "$face_privacy"
+          grep -q 'FaceLandmarker' "$face_privacy"
+          grep -q 'createFacePixelationPlan' "$face_privacy"
+          grep -q 'PUBLIC_FACE_PRIVACY_UNAVAILABLE' "$face_privacy"
+          grep -q 'id="liveCameraPublicPrivacyToggle"' "$app_html"
+          grep -q 'publicFacePrivacyApplied' "$app_html"
 
       - name: WhatsApp-Einmalversand in Android prüfen
         run: |
@@ -697,6 +705,7 @@ jobs:
           unzip -l "$apk" | grep -F "assets/public/human-holo-animal-holos.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-chatgpt-memory-bridge.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-durable-memory.mjs"
+          unzip -l "$apk" | grep -F "assets/public/public-face-privacy.mjs"
           unzip -p "$apk" assets/public/human-holo-animal-core.mjs \
             | grep -q "SPDX-License-Identifier: MIT"
           unzip -l "$apk" | grep -F "assets/public/third-party/HeadAudio-LICENSE.txt"
