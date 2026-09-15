@@ -73,6 +73,8 @@ public class PhoneContactsPlugin extends Plugin {
         "com.google.android.apps.maps";
     private static final String SAMSUNG_NOTES_PACKAGE =
         "com.samsung.android.app.notes";
+    private static final String SAMSUNG_CALENDAR_PACKAGE =
+        "com.samsung.android.calendar";
     private static final String GOOGLE_CREATE_NOTE_ACTION =
         "com.google.android.gms.actions.CREATE_NOTE";
     private static final String GOOGLE_NOTE_NAME_EXTRA =
@@ -89,6 +91,7 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_ALARM_LABEL_LENGTH = 160;
     private static final int MAX_CALENDAR_TITLE_LENGTH = 240;
     private static final int MAX_CALENDAR_DESCRIPTION_LENGTH = 2000;
+    private static final int MAX_CALENDAR_QUERY_LENGTH = 120;
     private static final long CALENDAR_DUPLICATE_WINDOW_MILLIS = 2 * 60 * 1000L;
     private static final String CALENDAR_PREFERENCES =
         "human_holo_direct_calendar";
@@ -409,10 +412,23 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("permissionGranted", permissionGranted);
         result.put("writableCalendarAvailable", calendar != null);
         result.put("directWriteSupported", true);
-        result.put("opensExternalApp", false);
+        result.put("opensExternalApp", true);
         result.put("reviewAndSaveRequired", false);
         result.put("accessCanBeRevoked", true);
         return result;
+    }
+
+    private String normalizedCalendarSearchText(String value) {
+        String normalized = Normalizer.normalize(
+            value == null ? "" : value,
+            Normalizer.Form.NFKD
+        );
+        return normalized
+            .replaceAll("\\p{M}+", "")
+            .toLowerCase(Locale.GERMAN)
+            .replaceAll("[^\\p{L}\\p{N}]+", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
     }
 
     private ComponentName whatsAppAutoSendComponent() {
@@ -969,6 +985,70 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void openCalendarApp(PluginCall call) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Der Handy-Kalender konnte gerade nicht geöffnet werden.",
+                "CALENDAR_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        Long requestedTime = numericLong(call, "timeMillis");
+        long timeMillis = requestedTime != null && requestedTime > 0L
+            ? requestedTime
+            : System.currentTimeMillis();
+        Uri.Builder calendarUri = CalendarContract.CONTENT_URI
+            .buildUpon()
+            .appendPath("time");
+        ContentUris.appendId(calendarUri, timeMillis);
+
+        Intent samsungIntent = new Intent(
+            Intent.ACTION_VIEW,
+            calendarUri.build()
+        ).setPackage(SAMSUNG_CALENDAR_PACKAGE);
+        boolean openedSamsungCalendar = true;
+
+        try {
+            try {
+                activity.startActivity(samsungIntent);
+            } catch (ActivityNotFoundException | SecurityException error) {
+                openedSamsungCalendar = false;
+                try {
+                    activity.startActivity(
+                        new Intent(Intent.ACTION_VIEW, calendarUri.build())
+                    );
+                } catch (
+                    ActivityNotFoundException | SecurityException viewError
+                ) {
+                    activity.startActivity(
+                        Intent.makeMainSelectorActivity(
+                            Intent.ACTION_MAIN,
+                            Intent.CATEGORY_APP_CALENDAR
+                        )
+                    );
+                }
+            }
+
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("timeMillis", timeMillis);
+            result.put(
+                "packageName",
+                openedSamsungCalendar ? SAMSUNG_CALENDAR_PACKAGE : ""
+            );
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Auf diesem Handy wurde keine Kalender-App gefunden.",
+                "CALENDAR_OPEN_FAILED",
+                error
+            );
+        }
+    }
+
+    @PluginMethod
     public void listCalendarEvents(PluginCall call) {
         if (!calendarGranted()) {
             call.reject(
@@ -998,6 +1078,16 @@ public class PhoneContactsPlugin extends Plugin {
             1,
             Math.min(requestedLimit == null ? 30 : requestedLimit, 50)
         );
+        String titleQuery = normalizedCalendarSearchText(
+            call.getString("titleQuery", "")
+        );
+        if (titleQuery.length() > MAX_CALENDAR_QUERY_LENGTH) {
+            call.reject(
+                "Die Kalendersuche ist zu lang.",
+                "CALENDAR_QUERY_INVALID"
+            );
+            return;
+        }
         Uri.Builder instancesBuilder =
             CalendarContract.Instances.CONTENT_URI.buildUpon();
         ContentUris.appendId(instancesBuilder, startValue);
@@ -1049,9 +1139,17 @@ public class PhoneContactsPlugin extends Plugin {
                 while (cursor.moveToNext() && events.length() < limit) {
                     long begin = cursor.getLong(beginIndex);
                     long end = cursor.getLong(endIndex);
+                    String title = cursor.getString(titleIndex);
+                    if (
+                        !titleQuery.isEmpty() &&
+                        !normalizedCalendarSearchText(title)
+                            .contains(titleQuery)
+                    ) {
+                        continue;
+                    }
                     JSObject event = new JSObject();
                     event.put("eventId", cursor.getLong(eventIdIndex));
-                    event.put("title", cursor.getString(titleIndex));
+                    event.put("title", title);
                     event.put("startMillis", begin);
                     event.put("endMillis", end > begin ? end : begin);
                     event.put("allDay", cursor.getInt(allDayIndex) == 1);

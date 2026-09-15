@@ -10819,6 +10819,19 @@ Notiz. Die App blockiert die Speicherung solcher Inhalte zusätzlich.
 
 WICHTIG ZU GOOGLE CALENDAR:
 
+Wenn ${identity.displayName} ausdrücklich fragt, was heute, morgen, übermorgen,
+an einem genannten Tag oder als Nächstes im verbundenen Handy-Kalender steht,
+verwende read_calendar. Das gilt auch für die Frage nach dem Geburtstag einer
+genannten Person und für eine sicher erkannte Gebärdensprachfolge. Das Werkzeug
+liest nur den von der Frage begrenzten Zeitraum, verändert nichts und liefert
+auch Geburtstage, die in der kompakten Holo-Ansicht nicht als Karte erscheinen.
+Gib ausschließlich das gelieferte Ergebnis wieder und erfinde keine Termine.
+
+Beginnt eine Nutzernachricht mit [LOKALES_KALENDERLESEERGEBNIS], wurde der
+Handy-Kalender bereits lokal und nur lesend geprüft. Sprich das gelieferte
+Ergebnis kurz und unverändert aus und rufe weder read_calendar noch ein
+Kalender-Speicherwerkzeug erneut auf.
+
 Wenn ${identity.displayName} per Sprache verlangt,
 einen Termin oder eine Erinnerung in ihren
 Google Kalender einzutragen,
@@ -11080,6 +11093,38 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
                 "object",
 
               properties: {},
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "read_calendar",
+
+            description:
+              `Liest auf ${identity.displayName}s ausdrückliche Frage ausschließlich den passenden Zeitraum im verbundenen Handy-Kalender von ${instanceName}. Automatisch verwenden für heute, morgen, übermorgen, einen genannten Tag, den nächsten Termin oder den Geburtstag einer genannten Person – auch bei sicher erkannter Gebärdensprache. Verändert und speichert nichts; erfinde keine Termine.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                request: {
+                  type:
+                    "string",
+
+                  description:
+                    "Die vollständige natürliche Kalenderfrage mit Tag, Datum oder Personenname."
+                }
+              },
+
+              required: [
+                "request"
+              ],
 
               additionalProperties:
                 false

@@ -3726,6 +3726,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     };
   }
 
+  function isHiddenSamsungBirthdayEvent(event) {
+    const calendarName = normalizeNoteSearchText(event?.calendarName);
+    const title = normalizeNoteSearchText(event?.title);
+    return calendarName.includes("samsung") &&
+      (title.includes("geburtstag") || title.includes("birthday"));
+  }
+
   function localCalendarDayValue(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -3822,6 +3829,461 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return start.toLocaleString("de-DE");
     }
   }
+
+  function calendarReadRequestFromMessage(value, referenceDate = new Date()) {
+    const cleanMessage = stripHoloInvocation(value);
+    const text = normalizeNoteSearchText(cleanMessage)
+      .replace(/[^\p{L}\p{N}./'’-]+/gu, " ")
+      .replace(/\s+/gu, " ")
+      .trim();
+    if (!text) return null;
+
+    const writeAction =
+      /\b(?:trag|trage|eintragen|speicher|speichere|speichern|erstell|erstelle|erstellen|plane|planen|setz|setze|hinzufugen|fug|fuge)\b/u;
+    if (writeAction.test(text)) return null;
+
+    const birthdayPatterns = [
+      /^wann\s+hat\s+(.+?)\s+(?:laut\s+(?:meinem|dem)\s+kalender\s+)?geburtstag\b/u,
+      /^wann\s+ist\s+(?:der\s+)?geburtstag\s+(?:von\s+)?(.+?)(?:\s+im\s+kalender)?$/u,
+      /^wann\s+ist\s+(.+?)(?:['’]s|s)\s+geburtstag\b/u,
+      /^wann\s+ist\s+(.+?)\s+geburtstag\b/u,
+      /^(?:such|suche|find|finde|zeig|zeige|nenn|nenne)\s+(?:mir\s+)?(?:bitte\s+)?(?:den\s+)?geburtstag\s+(?:von\s+)?(.+?)(?:\s+im\s+kalender)?$/u
+    ];
+    for (const pattern of birthdayPatterns) {
+      const match = text.match(pattern);
+      const personQuery = normalizeNoteSearchText(match?.[1] || "")
+        .replace(/\b(?:bitte|meinem|kalender)\b/gu, " ")
+        .replace(/\s+/gu, " ")
+        .trim();
+      if (!personQuery || personQuery.length > 80) continue;
+
+      const person = personQuery
+        .split(/\s+/u)
+        .map((part) => part
+          .split("-")
+          .map((namePart) => namePart
+            ? `${namePart.charAt(0).toLocaleUpperCase("de-DE")}${namePart.slice(1)}`
+            : "")
+          .join("-"))
+        .join(" ");
+      const rangeStart = new Date(referenceDate);
+      if (!Number.isFinite(rangeStart.getTime())) return null;
+      rangeStart.setHours(0, 0, 0, 0);
+      const birthdaySearchEnd = new Date(rangeStart);
+      birthdaySearchEnd.setFullYear(
+        birthdaySearchEnd.getFullYear() + 1
+      );
+      birthdaySearchEnd.setDate(birthdaySearchEnd.getDate() + 1);
+      return {
+        kind: "birthday",
+        person,
+        personQuery,
+        referenceMillis: new Date(referenceDate).getTime(),
+        startMillis: rangeStart.getTime(),
+        endMillis: birthdaySearchEnd.getTime()
+      };
+    }
+
+    const mentionsCalendar =
+      /\b(?:kalender|kalendereintrage?|termine?|verabredungen?|geburtstage?)\b/u.test(text);
+    const asksForContents =
+      /\b(?:was|welche|welcher|welches|wie\s+viele)\b[\s\S]*\b(?:steht|stehen|ist|sind|habe|haben|kommt|kommen)\b/u.test(text) ||
+      /\b(?:steht|stehen|ist|sind|habe|haben)\b[\s\S]*\b(?:was|welche|welcher|welches)\b/u.test(text);
+    const asksToRead =
+      /\b(?:lies|lese|vorlesen|zeig|zeige|sag|sage|nenn|nenne)\b/u.test(text);
+    const namesAppointments =
+      /^(?:meine\s+)?(?:termine?|kalender)(?:\s+(?:fur|für)\s+.+)?$/u.test(text);
+    const asksForNext =
+      /\b(?:nachst(?:e|er|es|en)?\s+termin|als\s+nachstes\s+im\s+kalender)\b/u.test(text);
+    if (
+      !mentionsCalendar ||
+      (!asksForContents && !asksToRead && !namesAppointments && !asksForNext)
+    ) {
+      return null;
+    }
+
+    const reference = new Date(referenceDate);
+    if (!Number.isFinite(reference.getTime())) return null;
+    const today = new Date(reference);
+    today.setHours(0, 0, 0, 0);
+
+    if (asksForNext) {
+      const upcomingSearchEnd = new Date(today);
+      upcomingSearchEnd.setFullYear(
+        upcomingSearchEnd.getFullYear() + 1
+      );
+      return {
+        kind: "upcoming",
+        referenceMillis: reference.getTime(),
+        startMillis: today.getTime(),
+        endMillis: upcomingSearchEnd.getTime()
+      };
+    }
+
+    const createDay = (year, month, day) => {
+      const candidate = new Date(year, month - 1, day);
+      if (
+        candidate.getFullYear() !== year ||
+        candidate.getMonth() !== month - 1 ||
+        candidate.getDate() !== day
+      ) {
+        return null;
+      }
+      candidate.setHours(0, 0, 0, 0);
+      return candidate;
+    };
+
+    let selectedDay = null;
+    let relativeLabel = "";
+    if (/\bubermorgen\b/u.test(text)) {
+      selectedDay = new Date(today);
+      selectedDay.setDate(selectedDay.getDate() + 2);
+      relativeLabel = "übermorgen";
+    } else if (/\bmorgen\b/u.test(text)) {
+      selectedDay = new Date(today);
+      selectedDay.setDate(selectedDay.getDate() + 1);
+      relativeLabel = "morgen";
+    } else if (/\bheute\b/u.test(text)) {
+      selectedDay = new Date(today);
+      relativeLabel = "heute";
+    }
+
+    if (!selectedDay) {
+      const isoMatch = text.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/u);
+      if (isoMatch) {
+        selectedDay = createDay(
+          Number(isoMatch[1]),
+          Number(isoMatch[2]),
+          Number(isoMatch[3])
+        );
+        if (!selectedDay) return null;
+      }
+    }
+
+    if (!selectedDay) {
+      const numericMatch = text.match(
+        /\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/u
+      );
+      if (numericMatch) {
+        const hasYear = Boolean(numericMatch[3]);
+        let year = hasYear ? Number(numericMatch[3]) : today.getFullYear();
+        if (year < 100) year += 2000;
+        selectedDay = createDay(
+          year,
+          Number(numericMatch[2]),
+          Number(numericMatch[1])
+        );
+        if (!selectedDay) return null;
+        if (!hasYear && selectedDay < today) {
+          selectedDay = createDay(
+            year + 1,
+            Number(numericMatch[2]),
+            Number(numericMatch[1])
+          );
+        }
+      }
+    }
+
+    if (!selectedDay) {
+      const monthNumbers = {
+        januar: 1,
+        februar: 2,
+        marz: 3,
+        april: 4,
+        mai: 5,
+        juni: 6,
+        juli: 7,
+        august: 8,
+        september: 9,
+        oktober: 10,
+        november: 11,
+        dezember: 12
+      };
+      const monthMatch = text.match(
+        /\b(\d{1,2})\.?\s+(januar|februar|marz|april|mai|juni|juli|august|september|oktober|november|dezember)(?:\s+(\d{4}))?\b/u
+      );
+      if (monthMatch) {
+        const hasYear = Boolean(monthMatch[3]);
+        const year = hasYear ? Number(monthMatch[3]) : today.getFullYear();
+        selectedDay = createDay(
+          year,
+          monthNumbers[monthMatch[2]],
+          Number(monthMatch[1])
+        );
+        if (!selectedDay) return null;
+        if (!hasYear && selectedDay < today) {
+          selectedDay = createDay(
+            year + 1,
+            monthNumbers[monthMatch[2]],
+            Number(monthMatch[1])
+          );
+        }
+      }
+    }
+
+    if (!selectedDay) {
+      const weekdays = {
+        sonntag: 0,
+        montag: 1,
+        dienstag: 2,
+        mittwoch: 3,
+        donnerstag: 4,
+        freitag: 5,
+        samstag: 6
+      };
+      const weekdayMatch = text.match(
+        /\b(nachsten\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/u
+      );
+      if (weekdayMatch) {
+        let dayOffset =
+          (weekdays[weekdayMatch[2]] - today.getDay() + 7) % 7;
+        if (weekdayMatch[1] && dayOffset === 0) dayOffset = 7;
+        selectedDay = new Date(today);
+        selectedDay.setDate(selectedDay.getDate() + dayOffset);
+      }
+    }
+
+    if (!selectedDay) {
+      selectedDay = new Date(today);
+      relativeLabel = "heute";
+    }
+    const rangeEnd = new Date(selectedDay);
+    rangeEnd.setDate(rangeEnd.getDate() + 1);
+    return {
+      kind: "day",
+      relativeLabel,
+      referenceMillis: reference.getTime(),
+      startMillis: selectedDay.getTime(),
+      endMillis: rangeEnd.getTime()
+    };
+  }
+
+  function calendarReadDateText(eventOrMillis) {
+    const event = typeof eventOrMillis === "object"
+      ? eventOrMillis
+      : { startMillis: eventOrMillis, allDay: false };
+    const options = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    };
+    if (event.allDay) options.timeZone = "UTC";
+    try {
+      return new Intl.DateTimeFormat("de-DE", options)
+        .format(new Date(event.startMillis));
+    } catch {
+      return new Date(event.startMillis).toLocaleDateString("de-DE");
+    }
+  }
+
+  function calendarReadTimeText(event) {
+    if (event.allDay) return "ganztägig";
+    const start = new Date(event.startMillis);
+    const end = new Date(event.endMillis);
+    try {
+      const formatter = new Intl.DateTimeFormat("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      const startText = formatter.format(start);
+      if (event.endMillis > event.startMillis) {
+        return `${startText} bis ${formatter.format(end)} Uhr`;
+      }
+      return `${startText} Uhr`;
+    } catch {
+      return start.toLocaleTimeString("de-DE");
+    }
+  }
+
+  function calendarReadEventsForRequest(events, request) {
+    const normalizedEvents = Array.isArray(events)
+      ? events.map(normalizeLinkedCalendarEvent).filter(Boolean)
+      : [];
+    const filtered = normalizedEvents.filter((event) => {
+      if (request?.kind === "day") {
+        return linkedCalendarEventFallsOnDay(
+          event,
+          new Date(request.startMillis),
+          new Date(request.endMillis)
+        );
+      }
+      if (request?.kind === "birthday") {
+        const title = normalizeNoteSearchText(event.title);
+        const personParts = String(request.personQuery || "")
+          .split(/\s+/u)
+          .filter(Boolean);
+        return (
+          (title.includes("geburtstag") || title.includes("birthday")) &&
+          personParts.every((part) => title.includes(part))
+        );
+      }
+      return request?.kind === "upcoming" &&
+        event.endMillis >= Number(request.referenceMillis || Date.now());
+    });
+    return uniqueLinkedCalendarEvents(filtered)
+      .sort((left, right) => left.startMillis - right.startMillis);
+  }
+
+  function calendarReadEntryText(event, includeDate = false) {
+    const date = includeDate ? `${calendarReadDateText(event)}, ` : "";
+    const location = event.location ? `, Ort: ${event.location}` : "";
+    return `${date}${calendarReadTimeText(event)}: ${event.title}${location}`;
+  }
+
+  function calendarReadAnswer(request, events) {
+    const matches = calendarReadEventsForRequest(events, request);
+    if (request?.kind === "birthday") {
+      if (!matches.length) {
+        return {
+          success: true,
+          empty: true,
+          events: [],
+          answer:
+            `Ich habe in den nächsten zwölf Monaten keinen Geburtstagseintrag für ${request.person} in deinem Handy-Kalender gefunden.`
+        };
+      }
+      return {
+        success: true,
+        empty: false,
+        events: matches,
+        answer:
+          `${request.person} hat laut deinem Handy-Kalender am ${calendarReadDateText(matches[0])} Geburtstag.`
+      };
+    }
+
+    if (request?.kind === "upcoming") {
+      if (!matches.length) {
+        return {
+          success: true,
+          empty: true,
+          events: [],
+          answer:
+            "In den nächsten zwölf Monaten steht kein Termin in deinem Handy-Kalender."
+        };
+      }
+      return {
+        success: true,
+        empty: false,
+        events: matches,
+        answer:
+          `Dein nächster Kalendereintrag ist ${calendarReadEntryText(matches[0], true)}.`
+      };
+    }
+
+    const scope = request?.relativeLabel ||
+      calendarReadDateText(Number(request?.startMillis));
+    if (!matches.length) {
+      return {
+        success: true,
+        empty: true,
+        events: [],
+        answer: `Für ${scope} steht nichts in deinem Handy-Kalender.`
+      };
+    }
+
+    const spokenEvents = matches.slice(0, 8);
+    const remainingCount = matches.length - spokenEvents.length;
+    const details = spokenEvents
+      .map((event) => calendarReadEntryText(event))
+      .join("; ");
+    const remainder = remainingCount > 0
+      ? `; sowie ${remainingCount} weitere ${remainingCount === 1 ? "Termin" : "Termine"}`
+      : "";
+    return {
+      success: true,
+      empty: false,
+      events: matches,
+      answer:
+        matches.length === 1
+          ? `Für ${scope} steht ein Termin in deinem Handy-Kalender: ${details}.`
+          : `Für ${scope} stehen ${matches.length} Termine in deinem Handy-Kalender: ${details}${remainder}.`
+    };
+  }
+
+  async function readDeviceCalendar(request) {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer:
+          "Die feste Holo-ID ist nicht verfügbar. Der Handy-Kalender wurde nicht gelesen."
+      };
+    }
+
+    const plugin = getPhoneContactsPlugin();
+    if (
+      typeof plugin?.getCalendarStatus !== "function" ||
+      typeof plugin?.listCalendarEvents !== "function"
+    ) {
+      return {
+        success: false,
+        updateRequired: true,
+        answer:
+          "Zum Lesen des Handy-Kalenders ist das aktuelle Human-Holo-App-Update nötig."
+      };
+    }
+
+    try {
+      const status = await plugin.getCalendarStatus();
+      renderDeviceCalendarStatus(status);
+      if (!status?.permissionGranted) {
+        return {
+          success: false,
+          permissionRequired: true,
+          answer:
+            "Der Kalenderzugriff fehlt. Öffne Wichtiges → Kalender und tippe einmal auf „Zugriff freigeben“."
+        };
+      }
+
+      const result = await plugin.listCalendarEvents({
+        startMillis: request.startMillis,
+        endMillis: request.endMillis,
+        limit: 50,
+        ...(request.kind === "birthday"
+          ? { titleQuery: request.personQuery }
+          : {})
+      });
+      return {
+        ...calendarReadAnswer(request, result?.events),
+        readOnly: true,
+        localRead: true,
+        destination: "Handy-Kalender"
+      };
+    } catch (error) {
+      console.error("Handy-Kalender lesen:", error?.code || error?.name);
+      const permissionRequired =
+        error?.code === "CALENDAR_PERMISSION_REQUIRED";
+      return {
+        success: false,
+        permissionRequired,
+        answer: permissionRequired
+          ? "Der Kalenderzugriff fehlt. Öffne Wichtiges → Kalender und tippe einmal auf „Zugriff freigeben“."
+          : "Der Handy-Kalender konnte gerade nicht sicher gelesen werden. Ich erfinde keine Termine."
+      };
+    }
+  }
+
+  async function executeCalendarReadTool(args = {}) {
+    const requestText = typeof args === "string"
+      ? args
+      : String(args?.request || args?.query || "").trim();
+    const request = calendarReadRequestFromMessage(requestText);
+    if (!request) {
+      return {
+        success: false,
+        answer:
+          "Die Kalenderfrage enthält keinen sicher erkannten Tag, Termin oder Personennamen. Ich erfinde keine Termine."
+      };
+    }
+    return readDeviceCalendar(request);
+  }
+
+  window.extractSolHoloCalendarReadRequest =
+    calendarReadRequestFromMessage;
+
+  window.executeSolHoloCalendarReadTool =
+    executeCalendarReadTool;
 
   function buildLinkedCalendarCard(event) {
     const card = document.createElement("article");
@@ -3937,6 +4399,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ? uniqueLinkedCalendarEvents(result.events
           .map(normalizeLinkedCalendarEvent)
           .filter(Boolean)
+          .filter((event) => !isHiddenSamsungBirthdayEvent(event))
           .filter((event) =>
             linkedCalendarEventFallsOnDay(event, rangeStart, rangeEnd)
           )
@@ -5133,7 +5596,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
     if (button) {
       button.textContent = actionLabel;
-      button.disabled = Boolean(granted);
+      button.disabled = actionLabel === "Bitte warten";
+      button.dataset.calendarAction = granted ? "open" : "connect";
+      button.setAttribute(
+        "aria-label",
+        granted ? "Handy-Kalender öffnen" : actionLabel
+      );
       button.setAttribute("aria-pressed", String(Boolean(granted)));
     }
   }
@@ -5160,7 +5628,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       if (todayState) todayState.textContent = "Kalender in Holo verknüpft";
       renderCalendarAccessState(
         "Mit deinem Handy-Kalender verknüpft ✅️",
-        "Verknüpft",
+        "Kalender öffnen",
         true
       );
       return true;
@@ -7475,6 +7943,26 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
 
+    // Kalenderfragen lesen ausschließlich den aktuellen Android-Kalender.
+    // Ausgeblendete Geburtstagskarten bleiben dabei gezielt abfragbar.
+    const calendarReadRequest =
+      calendarReadRequestFromMessage(noteMessage);
+    if (calendarReadRequest) {
+      const result = await readDeviceCalendar(calendarReadRequest);
+      return {
+        handled: true,
+        success: Boolean(result?.success),
+        calendarRead: true,
+        marker: "[LOKALES_KALENDERLESEERGEBNIS]",
+        status: result?.success
+          ? result.empty
+            ? "Handy-Kalender gelesen · kein Treffer."
+            : "Handy-Kalender sicher gelesen."
+          : "Handy-Kalender konnte nicht gelesen werden.",
+        answer: result.answer
+      };
+    }
+
     // Schrift und transkribierte Sprache laufen beide über diese Funktion.
     // Fragen nach der Liste lesen ausschließlich den aktuellen lokalen Stand.
     if (isShoppingListReadRequest(noteMessage)) {
@@ -7861,7 +8349,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.handleSolHoloRealtimeNoteTranscript = async (message) => {
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
-    if (alarmClockRequestFromMessage(noteMessage)) {
+    if (
+      alarmClockRequestFromMessage(noteMessage) ||
+      calendarReadRequestFromMessage(noteMessage)
+    ) {
       return window.handleSolHoloLocalAction(cleanMessage);
     }
     if (
@@ -8581,6 +9072,26 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "click",
     async () => {
       const plugin = getPhoneContactsPlugin();
+
+      if (deviceCalendarStatus.permissionGranted) {
+        if (typeof plugin?.openCalendarApp !== "function") {
+          showToast("Zum Öffnen des Handy-Kalenders ist das App-Update nötig.");
+          return;
+        }
+
+        showToast("Handy-Kalender wird geöffnet …");
+        try {
+          await plugin.openCalendarApp({
+            timeMillis: selectedCalendarDayStart().getTime()
+          });
+          showToast("Handy-Kalender geöffnet ✅️");
+        } catch (error) {
+          console.error("Handy-Kalender öffnen:", error?.code || error?.name);
+          showToast("Der Handy-Kalender konnte gerade nicht geöffnet werden.");
+        }
+        return;
+      }
+
       if (typeof plugin?.requestCalendarAccess !== "function") {
         document.getElementById("googleAccountRow")?.click();
         return;
