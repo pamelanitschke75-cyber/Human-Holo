@@ -3719,6 +3719,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     };
   }
 
+  function isHiddenSamsungBirthdayEvent(event) {
+    const calendarName = normalizeNoteSearchText(event?.calendarName);
+    const title = normalizeNoteSearchText(event?.title);
+    return calendarName.includes("samsung") &&
+      (title.includes("geburtstag") || title.includes("birthday"));
+  }
+
   function localCalendarDayValue(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -3930,6 +3937,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ? uniqueLinkedCalendarEvents(result.events
           .map(normalizeLinkedCalendarEvent)
           .filter(Boolean)
+          .filter((event) => !isHiddenSamsungBirthdayEvent(event))
           .filter((event) =>
             linkedCalendarEventFallsOnDay(event, rangeStart, rangeEnd)
           )
@@ -5126,7 +5134,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
     if (button) {
       button.textContent = actionLabel;
-      button.disabled = Boolean(granted);
+      button.disabled = actionLabel === "Bitte warten";
+      button.dataset.calendarAction = granted ? "open" : "connect";
+      button.setAttribute(
+        "aria-label",
+        granted ? "Handy-Kalender öffnen" : actionLabel
+      );
       button.setAttribute("aria-pressed", String(Boolean(granted)));
     }
   }
@@ -5153,7 +5166,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       if (todayState) todayState.textContent = "Kalender in Holo verknüpft";
       renderCalendarAccessState(
         "Mit deinem Handy-Kalender verknüpft ✅️",
-        "Verknüpft",
+        "Kalender öffnen",
         true
       );
       return true;
@@ -8574,6 +8587,26 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "click",
     async () => {
       const plugin = getPhoneContactsPlugin();
+
+      if (deviceCalendarStatus.permissionGranted) {
+        if (typeof plugin?.openCalendarApp !== "function") {
+          showToast("Zum Öffnen des Handy-Kalenders ist das App-Update nötig.");
+          return;
+        }
+
+        showToast("Handy-Kalender wird geöffnet …");
+        try {
+          await plugin.openCalendarApp({
+            timeMillis: selectedCalendarDayStart().getTime()
+          });
+          showToast("Handy-Kalender geöffnet ✅️");
+        } catch (error) {
+          console.error("Handy-Kalender öffnen:", error?.code || error?.name);
+          showToast("Der Handy-Kalender konnte gerade nicht geöffnet werden.");
+        }
+        return;
+      }
+
       if (typeof plugin?.requestCalendarAccess !== "function") {
         document.getElementById("googleAccountRow")?.click();
         return;
