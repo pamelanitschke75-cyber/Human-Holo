@@ -91,6 +91,7 @@ public class PhoneContactsPlugin extends Plugin {
     private static final int MAX_ALARM_LABEL_LENGTH = 160;
     private static final int MAX_CALENDAR_TITLE_LENGTH = 240;
     private static final int MAX_CALENDAR_DESCRIPTION_LENGTH = 2000;
+    private static final int MAX_CALENDAR_QUERY_LENGTH = 120;
     private static final long CALENDAR_DUPLICATE_WINDOW_MILLIS = 2 * 60 * 1000L;
     private static final String CALENDAR_PREFERENCES =
         "human_holo_direct_calendar";
@@ -415,6 +416,19 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("reviewAndSaveRequired", false);
         result.put("accessCanBeRevoked", true);
         return result;
+    }
+
+    private String normalizedCalendarSearchText(String value) {
+        String normalized = Normalizer.normalize(
+            value == null ? "" : value,
+            Normalizer.Form.NFKD
+        );
+        return normalized
+            .replaceAll("\\p{M}+", "")
+            .toLowerCase(Locale.GERMAN)
+            .replaceAll("[^\\p{L}\\p{N}]+", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
     }
 
     private ComponentName whatsAppAutoSendComponent() {
@@ -1064,6 +1078,16 @@ public class PhoneContactsPlugin extends Plugin {
             1,
             Math.min(requestedLimit == null ? 30 : requestedLimit, 50)
         );
+        String titleQuery = normalizedCalendarSearchText(
+            call.getString("titleQuery", "")
+        );
+        if (titleQuery.length() > MAX_CALENDAR_QUERY_LENGTH) {
+            call.reject(
+                "Die Kalendersuche ist zu lang.",
+                "CALENDAR_QUERY_INVALID"
+            );
+            return;
+        }
         Uri.Builder instancesBuilder =
             CalendarContract.Instances.CONTENT_URI.buildUpon();
         ContentUris.appendId(instancesBuilder, startValue);
@@ -1115,9 +1139,17 @@ public class PhoneContactsPlugin extends Plugin {
                 while (cursor.moveToNext() && events.length() < limit) {
                     long begin = cursor.getLong(beginIndex);
                     long end = cursor.getLong(endIndex);
+                    String title = cursor.getString(titleIndex);
+                    if (
+                        !titleQuery.isEmpty() &&
+                        !normalizedCalendarSearchText(title)
+                            .contains(titleQuery)
+                    ) {
+                        continue;
+                    }
                     JSObject event = new JSObject();
                     event.put("eventId", cursor.getLong(eventIdIndex));
-                    event.put("title", cursor.getString(titleIndex));
+                    event.put("title", title);
                     event.put("startMillis", begin);
                     event.put("endMillis", end > begin ? end : begin);
                     event.put("allDay", cursor.getInt(allDayIndex) == 1);
