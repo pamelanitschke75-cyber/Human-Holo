@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.5
-Stand: 13.09.2026
+Version: 1.6
+Stand: 15.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -748,6 +748,37 @@ Pam bestimmt, was Teil von Sol Holo wird.
 Sol Holo darf daraus lernen und Zusammenhänge bilden.
 
 Externe Systeme erhalten dadurch nicht automatisch Zugriff auf das vollständige digitale Pam-Modell.
+
+---
+
+27. DRAUSSEN-SCHUTZ FÜR GESICHTER
+
+Für Kameraaufnahmen im Freien oder öffentlichen Raum besitzt Human Holo einen
+lokalen Gesichtsschutz:
+
+- Die Erkennung der zu schützenden Gesichtsflächen läuft auf dem Handy.
+- Es werden keine fremden Personen identifiziert, keine Namen abgeleitet und
+  keine Gesichtsprofile gespeichert.
+- Bei der Rückkamera werden alle erkannten Gesichter vor der Übertragung
+  verpixelt.
+- Bei der Frontkamera kann nur die deutlich sichtbare, zentral gerahmte
+  Kameranutzerin unverpixelt bleiben. Diese Auswahl erfolgt nur anhand von
+  Position und Größe, nicht durch einen Identitätsabgleich.
+- Alle weiteren erkannten Gesichter werden gleichermaßen verpixelt; damit sind
+  auch Kinder und andere unbeteiligte Menschen vom selben Schutz umfasst.
+- Bei einem technisch fehlgeschlagenen Filter wird kein als geschützt
+  gekennzeichnetes Bild gesendet.
+- Bei geschützten Videos verlassen nur die lokal verpixelten Einzelbilder das
+  Handy. Originalvideo und Tonspur bleiben lokal.
+
+Der Schutz ist bei jeder neu gestarteten Live-Kamera und bei einem unmittelbar
+mit der Rückkamera aufgenommenen Foto zunächst eingeschaltet. Bei Medien aus
+der Galerie wird er bewusst vor dem Senden gewählt. Automatische Detektion kann
+sehr kleine, verdeckte oder schlecht sichtbare Gesichter übersehen; die
+Vorschau bleibt deshalb eine zusätzliche sichtbare Kontrolle.
+
+Dieser reine Verpixelungsweg ist strikt von der freiwilligen privaten
+1:1-Selbstwiedererkennung der Ownerin getrennt.
 
 ---
 

@@ -10819,6 +10819,19 @@ Notiz. Die App blockiert die Speicherung solcher Inhalte zusätzlich.
 
 WICHTIG ZU GOOGLE CALENDAR:
 
+Wenn ${identity.displayName} ausdrücklich fragt, was heute, morgen, übermorgen,
+an einem genannten Tag oder als Nächstes im verbundenen Handy-Kalender steht,
+verwende read_calendar. Das gilt auch für die Frage nach dem Geburtstag einer
+genannten Person und für eine sicher erkannte Gebärdensprachfolge. Das Werkzeug
+liest nur den von der Frage begrenzten Zeitraum, verändert nichts und liefert
+auch Geburtstage, die in der kompakten Holo-Ansicht nicht als Karte erscheinen.
+Gib ausschließlich das gelieferte Ergebnis wieder und erfinde keine Termine.
+
+Beginnt eine Nutzernachricht mit [LOKALES_KALENDERLESEERGEBNIS], wurde der
+Handy-Kalender bereits lokal und nur lesend geprüft. Sprich das gelieferte
+Ergebnis kurz und unverändert aus und rufe weder read_calendar noch ein
+Kalender-Speicherwerkzeug erneut auf.
+
 Wenn ${identity.displayName} per Sprache verlangt,
 einen Termin oder eine Erinnerung in ihren
 Google Kalender einzutragen,
@@ -11080,6 +11093,38 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
                 "object",
 
               properties: {},
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "read_calendar",
+
+            description:
+              `Liest auf ${identity.displayName}s ausdrückliche Frage ausschließlich den passenden Zeitraum im verbundenen Handy-Kalender von ${instanceName}. Automatisch verwenden für heute, morgen, übermorgen, einen genannten Tag, den nächsten Termin oder den Geburtstag einer genannten Person – auch bei sicher erkannter Gebärdensprache. Verändert und speichert nichts; erfinde keine Termine.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                request: {
+                  type:
+                    "string",
+
+                  description:
+                    "Die vollständige natürliche Kalenderfrage mit Tag, Datum oder Personenname."
+                }
+              },
+
+              required: [
+                "request"
+              ],
 
               additionalProperties:
                 false
@@ -11672,10 +11717,11 @@ function isListMemoryCommand(message) {
   Die Responses API verarbeitet Bildinhalte. Videos werden deshalb
   bereits auf dem Handy in wenige, zeitlich geordnete Einzelbilder
   zerlegt. Erst nach Pams sichtbarer Sendebestätigung wird das
-  Originalvideo einmalig an /sol/video-transcript übertragen, damit
-  gesprochener Inhalt ausgewertet werden kann. Es wird nicht als Datei
-  oder Erinnerung gespeichert. /sol erhält anschließend nur die
-  Ausschnitte, den flüchtig erkannten Text und den Auswertungsstatus.
+  Originalvideo im privaten Modus einmalig an /sol/video-transcript
+  übertragen, damit gesprochener Inhalt ausgewertet werden kann. Es wird
+  nicht als Datei oder Erinnerung gespeichert. Mit aktiviertem
+  Draußen-Schutz bleiben Originalvideo und Tonspur dagegen vollständig auf
+  dem Handy; /sol erhält nur die dort lokal verpixelten Einzelbilder.
 */
 
 const MAX_VIDEO_FRAME_COUNT =
@@ -11847,6 +11893,23 @@ function readVisualMediaInput(body) {
       ? rawVideoTranscript
       : "";
 
+  const publicFacePrivacyApplied =
+    body?.publicFacePrivacyApplied ===
+      true &&
+    Boolean(
+      image ||
+      videoFrames.length > 0
+    );
+
+  if (
+    publicFacePrivacyApplied &&
+    videoTranscript
+  ) {
+    throw createMediaInputError(
+      "Ein Video mit Draußen-Schutz darf keine übertragene Tonspur enthalten."
+    );
+  }
+
   const videoAudioStatus =
     videoFrames.length === 0
       ? null
@@ -11863,6 +11926,7 @@ function readVisualMediaInput(body) {
 
   return {
     image,
+    publicFacePrivacyApplied,
     videoAudioStatus,
     videoDurationSeconds,
     videoFrames,
@@ -12179,6 +12243,7 @@ app.post("/sol", async (req, res) => {
 
     const {
       image,
+      publicFacePrivacyApplied,
       videoAudioStatus,
       videoDurationSeconds,
       videoFrames,
@@ -13370,9 +13435,14 @@ Antwort nicht trägt, sage das klar.
 `
         : "";
 
+    const publicFacePrivacyPrompt =
+      publicFacePrivacyApplied
+        ? "Draußen-Schutz war aktiv: Mosaikflächen verdecken Gesichter, die vor der Übertragung ausschließlich lokal auf dem Handy erkannt wurden. Versuche niemals, eine verpixelte Person zu identifizieren oder die Verpixelung gedanklich zu rekonstruieren."
+        : "";
+
     const mediaPrompt =
       hasVideo
-        ? `${identity.displayName} hat ein Video gesendet. Die folgenden ${videoFrames.length} Bilder sind zeitlich geordnete Ausschnitte aus diesem Video${
+        ? `${identity.displayName} hat eine Video-Bildfolge gesendet. ${publicFacePrivacyPrompt} Die folgenden ${videoFrames.length} Bilder sind zeitlich geordnete Ausschnitte aus diesem Video${
             videoDurationSeconds
               ? ` mit einer Länge von ungefähr ${Math.round(videoDurationSeconds)} Sekunden`
               : ""
@@ -13383,12 +13453,14 @@ Antwort nicht trägt, sage das klar.
               : videoAudioStatus ===
                   "no_speech"
                 ? "Die Tonspur wurde serverseitig auf Sprache geprüft; es wurde keine verständliche Sprache erkannt. Erfinde keine Geräusche oder Wörter."
-                : "Die Tonspur konnte technisch nicht ausgewertet werden. Mache deshalb keine Aussagen über Geräusche oder gesprochene Wörter."
+                : publicFacePrivacyApplied
+                  ? "Zum Schutz unbeteiligter Menschen blieben Originalvideo und Tonspur auf dem Handy. Mache deshalb keine Aussagen über Geräusche oder gesprochene Wörter."
+                  : "Die Tonspur konnte technisch nicht ausgewertet werden. Mache deshalb keine Aussagen über Geräusche oder gesprochene Wörter."
           }\n\nWenn die Bildfolge Gebärdensprache zeigen könnte, unterscheide sie von alltäglicher Gestik. Gebärdensprachen sind nicht universell; benenne DGS oder eine andere Sprache nur bei klarem Beleg. Übersetze nur sicher sichtbare Bedeutung über die vorhandenen Ausschnitte hinweg. Frage bei fehlenden Bewegungsphasen, verdeckten Händen oder Unsicherheit nach, statt Inhalt zu erfinden. Diese Regel gilt für Kinder und Erwachsene. Für blinde oder sehbehinderte Menschen antworte auf Wunsch als verständliche gesprochene Audiobeschreibung: mögliche unmittelbare Gefahren zuerst, dann wichtige Gegenstände, Positionen und lesbaren Text. Setze nicht voraus, dass die Person den Bildschirm sehen kann.\n\n${identity.displayName} fragt: ${promptMessage}`
         : hasImage
           ? medicationRecognitionRequested
             ? `Die Nutzerin hat nach sichtbarer Einzelfreigabe ein Foto zur Medikamentenerkennung gesendet. Werte nur die bedruckte Originalverpackung oder den beschrifteten Blister aus.\n\nFrage: ${promptMessage}`
-            : `${identity.displayName} hat ein Foto gesendet. Analysiere das Foto zusammen mit der Frage.\n\n${identity.displayName} fragt: ${promptMessage}`
+            : `${identity.displayName} hat ein Foto gesendet. ${publicFacePrivacyPrompt} Analysiere das Foto zusammen mit der Frage.\n\n${identity.displayName} fragt: ${promptMessage}`
           : promptMessage;
 
     const responseInput =

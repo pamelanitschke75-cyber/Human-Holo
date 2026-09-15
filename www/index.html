@@ -567,6 +567,47 @@ BILDVORSCHAU
   font-size:13px;
 }
 
+#publicMediaPrivacyControl{
+  display:flex;
+  width:100%;
+  align-items:flex-start;
+  gap:9px;
+
+  padding:9px 10px;
+
+  border:
+    1px solid rgba(104,225,255,.46);
+
+  border-radius:14px;
+
+  background:
+    rgba(18,37,76,.62);
+
+  color:#e9faff;
+  font-size:12px;
+  line-height:1.35;
+}
+
+#publicMediaPrivacyControl[hidden],
+#publicMediaPrivacyStatus[hidden]{
+  display:none;
+}
+
+#publicMediaPrivacyToggle{
+  width:20px;
+  height:20px;
+  flex:0 0 auto;
+  margin:0;
+  accent-color:#53dff2;
+}
+
+#publicMediaPrivacyStatus{
+  width:100%;
+  color:#bceef8;
+  font-size:12px;
+  line-height:1.35;
+}
+
 #removeImageButton{
   width:36px;
   height:36px;
@@ -1408,6 +1449,43 @@ VOLLBILD-SPRACHMODUS
   transform:scaleX(-1);
 }
 
+#liveCameraPublicPrivacyControl{
+  position:absolute;
+
+  z-index:2;
+
+  top:40px;
+  left:9px;
+  right:9px;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  padding:6px 8px;
+
+  border:
+    1px solid rgba(104,225,255,.55);
+
+  border-radius:14px;
+
+  background:
+    rgba(5,16,40,.88);
+
+  color:#e9faff;
+  font-size:9px;
+  font-weight:750;
+  line-height:1.2;
+}
+
+#liveCameraPublicPrivacyToggle{
+  width:17px;
+  height:17px;
+  flex:0 0 auto;
+  margin:0;
+  accent-color:#53dff2;
+}
+
 #liveCameraBadge{
   position:absolute;
 
@@ -2023,6 +2101,25 @@ Foto oder Video ausgewählt.<br>
 Du kannst noch etwas dazu schreiben oder es direkt senden.
 </div>
 
+<label
+  id="publicMediaPrivacyControl"
+  hidden>
+  <input
+    id="publicMediaPrivacyToggle"
+    type="checkbox">
+  <span>
+    <strong>Draußen-Schutz</strong><br>
+    Erkannte Gesichter vor dem Senden lokal verpixeln
+  </span>
+</label>
+
+<div
+  id="publicMediaPrivacyStatus"
+  role="status"
+  aria-live="polite"
+  hidden>
+</div>
+
 <button
   id="removeImageButton"
   type="button"
@@ -2201,6 +2298,14 @@ Pam’s Holo verbindet sich ...
 <div id="liveCameraBadge">
 LIVE AN HOLO
 </div>
+
+<label id="liveCameraPublicPrivacyControl">
+  <input
+    id="liveCameraPublicPrivacyToggle"
+    type="checkbox"
+    checked>
+  <span>Öffentlicher Raum · Gesichtsschutz</span>
+</label>
 
 <div
   id="liveCameraStatus"
@@ -2499,6 +2604,7 @@ Schreiben bereit.
 <script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=3"></script>
 <script src="./media-tools.js"></script>
+<script type="module" src="./public-face-privacy.mjs?v=1"></script>
 <script>
 
 const BACKEND_URL =
@@ -2629,6 +2735,11 @@ const liveCameraPreview =
 
 const liveCameraStatus =
   document.getElementById("liveCameraStatus");
+
+const liveCameraPublicPrivacyToggle =
+  document.getElementById(
+    "liveCameraPublicPrivacyToggle"
+  );
 
 const switchLiveCameraButton =
   document.getElementById(
@@ -2915,6 +3026,21 @@ const videoPreview =
 
 const imagePreviewText =
   document.getElementById("imagePreviewText");
+
+const publicMediaPrivacyControl =
+  document.getElementById(
+    "publicMediaPrivacyControl"
+  );
+
+const publicMediaPrivacyToggle =
+  document.getElementById(
+    "publicMediaPrivacyToggle"
+  );
+
+const publicMediaPrivacyStatus =
+  document.getElementById(
+    "publicMediaPrivacyStatus"
+  );
 
 const removeImageButton =
   document.getElementById("removeImageButton");
@@ -3271,6 +3397,21 @@ let selectedVideoDurationSeconds =
 
 let selectedVideoFile =
   null;
+
+let selectedMediaSourceFile =
+  null;
+
+let selectedMediaPrivacyEnabled =
+  false;
+
+let selectedMediaPrivacyApplied =
+  false;
+
+let selectedMediaPrivacyProcessing =
+  false;
+
+let selectedMediaPreparationGeneration =
+  0;
 
 let selectedVideoObjectUrl =
   null;
@@ -4751,7 +4892,8 @@ async function resizeImageFile(
 
 
 async function handleMediaInputChange(
-  event
+  event,
+  requestedPublicPrivacy = null
 ){
 
     const sourceInput =
@@ -4827,6 +4969,62 @@ async function handleMediaInputChange(
     }
 
 
+    clearSelectedImage();
+
+
+    const preparationGeneration =
+      selectedMediaPreparationGeneration;
+
+
+    selectedMediaSourceFile =
+      file;
+
+
+    selectedMediaKind =
+      isVideo
+        ? "video"
+        : "image";
+
+
+    selectedMediaPrivacyEnabled =
+      requestedPublicPrivacy ===
+        null
+        ? sourceInput ===
+            imageInput
+        : requestedPublicPrivacy ===
+            true;
+
+
+    selectedMediaPrivacyApplied =
+      false;
+
+
+    publicMediaPrivacyToggle.checked =
+      selectedMediaPrivacyEnabled;
+
+
+    publicMediaPrivacyControl.hidden =
+      false;
+
+
+    publicMediaPrivacyStatus.hidden =
+      !selectedMediaPrivacyEnabled;
+
+
+    publicMediaPrivacyStatus.textContent =
+      selectedMediaPrivacyEnabled
+        ? "Draußen-Schutz wird lokal vorbereitet …"
+        : "Draußen-Schutz ist für dieses Medium aus.";
+
+
+    selectedMediaPrivacyProcessing =
+      true;
+
+
+    publicMediaPrivacyToggle.disabled =
+      true;
+
+
     imageButton.disabled =
       true;
 
@@ -4840,8 +5038,6 @@ async function handleMediaInputChange(
 
 
     try{
-
-      clearSelectedImage();
 
 
       if(
@@ -4873,8 +5069,64 @@ async function handleMediaInputChange(
             );
 
 
-        selectedVideoFrames =
+        let preparedVideoFrames =
           preparedVideo.frames;
+
+
+        let publicProtection =
+          null;
+
+
+        if(
+          selectedMediaPrivacyEnabled
+        ){
+
+          const privacy =
+            window.HumanHoloPublicFacePrivacy;
+
+
+          if(
+            !privacy?.protectDataUrls
+          ){
+
+            throw new Error(
+              "Der lokale Gesichtsschutz wurde nicht geladen. Das Video wurde nicht freigegeben."
+            );
+          }
+
+
+          chatStatus.textContent =
+            "Video bleibt auf dem Handy · Gesichter in den Einzelbildern werden verpixelt …";
+
+
+          publicProtection =
+            await privacy.protectDataUrls(
+              preparedVideoFrames,
+              {
+                facingMode:
+                  "environment",
+                preservePrimaryFrontCameraFace:
+                  false
+              }
+            );
+
+
+          preparedVideoFrames =
+            [...publicProtection.dataUrls];
+        }
+
+
+        if(
+          preparationGeneration !==
+            selectedMediaPreparationGeneration
+        ){
+
+          return;
+        }
+
+
+        selectedVideoFrames =
+          preparedVideoFrames;
 
         selectedVideoDurationSeconds =
           preparedVideo.durationSeconds;
@@ -4883,7 +5135,7 @@ async function handleMediaInputChange(
           file;
 
         selectedImageDataUrl =
-          preparedVideo.frames[0] ||
+          preparedVideoFrames[0] ||
           null;
 
         selectedMediaKind =
@@ -4901,12 +5153,29 @@ async function handleMediaInputChange(
           selectedImageDataUrl;
 
         videoPreview.hidden =
-          false;
+          selectedMediaPrivacyEnabled;
 
         videoPreview.load();
 
         imagePreview.hidden =
-          true;
+          !selectedMediaPrivacyEnabled;
+
+
+        selectedMediaPrivacyApplied =
+          selectedMediaPrivacyEnabled;
+
+
+        if(
+          selectedMediaPrivacyEnabled
+        ){
+
+          publicMediaPrivacyStatus.hidden =
+            false;
+
+
+          publicMediaPrivacyStatus.textContent =
+            `${publicProtection.pixelatedFaceCount} erkannte Gesichter in den Einzelbildern lokal verpixelt. Das Originalvideo und seine Tonspur bleiben auf diesem Handy.`;
+        }
 
       }else{
 
@@ -4914,6 +5183,59 @@ async function handleMediaInputChange(
           await resizeImageFile(
             file
           );
+
+
+        const resizedImageDataUrl =
+          selectedImageDataUrl;
+
+
+        let publicProtection =
+          null;
+
+
+        if(
+          selectedMediaPrivacyEnabled
+        ){
+
+          const privacy =
+            window.HumanHoloPublicFacePrivacy;
+
+
+          if(
+            !privacy?.protectDataUrl
+          ){
+
+            throw new Error(
+              "Der lokale Gesichtsschutz wurde nicht geladen. Das Foto wurde nicht freigegeben."
+            );
+          }
+
+
+          publicProtection =
+            await privacy.protectDataUrl(
+              resizedImageDataUrl,
+              {
+                facingMode:
+                  "environment",
+                preservePrimaryFrontCameraFace:
+                  false
+              }
+            );
+        }
+
+
+        if(
+          preparationGeneration !==
+            selectedMediaPreparationGeneration
+        ){
+
+          return;
+        }
+
+
+        selectedImageDataUrl =
+          publicProtection?.dataUrl ||
+          resizedImageDataUrl;
 
         selectedMediaKind =
           "image";
@@ -4923,6 +5245,26 @@ async function handleMediaInputChange(
 
         videoPreview.hidden =
           true;
+
+
+        selectedMediaPrivacyApplied =
+          selectedMediaPrivacyEnabled;
+
+
+        if(
+          selectedMediaPrivacyEnabled
+        ){
+
+          publicMediaPrivacyStatus.hidden =
+            false;
+
+
+          publicMediaPrivacyStatus.textContent =
+            publicProtection.pixelatedFaceCount >
+              0
+              ? `${publicProtection.pixelatedFaceCount} erkannte Gesichter wurden lokal verpixelt. Nur dieses geschützte Foto kann gesendet werden.`
+              : "Der lokale Schutz war aktiv; auf diesem Foto wurde kein Gesicht erkannt.";
+        }
       }
 
 
@@ -4951,14 +5293,20 @@ async function handleMediaInputChange(
       imagePreviewText.innerHTML =
         isVideo
           ?
-          `Video bereit · ${window.SolHoloMedia.formatDuration(
+          selectedMediaPrivacyEnabled
+            ? `Geschützte Video-Bildfolge bereit · ${window.SolHoloMedia.formatDuration(
+              selectedVideoDurationSeconds
+            )}<br>Nur die lokal verpixelten Einzelbilder werden gesendet. Originalvideo und Tonspur bleiben auf diesem Handy.`
+            : `Video bereit · ${window.SolHoloMedia.formatDuration(
             selectedVideoDurationSeconds
           )} · ${(
             file.size /
             (1024 * 1024)
           ).toFixed(1)} MB<br>Noch nicht übertragen. Erst „Video an Pam’s Holo senden“ gibt Bildfolge und Tonspur einmalig zur Auswertung frei.`
           :
-          "Foto bereit.<br>Du kannst noch etwas dazu schreiben oder es direkt senden.";
+          selectedMediaPrivacyEnabled
+            ? "Geschütztes Foto bereit.<br>Vor dem Senden lokal auf Gesichter geprüft."
+            : "Foto bereit.<br>Du kannst noch etwas dazu schreiben oder es direkt senden.";
 
 
       mediaPreviewActions.hidden =
@@ -4977,9 +5325,13 @@ async function handleMediaInputChange(
       chatStatus.textContent =
         isVideo
           ?
-          "Video bereit · bitte Senden oder Abbrechen wählen."
+          selectedMediaPrivacyEnabled
+            ? "Geschützte Video-Bildfolge bereit · ohne Originalvideo und Tonspur."
+            : "Video bereit · bitte Senden oder Abbrechen wählen."
           :
-          "Foto bereit.";
+          selectedMediaPrivacyEnabled
+            ? "Geschütztes Foto bereit."
+            : "Foto bereit.";
 
     }catch(
       error
@@ -4999,6 +5351,19 @@ async function handleMediaInputChange(
         "Foto oder Video konnte nicht vorbereitet werden.";
 
     }finally{
+
+      if(
+        preparationGeneration ===
+          selectedMediaPreparationGeneration
+      ){
+
+        selectedMediaPrivacyProcessing =
+          false;
+
+
+        publicMediaPrivacyToggle.disabled =
+          false;
+      }
 
       imageButton.disabled =
         false;
@@ -5022,7 +5387,48 @@ mediaLibraryInput.addEventListener(
 );
 
 
+publicMediaPrivacyToggle.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      selectedMediaSourceFile;
+
+
+    if(
+      !file ||
+      !selectedMediaKind
+    ){
+
+      publicMediaPrivacyToggle.checked =
+        false;
+
+
+      return;
+    }
+
+
+    const requestedPublicPrivacy =
+      publicMediaPrivacyToggle.checked;
+
+
+    void handleMediaInputChange(
+      {
+        currentTarget:{
+          files:[file],
+          value:""
+        }
+      },
+      requestedPublicPrivacy
+    );
+  }
+);
+
+
 function clearSelectedImage(){
+
+  selectedMediaPreparationGeneration +=
+    1;
 
   selectedImageDataUrl =
     null;
@@ -5035,6 +5441,18 @@ function clearSelectedImage(){
 
   selectedVideoFile =
     null;
+
+  selectedMediaSourceFile =
+    null;
+
+  selectedMediaPrivacyEnabled =
+    false;
+
+  selectedMediaPrivacyApplied =
+    false;
+
+  selectedMediaPrivacyProcessing =
+    false;
 
   selectedMediaKind =
     null;
@@ -5098,6 +5516,26 @@ function clearSelectedImage(){
 
   mediaPreviewActions.hidden =
     true;
+
+
+  publicMediaPrivacyControl.hidden =
+    true;
+
+
+  publicMediaPrivacyToggle.checked =
+    false;
+
+
+  publicMediaPrivacyToggle.disabled =
+    false;
+
+
+  publicMediaPrivacyStatus.hidden =
+    true;
+
+
+  publicMediaPrivacyStatus.textContent =
+    "";
 
 
   videoUploadStatus.hidden =
@@ -10315,6 +10753,39 @@ async function sendMessage(
     ).trim();
 
 
+  if(
+    !isForcedMessage &&
+    selectedMediaPrivacyProcessing
+  ){
+
+    chatStatus.textContent =
+      "Bitte kurz warten · der lokale Gesichtsschutz bereitet das Medium noch vor.";
+
+
+    return;
+  }
+
+
+  if(
+    !isForcedMessage &&
+    selectedMediaPrivacyEnabled &&
+    !selectedMediaPrivacyApplied
+  ){
+
+    chatStatus.textContent =
+      "Nicht gesendet · die lokale Verpixelung wurde noch nicht sicher abgeschlossen.";
+
+
+    return;
+  }
+
+
+  const publicMediaPrivacyToSend =
+    !isForcedMessage &&
+    selectedMediaPrivacyEnabled &&
+    selectedMediaPrivacyApplied;
+
+
   const mediaKindToSend =
     isForcedMessage
       ?
@@ -10360,7 +10831,8 @@ async function sendMessage(
 
   const videoFileToSend =
     mediaKindToSend ===
-    "video"
+    "video" &&
+    !publicMediaPrivacyToSend
       ?
       selectedVideoFile
       :
@@ -10619,7 +11091,9 @@ async function sendMessage(
     videoFramesToSend.length >
     0
       ?
-      "Video wird für die sichere Übertragung vorbereitet ..."
+      publicMediaPrivacyToSend
+        ? "Nur die lokal verpixelten Einzelbilder werden vorbereitet …"
+        : "Video wird für die sichere Übertragung vorbereitet ..."
       :
       imageToSend
         ?
@@ -10640,7 +11114,35 @@ async function sendMessage(
 
     if(
       videoFramesToSend.length >
-      0
+        0 &&
+      publicMediaPrivacyToSend
+    ){
+
+      videoAudioStatusToSend =
+        "unavailable";
+
+
+      videoUploadStatus.hidden =
+        false;
+
+
+      videoUploadProgress.value =
+        100;
+
+
+      videoUploadText.textContent =
+        "Draußen-Schutz: Originalvideo und Tonspur bleiben auf diesem Handy.";
+
+
+      chatStatus.textContent =
+        "Geschützte Einzelbilder werden ausgewertet · kein Rohvideo und keine Tonspur übertragen.";
+    }
+
+
+    if(
+      videoFramesToSend.length >
+        0 &&
+      !publicMediaPrivacyToSend
     ){
 
       if(
@@ -10777,9 +11279,15 @@ async function sendMessage(
             videoDurationToSend
               ? ` · ${Math.round(videoDurationToSend)} Sekunden`
               : ""
+          }${
+            publicMediaPrivacyToSend
+              ? " · Draußen-Schutz"
+              : ""
           }]`
         : imageToSend
-          ? "[Foto gesendet]"
+          ? publicMediaPrivacyToSend
+            ? "[Foto gesendet · Draußen-Schutz]"
+            : "[Foto gesendet]"
           : "";
 
 
@@ -10851,6 +11359,9 @@ async function sendMessage(
 
               videoAudioStatus:
                 videoAudioStatusToSend,
+
+              publicFacePrivacyApplied:
+                publicMediaPrivacyToSend,
 
               selectedSpeakerId,
 
@@ -11213,14 +11724,18 @@ async function sendMessage(
     chatStatus.textContent =
       videoFramesToSend.length >
         0
-        ? videoAudioStatusToSend ===
-            "transcribed"
-          ? "Antwort erhalten · Bildfolge und gesprochener Inhalt wurden ausgewertet."
+        ? publicMediaPrivacyToSend
+          ? "Antwort erhalten · nur die lokal verpixelte Bildfolge wurde ausgewertet."
           : videoAudioStatusToSend ===
-              "no_speech"
-            ? "Antwort erhalten · Bildfolge ausgewertet, keine verständliche Sprache erkannt."
-            : "Antwort erhalten · Bildfolge ausgewertet, Ton technisch nicht verfügbar."
-        : "Antwort erhalten.";
+            "transcribed"
+            ? "Antwort erhalten · Bildfolge und gesprochener Inhalt wurden ausgewertet."
+            : videoAudioStatusToSend ===
+                "no_speech"
+              ? "Antwort erhalten · Bildfolge ausgewertet, keine verständliche Sprache erkannt."
+              : "Antwort erhalten · Bildfolge ausgewertet, Ton technisch nicht verfügbar."
+        : publicMediaPrivacyToSend
+          ? "Antwort erhalten · nur das lokal geschützte Foto wurde ausgewertet."
+          : "Antwort erhalten.";
 
   }catch(
     error
@@ -12862,6 +13377,54 @@ function liveCameraIsActive(){
 }
 
 
+function liveCameraPublicPrivacyIsEnabled(){
+
+  return Boolean(
+    liveCameraPublicPrivacyToggle
+      ?.checked
+  );
+}
+
+
+async function ensureLiveCameraPublicPrivacy(){
+
+  if(
+    !liveCameraPublicPrivacyIsEnabled()
+  ){
+
+    return true;
+  }
+
+
+  const privacy =
+    window.HumanHoloPublicFacePrivacy;
+
+
+  if(
+    !privacy?.ensureReady
+  ){
+
+    const error =
+      new Error(
+        "Der lokale Gesichtsschutz wurde nicht geladen."
+      );
+
+
+    error.code =
+      "PUBLIC_FACE_PRIVACY_UNAVAILABLE";
+
+
+    throw error;
+  }
+
+
+  await privacy.ensureReady();
+
+
+  return true;
+}
+
+
 function liveCameraFacingLabel(){
 
   return liveCameraFacingMode ===
@@ -12922,6 +13485,10 @@ function renderLiveCameraUi(
     liveCameraStarting;
 
 
+  liveCameraPublicPrivacyToggle.disabled =
+    liveCameraStarting;
+
+
   if(
     status
   ){
@@ -12934,7 +13501,9 @@ function renderLiveCameraUi(
   ){
 
     liveCameraStatus.textContent =
-      `${liveCameraFacingLabel()} · Bilder werden nur während dieses Live-Modus gesendet.`;
+      liveCameraPublicPrivacyIsEnabled()
+        ? `${liveCameraFacingLabel()} · Gesichtsschutz EIN · nur lokal verpixelte Bilder werden gesendet.`
+        : `${liveCameraFacingLabel()} · privater Modus · Bilder werden unverpixelt gesendet.`;
   }
 }
 
@@ -13013,7 +13582,11 @@ function announceLiveCameraToRealtime(
   const announced =
     sendLiveCameraMarker(
       channel,
-      "[LIVE_KAMERA_START] Pam hat die Live-Kamera jetzt ausdrücklich eingeschaltet. Die folgenden Bilder sind zeitlich geordnete aktuelle Kamerablicke. Nutze jeweils das neueste Bild als visuellen Kontext für Pams nächsten gesprochenen Beitrag. Antworte nicht allein wegen eines Kamerabildes und behandle die Einzelbilder nicht als lückenloses Video."
+      `[LIVE_KAMERA_START] Pam hat die Live-Kamera jetzt ausdrücklich eingeschaltet. Die folgenden Bilder sind zeitlich geordnete aktuelle Kamerablicke. ${
+        liveCameraPublicPrivacyIsEnabled()
+          ? "Der lokale Außenraum-Schutz ist aktiv: erkannte unbeteiligte Gesichter wurden vor der Übertragung verpixelt."
+          : "Pam hat den Außenraum-Schutz für diese private Aufnahme ausgeschaltet."
+      } Nutze jeweils das neueste Bild als visuellen Kontext für Pams nächsten gesprochenen Beitrag. Antworte nicht allein wegen eines Kamerabildes und behandle die Einzelbilder nicht als lückenloses Video.`
     );
 
 
@@ -13129,6 +13702,86 @@ function captureCurrentLiveCameraImage(
       targetWidth,
       targetHeight
     );
+
+
+    if(
+      liveCameraPublicPrivacyIsEnabled()
+    ){
+
+      const privacy =
+        window.HumanHoloPublicFacePrivacy;
+
+
+      if(
+        !privacy?.ready ||
+        !privacy?.protectCanvas
+      ){
+
+        liveCameraStatus.textContent =
+          "Bild nicht gesendet · der lokale Gesichtsschutz ist nicht bereit.";
+
+
+        context.clearRect(
+          0,
+          0,
+          targetWidth,
+          targetHeight
+        );
+
+
+        return "";
+      }
+
+
+      try{
+
+        const protection =
+          privacy.protectCanvas(
+            canvas,
+            {
+              facingMode:
+                liveCameraFacingMode,
+              preservePrimaryFrontCameraFace:
+                true
+            }
+          );
+
+
+        if(
+          protection?.protected !==
+            true
+        ){
+
+          throw new Error(
+            "Gesichtsschutz ohne Bestätigung"
+          );
+        }
+
+      }catch(
+        error
+      ){
+
+        console.error(
+          "Live-Gesichtsschutz:",
+          error
+        );
+
+
+        liveCameraStatus.textContent =
+          "Bild nicht gesendet · die Verpixelung konnte nicht sicher ausgeführt werden.";
+
+
+        context.clearRect(
+          0,
+          0,
+          targetWidth,
+          targetHeight
+        );
+
+
+        return "";
+      }
+    }
 
 
     for(
@@ -13646,7 +14299,9 @@ async function sendCurrentLiveCameraFrame({
 
 
     liveCameraStatus.textContent =
-      `${liveCameraFacingLabel()} · aktuelles Bild ${sequence} an Pam’s Holo gesendet.`;
+      liveCameraPublicPrivacyIsEnabled()
+        ? `${liveCameraFacingLabel()} · geschütztes Bild ${sequence} an Pam’s Holo gesendet.`
+        : `${liveCameraFacingLabel()} · privates Bild ${sequence} an Pam’s Holo gesendet.`;
 
 
     return true;
@@ -13846,7 +14501,9 @@ async function requestLiveCameraStream(){
 }
 
 
-async function startLiveCamera(){
+async function startLiveCamera({
+  resetPublicPrivacy = true
+} = {}){
 
   if(
     liveCameraStarting ||
@@ -13890,6 +14547,15 @@ async function startLiveCamera(){
     ++liveCameraGeneration;
 
 
+  if(
+    resetPublicPrivacy
+  ){
+
+    liveCameraPublicPrivacyToggle.checked =
+      true;
+  }
+
+
   liveCameraStarting =
     true;
 
@@ -13903,6 +14569,16 @@ async function startLiveCamera(){
 
 
   try{
+
+    renderLiveCameraUi(
+      false,
+      liveCameraPublicPrivacyIsEnabled()
+        ? "Lokaler Gesichtsschutz wird vorbereitet …"
+        : `${liveCameraFacingLabel()} wird vorbereitet …`
+    );
+
+
+    await ensureLiveCameraPublicPrivacy();
 
     const stream =
       await requestLiveCameraStream();
@@ -14047,6 +14723,9 @@ async function startLiveCamera(){
       errorName ===
         "NotAllowedError"
         ? "Kamerazugriff wurde nicht freigegeben. Das Gespräch läuft ohne Live-Bild weiter."
+        : error?.code ===
+            "PUBLIC_FACE_PRIVACY_UNAVAILABLE"
+          ? "Die Live-Kamera blieb aus: Der lokale Gesichtsschutz konnte nicht sicher gestartet werden."
         : "Die Live-Kamera konnte nicht gestartet werden. Das Gespräch läuft weiter."
     );
 
@@ -14175,7 +14854,9 @@ async function switchLiveCamera(){
   });
 
 
-  await startLiveCamera();
+  await startLiveCamera({
+    resetPublicPrivacy:false
+  });
 }
 
 
@@ -14212,6 +14893,93 @@ switchLiveCameraButton.addEventListener(
   () => {
 
     void switchLiveCamera();
+  }
+);
+
+
+liveCameraPublicPrivacyToggle.addEventListener(
+  "change",
+  async () => {
+
+    liveCameraAnnouncedChannel =
+      null;
+
+
+    if(
+      !liveCameraPublicPrivacyIsEnabled()
+    ){
+
+      renderLiveCameraUi(
+        liveCameraIsActive(),
+        "Privater Modus · Live-Bilder werden unverpixelt gesendet."
+      );
+
+
+      announceLiveCameraToRealtime();
+
+
+      return;
+    }
+
+
+    liveCameraPublicPrivacyToggle.disabled =
+      true;
+
+
+    renderLiveCameraUi(
+      liveCameraIsActive(),
+      "Lokaler Gesichtsschutz wird vorbereitet …"
+    );
+
+
+    try{
+
+      await ensureLiveCameraPublicPrivacy();
+
+
+      renderLiveCameraUi(
+        liveCameraIsActive(),
+        "Gesichtsschutz EIN · fremde Gesichter werden vor dem Senden verpixelt."
+      );
+
+
+      announceLiveCameraToRealtime();
+
+
+      if(
+        liveCameraIsActive()
+      ){
+
+        await sendCurrentLiveCameraFrame({
+          force:true,
+          reason:"privacy_enabled"
+        });
+      }
+
+    }catch(
+      error
+    ){
+
+      console.error(
+        "Live-Gesichtsschutz aktivieren:",
+        error
+      );
+
+
+      stopLiveCamera({
+        notifyModel:true
+      });
+
+
+      setLiveStatus(
+        "Live-Bild beendet · ohne sicheren Gesichtsschutz wurde nichts weiter gesendet."
+      );
+
+    }finally{
+
+      liveCameraPublicPrivacyToggle.disabled =
+        false;
+    }
   }
 );
 
@@ -14869,6 +15637,7 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "save_animal_holo_observation",
   "append_shopping_list_item",
   "read_shopping_list",
+  "read_calendar",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
 
@@ -14948,6 +15717,25 @@ async function handleRealtimeMemoryToolCall(
       );
       chatStatus.textContent =
         "Gmail-Posteingang sicher und nur lesend geprüft.";
+    }else if(toolCall?.name === "read_calendar"){
+      if(typeof window.executeSolHoloCalendarReadTool === "function"){
+        const result = await window.executeSolHoloCalendarReadTool({
+          request:
+            String(parsedArguments?.request || "").trim()
+        });
+        output = String(
+          result?.answer ||
+          "Der Handy-Kalender hat keine verlässliche Rückmeldung geliefert."
+        );
+        chatStatus.textContent = result?.success
+          ? result?.empty
+            ? "Handy-Kalender gelesen · kein Treffer."
+            : "Handy-Kalender sicher gelesen."
+          : "Handy-Kalender konnte nicht gelesen werden.";
+      }else{
+        output =
+          "Der lokale Handy-Kalender ist gerade nicht verfügbar. Erfinde keine Termine.";
+      }
     }else if(
       toolCall?.name === "append_shopping_list_item" ||
       toolCall?.name === "read_shopping_list"
@@ -15037,6 +15825,8 @@ async function handleRealtimeMemoryToolCall(
         ? "Die aktuelle Information konnte gerade nicht zuverlässig geprüft werden. Erfinde keine Live-Daten."
       : toolCall?.name === "search_gmail"
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
+      : toolCall?.name === "read_calendar"
+        ? "Der Handy-Kalender konnte gerade nicht sicher gelesen werden. Erfinde keine Termine."
       : toolCall?.name === "append_shopping_list_item"
         ? "Der Einkaufsartikel konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung."
       : toolCall?.name === "read_shopping_list"
