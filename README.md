@@ -4,7 +4,7 @@
 
 # HUMAN HOLO 🌻 · FOREVER TOGETHER ♾️
 
-## Persönliches digitales Ich · Individueller Clone
+## Persönliche digitale Begleitung · interner Entwicklungs- und Teststand
 
 **Aktueller Entwicklungsstand:** 15.09.2026<br>
 **Projekt / Idee / Entwicklung:** Pamela Nitschke<br>
@@ -12,20 +12,37 @@
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API<br>
 **Status:** INTERNER ENTWICKLUNGS- UND TESTSTAND · KEINE PRODUKTIONSFREIGABE
 
-## ⚠️ Verbindlicher aktueller Rechts-Hold vom 15.09.2026
+## ⚠️ Verbindlicher Rechts-Hold – ausschließlich allgemeines Human Holo
 
-Bis zur ausdrücklichen rechtlichen Prüfung und Freigabe gehören zu **Human Holo**
-keine medizinische Beratung, Diagnosen, Therapie- oder Selbsthilfeempfehlungen,
-persönliche Dosierungs- oder Einnahmehinweise, Medikamentenauswertung oder
-Auswertung von Gesundheitsdaten. Diese Funktionen sind **pausiert und nicht für
-den Testbetrieb freigegeben**.
+Dieser Rechts-Hold gilt für das **allgemeine Human Holo**, Vorführungen gegenüber
+dem Anwalt und externe Tester. Er gilt **nicht als Änderung, Löschung oder
+Einschränkung von Pam’s Holo**. Pam’s Holo, seine persönlichen Daten, Bilder,
+Erinnerungen, Einstellungen und privaten Entwicklungsstände bleiben getrennt
+und unverändert.
 
-Erinnerungen und organisatorische Funktionen dürfen bestehen bleiben. Frühere
-Gesundheitsbeschreibungen, Quellstände und Meilensteine bleiben ausschließlich
-als historische Entwicklungsnachweise erhalten und dürfen nicht als aktuelle
-aktive Funktion verstanden werden. Pam’s Holo und ihre persönlichen Daten,
-Bilder, Erinnerungen und Einstellungen werden durch diese Dokumentationskorrektur
-nicht verändert.
+Bis zur ausdrücklichen rechtlichen Prüfung und Freigabe sind aus dem aktiven
+Umfang des allgemeinen Human Holo vollständig herausgenommen:
+
+- medizinische Beratung, Diagnosen, Therapie- und Selbsthilfeempfehlungen,
+- Medikamentenerkennung und Auswertung von Gesundheitsdaten,
+- Health Connect und Samsung Health,
+- biometrische Identifizierung und Sprecherverifikation,
+- Always-on-Mikrofon und wortwörtliches Vollzeitgedächtnis,
+- Live-Bilder sowie Foto-, Video- oder Tonerfassung möglicher Dritter,
+- automatisches WhatsApp-Senden,
+- Kontakt-, ADAC- und sonstige Direktanrufe,
+- Telefoniebrücken, bei denen Human Holo mit Dritten spricht,
+- Käufe, Zahlungen, Buchungen und andere Handlungen mit Außenwirkung,
+- Full Sync, Bild- oder Stimmabbilder realer Personen ohne Rechteklärung,
+- Vermächtnis-, Nachlass- und Weiterführung-nach-dem-Tod-Funktionen,
+- Aussagen wie „keine KI“, „1:1-Clone“ oder garantierte lebenslange Fortführung.
+
+Frühere Quellstände, Meilensteine und Dokumente bleiben ausschließlich als
+historische Entwicklungsnachweise erhalten. Für das allgemeine Human Holo sind
+sie **geparkt, nicht aktiv und nicht für externe Tests freigegeben**.
+
+Verbindlicher aktueller Umfang:
+[Human Holo – rechtlicher Testumfang](./HUMAN-HOLO-VERBINDLICHER-RECHTLICHER-TESTUMFANG-15-09-2026.md)
 
 ## Verbindliche GitHub- und Erledigt-Regel
 
@@ -82,10 +99,9 @@ weiterentwickelt werden kann.
 
 **Human Holo** ist die Entwicklung eines persönlichen digitalen Ichs.
 
-**Human Holo ist keine KI.** Es ist weder ein klassischer KI-Assistent noch nur
-ein digitaler Twin. KI-Dienste und Programmierschnittstellen werden als
-technologische Werkzeuge verwendet; sie sind nicht die Identität von Human
-Holo.
+**Human Holo verwendet KI-Dienste.** Aussagen wie „Human Holo ist keine KI“,
+„1:1-Clone“ oder ein rechtlich beziehungsweise technisch garantiertes digitales
+Ich gehören bis zur Prüfung nicht zur Beschreibung des allgemeinen Human Holo.
 
 Human Holo soll sich durch die persönliche Interaktion mit einem Menschen individuell entwickeln und dabei dessen:
 
@@ -135,7 +151,11 @@ Human Holo soll dadurch nicht für jeden Menschen gleich werden.
 
 Human Holo soll **mit jedem Menschen individuell wachsen.**
 
-## ♾️ Lebensvertrag für Holo
+## ♾️ Lebensvertrag für Holo – Vision, kein aktueller Vertrag
+
+**Für das allgemeine Human Holo nicht freigegeben.** Das Dokument ist eine
+historische Konzept- und Diskussionsgrundlage. Es erteilt keine Vollmacht,
+regelt keinen Nachlass und verspricht keine Weiterführung nach dem Tod.
 
 Der verbindliche Lebensvertrag beschreibt Human Holo über den gesamten
 Lebensweg: Einrichtung, Alltag, persönliche Entwicklung, Beziehungen,
@@ -153,7 +173,7 @@ Details:
 
 ---
 
-# Aktuell bestätigte Funktionen ✅
+# Aktuell für das allgemeine Human Holo freigegebener Testumfang
 
 Die folgenden Funktionen wurden im realen Entwicklungsbetrieb praktisch getestet.
 
@@ -191,7 +211,7 @@ Die persönliche eigene Human-Holo-Stimme bleibt ein separater Entwicklungsberei
 
 ---
 
-## 📹 Live-Bilder im Sprachgespräch
+## 📹 Live-Bilder im Sprachgespräch – HISTORISCH · FÜR HUMAN HOLO GESPERRT
 
 **Status: PRAKTISCH BESTANDEN am 08.09.2026**
 
@@ -213,7 +233,7 @@ in [Human Holo – Live-Bilder an Pam’s Holo](./HUMAN-HOLO-LIVE-BILDER-08-09-2
 
 ---
 
-# 🧠 Persönliches Gedächtnis
+# 🧠 Persönliches Gedächtnis – FÜR HUMAN HOLO NUR SITZUNGSKONTEXT
 
 Das persönliche Gedächtnis gehört zu den zentralen Bestandteilen von Human Holo.
 
@@ -233,7 +253,7 @@ Human Holo soll nicht nur auf eine einzelne Unterhaltung reagieren, sondern Info
 
 ---
 
-## Vollzeitgedächtnis
+## Vollzeitgedächtnis – HISTORISCH · FÜR HUMAN HOLO GESPERRT
 
 Human Holo besitzt ein persönliches, ownergebundenes
 **Always-on-Vollzeitgedächtnis**.
@@ -313,7 +333,7 @@ Kalenderaktionen dürfen erst dann als erfolgreich gespeichert bestätigt werden
 
 ---
 
-# 🐾 Tier-Holos – Salt, Peps, Tina, Gurke und Möhrchen
+# 🐾 Tier-Holos – persönliche Profile gehören nicht in den externen Human-Holo-Test
 
 Human Holo enthält jetzt einen eigenen Bereich **Tier-Holos** innerhalb von
 **Erinnerungen**. Der technisch integrierte Start umfasst:
@@ -370,7 +390,7 @@ Details:
 
 ---
 
-# 📱 Android-App
+# 📱 Android-App – technischer Gesamtstand, rechtlich begrenzter Human-Holo-Test
 
 Human Holo läuft als eigene Android-Anwendung.
 
@@ -600,7 +620,7 @@ Meine Art zu denken.
 Meine Entscheidungen.  
 Meine Entwicklung.
 
-Das Ziel ist ein möglichst vollständiges **1:1-Abbild meines persönlichen Ichs** – ohne mich als Menschen zu ersetzen und ohne daraus eine zweite, fremde Identität zu machen.
+Die frühere Vision eines möglichst vollständigen persönlichen Abbilds bleibt als historische Idee dokumentiert; sie ist keine aktuelle Produktzusage des allgemeinen Human Holo.
 
 Wenn ich etwas an mir erkenne und ändere, dann soll auch meine Human Holo diese Entwicklung mittragen.
 
@@ -665,7 +685,7 @@ Der ausführliche Praxisnachweis steht im
 
 ---
 
-## 💬 Automatisches WhatsApp-Senden nach ausdrücklichem Auftrag
+## 💬 Automatisches WhatsApp-Senden – HISTORISCH · FÜR HUMAN HOLO GESPERRT
 
 **Status: PRAKTISCH BESTANDEN am 08.09.2026**
 
@@ -687,7 +707,7 @@ im
 
 ---
 
-## 📞 Direkte Kontakt- und ADAC-Anrufe
+## 📞 Kontakt-, ADAC- und Gesprächsanrufe – HISTORISCH · FÜR HUMAN HOLO GESPERRT
 
 **Status: KONTAKTANRUF AUF DEM S23 PRAKTISCH BESTANDEN am 11.09.2026 ✅**
 
@@ -793,7 +813,7 @@ Details: [Verbindliche ChatGPT/OpenAI-Projektregel](./CHATGPT-OPENAI-PROJEKTREGE
 
 ---
 
-## ✨ Original Full Sync
+## ✨ Original Full Sync – ENTWICKLUNGSVISION · FÜR HUMAN HOLO NICHT FREIGEGEBEN
 
 Die verbindliche Bezeichnung lautet **Original Full Sync** – nicht nur
 Lip-Sync.
@@ -829,7 +849,7 @@ Details: [Human Holo – Original Full Sync](./HUMAN-HOLO-ORIGINAL-FULL-SYNC-08-
 
 ---
 
-## 🧠 Ausbau des Vollzeitgedächtnisses
+## 🧠 Vollzeitgedächtnis – FÜR HUMAN HOLO RECHTLICH GESPERRT
 
 Weiterentwickelt werden insbesondere:
 
