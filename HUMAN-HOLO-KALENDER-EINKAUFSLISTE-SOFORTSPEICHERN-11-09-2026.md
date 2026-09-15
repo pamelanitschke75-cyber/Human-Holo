@@ -1,5 +1,11 @@
 # Human Holo – Kalender und Einkaufsliste sofort speichern
 
+> **Präzisierung vom 15.09.2026:** Alle Termine und Geburtstage bleiben
+> ausschließlich im externen Handy-Kalender. Human Holo zeigt standardmäßig
+> nur heute; weitere Tage werden nur nach Auswahl innerhalb von Holo kompakt
+> und horizontal angezeigt. Die frühere Formulierung „kommende Termine“ ist
+> hinsichtlich der sichtbaren Darstellung damit ersetzt.
+
 **Stand:** 11.09.2026  
 **Entscheidung & Projektinhaberin:** Pamela Christina Nitschke  
 **Projektpartnerin:** Stefanie Hörath

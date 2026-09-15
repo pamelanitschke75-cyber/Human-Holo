@@ -362,3 +362,26 @@ test("der Kalender lädt das Gedächtnis vor dem Parser und schreibt echte Wiede
   assert.match(eventWriter, /date:\s*\n\s*endValue/u);
   assert.match(eventWriter, /RRULE:FREQ=YEARLY/u);
 });
+
+test("Google Calendar wird vor jedem neuen Eintrag auf denselben Termin geprüft", async () => {
+  const server = await readFile(
+    new URL("../server.mjs", import.meta.url),
+    "utf8"
+  );
+  const duplicateCheckStart = server.indexOf(
+    "async function findMatchingGoogleCalendarEvent"
+  );
+  const writerStart = server.indexOf("async function createGoogleCalendarEvent");
+  const writerEnd = server.indexOf("function calendarActionScope", writerStart);
+  const writer = server.slice(writerStart, writerEnd);
+
+  assert.ok(duplicateCheckStart >= 0);
+  assert.ok(writerStart > duplicateCheckStart);
+  assert.match(server, /calendar\.events\.list\(\{[\s\S]*?singleEvents:\s*true/u);
+  assert.ok(
+    writer.indexOf("findMatchingGoogleCalendarEvent") <
+      writer.indexOf("calendar.events.insert"),
+    "Die externe Kalenderquelle muss vor dem Schreiben geprüft werden."
+  );
+  assert.match(writer, /duplicate:\s*true/u);
+});
