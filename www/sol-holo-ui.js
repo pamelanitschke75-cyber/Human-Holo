@@ -3978,6 +3978,79 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       .filter(Boolean);
   }
 
+  function isShoppingListReadRequest(value) {
+    const text = normalizeNoteSearchText(stripHoloInvocation(value))
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/gu, " ")
+      .trim();
+    if (!text) return false;
+
+    const listName =
+      /\b(?:einkaufs?liste|einkaufsliste|einkaufslisten|einkaufslischt(?:e)?|einkaufszettel|einkaufzettel|einkaufliste|eikaufsliste|ichaufslischte|shoppinglist)\b/u;
+    if (!listName.test(text)) return false;
+
+    const asksForContents =
+      /\b(?:was|welche|welcher|welches)\b[\s\S]*\b(?:steht|stehen|ist|sind|habe|haben|hast|habt|gesetzt|gespeichert|notiert|drauf|drin|darauf|darin)\b/u.test(text) ||
+      /\b(?:steht|stehen|ist|sind|habe|haben|hast|habt|gesetzt|gespeichert|notiert|drauf|drin|darauf|darin)\b[\s\S]*\b(?:was|welche|welcher|welches)\b/u.test(text);
+    const asksToRead =
+      /\b(?:lies|lese|vorlesen|zeig|zeige|zeigen|anzeig|anzeige|anzeigen|offne|offnen|sag|sage|sagen|nenn|nenne|nennen)\b/u.test(text) &&
+      /\b(?:liste|inhalt|eintrage|artikel|sachen|dinge|alles|einkaufs?liste|einkaufszettel|shoppinglist)\b/u.test(text);
+    const asksForAppearance =
+      /\bwie\b[\s\S]*\b(?:sieht|schaut)\b[\s\S]*\b(?:aus|aussehen)\b/u.test(text);
+
+    return asksForContents || asksToRead || asksForAppearance;
+  }
+
+  function currentShoppingListItems() {
+    const seen = new Set();
+    const items = [];
+    personalNotes
+      .filter(isShoppingListNote)
+      .flatMap(shoppingItemsFromNote)
+      .forEach((item) => {
+        const normalized = normalizeNoteSearchText(item);
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        items.push(item);
+      });
+    return items;
+  }
+
+  function shoppingListAnswerFromItems(items) {
+    const cleanItems = Array.isArray(items)
+      ? items.map((item) => String(item || "").trim()).filter(Boolean)
+      : [];
+    if (!cleanItems.length) {
+      return "Deine Einkaufsliste ist leer.";
+    }
+    if (cleanItems.length === 1) {
+      return `Auf deiner Einkaufsliste steht: ${cleanItems[0]}.`;
+    }
+
+    const lastItem = cleanItems.at(-1);
+    const leadingItems = cleanItems.slice(0, -1).join(", ");
+    return `Auf deiner Einkaufsliste stehen: ${leadingItems} und ${lastItem}.`;
+  }
+
+  function readShoppingList() {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer: "Die feste Holo-ID ist nicht verfügbar. Die Einkaufsliste wurde nicht gelesen."
+      };
+    }
+
+    const items = currentShoppingListItems();
+    return {
+      success: true,
+      readOnly: true,
+      empty: items.length === 0,
+      items,
+      answer: shoppingListAnswerFromItems(items)
+    };
+  }
+
   function buildPersonalNoteCard(note, options = {}) {
     const shopping = options.shopping === true;
     const card = document.createElement("article");
@@ -4281,6 +4354,15 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   }
 
   function executeShoppingListTool(name, args = {}) {
+    if (name === "read_shopping_list") {
+      const result = readShoppingList();
+      return {
+        ...result,
+        localRead: Boolean(result?.success),
+        destination: "Einkaufsliste"
+      };
+    }
+
     if (name !== "append_shopping_list_item") {
       return {
         success: false,
@@ -4298,6 +4380,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   window.executeSolHoloShoppingListTool =
     executeShoppingListTool;
+
+  window.isSolHoloShoppingListReadRequest =
+    isShoppingListReadRequest;
 
   function saveExplicitRequest(request) {
     if (request?.kind === "list-item") {
@@ -7397,6 +7482,24 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const noteMessage = stripHoloInvocation(cleanMessage);
 
     // Schrift und transkribierte Sprache laufen beide über diese Funktion.
+    // Fragen nach der Liste lesen ausschließlich den aktuellen lokalen Stand.
+    if (isShoppingListReadRequest(noteMessage)) {
+      const result = readShoppingList();
+      return {
+        handled: true,
+        success: Boolean(result?.success),
+        shoppingList: true,
+        shoppingListRead: true,
+        marker: "[LOKALES_EINKAUFSLISTENERGEBNIS]",
+        status: result?.success
+          ? result.empty
+            ? "Einkaufsliste gelesen · leer."
+            : "Einkaufsliste sicher gelesen."
+          : "Einkaufsliste konnte nicht gelesen werden.",
+        answer: result.answer
+      };
+    }
+
     // Ein ausdrücklicher Einkaufslistenauftrag hat Vorrang vor Tierdialog,
     // allgemeinem Chat und Notizen, damit der Artikel wirklich lokal landet.
     const shoppingListAction = handleShoppingListCommand(noteMessage);

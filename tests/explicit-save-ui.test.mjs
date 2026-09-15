@@ -109,6 +109,8 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
   for (const phrase of [
     "Steht Maggi auf der Einkaufsliste?",
     "Hast du Maggi auf die Einkaufsliste gesetzt?",
+    "Was steht auf meiner Einkaufsliste?",
+    "Lies mir bitte die Einkaufsliste vor.",
     "Schreib Maggi nicht auf die Einkaufsliste"
   ]) {
     assert.equal(
@@ -173,6 +175,80 @@ test("explizite Speicheraufträge und benannte Listen werden lokal erkannt", () 
     null,
     "Ein Notizauftrag muss den Notes-Adapter erreichen"
   );
+});
+
+test("Einkaufsliste wird auf natürliche Fragen ownergebunden vorgelesen", () => {
+  const requestSource = [
+    functionSource("normalizeNoteSearchText", "stripHoloInvocation"),
+    functionSource("stripHoloInvocation", "noteSecurityWarning"),
+    functionSource("isShoppingListReadRequest", "currentShoppingListItems"),
+    "return isShoppingListReadRequest;"
+  ].join("\n");
+  const isReadRequest = new Function(requestSource)();
+
+  for (const phrase of [
+    "Was steht auf meiner Einkaufsliste?",
+    "Holo, was ist alles auf der Einkaufsliste?",
+    "Sag mir bitte, was auf dem Einkaufszettel steht.",
+    "Lies mir meine Einkaufsliste vor.",
+    "Kannst du die Einkaufsliste anzeigen?",
+    "Wie sieht meine Einkaufsliste aus?",
+    "Welche Artikel stehen auf der Einkaufsliste?"
+  ]) {
+    assert.equal(isReadRequest(phrase), true, phrase);
+  }
+
+  for (const phrase of [
+    "Maggi auf die Einkaufsliste setzen",
+    "Schreib Salz auf die Einkaufsliste",
+    "Was soll ich auf die Einkaufsliste setzen?",
+    "Was steht heute im Kalender?"
+  ]) {
+    assert.equal(isReadRequest(phrase), false, phrase);
+  }
+
+  const readSource = [
+    functionSource("normalizeNoteSearchText", "stripHoloInvocation"),
+    functionSource("isShoppingListNote", "shoppingItemsFromNote"),
+    functionSource("shoppingItemsFromNote", "isShoppingListReadRequest"),
+    functionSource("currentShoppingListItems", "shoppingListAnswerFromItems"),
+    functionSource("shoppingListAnswerFromItems", "readShoppingList"),
+    functionSource("readShoppingList", "buildPersonalNoteCard"),
+    "return readShoppingList();"
+  ].join("\n");
+  const readList = new Function(
+    "personalNotes",
+    "activePersonalOwner",
+    readSource
+  );
+
+  const populated = readList(
+    [
+      {
+        title: "Einkaufsliste",
+        text: "• Maggi\n• Salz\n• Maggi"
+      },
+      {
+        title: "Andere Notiz",
+        text: "Darf nicht vorgelesen werden"
+      }
+    ],
+    () => "pam-sol"
+  );
+  assert.deepEqual(populated.items, ["Maggi", "Salz"]);
+  assert.equal(
+    populated.answer,
+    "Auf deiner Einkaufsliste stehen: Maggi und Salz."
+  );
+  assert.equal(populated.readOnly, true);
+
+  const empty = readList([], () => "pam-sol");
+  assert.equal(empty.answer, "Deine Einkaufsliste ist leer.");
+  assert.equal(empty.empty, true);
+
+  const blocked = readList([], () => "");
+  assert.equal(blocked.success, false);
+  assert.match(blocked.answer, /Holo-ID.+nicht verfügbar/u);
 });
 
 test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", () => {
@@ -305,6 +381,14 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   assert.match(sharedHandler, /saveShoppingListItem\(shoppingItem\)/u);
   assert.match(sharedHandler, /window\.handleSolHoloLocalAction = async/u);
   assert.match(sharedHandler, /handleShoppingListCommand\(noteMessage\)/u);
+  assert.match(sharedHandler, /isShoppingListReadRequest\(noteMessage\)/u);
+  assert.match(sharedHandler, /readShoppingList\(\)/u);
+  assert.match(sharedHandler, /LOKALES_EINKAUFSLISTENERGEBNIS/u);
+  assert.ok(
+    sharedHandler.indexOf("isShoppingListReadRequest(noteMessage)") <
+      sharedHandler.indexOf("handleShoppingListCommand(noteMessage)"),
+    "Lesefragen müssen vor einem möglichen Speicherauftrag ausgewertet werden"
+  );
   assert.match(sharedHandler, /Unter Wichtiges · Einkaufsliste gespeichert/u);
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
   assert.match(

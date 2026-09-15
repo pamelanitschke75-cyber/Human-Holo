@@ -10777,12 +10777,22 @@ Modellantwort. Beginnt eine Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], rufe
 deshalb append_shopping_list_item und die Notiz-Tools nicht erneut auf, sondern
 bestätige das gelieferte Ergebnis kurz und unverändert.
 
+Wenn ${identity.displayName} fragt, was auf der Einkaufsliste steht, die Liste
+sehen oder vorgelesen bekommen möchte, verwende read_shopping_list. Dieses
+Werkzeug liest ausschließlich den aktuellen ownergebundenen lokalen Stand und
+verändert nichts. Gib nur die gelieferten Einträge wieder und erfinde keine.
+Beginnt eine Nutzernachricht mit [LOKALES_EINKAUFSLISTENERGEBNIS], wurde die
+Liste bereits lokal gelesen. Sprich das gelieferte Ergebnis dann kurz und
+unverändert aus und rufe weder read_shopping_list noch ein Speicherwerkzeug auf.
+
 Wenn erst die sichere gemeinsame Auswertung einer ausdrücklich gewählten
 Gebärdensprachfolge den eindeutigen Auftrag ergibt, einen konkret erkennbaren
 Artikel in die Einkaufsliste einzutragen, verwende append_shopping_list_item.
 Frage weder nach Menge noch Sorte. Bei unklarer Gebärde, unklarem Artikel,
 allgemeiner Gestik, einer Frage über die Liste oder einer Verneinung darfst du
 das Werkzeug nicht aufrufen und keine Speicherung behaupten.
+Ergibt eine sicher erkannte Gebärdensprachfolge stattdessen eindeutig die Frage
+nach dem Inhalt der Einkaufsliste, verwende read_shopping_list.
 
 Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Mach eine Notiz …“
 oder sinngleich sagt, verwende create_personal_note mit genau dem genannten
@@ -11062,6 +11072,26 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               required: [
                 "item"
               ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "read_shopping_list",
+
+            description:
+              `Liest ausschließlich den aktuellen ownergebundenen Inhalt der Einkaufsliste unter „Wichtiges“ von ${instanceName}. Automatisch verwenden, wenn ${identity.displayName} fragt, was auf der Liste steht, sie sehen oder vorgelesen bekommen möchte – auch bei sicher erkannter Gebärdensprache. Verändert und speichert nichts.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {},
 
               additionalProperties:
                 false
@@ -11564,7 +11594,9 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
               tool.name ===
                 "search_live_web" ||
               tool.name ===
-                "append_shopping_list_item"
+                "append_shopping_list_item" ||
+              tool.name ===
+                "read_shopping_list"
           );
     }
 

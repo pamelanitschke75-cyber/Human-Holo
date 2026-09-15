@@ -493,8 +493,18 @@ test(
     );
 
     assert.match(
+      server,
+      /name:\s*"read_shopping_list"[\s\S]*?ownergebundenen Inhalt der Einkaufsliste/u
+    );
+
+    assert.match(
+      server,
+      /sicher erkannte Gebärdensprachfolge[\s\S]*?Inhalt der Einkaufsliste[\s\S]*?read_shopping_list/u
+    );
+
+    assert.match(
       html,
-      /REALTIME_LOCAL_TOOL_NAMES[\s\S]*?"append_shopping_list_item"/u
+      /REALTIME_LOCAL_TOOL_NAMES[\s\S]*?"append_shopping_list_item"[\s\S]*?"read_shopping_list"/u
     );
 
     assert.match(
@@ -503,8 +513,18 @@ test(
     );
 
     assert.match(
+      html,
+      /toolCall\?\.name === "read_shopping_list"[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
       ui,
       /function saveShoppingListItem\([\s\S]*?appendPersonalListItem\("Einkaufsliste"[\s\S]*?function executeShoppingListTool\([\s\S]*?saveShoppingListItem\(args\?\.item\)[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
+      ui,
+      /function readShoppingList\([\s\S]*?currentShoppingListItems\(\)[\s\S]*?function executeShoppingListTool\([\s\S]*?name === "read_shopping_list"[\s\S]*?readShoppingList\(\)/u
     );
 
     assert.match(
