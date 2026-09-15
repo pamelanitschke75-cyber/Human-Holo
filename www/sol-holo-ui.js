@@ -910,6 +910,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const phoneContactsRow = document.getElementById("phoneContactsRow");
   phoneContactsRow.insertAdjacentHTML(
     "afterend",
+    '<button id="directSmsRow" class="serviceRow" type="button">' +
+      '<span class="rowIcon">✉</span>' +
+      '<span class="rowText">' +
+        '<span class="rowTitle">SMS direkt senden</span>' +
+        '<span class="rowMeta">Einmal Standardassistentin freigeben · danach ohne zweiten Tipp</span>' +
+      '</span>' +
+      '<span id="directSmsStatus" class="serviceStatus setup">Wird geprüft …</span>' +
+    '</button>' +
     '<button id="galaxyWatchRow" class="serviceRow" type="button">' +
       '<span class="rowIcon">⌚</span>' +
       '<span class="rowText">' +
@@ -991,8 +999,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "eindeutigen Befehl „anrufen und mit ihr sprechen“ ohne zweiten Dialog " +
     "über die verschlüsselte Telefonbrücke anrufen; die Nummer wird " +
     "nicht angezeigt, protokolliert oder als Erinnerung gespeichert. " +
-    "WhatsApp-Nachrichten " +
-    "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
+    "Ein ausdrücklicher SMS-Sendeauftrag darf nach deiner einmaligen Wahl von " +
+    "Human Holo als Android-Standardassistentin und der SMS-Freigabe direkt " +
+    "über deine SIM ausgeführt werden; Notruf-, Kurz- und Mehrwertnummern " +
+    "bleiben gesperrt. SMS-Vorbereiten bleibt zusätzlich verfügbar. " +
+    "WhatsApp-Nachrichten dürfen nur nach einem ausdrücklichen Auftrag " +
+    "automatisch gesendet werden. " +
     "Bild und Notiz bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
     "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
     "normale Alltagsinhalte als Freigabe; " +
@@ -1286,6 +1298,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     contactsPermissionGranted: false,
     phoneStatePermissionGranted: false,
     directCallPermissionGranted: false,
+    assistantRoleAvailable: false,
+    assistantRoleHeld: false,
+    directSmsPermissionGranted: false,
+    directSmsReady: false,
     connected: false,
     whatsAppDirectSendEnabled: false,
     callState: "idle",
@@ -2952,6 +2968,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
       /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
       /^(?:bitte\s+)?(?:mach|mache)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?notiz\b/u.test(text) ||
+      /^(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)\b/u.test(text) ||
       /^(?:neue\s+)?notiz\s*[:,-]/u.test(text);
     if (explicitListRequest || explicitNoteRequest) {
       return false;
@@ -5854,6 +5871,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function renderPhoneStatus(nextStatus) {
     const statusElement = document.getElementById("phoneContactsStatus");
+    const directSmsStatusElement = document.getElementById("directSmsStatus");
 
     phoneStatus = {
       supported: Boolean(nextStatus?.supported),
@@ -5866,6 +5884,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       directCallPermissionGranted: Boolean(
         nextStatus?.directCallPermissionGranted
       ),
+      assistantRoleAvailable: Boolean(nextStatus?.assistantRoleAvailable),
+      assistantRoleHeld: Boolean(nextStatus?.assistantRoleHeld),
+      directSmsPermissionGranted: Boolean(
+        nextStatus?.directSmsPermissionGranted
+      ),
+      directSmsReady: Boolean(nextStatus?.directSmsReady),
       connected: Boolean(nextStatus?.connected),
       whatsAppDirectSendEnabled: Boolean(
         nextStatus?.whatsAppDirectSendEnabled
@@ -5897,6 +5921,26 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     } else {
       statusElement.textContent = "Freigabe nötig";
       statusElement.classList.add("setup");
+    }
+
+    if (directSmsStatusElement) {
+      directSmsStatusElement.classList.remove("connected", "setup");
+      if (!getPhoneContactsPlugin()) {
+        directSmsStatusElement.textContent = "Nur Android";
+        directSmsStatusElement.classList.add("setup");
+      } else if (!phoneStatus.assistantRoleAvailable) {
+        directSmsStatusElement.textContent = "Nicht verfügbar";
+        directSmsStatusElement.classList.add("setup");
+      } else if (phoneStatus.directSmsReady) {
+        directSmsStatusElement.textContent = "Direkt aktiv";
+        directSmsStatusElement.classList.add("connected");
+      } else if (phoneStatus.assistantRoleHeld) {
+        directSmsStatusElement.textContent = "SMS-Freigabe nötig";
+        directSmsStatusElement.classList.add("setup");
+      } else {
+        directSmsStatusElement.textContent = "Einmal freigeben";
+        directSmsStatusElement.classList.add("setup");
+      }
     }
   }
 
@@ -6025,6 +6069,47 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       console.error("Telefonfreigabe:", error);
       showToast("Die Telefonfreigabe konnte gerade nicht abgeschlossen werden.");
       return loadPhoneStatus();
+    } finally {
+      phoneActionRunning = false;
+    }
+  }
+
+  async function requestDirectSmsAccess() {
+    if (phoneActionRunning) {
+      return phoneStatus;
+    }
+    if (!requireActivePersonalOwner()) {
+      return phoneStatus;
+    }
+
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.requestDirectSmsAccess !== "function") {
+      showToast("Direktes SMS-Senden ist erst nach dem App-Update verfügbar.");
+      return phoneStatus;
+    }
+
+    phoneActionRunning = true;
+    try {
+      const status = await plugin.requestDirectSmsAccess();
+      renderPhoneStatus(status);
+      if (status?.directSmsReady) {
+        showToast(
+          "Direkte SMS sind aktiv. Ein eindeutiger Sendeauftrag braucht künftig keinen zweiten Bestätigungstipp."
+        );
+      }
+      return status;
+    } catch (error) {
+      console.error("Direkte SMS-Freigabe:", error);
+      showToast(
+        error?.code === "DIRECT_SMS_ASSISTANT_ROLE_REQUIRED"
+          ? "Human Holo wurde nicht als Standardassistentin ausgewählt. Direkte SMS bleiben aus."
+          : String(
+              error?.message ||
+              "Die einmalige Freigabe für direkte SMS wurde nicht abgeschlossen."
+            )
+      );
+      await loadPhoneStatus();
+      return phoneStatus;
     } finally {
       phoneActionRunning = false;
     }
@@ -6276,6 +6361,62 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         }
       : { query: clean, numberSuffix: "" };
   }
+
+  function directSmsRequestFromMessage(message) {
+    const cleanMessage = String(message || "")
+      .trim()
+      .replace(
+        /^(?:(?:hey\s+)?(?:sol(?:\s+holo)?|pam(?:['’]s\s+holo)?|human\s+holo|holo))\s*[,;:!.-]?\s*/i,
+        ""
+      )
+      .trim();
+
+    if (
+      !/\bsms\b/i.test(cleanMessage) ||
+      isSafetyTriageQuestion(cleanMessage) ||
+      /^(?:teste?|simuliere|angenommen|hypothetisch|fiktiv|wenn|falls|morgen|übermorgen|spaeter|später)\b/i.test(
+        normalizeLocalPhoneIntent(cleanMessage)
+      )
+    ) {
+      return null;
+    }
+
+    const patterns = [
+      /^(?:schreib(?:e)?|sende|schick(?:e)?)\s+(?:bitte\s+)?(?:eine\s+)?sms\s+(?:an\s+)?(.+?)(?:\s+mit(?:\s+dem)?\s+text\s*[:;,–—-]?\s*|\s*[:;,–—-]\s*)(.+)$/i,
+      /^(?:schreib(?:e)?|sende|schick(?:e)?)\s+(?:bitte\s+)?(.+?)\s+(?:eine\s+)?sms(?:\s+mit(?:\s+dem)?\s+text\s*[:;,–—-]?\s*|\s*[:;,–—-]\s*)(.+)$/i,
+      /^sms\s+(?:an\s+)?(.+?)(?:\s+mit(?:\s+dem)?\s+text\s*[:;,–—-]?\s*|\s*[:;,–—-]\s*)(.+)$/i
+    ];
+
+    let match = null;
+    for (const pattern of patterns) {
+      match = cleanMessage.match(pattern);
+      if (match) break;
+    }
+    if (!match) {
+      return null;
+    }
+
+    const contactName = cleanContactAliasPhrase(match[1]);
+    const messageText = String(match[2] || "").trim();
+    if (
+      !contactName ||
+      !messageText ||
+      messageText.length > 5000 ||
+      contactName.split(/\s+/).length > 5 ||
+      !/^[\p{L}\p{M}][\p{L}\p{M} .,'’\-\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]*$/u.test(
+        contactName
+      ) ||
+      /\b(?:morgen|übermorgen|spaeter|später|wenn|falls|notruf|polizei|feuerwehr|rettungsdienst|arzt|aerztin|adac|pannenhilfe|112|110|116117)\b/i.test(
+        normalizeLocalPhoneIntent(contactName)
+      )
+    ) {
+      return null;
+    }
+
+    return { contactName, message: messageText };
+  }
+
+  window.extractSolHoloDirectSmsRequest = directSmsRequestFromMessage;
 
   function maskedContactChoice(contact) {
     const digits = String(contact?.number || "").replace(/\D/g, "");
@@ -6612,6 +6753,70 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           answer:
             `Human Holo ruft ${contact.name} jetzt selbst an und führt das Gespräch ` +
             "transparent als Pams persönlicher KI-Clone."
+        };
+      }
+
+      if (actionName === "send_sms_direct") {
+        const message = String(args?.message || "").trim();
+        if (!message) {
+          return { success: false, answer: "Für die SMS fehlt noch der Text." };
+        }
+        if (args?.explicit_sms_command !== true) {
+          return {
+            success: false,
+            answer:
+              "Direktes SMS-Senden braucht einen eindeutigen aktuellen Auftrag mit Empfänger und vollständigem Text."
+          };
+        }
+
+        const plugin = getPhoneContactsPlugin();
+        if (typeof plugin?.sendSmsDirect !== "function") {
+          return {
+            success: false,
+            answer: "Direktes SMS-Senden ist erst nach dem App-Update verfügbar."
+          };
+        }
+
+        let currentStatus = await loadPhoneStatus();
+        if (!currentStatus.directSmsReady) {
+          currentStatus = await requestDirectSmsAccess();
+        }
+        if (!currentStatus.directSmsReady) {
+          return {
+            success: false,
+            setupRequired: true,
+            answer:
+              "Die einmalige Android-Freigabe wurde nicht abgeschlossen. Es wurde keine SMS gesendet."
+          };
+        }
+
+        const smsResult = await plugin.sendSmsDirect({
+          contactId: String(contact.id),
+          number: contact.number,
+          recipientName: contact.name,
+          message,
+          ownerId: activePersonalOwner(),
+          explicitOwnerCommand: true
+        });
+        if (
+          smsResult?.sent !== true ||
+          smsResult?.contactReverifiedOnDevice !== true ||
+          smsResult?.explicitOwnerCommandAccepted !== true ||
+          smsResult?.confirmationShown !== false ||
+          smsResult?.finalSmsAppConfirmationRequired !== false ||
+          smsResult?.deliveryConfirmed !== false
+        ) {
+          throw new Error(
+            "Android hat den direkten SMS-Sendeauftrag nicht vollständig bestätigt."
+          );
+        }
+        return {
+          success: true,
+          sent: true,
+          deliveryConfirmed: false,
+          answer:
+            `Die SMS an ${contact.name} wurde ohne zweiten Tipp direkt über deine SIM gesendet. ` +
+            "Eine Mobilfunk-Zustellbestätigung liegt Human Holo dabei nicht vor."
         };
       }
 
@@ -7300,7 +7505,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const cleanMessage = stripHoloInvocation(message);
     const patterns = [
       /^(?:bitte\s+)?(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(.+?)\s+(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?[.!?]*$/i,
-      /^(?:bitte\s+)?(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i
+      /^(?:bitte\s+)?(?:schreib(?:e)?|notier(?:e)?|trag(?:e)?|pack(?:e)?|setz(?:e)?)\s+(?:mir\s+)?(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*[:,-]?\s*(?:bitte\s+)?(.+?)[.!?]*$/i,
+      /^(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)(?:\s+(?:rein|hinein|ein))?\s*(?:bitte\b)?\s*[:.,;-]?\s*(.+?)[.!?]*$/i
     ];
 
     for (const pattern of patterns) {
@@ -7796,6 +8002,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (match) {
       const result = await executePhoneTool("search_phone_contact", {
         query: match[1]
+      });
+      return { handled: true, answer: result.answer };
+    }
+
+    const directSmsRequest = directSmsRequestFromMessage(cleanMessage);
+    if (directSmsRequest) {
+      const result = await executePhoneTool("send_sms_direct", {
+        contact_name: directSmsRequest.contactName,
+        message: directSmsRequest.message,
+        explicit_sms_command: true
       });
       return { handled: true, answer: result.answer };
     }
@@ -8727,7 +8943,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   document.getElementById("phoneContactsRow").addEventListener("click", async () => {
     if (phoneStatus.contactsPermissionGranted) {
       const managePermissions = window.confirm(
-        "Alle Gerätekontakte und die Anruferkennung sind aktiv. Kontakte und die fest hinterlegte ADAC-Pannenhilfe werden nur nach deiner sichtbaren Bestätigung direkt angerufen. 110 und 112 bleiben im sicheren Android-Wähler. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden; SMS bleiben sichtbar vorbereitet.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
+        "Alle Gerätekontakte und die Anruferkennung sind aktiv. Kontakte und die fest hinterlegte ADAC-Pannenhilfe werden nur nach deiner sichtbaren Bestätigung direkt angerufen. 110 und 112 bleiben im sicheren Android-Wähler. WhatsApp kann nach deinem ausdrücklichen Auftrag automatisch senden. SMS können weiterhin sichtbar vorbereitet werden; der getrennte Direktweg funktioniert nur nach der einmaligen Assistentinnen- und SMS-Freigabe.\n\nAndroid-Berechtigungen jetzt verwalten oder widerrufen?"
       );
       if (managePermissions) {
         try {
@@ -8740,6 +8956,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return;
     }
     void requestPhoneAccess();
+  });
+
+  document.getElementById("directSmsRow").addEventListener("click", () => {
+    if (phoneStatus.directSmsReady) {
+      showToast(
+        "Direkte SMS sind aktiv: eindeutiger Empfänger und vollständiger Text genügen, ohne zweiten Bestätigungstipp."
+      );
+      return;
+    }
+    void requestDirectSmsAccess();
   });
 
   document.getElementById("samsungGalleryRow").addEventListener("click", () => {

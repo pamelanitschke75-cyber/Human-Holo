@@ -306,6 +306,11 @@ test("Datum oder ‚morgen‘ plus Uhrzeit nimmt den Kalenderweg", () => {
     "‚Schreib auf‘ hat Vorrang und bleibt in Notizen"
   );
   assert.equal(
+    isCalendar("In die Notizen bitte. Morgen 10 Uhr Katzenklo sauber machen"),
+    false,
+    "Eine vorangestellte Zielangabe zu Notizen hat Vorrang vor Datum und Uhrzeit"
+  );
+  assert.equal(
     isCalendar("Milch bitte in die Einkaufsliste"),
     false,
     "Eine ausdrücklich genannte Einkaufsliste bleibt getrennt"
@@ -398,7 +403,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=85/u);
+  assert.match(html, /sol-holo-ui\.js\?v=87/u);
 });
 
 test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {

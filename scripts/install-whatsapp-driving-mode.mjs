@@ -58,6 +58,10 @@ for (const fileName of [
   "WakeCaptureEndpointer.java",
   "WakeRecognitionLifecyclePolicy.java",
   "WakePhraseMatcher.java",
+  "HumanHoloVoiceInteractionService.java",
+  "HumanHoloVoiceInteractionSessionService.java",
+  "HumanHoloVoiceInteractionSession.java",
+  "HumanHoloRecognitionService.java",
   "PhoneContactsPlugin.java",
   "WhatsAppAutoSendCommand.java",
   "WhatsAppAutoSendAccessibilityService.java",
@@ -72,6 +76,10 @@ for (const fileName of [
 copyFileSync(
   join(nativeSource, "sol_holo_whatsapp_auto_send_service.xml"),
   join(resXmlTarget, "sol_holo_whatsapp_auto_send_service.xml")
+);
+copyFileSync(
+  join(nativeSource, "human_holo_voice_interaction_service.xml"),
+  join(resXmlTarget, "human_holo_voice_interaction_service.xml")
 );
 
 let strings = readFileSync(stringsPath, "utf8");
@@ -282,6 +290,7 @@ for (const permission of [
   '<uses-permission android:name="android.permission.READ_CONTACTS" />',
   '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
   '<uses-permission android:name="android.permission.CALL_PHONE" />',
+  '<uses-permission android:name="android.permission.SEND_SMS" />',
   '<uses-permission android:name="android.permission.READ_CALENDAR" />',
   '<uses-permission android:name="android.permission.WRITE_CALENDAR" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
@@ -462,6 +471,45 @@ ${applicationEnd}`
   );
 }
 
+if (!manifest.includes(".HumanHoloVoiceInteractionService")) {
+  const applicationEnd = "    </application>";
+  if (!manifest.includes(applicationEnd)) {
+    throw new Error("Application-Ende für die Android-Assistentin nicht gefunden.");
+  }
+
+  manifest = manifest.replace(
+    applicationEnd,
+    `        <service
+            android:name=".HumanHoloVoiceInteractionService"
+            android:label="Human Holo"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/human_holo_voice_interaction_service" />
+        </service>
+
+        <service
+            android:name=".HumanHoloVoiceInteractionSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <service
+            android:name=".HumanHoloRecognitionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SPEECH_RECOGNITION_SERVICE">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
+
+${applicationEnd}`
+  );
+}
+
 if (!manifest.includes(".WhatsAppAutoSendAccessibilityService")) {
   const applicationEnd = "    </application>";
   if (!manifest.includes(applicationEnd)) {
@@ -510,5 +558,5 @@ if (!manifest.includes(".HeyHoSolService")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, direkte SMS nach einmaliger Assistentinnenfreigabe, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe und Lautsprecherroute wurden in Android eingebunden."
 );

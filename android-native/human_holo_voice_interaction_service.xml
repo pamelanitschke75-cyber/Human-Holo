@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voice-interaction-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.solholo.app.HumanHoloVoiceInteractionSessionService"
+    android:recognitionService="com.solholo.app.HumanHoloRecognitionService"
+    android:supportsAssist="true" />

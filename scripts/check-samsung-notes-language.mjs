@@ -43,6 +43,7 @@ const examples = new Map([
   ["Pack bitte Eier in meine Notizen", "Eier"],
   ["Schreib Zucker, Milch und Kaffee in Samsung Notes", "Zucker, Milch und Kaffee"],
   ["Schreib in meine Notizen bitte Termin um 9:30 Uhr", "Termin um 9:30 Uhr"],
+  ["In die Notizen bitte. Morgen Katzentoilette sauber machen", "Morgen Katzentoilette sauber machen"],
   ["Was steht in meinen Notizen?", ""]
 ]);
 
@@ -161,6 +162,11 @@ for (const requiredSource of [
   "Intent.ACTION_DIAL",
   "Intent.ACTION_CALL",
   "Manifest.permission.CALL_PHONE",
+  "Manifest.permission.SEND_SMS",
+  "RoleManager.ROLE_ASSISTANT",
+  "public void requestDirectSmsAccess",
+  "public void sendSmsDirect",
+  "SmsManager",
   "public void startContactCall",
   "public void startHelpServiceCall",
   "Intent.ACTION_SENDTO"
@@ -172,9 +178,52 @@ for (const requiredSource of [
   }
 }
 
-if (phonePluginSource.includes("SmsManager")) {
+const directSmsStart = phonePluginSource.indexOf(
+  "public void sendSmsDirect"
+);
+const directSmsEnd = phonePluginSource.indexOf(
+  "\n    @SuppressWarnings(\"deprecation\")\n    private void sendSmsThroughDefaultSubscription",
+  directSmsStart
+);
+const directSmsSource = phonePluginSource.slice(directSmsStart, directSmsEnd);
+if (
+  directSmsStart < 0 ||
+  directSmsEnd < 0 ||
+  !directSmsSource.includes("assistantRoleHeld()") ||
+  !directSmsSource.includes("directSmsGranted()") ||
+  !directSmsSource.includes("explicitOwnerCallAuthorized(call)") ||
+  !directSmsSource.includes("findContactRecord(contactId, expectedNumber)") ||
+  !directSmsSource.includes("normalizedDirectSmsNumber(contact.number)") ||
+  !directSmsSource.includes('result.put("sent", true)') ||
+  !directSmsSource.includes('result.put("deliveryConfirmed", false)') ||
+  directSmsSource.includes("confirmExternalAction(")
+) {
   throw new Error(
-    "SMS darf nicht direkt ohne die sichtbare Ziel-App ausgelöst werden."
+    "Direkte SMS müssen ownergebunden, kontaktgeprüft und ohne falsche Zustellbestätigung bleiben."
+  );
+}
+
+const directSmsSetupStart = phonePluginSource.indexOf(
+  "public void requestDirectSmsAccess"
+);
+const directSmsSetupEnd = phonePluginSource.indexOf(
+  "\n    @PluginMethod\n    public void sendSmsDirect",
+  directSmsSetupStart
+);
+const directSmsSetupSource = phonePluginSource.slice(
+  directSmsSetupStart,
+  directSmsSetupEnd
+);
+if (
+  directSmsSetupStart < 0 ||
+  directSmsSetupEnd < 0 ||
+  directSmsSetupSource.indexOf("assistantRoleHeld()") < 0 ||
+  directSmsSetupSource.indexOf('requestPermissionForAlias(\n                "directSms"') < 0 ||
+  directSmsSetupSource.indexOf("assistantRoleHeld()") >
+    directSmsSetupSource.indexOf('requestPermissionForAlias(\n                "directSms"')
+) {
+  throw new Error(
+    "SEND_SMS darf erst nach der bestätigten Android-Assistentinnenrolle angefragt werden."
   );
 }
 
@@ -229,13 +278,19 @@ const nativeInstallerSource = fs.readFileSync(
 );
 if (
   !nativeInstallerSource.includes("android.permission.CALL_PHONE") ||
-  nativeInstallerSource.includes("android.permission.SEND_SMS")
+  !nativeInstallerSource.includes("android.permission.SEND_SMS") ||
+  !nativeInstallerSource.includes(".HumanHoloVoiceInteractionService") ||
+  !nativeInstallerSource.includes("android.permission.BIND_VOICE_INTERACTION") ||
+  !nativeInstallerSource.includes(".HumanHoloRecognitionService") ||
+  !nativeInstallerSource.includes("android.permission.BIND_SPEECH_RECOGNITION_SERVICE") ||
+  !nativeInstallerSource.includes("@xml/human_holo_voice_interaction_service")
 ) {
   throw new Error(
-    "Direkte bestätigte Anrufe brauchen CALL_PHONE; direktes SMS-Senden bleibt verboten."
+    "Direkte Anrufe und der rollenbegrenzte direkte SMS-Weg fehlen im Android-Installer."
   );
 }
 
 console.log(
-  "Samsung-Notes-Textübergabe und sichere Gerätebestätigungen sind geprüft."
+  "Samsung-Notes-Textübergabe und sichere Gerätebestätigungen sind geprüft. " +
+    "Rollenbegrenzte Direkt-SMS sind ebenfalls geprüft."
 );

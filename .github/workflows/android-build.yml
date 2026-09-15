@@ -393,6 +393,40 @@ jobs:
           ! grep -q '?token=' "$bridge"
           ! grep -Eq '\+49[[:space:]]*1[5-7][0-9]{8,10}' "$bridge" server.mjs "$app_ui"
 
+      - name: Rollenbegrenzte Direkt-SMS über die SIM prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          phone_java="android/app/src/main/java/com/solholo/app/PhoneContactsPlugin.java"
+          assistant_java="android/app/src/main/java/com/solholo/app/HumanHoloVoiceInteractionService.java"
+          session_java="android/app/src/main/java/com/solholo/app/HumanHoloVoiceInteractionSessionService.java"
+          recognition_java="android/app/src/main/java/com/solholo/app/HumanHoloRecognitionService.java"
+          assistant_xml="android/app/src/main/res/xml/human_holo_voice_interaction_service.xml"
+          app_ui="android/app/src/main/assets/public/sol-holo-ui.js"
+          grep -q 'android.permission.SEND_SMS' "$app_manifest"
+          grep -q 'HumanHoloVoiceInteractionService' "$app_manifest"
+          grep -q 'android.permission.BIND_VOICE_INTERACTION' "$app_manifest"
+          test -s "$assistant_java"
+          test -s "$session_java"
+          test -s "$recognition_java"
+          test -s "$assistant_xml"
+          grep -q 'android:sessionService=' "$assistant_xml"
+          grep -q 'android:recognitionService=' "$assistant_xml"
+          grep -q 'android.speech.RecognitionService' "$app_manifest"
+          grep -q 'android.permission.BIND_SPEECH_RECOGNITION_SERVICE' "$app_manifest"
+          grep -q 'public void requestDirectSmsAccess' "$phone_java"
+          grep -q 'RoleManager.ROLE_ASSISTANT' "$phone_java"
+          grep -q 'requestPermissionForAlias' "$phone_java"
+          grep -q 'public void sendSmsDirect' "$phone_java"
+          grep -q 'findContactRecord(contactId, expectedNumber)' "$phone_java"
+          grep -q 'normalizedDirectSmsNumber(contact.number)' "$phone_java"
+          grep -q 'sendTextMessage' "$phone_java"
+          grep -q 'sendMultipartTextMessage' "$phone_java"
+          grep -q 'directSmsRequestFromMessage' "$app_ui"
+          grep -q 'send_sms_direct' "$app_ui"
+          grep -q 'public void prepareSms' "$phone_java"
+          grep -q 'Intent.ACTION_SENDTO' "$phone_java"
+
       - name: Kalender-Sofortspeicher und sichtbare Holo-Verknüpfung prüfen
         run: |
           set -Eeuo pipefail

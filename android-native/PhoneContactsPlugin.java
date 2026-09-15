@@ -3,6 +3,7 @@ package com.solholo.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.role.RoleManager;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -23,11 +24,13 @@ import android.provider.CalendarContract;
 import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import androidx.core.content.ContextCompat;
+import androidx.activity.result.ActivityResult;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -36,9 +39,11 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.text.Normalizer;
 import java.util.Locale;
@@ -58,6 +63,10 @@ import java.util.Set;
         @Permission(
             alias = "directCall",
             strings = { Manifest.permission.CALL_PHONE }
+        ),
+        @Permission(
+            alias = "directSms",
+            strings = { Manifest.permission.SEND_SMS }
         ),
         @Permission(
             alias = "calendar",
@@ -325,6 +334,34 @@ public class PhoneContactsPlugin extends Plugin {
         ) == PackageManager.PERMISSION_GRANTED;
     }
 
+    private boolean directSmsGranted() {
+        return ContextCompat.checkSelfPermission(
+            getContext(),
+            Manifest.permission.SEND_SMS
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private RoleManager assistantRoleManager() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return null;
+        }
+        return getContext().getSystemService(RoleManager.class);
+    }
+
+    private boolean assistantRoleAvailable() {
+        RoleManager manager = assistantRoleManager();
+        return manager != null && manager.isRoleAvailable(RoleManager.ROLE_ASSISTANT);
+    }
+
+    private boolean assistantRoleHeld() {
+        RoleManager manager = assistantRoleManager();
+        return manager != null && manager.isRoleHeld(RoleManager.ROLE_ASSISTANT);
+    }
+
+    private boolean directSmsReady() {
+        return assistantRoleHeld() && directSmsGranted();
+    }
+
     private boolean calendarGranted() {
         return ContextCompat.checkSelfPermission(
             getContext(),
@@ -475,6 +512,10 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("contactsPermissionGranted", contactsGranted());
         result.put("phoneStatePermissionGranted", phoneStateGranted());
         result.put("directCallPermissionGranted", directCallGranted());
+        result.put("assistantRoleAvailable", assistantRoleAvailable());
+        result.put("assistantRoleHeld", assistantRoleHeld());
+        result.put("directSmsPermissionGranted", directSmsGranted());
+        result.put("directSmsReady", directSmsReady());
         result.put(
             "connected",
             contactsGranted() && phoneStateGranted()
@@ -500,7 +541,11 @@ public class PhoneContactsPlugin extends Plugin {
         result.put("outgoingCallsDirectlyStarted", true);
         result.put("emergencyCallsDirectlyStarted", false);
         result.put("emergencyCallsRequireDefaultDialer", true);
-        result.put("smsDirectlySent", false);
+        result.put("smsDirectlySent", directSmsReady());
+        result.put("directSmsRequiresExplicitCommand", true);
+        result.put("directSmsPerMessageConfirmationRequired", false);
+        result.put("directSmsDeliveryConfirmed", false);
+        result.put("directSmsEmergencyDestinationsBlocked", true);
         result.put(
             "whatsAppDirectSendEnabled",
             whatsAppAutoSendAccessEnabled()
@@ -2055,6 +2100,269 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void requestDirectSmsAccess(PluginCall call) {
+        if (!telephonySupported()) {
+            call.reject(
+                "Dieses Gerät unterstützt keine SMS über eine Mobilfunk-SIM.",
+                "TELEPHONY_UNAVAILABLE"
+            );
+            return;
+        }
+        if (!assistantRoleAvailable()) {
+            call.reject(
+                "Die Android-Standardassistentin kann auf diesem Gerät nicht ausgewählt werden.",
+                "DIRECT_SMS_ASSISTANT_ROLE_UNAVAILABLE"
+            );
+            return;
+        }
+        if (assistantRoleHeld()) {
+            requestDirectSmsPermission(call);
+            return;
+        }
+
+        RoleManager manager = assistantRoleManager();
+        if (manager == null) {
+            call.reject(
+                "Die Android-Standardassistentin kann gerade nicht ausgewählt werden.",
+                "DIRECT_SMS_ASSISTANT_ROLE_UNAVAILABLE"
+            );
+            return;
+        }
+
+        try {
+            startActivityForResult(
+                call,
+                manager.createRequestRoleIntent(RoleManager.ROLE_ASSISTANT),
+                "directSmsAssistantRoleResult"
+            );
+        } catch (RuntimeException error) {
+            call.reject(
+                "Die Auswahl der Android-Standardassistentin konnte gerade nicht geöffnet werden.",
+                "DIRECT_SMS_ASSISTANT_ROLE_REQUEST_FAILED",
+                error
+            );
+        }
+    }
+
+    @ActivityCallback
+    private void directSmsAssistantRoleResult(
+        PluginCall call,
+        ActivityResult result
+    ) {
+        if (call == null) {
+            return;
+        }
+        if (!assistantRoleHeld()) {
+            call.reject(
+                "Human Holo wurde nicht als Android-Standardassistentin freigegeben. Es wurde keine SMS gesendet.",
+                "DIRECT_SMS_ASSISTANT_ROLE_REQUIRED"
+            );
+            return;
+        }
+        requestDirectSmsPermission(call);
+    }
+
+    private void requestDirectSmsPermission(PluginCall call) {
+        // Google Play erlaubt die SMS-Laufzeitfreigabe für diesen Weg erst,
+        // nachdem Human Holo aktiv die Android-Assistentinnenrolle innehat.
+        if (!assistantRoleHeld()) {
+            call.reject(
+                "Direkte SMS brauchen zuerst Human Holo als Android-Standardassistentin.",
+                "DIRECT_SMS_ASSISTANT_ROLE_REQUIRED"
+            );
+            return;
+        }
+        if (directSmsGranted()) {
+            JSObject result = status();
+            result.put("setupComplete", true);
+            call.resolve(result);
+            return;
+        }
+
+        try {
+            requestPermissionForAlias(
+                "directSms",
+                call,
+                "directSmsPermissionCallback"
+            );
+        } catch (RuntimeException error) {
+            call.reject(
+                "Die einmalige Android-SMS-Freigabe konnte gerade nicht geöffnet werden.",
+                "DIRECT_SMS_PERMISSION_UNAVAILABLE",
+                error
+            );
+        }
+    }
+
+    @PermissionCallback
+    private void directSmsPermissionCallback(PluginCall call) {
+        if (!assistantRoleHeld()) {
+            call.reject(
+                "Human Holo ist nicht mehr die Android-Standardassistentin. Es wurde keine SMS gesendet.",
+                "DIRECT_SMS_ASSISTANT_ROLE_REQUIRED"
+            );
+            return;
+        }
+        if (!directSmsGranted()) {
+            call.reject(
+                "Ohne die Android-SMS-Freigabe wurde keine SMS gesendet.",
+                "DIRECT_SMS_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+
+        JSObject result = status();
+        result.put("setupComplete", true);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void sendSmsDirect(PluginCall call) {
+        if (!telephonySupported()) {
+            call.reject(
+                "Dieses Gerät unterstützt keine SMS über eine Mobilfunk-SIM.",
+                "TELEPHONY_UNAVAILABLE"
+            );
+            return;
+        }
+        if (!assistantRoleHeld()) {
+            call.reject(
+                "Direkte SMS brauchen zuerst Human Holo als Android-Standardassistentin.",
+                "DIRECT_SMS_ASSISTANT_ROLE_REQUIRED"
+            );
+            return;
+        }
+        if (!directSmsGranted()) {
+            call.reject(
+                "Die einmalige Android-SMS-Freigabe fehlt.",
+                "DIRECT_SMS_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+        if (!contactsGranted()) {
+            call.reject(
+                "Ohne Kontaktfreigabe kann Human Holo den SMS-Empfänger nicht prüfen.",
+                "CONTACTS_PERMISSION_REQUIRED"
+            );
+            return;
+        }
+        if (!explicitOwnerCallAuthorized(call)) {
+            call.reject(
+                "Direktes SMS-Senden braucht einen ausdrücklichen ownergebundenen Auftrag.",
+                "DIRECT_SMS_OWNER_COMMAND_REQUIRED"
+            );
+            return;
+        }
+
+        String contactIdText = call.getString("contactId", "").trim();
+        String expectedNumber = cleanDestination(call.getString("number", ""));
+        String message = call.getString("message", "").trim();
+        long contactId = -1L;
+        try {
+            contactId = Long.parseLong(contactIdText);
+        } catch (NumberFormatException ignored) {
+            // Die Prüfung unten lehnt eine fehlende oder ungültige ID geschlossen ab.
+        }
+        if (contactId < 0L || expectedNumber.isEmpty()) {
+            call.reject(
+                "Der ausgewählte SMS-Kontakt ist nicht eindeutig.",
+                "DIRECT_SMS_CONTACT_REQUIRED"
+            );
+            return;
+        }
+        if (message.isEmpty()) {
+            call.reject("Kein SMS-Text erhalten.", "DIRECT_SMS_TEXT_REQUIRED");
+            return;
+        }
+        if (message.length() > MAX_SMS_LENGTH) {
+            call.reject(
+                "Der SMS-Text ist zu lang.",
+                "SMS_TEXT_TOO_LONG"
+            );
+            return;
+        }
+
+        ContactRecord contact = findContactRecord(contactId, expectedNumber);
+        if (contact == null) {
+            call.reject(
+                "Der ausgewählte Kontakt wurde vor dem Senden nicht mehr im Android-Telefonbuch gefunden.",
+                "DIRECT_SMS_CONTACT_STALE"
+            );
+            return;
+        }
+
+        String destination = normalizedDirectSmsNumber(contact.number);
+        if (destination.isEmpty()) {
+            call.reject(
+                "Diese Kontaktnummer darf nicht direkt per SMS angeschrieben werden.",
+                "DIRECT_SMS_DESTINATION_NOT_ALLOWED"
+            );
+            return;
+        }
+
+        try {
+            sendSmsThroughDefaultSubscription(destination, message);
+            JSObject result = new JSObject();
+            result.put("sent", true);
+            result.put("number", destination);
+            result.put("recipientName", contact.name);
+            result.put("contactReverifiedOnDevice", true);
+            result.put("explicitOwnerCommandAccepted", true);
+            result.put("confirmationShown", false);
+            result.put("userConfirmedByCurrentCommand", true);
+            result.put("messageLength", message.length());
+            result.put("deliveryConfirmed", false);
+            result.put("finalSmsAppConfirmationRequired", false);
+            result.put("executedBy", "Pam’s Holo");
+            call.resolve(result);
+        } catch (SecurityException error) {
+            call.reject(
+                "Android hat das direkte SMS-Senden nicht freigegeben.",
+                "DIRECT_SMS_PERMISSION_REQUIRED",
+                error
+            );
+        } catch (IllegalArgumentException | UnsupportedOperationException error) {
+            call.reject(
+                "Die SMS konnte über die ausgewählte Mobilfunk-SIM nicht gesendet werden.",
+                "DIRECT_SMS_SEND_FAILED",
+                error
+            );
+        } catch (RuntimeException error) {
+            call.reject(
+                "Die SMS konnte gerade nicht an Android übergeben werden.",
+                "DIRECT_SMS_SEND_FAILED",
+                error
+            );
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void sendSmsThroughDefaultSubscription(
+        String destination,
+        String message
+    ) {
+        SmsManager manager = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            ? getContext().getSystemService(SmsManager.class)
+            : SmsManager.getDefault();
+        if (manager == null) {
+            throw new UnsupportedOperationException("SmsManager unavailable");
+        }
+
+        ArrayList<String> parts = manager.divideMessage(message);
+        if (parts.size() > 1) {
+            manager.sendMultipartTextMessage(
+                destination,
+                null,
+                parts,
+                null,
+                null
+            );
+            return;
+        }
+        manager.sendTextMessage(destination, null, message, null, null);
+    }
+
+    @PluginMethod
     public void prepareWhatsApp(PluginCall call) {
         String number = cleanDestination(call.getString("number", ""));
         String normalizedNumber = cleanDestination(
@@ -2552,6 +2860,37 @@ public class PhoneContactsPlugin extends Plugin {
         if (
             SAFE_SERVICE_DIALER_NUMBERS.contains(digits)
                 || isEmergencyDestination(normalized)
+        ) {
+            return "";
+        }
+        return normalized;
+    }
+
+    private String normalizedDirectSmsNumber(String value) {
+        String normalized = normalizedDirectCallNumber(value);
+        if (normalized.isEmpty()) {
+            return "";
+        }
+
+        String digits = normalized.replaceAll("[^0-9]", "");
+        if (digits.length() < 7) {
+            return "";
+        }
+
+        String nationalDigits = digits;
+        if (normalized.startsWith("+49") && digits.startsWith("49")) {
+            nationalDigits = "0" + digits.substring(2);
+        } else if (digits.startsWith("0049")) {
+            nationalDigits = "0" + digits.substring(4);
+        }
+
+        // Premium-, Auskunfts- und Mehrwertdienste werden nicht automatisch
+        // angeschrieben. Normale in- und ausländische Kontakte bleiben möglich.
+        if (
+            nationalDigits.startsWith("0900")
+                || nationalDigits.startsWith("0137")
+                || nationalDigits.startsWith("0180")
+                || nationalDigits.startsWith("118")
         ) {
             return "";
         }

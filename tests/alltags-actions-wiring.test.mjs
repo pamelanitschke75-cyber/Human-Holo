@@ -252,6 +252,16 @@ test("ausgeschriebene Monatsdaten nehmen in Text und Sprache denselben Kalenderw
     clientDetector("Meine Mutti hat am 9. Dezember Geburtstag."),
     false
   );
+  assert.equal(
+    serverDetector("In die Notizen bitte. Morgen 10 Uhr Katzenklo sauber machen"),
+    false,
+    "Das Server-Routing muss die ausdrücklich genannten Notizen respektieren."
+  );
+  assert.equal(
+    clientDetector("In die Notizen bitte. Morgen 10 Uhr Katzenklo sauber machen"),
+    false,
+    "Das App-Routing muss die ausdrücklich genannten Notizen respektieren."
+  );
 });
 
 test("Sol erkennt natürliche Gmail-Fragen und liest nur ownergebundene Metadaten", () => {

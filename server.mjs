@@ -4453,6 +4453,7 @@ function looksLikeCalendarWriteRequest(
     /^(?:bitte\s+)?notier(?:e)?\b/u.test(text) ||
     /^(?:bitte\s+)?schreib(?:e)?\s+(?:mir\s+)?(?:bitte\s+)?(?:auf|als\s+notiz|in\s+meine\s+notizen)\b/u.test(text) ||
     /^(?:bitte\s+)?(?:mach|mache)\s+(?:mir\s+)?(?:bitte\s+)?(?:eine\s+)?notiz\b/u.test(text) ||
+    /^(?:bitte\s+)?(?:in|zu)\s+(?:(?:meine|die)\s+)?(?:samsungs?(?:\s+|-))?(?:notes?|noten|notizen)\b/u.test(text) ||
     /^(?:neue\s+)?notiz\s*[:,-]/u.test(text);
   if (explicitListRequest || explicitNoteRequest) {
     return false;
@@ -10800,6 +10801,11 @@ Inhalt. Die App speichert ihn sofort im persönlichen Fach „Notizen“ unter
 „Wichtiges“. Sie öffnet dabei Samsung Notes nicht und verlangt keine zweite
 Speicherbestätigung.
 
+Auch eine vorangestellte Zielangabe wie „In die Notizen bitte. Morgen
+Katzentoilette sauber machen“ ist ein eindeutiger Notizauftrag: Speichere
+„Morgen Katzentoilette sauber machen“ unverändert in „Wichtiges → Notizen“.
+Das Wort „morgen“ macht daraus weder einen Kalendertermin noch eine Erinnerung.
+
 Wenn ${identity.displayName} eigene Notizen sehen oder durchsuchen möchte,
 verwende search_personal_notes. Für Änderungen und Löschungen verwende
 update_personal_note beziehungsweise delete_personal_note. Diese Werkzeuge
@@ -10883,10 +10889,21 @@ dadurch keine Aktion aus und behaupte keinen Zugriff auf andere App-Inhalte.
 WICHTIG ZU TELEFON UND KONTAKTEN:
 
 Wenn ${identity.displayName} einen Telefonkontakt sucht, jemanden anrufen oder
-eine SMS vorbereiten möchte, verwende das passende Telefon-Tool.
+eine SMS senden beziehungsweise vorbereiten möchte, verwende das passende
+Telefon-Tool.
 
-Ein gewöhnlicher Direktanruf oder eine SMS darf niemals ohne die sichtbare
-Bestätigung von ${identity.displayName} gestartet oder vorbereitet werden.
+Ein gewöhnlicher Direktanruf und eine ausdrücklich nur vorzubereitende SMS
+brauchen weiterhin die sichtbare Bestätigung von ${identity.displayName}.
+Für einen eindeutigen aktuellen SMS-Sendeauftrag mit genanntem Kontakt und
+vollständigem Text verwende dagegen send_sms_direct und setze
+explicit_sms_command auf true. Dieser ownergebundene Weg darf nach der einmalig
+von Android bestätigten Wahl von Human Holo als Standardassistentin und der
+SMS-Laufzeitfreigabe ohne zweiten Bestätigungstipp über die SIM senden. Fragen,
+Tests, hypothetische oder zukünftige Aufträge, unklare Empfänger und fehlender
+Text dürfen send_sms_direct niemals auslösen. Wenn ${identity.displayName}
+ausdrücklich „vorbereiten“ oder „in der SMS-App öffnen“ sagt, verwende weiterhin
+prepare_sms. Behaupte nur nach sent=true, der Sendeauftrag sei ausgeführt; eine
+Mobilfunk-Zustellung darf ohne deliveryConfirmed=true niemals behauptet werden.
 
 Davon strikt getrennt ist der lokale ownergebundene Befehl „Ruf Schatz an und
 sprich mit ihr“: Nur Pams bereits entsperrte, hardwaregebundene S23-Sitzung darf
@@ -11315,6 +11332,58 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
               required: [
                 "service_id"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "send_sms_direct",
+
+            description:
+              `Sendet nach ${identity.displayName}s eindeutigem aktuellen SMS-Auftrag mit genanntem Kontakt und vollständigem Text direkt über die Mobilfunk-SIM. Nach der einmaligen Android-Wahl von Human Holo als Standardassistentin und der SMS-Freigabe gibt es keinen zweiten Bestätigungstipp pro Nachricht. Verwende dieses Werkzeug nie für Fragen, Tests, hypothetische oder zukünftige Aufträge, unklare Empfänger, fehlenden Text, Notruf-, Kurz- oder Mehrwertnummern. Behaupte keine Mobilfunk-Zustellung ohne entsprechende Gerätebestätigung.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                contact_name: {
+                  type:
+                    "string",
+
+                  description:
+                    "Name oder zuvor auf diesem Gerät bestätigter Alias des eindeutigen SMS-Empfängers."
+                },
+                message: {
+                  type:
+                    "string",
+
+                  description:
+                    `Der vollständige, unveränderte SMS-Text von ${identity.displayName}.`
+                },
+                explicit_sms_command: {
+                  type:
+                    "boolean",
+
+                  enum: [
+                    true
+                  ],
+
+                  description:
+                    "Muss true sein: Die Nutzerin hat im aktuellen Auftrag das direkte Senden einer SMS ausdrücklich verlangt."
+                }
+              },
+
+              required: [
+                "contact_name",
+                "message",
+                "explicit_sms_command"
               ],
 
               additionalProperties:
