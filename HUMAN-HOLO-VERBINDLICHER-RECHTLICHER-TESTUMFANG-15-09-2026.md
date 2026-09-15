@@ -2,7 +2,7 @@
 
 **Stand: 15.09.2026**  
 **Gilt für:** das allgemeine Human Holo, Vorführungen, Anwalt und externe Tester  
-**Gilt nicht als Änderung an:** Pam’s Holo und dessen privaten, ownergebundenen Bestand
+**Medizinische Ausnahme:** Auf Pams ausdrückliche Entscheidung wurden medizinische Funktionen auch aus Pam’s Holo entfernt
 
 ## Aktuell zugelassener Umfang
 
@@ -73,11 +73,12 @@ erfordert:
 
 ## Trennung von Pam’s Holo
 
-Dieser Rechts-Hold darf nicht stillschweigend persönliche Daten, Erinnerungen,
-Bilder, Einstellungen oder bestehende private Entwicklungsstände von Pam’s
-Holo löschen oder überschreiben. Die technische und rechtliche Trennung ist vor
-jeder weiteren Veröffentlichung oder externen Testfreigabe ausdrücklich zu
-prüfen.
+Pam’s Holo bleibt als private, ownergebundene Instanz mit persönlichen Daten,
+Bildern, Erinnerungen und Einstellungen erhalten. Auf ausdrückliche Entscheidung
+von Pamela Christina Nitschke vom 15.09.2026 gilt für Medizin jedoch keine
+Ausnahme: Gesundheitskachel, Medikamentenerkennung, Health Connect,
+Gesundheitsdaten-Berechtigungen und medizinische Beratung wurden auch technisch
+aus Pam’s Holo entfernt.
 
 ## Vorrangregel
 
