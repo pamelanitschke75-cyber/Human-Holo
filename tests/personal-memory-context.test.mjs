@@ -6,6 +6,7 @@ import {
   isAssistantHistoryRecallRequest,
   personalMemoryRelativeDayOffset,
   personalRecallFollowUpKind,
+  personalRecallRequestedDetail,
   resolvePersonalRecallContextQuery
 } from "../modules/personal-memory-context.mjs";
 
@@ -78,6 +79,27 @@ test("substantielle Ortsfragen gelten nicht versehentlich als elliptische Rückf
   assert.equal(personalRecallFollowUpKind("Und was noch?"), "detail");
 });
 
+test("Zeit und Ort bleiben bei einer persönlichen Ereignisfrage getrennte Fakten", () => {
+  assert.equal(
+    personalRecallRequestedDetail(
+      "Wann hab ich Steffi kennengelernt?"
+    ),
+    "time"
+  );
+  assert.equal(
+    personalRecallRequestedDetail(
+      "Wo habe ich Steffi kennengelernt?"
+    ),
+    "place"
+  );
+  assert.equal(
+    personalRecallRequestedDetail(
+      "Was weißt du über Steffi?"
+    ),
+    ""
+  );
+});
+
 test("frühere Essensempfehlungen werden als Holo-Verlauf erkannt", () => {
   assert.equal(
     isAssistantHistoryRecallRequest(
@@ -121,6 +143,14 @@ test("die App erkennt Datum-zu-Ort-Folgefragen auch im Sprachweg", () => {
   assert.equal(
     detector("Und wo?"),
     "wann ist unser sommerfest"
+  );
+  assert.equal(
+    detector("Wann hab ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
+  );
+  assert.equal(
+    detector("Wo habe ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
   );
   assert.equal(detector("Wie wird morgen das Wetter?"), "");
   assert.equal(

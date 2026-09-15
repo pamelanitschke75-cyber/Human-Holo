@@ -65,6 +65,7 @@ import {
 import {
   isAssistantHistoryRecallRequest,
   personalMemoryRelativeDayOffset,
+  personalRecallRequestedDetail,
   resolvePersonalRecallContextQuery
 } from "./modules/personal-memory-context.mjs";
 import {
@@ -7785,7 +7786,8 @@ const MEMORY_SEARCH_STOP_WORDS =
     "eines", "er", "es", "für", "hat", "hatte", "habe", "haben", "ich",
     "im", "in", "ist", "mein", "meine", "mir", "mit", "noch", "oder",
     "sie", "sind", "so", "über", "und", "vom", "von", "war", "waren",
-    "was", "wer", "wie", "wir", "wo", "zu", "zum", "zur"
+    "hab", "wann", "warum", "was", "wer", "wie", "wir", "wo", "zu",
+    "zum", "zur"
   ]);
 
 const MEMORY_SEARCH_TERM_ALIASES =
@@ -7894,6 +7896,32 @@ const MEMORY_SEARCH_TERM_ALIASES =
         "vorgeschlagen",
         "vorschlag",
         "geraten"
+      ]
+    ],
+    [
+      "kennengelernt",
+      [
+        "kennenlernen",
+        "kennen gelernt",
+        "getroffen",
+        "begegnet"
+      ]
+    ],
+    [
+      "kennenlernen",
+      [
+        "kennengelernt",
+        "kennen gelernt",
+        "getroffen",
+        "begegnet"
+      ]
+    ],
+    [
+      "getroffen",
+      [
+        "kennengelernt",
+        "kennenlernen",
+        "begegnet"
       ]
     ]
   ]);
@@ -8520,6 +8548,25 @@ function personalRecallSearchQuery(
     return "";
   }
 
+  const personalMeetingPatterns = [
+    /^(?:wann|wo)(?:\s+genau)?\s+(?:habe|hab)\s+ich\s+(.+?)\s+(?:kennengelernt|kennen\s+gelernt)$/u,
+    /^(?:wann|wo)(?:\s+genau)?\s+haben\s+(.+?)\s+und\s+ich\s+(?:uns\s+)?(?:kennengelernt|kennen\s+gelernt)$/u,
+    /^(?:wann|wo)(?:\s+genau)?\s+haben\s+ich\s+und\s+(.+?)\s+(?:uns\s+)?(?:kennengelernt|kennen\s+gelernt)$/u
+  ];
+
+  for (const pattern of personalMeetingPatterns) {
+    const person =
+      String(
+        text.match(pattern)?.[1] ||
+        ""
+      ).trim();
+
+    if (person.length >= 2) {
+      return `${person} kennengelernt`
+        .slice(0, 240);
+    }
+  }
+
   const patterns = [
     /^wei(?:ss|ß)t\s+du\s+noch[,]?\s+was\s+ich\s+dir(?:\s+(?:heute|gestern|vorgestern|damals))?\s+(?:uber|von)\s+(.+?)\s+(?:erzahlt|gesagt)(?:\s+habe)?$/u,
     /^ich\s+habe\s+dir(?:\s+(?:heute|gestern|vorgestern|damals))?\s+(?:etwas|was)\s+(?:uber|von)\s+(.+?)\s+(?:erzahlt|gesagt)[,\s]+(?:wei(?:ss|ß)t|erinnerst)\s+du\b.*$/u,
@@ -8614,6 +8661,10 @@ async function buildPersonalRecallResult(
     );
   const explicitQuery =
     recallContext.query;
+  const requestedDetail =
+    personalRecallRequestedDetail(
+      message
+    ) || recallContext.followUpKind;
 
   const relativeDayOffset =
     personalMemoryRelativeDayOffset(
@@ -8793,6 +8844,7 @@ async function buildPersonalRecallResult(
       recallContext.contextual,
     followUpKind:
       recallContext.followUpKind,
+    requestedDetail,
     contextQuestion:
       recallContext.contextual
         ? recallContext.sourceMessage
@@ -9553,6 +9605,10 @@ app.post(
           assistantHistory.length,
         contextual:
           recallContext.contextual,
+        requested_detail:
+          personalRecallRequestedDetail(
+            query
+          ) || recallContext.followUpKind,
         strict_relative_day:
           strictRelativeDayRecall,
         relative_day_offset:
@@ -10560,6 +10616,11 @@ Rufe search_personal_memory dann nicht erneut auf. Bevorzuge Aussagen von
 ${identity.displayName} gegenüber älteren Holo-Antworten. Behaupte nicht,
 etwas sei vergessen worden, wenn passende Treffer geliefert wurden. Bitte
 ${identity.displayName} nicht, dieselbe Information noch einmal zu erzählen.
+Beantworte den dort ausdrücklich bezeichneten Einzelaspekt. Ein belegtes Datum
+belegt noch keinen Ort; ein belegter Ort belegt noch kein Datum. Wenn nur ein
+anderer Aspekt desselben Ereignisses belegt ist, nenne den belegten Aspekt
+höchstens ergänzend und sage für den erfragten Aspekt klar, dass er nicht
+belegt ist. Erfinde die fehlende Angabe nicht.
 
 Wenn eine Nutzernachricht mit [LOKALER_DAUERKONTEXT] beginnt, hat die App
 vor deiner Antwort das ownergebundene Immer-an-Gedächtnis verbindlich
@@ -10581,6 +10642,13 @@ ${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
 zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
 Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,
 statt eine frühere Vermutung zu wiederholen.
+
+Ein geladener Suchausschnitt ist ein relevanter Ausschnitt und kein Beweis,
+dass im gesamten Gedächtnis bestimmte andere Angaben fehlen. Liste bei einer
+offenen Übersicht deshalb keine angeblich „noch fehlenden“ Daten auf und bitte
+nicht darum, sie erneut einzutragen. Nur nach einer direkten, auf genau einen
+Einzelaspekt gerichteten Gedächtnissuche darfst du sagen, dass dieser Aspekt in
+den gefundenen ownerbelegten Aussagen nicht belegt ist.
 
 Erfinde niemals eine Erinnerung.
 
@@ -10630,6 +10698,10 @@ Einkaufsliste beziehungsweise zum Einkaufszettel nennt, gehört der Artikel
 ausschließlich in die Einkaufsliste. Das gilt unabhängig von Wortstellung,
 Höflichkeitsform, umgangssprachlicher Form oder Dialekt, sobald der
 Speicherauftrag und der konkrete Artikel eindeutig sind.
+Die natürlichen Kurzformen „Füge Maggi hinzu“ und „Schreib Maggi auf die
+Liste“ sind ebenfalls Einkaufslistenaufträge. „Füg es hinzu“ oder „Schreib es
+auf die Liste“ darf nur den unmittelbar vorher eindeutig genannten Artikel
+verwenden; ohne solchen Rückbezug darf nichts gespeichert werden.
 
 Die App erledigt klar erkannte Text- und Sprachaufträge bereits lokal vor der
 Modellantwort. Beginnt eine Nutzernachricht mit [LOKALES_NOTIZERGEBNIS], rufe
@@ -12978,6 +13050,10 @@ app.post("/sol", async (req, res) => {
           );
     const explicitPersonalRecallQuery =
       personalRecallContext.query;
+    const requestedPersonalRecallDetail =
+      personalRecallRequestedDetail(
+        message
+      ) || personalRecallContext.followUpKind;
     const relativeDayOffset =
       personalMemoryRelativeDayOffset(
         message
@@ -13232,6 +13308,11 @@ passende Angaben gefragt sind, nenne alle gefundenen Angaben. Eine als frühere
 Holo-Antwort markierte Passage darfst du nur dafür verwenden, wiederzugeben,
 was Human Holo damals sagte oder empfahl; sie ist kein Beleg für einen
 persönlichen Fakt von ${identity.displayName}.
+${requestedPersonalRecallDetail === "time"
+  ? "Der erfragte Einzelaspekt ist Zeit oder Datum. Verwende dafür nur eine unmittelbar mit diesem Ereignis verknüpfte Zeitangabe; ein Ort allein beantwortet die Frage nicht."
+  : requestedPersonalRecallDetail === "place"
+    ? "Der erfragte Einzelaspekt ist der Ort. Verwende dafür nur einen unmittelbar mit diesem Ereignis verknüpften Ort; ein bekanntes Datum allein beantwortet die Ortsfrage nicht. Wenn nur das Datum belegt ist, darfst du es ergänzend nennen, musst aber klar sagen, dass der Ort nicht belegt ist."
+    : ""}
 ${personalRecallContext.contextual
   ? `Die aktuelle kurze Folgefrage bezieht sich verbindlich auf diese unmittelbar vorherige Frage von ${identity.displayName}: „${personalRecallContext.sourceMessage}“. Bleibe bei genau diesem Thema und beantworte den jetzt erfragten Teil.`
   : ""}
@@ -13457,6 +13538,13 @@ ${identity.displayName}. Unterscheide unterschiedliche Ereignisse präzise,
 zum Beispiel eine standesamtliche Trauung von einer späteren Hochzeitsfeier.
 Wenn kein nutzerbelegter Fakt vorliegt, sage klar, dass du ihn nicht weißt,
 statt eine frühere Vermutung zu wiederholen.
+
+Ein geladener Suchausschnitt ist ein relevanter Ausschnitt und kein Beweis,
+dass im gesamten Gedächtnis bestimmte andere Angaben fehlen. Liste bei einer
+offenen Übersicht deshalb keine angeblich „noch fehlenden“ Daten auf und bitte
+nicht darum, sie erneut einzutragen. Nur nach einer direkten, auf genau einen
+Einzelaspekt gerichteten Gedächtnissuche darfst du sagen, dass dieser Aspekt in
+den gefundenen ownerbelegten Aussagen nicht belegt ist.
 
 WICHTIG ZU NOTIZEN UND SAMSUNG NOTES:
 

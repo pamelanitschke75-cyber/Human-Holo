@@ -43,6 +43,32 @@ export function personalRecallFollowUpKind(value) {
   return "";
 }
 
+export function personalRecallRequestedDetail(value) {
+  const text = normalize(value);
+
+  if (!text) {
+    return "";
+  }
+
+  if (
+    /^(?:wann(?:\s+genau)?|an\s+welchem\s+tag|zu\s+welchem\s+datum)\b/u.test(
+      text
+    )
+  ) {
+    return "time";
+  }
+
+  if (
+    /^(?:wo(?:\s+genau)?|an\s+welchem\s+ort)\b/u.test(
+      text
+    )
+  ) {
+    return "place";
+  }
+
+  return "";
+}
+
 export function resolvePersonalRecallContextQuery({
   message,
   rows,
