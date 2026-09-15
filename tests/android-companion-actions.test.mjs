@@ -14,6 +14,10 @@ const css = fs.readFileSync(
   new URL("../www/human-holo-theme.css", import.meta.url),
   "utf8"
 );
+const uiCss = fs.readFileSync(
+  new URL("../www/sol-holo-ui.css", import.meta.url),
+  "utf8"
+);
 const phonePlugin = fs.readFileSync(
   new URL("../android-native/PhoneContactsPlugin.java", import.meta.url),
   "utf8"
@@ -107,7 +111,7 @@ test("Routenplaner versteht natürliche Ziele", () => {
   assert.match(ui, /Routenplaner · Google Maps/u);
 });
 
-test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo", () => {
+test("Kalender bleibt extern und Holo zeigt einen kompakten auswählbaren Tag", () => {
   const endpoint = sourceBetween(
     server,
     'app.post(\n  "/calendar/action"',
@@ -125,6 +129,8 @@ test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo
   assert.match(phonePlugin, /public void saveCalendarEvent/u);
   assert.match(phonePlugin, /public void listCalendarEvents/u);
   assert.match(phonePlugin, /public void requestCalendarAccess/u);
+  assert.match(phonePlugin, /matchingCalendarEventId/u);
+  assert.match(phonePlugin, /CalendarContract\.Events\.DELETED \+ " = 0"/u);
   assert.match(phonePlugin, /getContentResolver\(\)\s*\n\s*\.insert/u);
   assert.match(phonePlugin, /result\.put\("opened", false\)/u);
   assert.match(phonePlugin, /result\.put\("reviewAndSaveRequired", false\)/u);
@@ -134,6 +140,17 @@ test("Kalender speichert ohne Fremdfenster und zeigt verknüpfte Termine in Holo
   assert.match(ui, /window\.saveSolHoloCalendarDraft/u);
   assert.match(ui, /plugin\.listCalendarEvents/u);
   assert.match(ui, /id="calendarList"/u);
+  assert.match(ui, /id="calendarDayInput" type="date"/u);
+  assert.match(ui, /id="calendarTodayButton"/u);
+  assert.match(ui, /rangeEnd\.setDate\(rangeEnd\.getDate\(\) \+ 1\)/u);
+  assert.doesNotMatch(ui, /rangeEnd\.setFullYear/u);
+  assert.match(ui, /uniqueLinkedCalendarEvents/u);
+  assert.match(ui, /linkedCalendarEventFallsOnDay/u);
+  assert.match(ui, /utcCalendarDayValue/u);
+  assert.match(ui, /Extern gespeichert/u);
+  assert.match(uiCss, /\.calendarList\{[\s\S]*?display:flex/u);
+  assert.match(uiCss, /\.calendarList\{[\s\S]*?overflow-x:auto/u);
+  assert.match(uiCss, /\.calendarList \.calendarCard\{[\s\S]*?scroll-snap-align:start/u);
   assert.match(ui, /Mit deinem Handy-Kalender verknüpft/u);
   assert.match(ui, /linkedInHumanHolo:\s*true/u);
   assert.match(

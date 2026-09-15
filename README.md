@@ -260,9 +260,11 @@ Kalenderfenster öffnet sich dabei nicht; ein zusätzlicher Tipp auf „Speicher
 ist nicht nötig.
 
 Der normale Handy-Kalender ist zugleich mit **Wichtiges → Kalender** verknüpft.
-Kommende Termine erscheinen dadurch direkt in Human Holo, ohne dass eine zweite
-Terminkopie entsteht. Nach einem neuen Eintrag wird die sichtbare Liste sofort
-aktualisiert.
+Alle Termine und Geburtstage werden ausschließlich dort gespeichert. Human Holo
+öffnet zunächst nur den heutigen Tag. Ein anderer Tag kann direkt in Holo gewählt
+werden; seine Termine erscheinen platzsparend nebeneinander und können horizontal
+durchgesehen werden. Es entsteht weder eine zweite Terminablage noch eine lange
+Liste aller zukünftigen Termine.
 
 ✅ Verbindung zum Google-Kalender funktioniert.
 

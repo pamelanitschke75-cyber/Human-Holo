@@ -194,11 +194,13 @@ test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", 
   assert.match(ui, /id="calendarList"/u);
   assert.match(ui, /id="calendarCount"/u);
   assert.match(ui, /id="calendarRefreshButton"/u);
+  assert.match(ui, /id="calendarDayInput" type="date"/u);
+  assert.match(ui, /id="calendarTodayButton"/u);
   assert.match(ui, /Zugriff freigeben/u);
   assert.match(ui, /requestCalendarAccess/u);
   assert.match(ui, /saveCalendarEvent/u);
   assert.match(ui, /listCalendarEvents/u);
-  assert.match(ui, /Mit Human Holo verknüpft/u);
+  assert.match(ui, /Extern gespeichert/u);
   assert.match(ui, /savedDirectly:\s*true/u);
   assert.match(ui, /accessRequired:\s*true/u);
   assert.doesNotMatch(ui, /openCalendarEvent/u);
@@ -312,7 +314,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=84/u);
+  assert.match(html, /sol-holo-ui\.js\?v=85/u);
 });
 
 test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {

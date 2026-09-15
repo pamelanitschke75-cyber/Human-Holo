@@ -1166,6 +1166,45 @@ public class PhoneContactsPlugin extends Plugin {
         return result;
     }
 
+    private Long matchingCalendarEventId(
+        WritableCalendar calendar,
+        String title,
+        long startMillis,
+        long endMillis,
+        boolean allDay
+    ) {
+        String[] projection = new String[] {
+            CalendarContract.Events._ID
+        };
+        String selection =
+            CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+            CalendarContract.Events.TITLE + " = ? AND " +
+            CalendarContract.Events.DTSTART + " = ? AND " +
+            CalendarContract.Events.DTEND + " = ? AND " +
+            CalendarContract.Events.ALL_DAY + " = ? AND " +
+            CalendarContract.Events.DELETED + " = 0";
+        String[] selectionArgs = new String[] {
+            String.valueOf(calendar.id),
+            title,
+            String.valueOf(startMillis),
+            String.valueOf(endMillis),
+            allDay ? "1" : "0"
+        };
+
+        try (Cursor cursor = getContext().getContentResolver().query(
+            CalendarContract.Events.CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            CalendarContract.Events._ID + " ASC"
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getLong(0);
+            }
+        }
+        return null;
+    }
+
     private void saveCalendarEventNow(PluginCall call) {
         String title = call.getString("title", "Termin").trim();
         String description = call.getString("description", "").trim();
@@ -1212,21 +1251,43 @@ public class PhoneContactsPlugin extends Plugin {
             return;
         }
 
-        ContentValues values = new ContentValues();
-        values.put(CalendarContract.Events.CALENDAR_ID, calendar.id);
-        values.put(CalendarContract.Events.TITLE, cleanTitle);
-        values.put(CalendarContract.Events.DTSTART, startValue);
-        values.put(CalendarContract.Events.DTEND, endValue);
-        values.put(
-            CalendarContract.Events.EVENT_TIMEZONE,
-            allDay ? "UTC" : "Europe/Berlin"
-        );
-        values.put(CalendarContract.Events.ALL_DAY, allDay ? 1 : 0);
-        if (!description.isEmpty()) {
-            values.put(CalendarContract.Events.DESCRIPTION, description);
-        }
-
         try {
+            Long matchingEventId = matchingCalendarEventId(
+                calendar,
+                cleanTitle,
+                startValue,
+                endValue,
+                allDay
+            );
+            if (matchingEventId != null) {
+                preferences
+                    .edit()
+                    .putString(CALENDAR_FINGERPRINT_KEY, fingerprint)
+                    .putLong(CALENDAR_EVENT_ID_KEY, matchingEventId)
+                    .putLong(CALENDAR_SAVED_AT_KEY, now)
+                    .apply();
+                call.resolve(directCalendarResult(
+                    matchingEventId,
+                    calendar,
+                    true
+                ));
+                return;
+            }
+
+            ContentValues values = new ContentValues();
+            values.put(CalendarContract.Events.CALENDAR_ID, calendar.id);
+            values.put(CalendarContract.Events.TITLE, cleanTitle);
+            values.put(CalendarContract.Events.DTSTART, startValue);
+            values.put(CalendarContract.Events.DTEND, endValue);
+            values.put(
+                CalendarContract.Events.EVENT_TIMEZONE,
+                allDay ? "UTC" : "Europe/Berlin"
+            );
+            values.put(CalendarContract.Events.ALL_DAY, allDay ? 1 : 0);
+            if (!description.isEmpty()) {
+                values.put(CalendarContract.Events.DESCRIPTION, description);
+            }
+
             Uri eventUri = getContext()
                 .getContentResolver()
                 .insert(CalendarContract.Events.CONTENT_URI, values);

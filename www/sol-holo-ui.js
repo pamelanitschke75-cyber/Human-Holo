@@ -680,7 +680,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           <span class="importantSectionIcon" aria-hidden="true">📅</span>
           <div>
             <h3 id="calendarImportantTitle">Kalender</h3>
-            <p>Datum oder „morgen“ plus Uhrzeit kommt hierhin.</p>
+            <p>Alles bleibt im Handy-Kalender. Holo zeigt einen Tag kompakt.</p>
           </div>
         </div>
         <div class="importantComposerFooter" aria-label="Kalenderverknüpfung">
@@ -698,8 +698,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
             <button class="primaryButton" type="submit">In Kalender</button>
           </div>
         </form>
+        <div class="calendarDayControls" aria-label="Kalendertag auswählen">
+          <label class="calendarDayPicker" for="calendarDayInput">
+            <span>Tag ansehen</span>
+            <input id="calendarDayInput" type="date">
+          </label>
+          <button id="calendarTodayButton" class="calendarTodayButton"
+            type="button">Heute</button>
+        </div>
         <div class="importantSectionToolbar">
-          <strong id="calendarCount">0 Termine</strong>
+          <strong id="calendarCount">Heute · 0 Termine</strong>
           <button id="calendarRefreshButton" class="calendarRefreshButton"
             type="button">Aktualisieren</button>
         </div>
@@ -707,8 +715,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           aria-live="polite"></div>
         <div id="calendarEmpty" class="notesEmpty importantInlineEmpty">
           <span aria-hidden="true">📅</span>
-          <strong>Noch kein Termin sichtbar.</strong>
-          <p>Verknüpfe den Handy-Kalender oder trage oben einen Termin ein.</p>
+          <strong>Heute steht nichts im Kalender.</strong>
+          <p>Wähle oben einen anderen Tag, ohne Holo zu verlassen.</p>
         </div>
       </section>
 
@@ -1168,6 +1176,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   const calendarEmpty = document.getElementById("calendarEmpty");
   const calendarCount = document.getElementById("calendarCount");
   const calendarRefreshButton = document.getElementById("calendarRefreshButton");
+  const calendarDayInput = document.getElementById("calendarDayInput");
+  const calendarTodayButton = document.getElementById("calendarTodayButton");
+  calendarDayInput.value = localCalendarDayValue(new Date());
   const shoppingComposer = document.getElementById("shoppingComposer");
   const shoppingItemInput = document.getElementById("shoppingItemInput");
   const shoppingList = document.getElementById("shoppingList");
@@ -3724,22 +3735,90 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     };
   }
 
+  function localCalendarDayValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function utcCalendarDayValue(date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function selectedCalendarDayStart() {
+    const value = String(calendarDayInput?.value || "");
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value);
+    const selected = match
+      ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+      : new Date();
+    selected.setHours(0, 0, 0, 0);
+    return selected;
+  }
+
+  function isTodayCalendarDay(date) {
+    return localCalendarDayValue(date) === localCalendarDayValue(new Date());
+  }
+
+  function selectedCalendarDayText() {
+    const selected = selectedCalendarDayStart();
+    if (isTodayCalendarDay(selected)) return "Heute";
+    try {
+      return new Intl.DateTimeFormat("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }).format(selected);
+    } catch {
+      return selected.toLocaleDateString("de-DE");
+    }
+  }
+
+  function linkedCalendarDuplicateKey(event) {
+    return [
+      normalizeNoteSearchText(event.title),
+      event.startMillis,
+      event.endMillis,
+      event.allDay ? "all-day" : "timed",
+      normalizeNoteSearchText(event.location)
+    ].join("|");
+  }
+
+  function uniqueLinkedCalendarEvents(events) {
+    const unique = new Map();
+    events.forEach((event) => {
+      const key = linkedCalendarDuplicateKey(event);
+      if (!unique.has(key)) unique.set(key, event);
+    });
+    return [...unique.values()];
+  }
+
+  function linkedCalendarEventFallsOnDay(event, rangeStart, rangeEnd) {
+    if (!event.allDay) {
+      return event.startMillis < rangeEnd.getTime() &&
+        event.endMillis > rangeStart.getTime();
+    }
+
+    const selectedDay = localCalendarDayValue(rangeStart);
+    const eventStartDay = utcCalendarDayValue(new Date(event.startMillis));
+    const eventLastDay = utcCalendarDayValue(new Date(
+      Math.max(event.startMillis, event.endMillis - 1)
+    ));
+    return selectedDay >= eventStartDay && selectedDay <= eventLastDay;
+  }
+
   function linkedCalendarDateText(event) {
     const start = new Date(event.startMillis);
     const end = new Date(event.endMillis);
     try {
       if (event.allDay) {
-        return new Intl.DateTimeFormat("de-DE", {
-          weekday: "short",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric"
-        }).format(start);
+        return "Ganztägig";
       }
       const startText = new Intl.DateTimeFormat("de-DE", {
-        weekday: "short",
-        day: "2-digit",
-        month: "2-digit",
         hour: "2-digit",
         minute: "2-digit"
       }).format(start);
@@ -3784,7 +3863,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     footer.className = "noteCardFooter";
     const linked = document.createElement("span");
     linked.className = "calendarLinkedLabel";
-    linked.textContent = "Mit Human Holo verknüpft";
+    linked.textContent = "Extern gespeichert";
     footer.appendChild(linked);
     card.append(header, details, footer);
     return card;
@@ -3802,8 +3881,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     ).length;
     const quickMeta = document.getElementById("notesQuickMeta");
     if (quickMeta) {
+      const calendarMeta = isTodayCalendarDay(selectedCalendarDayStart())
+        ? `${linkedCalendarEvents.length} Termine heute`
+        : "Kalender verknüpft";
       quickMeta.textContent =
-        `${linkedCalendarEvents.length} Termine · ` +
+        `${calendarMeta} · ` +
         `${shoppingItemCount} Einkäufe · ${regularNoteCount} Notizen`;
     }
   }
@@ -3815,17 +3897,20 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     calendarList.replaceChildren();
     const eventCount = linkedCalendarEvents.length;
     calendarCount.textContent =
-      `${eventCount} ${eventCount === 1 ? "Termin" : "Termine"}`;
+      `${selectedCalendarDayText()} · ${eventCount} ` +
+      `${eventCount === 1 ? "Termin" : "Termine"}`;
     calendarEmpty.hidden = eventCount > 0;
     const emptyTitle = calendarEmpty.querySelector("strong");
     const emptyCopy = calendarEmpty.querySelector("p");
     if (emptyTitle && emptyCopy) {
       emptyTitle.textContent = deviceCalendarStatus.permissionGranted
-        ? "Keine kommenden Termine gefunden."
+        ? isTodayCalendarDay(selectedCalendarDayStart())
+          ? "Heute steht nichts im Kalender."
+          : "An diesem Tag steht nichts im Kalender."
         : "Kalender noch nicht verknüpft.";
       emptyCopy.textContent = deviceCalendarStatus.permissionGranted
-        ? "Neue Termine erscheinen hier automatisch."
-        : "Gib den Kalenderzugriff einmal frei; danach zeigt Holo die Termine hier.";
+        ? "Wähle oben einen anderen Tag, ohne Holo zu verlassen."
+        : "Gib den Kalenderzugriff einmal frei; danach zeigt Holo den gewählten Tag.";
     }
     linkedCalendarEvents.forEach((event) => {
       calendarList.appendChild(buildLinkedCalendarCard(event));
@@ -3847,10 +3932,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (calendarRefreshButton) calendarRefreshButton.disabled = true;
     if (calendarCount) calendarCount.textContent = "Termine werden geladen …";
-    const rangeStart = new Date();
-    rangeStart.setHours(0, 0, 0, 0);
+    const rangeStart = selectedCalendarDayStart();
     const rangeEnd = new Date(rangeStart);
-    rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
+    rangeEnd.setDate(rangeEnd.getDate() + 1);
 
     try {
       const result = await plugin.listCalendarEvents({
@@ -3859,10 +3943,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         limit: 50
       });
       linkedCalendarEvents = Array.isArray(result?.events)
-        ? result.events
+        ? uniqueLinkedCalendarEvents(result.events
           .map(normalizeLinkedCalendarEvent)
           .filter(Boolean)
-          .sort((left, right) => left.startMillis - right.startMillis)
+          .filter((event) =>
+            linkedCalendarEventFallsOnDay(event, rangeStart, rangeEnd)
+          )
+          .sort((left, right) => left.startMillis - right.startMillis))
         : [];
       renderLinkedCalendarEvents();
       return true;
@@ -5580,8 +5667,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         deviceCalendarEventId: saved?.eventId,
         answer:
           saved?.duplicate
-            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Kalender und ist mit Human Holo verknüpft ✅️`
-            : `„${String(draft.title || "Termin")}“ ist gespeichert und jetzt auch in Human Holo sichtbar ✅️`
+            ? `„${String(draft.title || "Termin")}“ steht bereits in deinem Handy-Kalender ✅️`
+            : `„${String(draft.title || "Termin")}“ ist in deinem Handy-Kalender gespeichert ✅️`
       };
     } catch (error) {
       console.error("Android-Kalender direkt speichern:", error?.code || error?.name);
@@ -8390,6 +8477,18 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         ? "Kalender in Human Holo aktualisiert ✅️"
         : "Der Handy-Kalender konnte gerade nicht aktualisiert werden."
     );
+  });
+
+  calendarDayInput.addEventListener("change", () => {
+    if (!calendarDayInput.value) {
+      calendarDayInput.value = localCalendarDayValue(new Date());
+    }
+    void loadDeviceCalendarEvents();
+  });
+
+  calendarTodayButton.addEventListener("click", () => {
+    calendarDayInput.value = localCalendarDayValue(new Date());
+    void loadDeviceCalendarEvents();
   });
 
   document.getElementById("calendarAccessButton").addEventListener(

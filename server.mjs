@@ -4998,6 +4998,52 @@ async function saveCalendarAction(
   ==========================================================
 */
 
+function sameGoogleCalendarBoundary(left, right) {
+  const leftDate = String(left?.date || "").trim();
+  const rightDate = String(right?.date || "").trim();
+  if (leftDate || rightDate) {
+    return leftDate === rightDate;
+  }
+
+  const leftMillis = Date.parse(String(left?.dateTime || ""));
+  const rightMillis = Date.parse(String(right?.dateTime || ""));
+  return Number.isFinite(leftMillis) &&
+    Number.isFinite(rightMillis) &&
+    leftMillis === rightMillis;
+}
+
+async function findMatchingGoogleCalendarEvent(calendar, requestBody) {
+  const startValue = requestBody.start?.dateTime ||
+    `${requestBody.start?.date || ""}T00:00:00.000Z`;
+  const endValue = requestBody.end?.dateTime ||
+    `${requestBody.end?.date || ""}T00:00:00.000Z`;
+  const startMillis = Date.parse(startValue);
+  const endMillis = Date.parse(endValue);
+  if (!Number.isFinite(startMillis) || !Number.isFinite(endMillis)) {
+    throw new Error("GOOGLE_CALENDAR_DUPLICATE_RANGE_INVALID");
+  }
+
+  const response = await calendar.events.list({
+    calendarId: GOOGLE_CALENDAR_ID,
+    timeMin: new Date(startMillis - 86_400_000).toISOString(),
+    timeMax: new Date(endMillis + 86_400_000).toISOString(),
+    singleEvents: true,
+    showDeleted: false,
+    maxResults: 250,
+    q: requestBody.summary
+  });
+  const expectedTitle = String(requestBody.summary || "")
+    .trim()
+    .toLocaleLowerCase("de-DE");
+
+  return (response.data?.items || []).find((event) =>
+    String(event?.summary || "").trim().toLocaleLowerCase("de-DE") ===
+      expectedTitle &&
+    sameGoogleCalendarBoundary(event?.start, requestBody.start) &&
+    sameGoogleCalendarBoundary(event?.end, requestBody.end)
+  ) || null;
+}
+
 async function createGoogleCalendarEvent(
   parsedCommand,
   originalMessage,
@@ -5117,6 +5163,20 @@ async function createGoogleCalendarEvent(
       : {})
   };
 
+  const matchingEvent = await findMatchingGoogleCalendarEvent(
+    calendar,
+    requestBody
+  );
+  if (matchingEvent) {
+    console.log(
+      "✅ Google Calendar Termin war bereits vorhanden."
+    );
+    return {
+      googleEvent: matchingEvent,
+      duplicate: true
+    };
+  }
+
   const response =
     await calendar.events.insert({
       calendarId:
@@ -5141,7 +5201,10 @@ async function createGoogleCalendarEvent(
     "✅ Google Calendar Termin wirklich erstellt."
   );
 
-  return googleEvent;
+  return {
+    googleEvent,
+    duplicate: false
+  };
 }
 
 /*
@@ -5236,7 +5299,10 @@ async function commitCalendarAction(
   }
 
   try {
-    const googleEvent = await createGoogleCalendarEvent(
+    const {
+      googleEvent,
+      duplicate: existingInGoogleCalendar
+    } = await createGoogleCalendarEvent(
       parsed,
       originalMessage,
       identity
@@ -5255,10 +5321,13 @@ async function commitCalendarAction(
     return {
       handled: true,
       success: true,
+      duplicate: existingInGoogleCalendar,
       googleEventId: googleEvent.id,
       htmlLink: googleEvent.htmlLink || null,
       answer:
-        `Ja, ${identity.displayName}. Google Calendar hat bestätigt: „${googleEvent.summary || parsed.summary}“ ist gespeichert.`
+        existingInGoogleCalendar
+          ? `${identity.displayName}, „${googleEvent.summary || parsed.summary}“ steht bereits in deinem Google Kalender.`
+          : `Ja, ${identity.displayName}. Google Calendar hat bestätigt: „${googleEvent.summary || parsed.summary}“ ist gespeichert.`
     };
   } catch (error) {
     console.error(
