@@ -9,7 +9,7 @@
 **Stand:** 15.09.2026  
 **Projekt, Idee und Entwicklung:** Pamela Nitschke  
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
-**Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API  
+**Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
 ## Verbindliche Pause der medizinischen Funktionen
@@ -114,6 +114,7 @@ Ohne diesen Nachweis lautet der Status:
 
 **HUMAN HOLO · FOREVER TOGETHER ♾️**  
 Idee, Konzept und Entwicklung: **Pamela Nitschke**
+**Developed with ChatGPT/OpenAI**
 
 Die Nennung verwendeter Technologien oder Unternehmen bedeutet keine offizielle
 Partnerschaft, Beteiligung oder Unterstützung durch diese Unternehmen.
