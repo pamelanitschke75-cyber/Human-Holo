@@ -1,6 +1,7 @@
 package com.solholo.app;
 
 import android.content.Intent;
+import android.os.RemoteException;
 import android.speech.RecognitionService;
 import android.speech.SpeechRecognizer;
 
@@ -17,16 +18,24 @@ public final class HumanHoloRecognitionService extends RecognitionService {
         Intent recognizerIntent,
         Callback listener
     ) {
-        listener.error(SpeechRecognizer.ERROR_CLIENT);
+        failClosed(listener);
     }
 
     @Override
     protected void onStopListening(Callback listener) {
-        listener.error(SpeechRecognizer.ERROR_CLIENT);
+        failClosed(listener);
     }
 
     @Override
     protected void onCancel(Callback listener) {
         // No recognition session or audio capture is kept by this service.
+    }
+
+    private static void failClosed(Callback listener) {
+        try {
+            listener.error(SpeechRecognizer.ERROR_CLIENT);
+        } catch (RemoteException ignored) {
+            // The system listener already went away; there is no session to retain.
+        }
     }
 }
