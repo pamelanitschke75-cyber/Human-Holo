@@ -12,6 +12,23 @@
 **Technologische Werkzeuge:** OpenAI · ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
+## Verbindlicher Ausschluss medizinischer Funktionen
+
+**Die medizinischen Funktionen wurden am 15.09.2026 technisch aus Human Holo
+und aus Pam’s Holo entfernt. Sie sind nicht verfügbar.**
+
+Das betrifft insbesondere:
+
+- medizinische Beratung, Diagnosen und Therapie- oder Selbsthilfeempfehlungen
+- Medikamentenerkennung und Medikamentenauswertung
+- Dosierungs- oder Einnahmehinweise
+- Health Connect, Samsung Health und die Auswertung von Gesundheitsdaten
+- Gesundheitsdaten-Berechtigungen in der Android-App
+
+Eine erneute Aufnahme ist nur nach dokumentierter rechtlicher Prüfung,
+technischer Freigabe und ausdrücklicher Zustimmung von Pamela Christina
+Nitschke möglich.
+
 ## Was ist Human Holo aktuell?
 
 Human Holo ist derzeit eine bewusst begrenzte Entwicklungs- und Testversion
