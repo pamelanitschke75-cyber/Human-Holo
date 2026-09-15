@@ -174,8 +174,8 @@ if (!gradle.includes(dependencyLine)) {
 
 let activity = readFileSync(mainActivity, "utf8");
 if (!activity.includes("registerPlugin(SolSpeakerIdentityPlugin.class)")) {
-  const marker = "        registerPlugin(HealthConnectPlugin.class);";
-  if (!activity.includes(marker)) throw new Error("HealthConnect-Plugin-Markierung nicht gefunden.");
+  const marker = "        registerPlugin(PhoneContactsPlugin.class);";
+  if (!activity.includes(marker)) throw new Error("Telefon-Plugin-Markierung nicht gefunden.");
   activity = activity.replace(marker, marker + "\n        registerPlugin(SolSpeakerIdentityPlugin.class);");
   writeFileSync(mainActivity, activity, "utf8");
 }

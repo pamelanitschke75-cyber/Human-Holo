@@ -343,9 +343,9 @@ jobs:
         run: |
           set -Eeuo pipefail
           node scripts/install-whatsapp-driving-mode.mjs
-          ! grep -q 'READ_SEXUAL_ACTIVITY' android/app/src/main/AndroidManifest.xml
-          ! grep -q 'SexualActivityRecord' \
-            android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
+          ! grep -q 'android.permission.health.READ_' android/app/src/main/AndroidManifest.xml
+          test ! -e android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
+          test ! -e android/app/src/main/java/com/solholo/app/HealthPrivacyActivity.java
 
       - name: Bestätigte Kontakt- und ADAC-Anrufe prüfen
         run: |

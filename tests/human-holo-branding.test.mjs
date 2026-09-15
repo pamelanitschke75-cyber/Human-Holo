@@ -93,20 +93,19 @@ test("aktueller Bildschirm nutzt Human Holo und bewahrt Pam’s Holo", () => {
   assert.doesNotMatch(`${html}\n${ui}`, /Sol Holo/u);
 });
 
-test("Startseite ersetzt die vier alten Schnellbereiche durch genau acht Human-Holo-Bereiche", () => {
+test("Startseite zeigt sieben nicht-medizinische Human-Holo-Bereiche", () => {
   const ui = readText("www/sol-holo-ui.js");
   const homeMarkup = ui.match(/humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u)?.[1] ?? "";
   const heroMarkup = homeMarkup.match(/<button id="homeOrbButton"[\s\S]*?<\/button>/u)?.[0] ?? "";
 
   assert.notEqual(homeMarkup, "");
-  assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 8);
+  assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 7);
 
   for (const label of [
     "Menschen",
     "Familie &amp;<br>Freunde",
     "Tiere",
     "Umwelt",
-    "Gesundheit",
     "Bildung",
     "Zusammen",
     "Geschäftliches"

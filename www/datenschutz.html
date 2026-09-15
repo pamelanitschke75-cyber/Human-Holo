@@ -47,7 +47,6 @@
         <li><strong>Medien:</strong> ausdrücklich ausgewählte Fotos, Videos, Videoframes, Sprach- und Tonaufnahmen sowie Dateien.</li>
         <li><strong>Optionale Wiedererkennung der Ownerin:</strong> Pams ausdrücklich freigegebenes, nur auf ihrem Gerät gespeichertes Profilbild und ein von ihr bewusst gesendetes einzelnes Prüffoto. Diese besondere Funktion bleibt ohne separate ausdrückliche Einwilligung ausgeschaltet.</li>
         <li><strong>Erinnerung &amp; Vermächtnis:</strong> freiwillig und nach bestätigten Rechten lokal hinzugefügte Fotos, Videos, Sprachaufnahmen, Geschichten und biografische Angaben.</li>
-        <li><strong>Gesundheit und Fitness:</strong> freiwillige Gesundheitsfragen sowie ausdrücklich freigegebene, lesbare Health-Connect-Daten.</li>
         <li><strong>Optionale verbundene Dienste:</strong> Google-Konto, Kalender, Gmail, Google Kontakte, Google Drive, Samsung SmartThings und WhatsApp.</li>
         <li><strong>Technische Sicherheit:</strong> öffentliche Geräteschlüssel, Registrierungsstatus und begrenzte technische Fehlerangaben. Rohe biometrische Entsperrdaten von Android – Fingerabdruck, Geräte-Gesichtsscan oder PIN – erhält Human Holo nicht. Davon getrennt sind freiwillig ausgewählte Fotos für die beschriebenen Bildfunktionen.</li>
       </ul>
@@ -68,8 +67,8 @@
       <ul>
         <li><strong>Auf dem Gerät:</strong> Einstellungen, ausgewählte Medien, lokale Erinnerungsinhalte, Notizen und verschlüsselte Exportdateien können lokal gespeichert werden. Pams ownergebundenes Profilbild bleibt auf ihrem Gerät; die freiwillige Einwilligung zur Selbstwiedererkennung wird dort getrennt gespeichert und nicht in eine Human-Holo-Sicherungsdatei übernommen.</li>
         <li><strong>Human-Holo-Backend:</strong> Render stellt die technische Serververbindung bereit. Ownergebundene Gespräche, bestätigte Erinnerungen und notwendige Dienst-Tokens werden in der angebundenen PostgreSQL-Datenbank verarbeitet.</li>
-        <li><strong>ChatGPT/OpenAI:</strong> erhält die für eine angeforderte Text-, Sprach-, Bild- oder Videofunktion erforderlichen Inhalte zur KI-Verarbeitung. Bei der freiwilligen Selbstwiedererkennung werden genau das freigegebene Referenzbild und das manuell gesendete Prüffoto für einen privaten 1:1-Abgleich übertragen. Für diesen Weg sowie für besonders gekennzeichnete Gesundheits- und Medikamentenerkennungswege wird mit <code>store: false</code> die normale Speicherung des OpenAI-Response-Anwendungszustands ausgeschaltet. OpenAI verwendet API-Daten standardmäßig nicht zum Modelltraining. Ohne bestätigte Zero Data Retention können Eingaben und Antworten nach den aktuell veröffentlichten API-Regeln jedoch bis zu 30 Tage für Missbrauchsschutz aufbewahrt werden; gesetzlich oder aus besonderen Sicherheitsgründen kann eine längere Aufbewahrung nötig sein.</li>
-        <li><strong>Google:</strong> verarbeitet nach ausdrücklicher OAuth- oder Android-Freigabe die jeweils angeforderten Konto-, Kalender-, Gmail-, Kontakte-, Drive-, Health-Connect- oder Android-Systemfunktionen.</li>
+        <li><strong>ChatGPT/OpenAI:</strong> erhält die für eine angeforderte Text-, Sprach-, Bild- oder Videofunktion erforderlichen Inhalte zur KI-Verarbeitung. Bei der freiwilligen Selbstwiedererkennung werden genau das freigegebene Referenzbild und das manuell gesendete Prüffoto für einen privaten 1:1-Abgleich übertragen. Für diesen Weg wird mit <code>store: false</code> die normale Speicherung des OpenAI-Response-Anwendungszustands ausgeschaltet. OpenAI verwendet API-Daten standardmäßig nicht zum Modelltraining. Ohne bestätigte Zero Data Retention können Eingaben und Antworten nach den aktuell veröffentlichten API-Regeln jedoch bis zu 30 Tage für Missbrauchsschutz aufbewahrt werden; gesetzlich oder aus besonderen Sicherheitsgründen kann eine längere Aufbewahrung nötig sein.</li>
+        <li><strong>Google:</strong> verarbeitet nach ausdrücklicher OAuth- oder Android-Freigabe die jeweils angeforderten Konto-, Kalender-, Gmail-, Kontakte-, Drive- oder Android-Systemfunktionen.</li>
         <li><strong>Android-Kalender:</strong> Nach einmaliger Kalenderfreigabe speichert Human Holo nur ausdrücklich beauftragte Termine direkt in einen sichtbaren, beschreibbaren Kalender auf dem Gerät und zeigt kommende sichtbare Termine aus derselben Quelle unter „Wichtiges → Kalender“ an. Es entsteht keine zweite Terminkopie. Die Kalender-App wird dabei nicht geöffnet; ohne Freigabe wird nichts eingetragen oder in Human Holo angezeigt.</li>
         <li><strong>Android-Telefon:</strong> Human Holo verwendet <code>CALL_PHONE</code> ausschließlich nach einem ausdrücklichen aktuellen Anrufauftrag und einem sichtbaren Bestätigungsfenster. Die Berechtigung wird erstmals in diesem Ablauf angefragt. Kontakt- und Telefonnummern werden für den Anruf nicht an das Human-Holo-Backend, OpenAI oder den ADAC hochgeladen. 110, 112 und 116117 sind vom direkten Anrufweg ausgeschlossen und werden nur im Android-Wähler vorbereitet.</li>
         <li><strong>Meta/WhatsApp:</strong> erhält eine Nachricht oder ein Medium erst, wenn die Nutzerin den Versand an einen bestimmten Kontakt ausdrücklich anfordert. Der begrenzte Bedienungshilfe-Auftrag bleibt im Arbeitsspeicher.</li>
@@ -142,15 +141,6 @@
         Projekt geltenden Aufbewahrungs- und Drittlandbedingungen sowie die
         Angaben im Google-Play-Datensicherheitsformular bestätigt sein.
       </p>
-      <p>
-        Ergänzend gelten die ausführlichen Hinweise zur
-        <a href="./datenschutz-gesundheitsbegleitung.html">Gesundheitsbegleitung</a>
-        und zur
-        <a href="./datenschutz-medikamentenerkennung.html">Medikamentenerkennung</a>.
-        Human Holo ist kein Medizinprodukt und ersetzt keine ärztliche
-        Untersuchung oder Beratung.
-      </p>
-
       <h2>9. Kontakt</h2>
       <p>
         Datenschutzanfragen können an die im Google-Play-Eintrag von Human Holo

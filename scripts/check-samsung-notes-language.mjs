@@ -236,35 +236,6 @@ if (
   );
 }
 
-const healthPluginSource = fs.readFileSync(
-  "android-native/HealthConnectPlugin.java",
-  "utf8"
-);
-if (
-  !healthPluginSource.includes(
-    "HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS"
-  ) ||
-  healthPluginSource.includes("RequestMultiplePermissions")
-) {
-  throw new Error(
-    "Health Connect muss die sichtbare Android-Verwaltungsseite zum Erteilen und Widerrufen öffnen."
-  );
-}
-
-const healthPrivacySource = fs.readFileSync(
-  "android-native/HealthPrivacyActivity.java",
-  "utf8"
-);
-if (
-  !healthPrivacySource.includes(
-    "Health-Freigaben verwalten oder widerrufen"
-  )
-) {
-  throw new Error(
-    "Der Health-Datenschutzhinweis braucht einen verständlichen Widerrufsweg."
-  );
-}
-
 console.log(
   "Samsung-Notes-Textübergabe und sichere Gerätebestätigungen sind geprüft."
 );

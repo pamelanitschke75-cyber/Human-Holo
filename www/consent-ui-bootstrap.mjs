@@ -3,11 +3,6 @@ import {
 } from "./consent-signature.mjs";
 
 const CONSENT_PURPOSES = Object.freeze({
-  "health-read-v1": Object.freeze({
-    purpose:
-      "Ausgewählte Health-Connect-Daten ausschließlich nach einer sichtbaren Android-Freigabe lesen.",
-    version: "health-read-v1"
-  }),
   "voice-enrollment-v1": Object.freeze({
     purpose:
       "Eine neue persönliche Stimmprobe für die lokale Sprechererkennung einrichten oder eine bestehende Stimmprobe ersetzen.",

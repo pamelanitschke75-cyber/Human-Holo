@@ -52,9 +52,7 @@ mkdirSync(javaTarget, { recursive: true });
 mkdirSync(resXmlTarget, { recursive: true });
 
 for (const fileName of [
-  "HealthConnectPlugin.java",
   "GalaxyWatchBridgePlugin.java",
-  "HealthPrivacyActivity.java",
   "HeyHoSolPlugin.java",
   "HeyHoSolService.java",
   "WakeCaptureEndpointer.java",
@@ -203,22 +201,10 @@ if (!mainActivity.includes("registerPlugin(PhoneContactsPlugin.class)")) {
   );
 }
 
-if (!mainActivity.includes("registerPlugin(HealthConnectPlugin.class)")) {
+if (!mainActivity.includes("registerPlugin(GalaxyWatchBridgePlugin.class)")) {
   const registrationMarker = "        registerPlugin(PhoneContactsPlugin.class);";
   if (!mainActivity.includes(registrationMarker)) {
     throw new Error("Telefon-Plugin-Registrierung in MainActivity nicht gefunden.");
-  }
-
-  mainActivity = mainActivity.replace(
-    registrationMarker,
-    registrationMarker + "\n        registerPlugin(HealthConnectPlugin.class);"
-  );
-}
-
-if (!mainActivity.includes("registerPlugin(GalaxyWatchBridgePlugin.class)")) {
-  const registrationMarker = "        registerPlugin(HealthConnectPlugin.class);";
-  if (!mainActivity.includes(registrationMarker)) {
-    throw new Error("Health-Plugin-Registrierung in MainActivity nicht gefunden.");
   }
 
   mainActivity = mainActivity.replace(
@@ -301,43 +287,6 @@ for (const permission of [
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />',
   '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-  '<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />',
-  '<uses-permission android:name="android.permission.health.READ_BASAL_BODY_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE" />',
-  '<uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_FAT" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_BODY_WATER_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_BONE_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_CERVICAL_MUCUS" />',
-  '<uses-permission android:name="android.permission.health.READ_CYCLING_PEDALING_CADENCE" />',
-  '<uses-permission android:name="android.permission.health.READ_DISTANCE" />',
-  '<uses-permission android:name="android.permission.health.READ_ELEVATION_GAINED" />',
-  '<uses-permission android:name="android.permission.health.READ_EXERCISE" />',
-  '<uses-permission android:name="android.permission.health.READ_FLOORS_CLIMBED" />',
-  '<uses-permission android:name="android.permission.health.READ_HEART_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />',
-  '<uses-permission android:name="android.permission.health.READ_HEIGHT" />',
-  '<uses-permission android:name="android.permission.health.READ_HYDRATION" />',
-  '<uses-permission android:name="android.permission.health.READ_INTERMENSTRUAL_BLEEDING" />',
-  '<uses-permission android:name="android.permission.health.READ_LEAN_BODY_MASS" />',
-  '<uses-permission android:name="android.permission.health.READ_MENSTRUATION" />',
-  '<uses-permission android:name="android.permission.health.READ_NUTRITION" />',
-  '<uses-permission android:name="android.permission.health.READ_OVULATION_TEST" />',
-  '<uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION" />',
-  '<uses-permission android:name="android.permission.health.READ_PLANNED_EXERCISE" />',
-  '<uses-permission android:name="android.permission.health.READ_POWER" />',
-  '<uses-permission android:name="android.permission.health.READ_RESPIRATORY_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />',
-  '<uses-permission android:name="android.permission.health.READ_SKIN_TEMPERATURE" />',
-  '<uses-permission android:name="android.permission.health.READ_SLEEP" />',
-  '<uses-permission android:name="android.permission.health.READ_SPEED" />',
-  '<uses-permission android:name="android.permission.health.READ_STEPS" />',
-  '<uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />',
-  '<uses-permission android:name="android.permission.health.READ_VO2_MAX" />',
-  '<uses-permission android:name="android.permission.health.READ_WEIGHT" />',
-  '<uses-permission android:name="android.permission.health.READ_WHEELCHAIR_PUSHES" />'
 ]) {
   if (!manifest.includes(permission)) {
     if (!manifest.includes(manifestMarker)) {
@@ -421,19 +370,6 @@ if (!manifest.includes("android.speech.RecognitionService")) {
   manifest = manifest.replace(
     queriesEnd,
     recognitionQuery + "\n" + queriesEnd
-  );
-}
-
-if (!manifest.includes('android:name="com.google.android.apps.healthdata"')) {
-  const queriesEnd = "    </queries>";
-  if (!manifest.includes(queriesEnd)) {
-    throw new Error("Queries-Tag für Health Connect nicht gefunden.");
-  }
-
-  manifest = manifest.replace(
-    queriesEnd,
-    '        <package android:name="com.google.android.apps.healthdata" />\n' +
-      queriesEnd
   );
 }
 
@@ -572,41 +508,7 @@ if (!manifest.includes(".HeyHoSolService")) {
   );
 }
 
-if (!manifest.includes(".HealthPrivacyActivity")) {
-  const applicationEnd = "    </application>";
-  if (!manifest.includes(applicationEnd)) {
-    throw new Error("Application-Ende für Health-Datenschutz nicht gefunden.");
-  }
-
-  const healthPrivacy = [
-    "        <activity",
-    '            android:name=".HealthPrivacyActivity"',
-    '            android:exported="true">',
-    "            <intent-filter>",
-    '                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />',
-    "            </intent-filter>",
-    "        </activity>",
-    "",
-    "        <activity-alias",
-    '            android:name=".ViewHealthPermissionUsageActivity"',
-    '            android:exported="true"',
-    '            android:targetActivity=".HealthPrivacyActivity"',
-    '            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">',
-    "            <intent-filter>",
-    '                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />',
-    '                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />',
-    "            </intent-filter>",
-    "        </activity-alias>",
-    ""
-  ].join("\n");
-
-  manifest = manifest.replace(
-    applicationEnd,
-    healthPrivacy + "\n" + applicationEnd
-  );
-}
-
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe, Health Connect und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe und Lautsprecherroute wurden in Android eingebunden."
 );

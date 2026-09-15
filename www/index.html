@@ -14866,7 +14866,6 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "start_help_service_call",
   "prepare_sms",
   "prepare_whatsapp",
-  "read_health_snapshot",
   "save_animal_holo_observation",
   "append_shopping_list_item",
   "read_shopping_list",
@@ -15016,19 +15015,6 @@ async function handleRealtimeMemoryToolCall(
       }else{
         output = `Die Samsung-Notes-Übergabe ist in ${activeInstanceName()} gerade nicht verfügbar.`;
       }
-    }else if(toolCall?.name === "read_health_snapshot"){
-      if(typeof window.executeSolHoloHealthTool === "function"){
-        const result = await window.executeSolHoloHealthTool(
-          toolCall?.name,
-          parsedArguments
-        );
-        output = String(
-          result?.answer ||
-          "Die Health-Funktion hat keine Rückmeldung geliefert."
-        );
-      }else{
-        output = `Health Connect ist nur in ${activeInstanceName()} für Android verfügbar.`;
-      }
     }else if(
       typeof window.executeSolHoloPhoneTool === "function"
     ){
@@ -15059,9 +15045,7 @@ async function handleRealtimeMemoryToolCall(
         ? "Die Tier-Beobachtung konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung und frage nicht erneut nach Erlaubnis."
       : REALTIME_NOTE_TOOL_NAMES.has(toolCall?.name)
         ? "Die Samsung-Notes-Übergabe ist gerade technisch fehlgeschlagen. Behaupte nicht, dass eine Notiz gespeichert wurde."
-      : toolCall?.name === "read_health_snapshot"
-        ? "Die Health-Abfrage ist technisch fehlgeschlagen. Erfinde keine Gesundheitswerte und stelle keine Diagnose."
-        : "Die Telefonfunktion ist gerade technisch fehlgeschlagen. Behaupte nicht, dass eine App geöffnet wurde.";
+      : "Die Telefonfunktion ist gerade technisch fehlgeschlagen. Behaupte nicht, dass eine App geöffnet wurde.";
   }
 
   if(!dc || dc.readyState !== "open"){

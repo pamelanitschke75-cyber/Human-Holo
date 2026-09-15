@@ -68,7 +68,6 @@ const registration =
 if (!activity.includes(registration)) {
   const preferredMarkers = [
     "        registerPlugin(SolSpeakerIdentityPlugin.class);",
-    "        registerPlugin(HealthConnectPlugin.class);",
     "        registerPlugin(PhoneContactsPlugin.class);"
   ];
   const marker = preferredMarkers.find(candidate =>

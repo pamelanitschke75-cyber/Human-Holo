@@ -187,13 +187,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         </span>
         <span>Umwelt</span>
       </button>
-      <button class="humanHoloAreaCard humanHoloAreaCard--health" type="button"
-        data-open-view="medication">
-        <span class="humanHoloAreaIcon" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M16 27S5.5 21 5.5 13.4A6 6 0 0 1 16 9.5a6 6 0 0 1 10.5 3.9C26.5 21 16 27 16 27Z"/><path d="M8.5 17h4l2-4 3.2 8 2.2-4H24"/></svg>
-        </span>
-        <span>Gesundheit</span>
-      </button>
       <button class="humanHoloAreaCard humanHoloAreaCard--education" type="button"
         data-sol-prompt="Ich möchte zum Bereich Bildung. Hilf mir dort bitte weiter.">
         <span class="humanHoloAreaIcon" aria-hidden="true">
@@ -550,7 +543,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       Andere Gesundheitsfrage stellen <span aria-hidden="true">→</span>
     </button>
   `;
-  solApp.insertBefore(medicationView, currentHeader);
+  // Medizinische Oberfläche ist rechtlich gesperrt und wird nicht eingebunden.
 
   const profileMemoryState = document.getElementById("profileMemoryState");
   if (profileMemoryState) {
@@ -893,7 +886,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   );
   if (settingsConnectionsMeta) {
     settingsConnectionsMeta.textContent =
-      "YouTube, Google, Telefon, Samsung, Health und SmartThings";
+      "YouTube, Google, Telefon, Samsung und SmartThings";
   }
 
   whatsappDriveRow.insertAdjacentHTML(
@@ -957,14 +950,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       '</span>' +
       '<span id="samsungNotesStatus" class="serviceStatus setup">Wird geprüft …</span>' +
     '</button>' +
-    '<button id="healthConnectRow" class="serviceRow" type="button">' +
-      '<span class="rowIcon">♡</span>' +
-      '<span class="rowText">' +
-        '<span class="rowTitle">Health Connect</span>' +
-        '<span class="rowMeta">Samsung Health &amp; andere Quellen · nur lesen</span>' +
-      '</span>' +
-      '<span id="healthConnectStatus" class="serviceStatus setup">Wird geprüft …</span>' +
-    '</button>' +
     '<button id="explicitSaveRow" class="serviceRow" type="button" data-open-view="notes">' +
       '<span class="rowIcon">✓</span>' +
       '<span class="rowText">' +
@@ -1008,7 +993,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "nicht angezeigt, protokolliert oder als Erinnerung gespeichert. " +
     "WhatsApp-Nachrichten " +
     "werden vollständig angezeigt und erst von dir in WhatsApp gesendet. " +
-    "Bild, Notiz und Health-Wert bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
+    "Bild und Notiz bleiben ohne deine sichtbare Auswahl oder Freigabe gesperrt. " +
     "Speichern auf Zuruf ist aktiv: Ein ausdrücklicher Speicherauftrag gilt für " +
     "normale Alltagsinhalte als Freigabe; " +
     "Passwörter, PIN, TAN, Token und Schlüssel bleiben gesperrt. " +
@@ -1104,7 +1089,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     notes: notesView,
     memory: document.getElementById("memoryView"),
     memorial: memorialView,
-    medication: medicationView,
     services: document.getElementById("servicesView"),
     profile: document.getElementById("profileView"),
     settings: document.getElementById("settingsView")
@@ -7047,6 +7031,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
   function renderHealthStatus(nextStatus) {
     const statusElement = document.getElementById("healthConnectStatus");
+    if (!statusElement) {
+      return;
+    }
     healthStatus = {
       supported: Boolean(nextStatus?.supported),
       readOnly: nextStatus?.readOnly !== false,
@@ -7728,17 +7715,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       const result = await executeNotesTool("update_personal_note", {
         query: noteMatch[1],
         text: noteMatch[2]
-      });
-      return { handled: true, answer: result.answer };
-    }
-
-    if (
-      /^(?:zeig|zeige|lies|lese|gib|wie\s+(?:viele|war|waren|ist|sind))\b/i.test(cleanMessage) &&
-      /health|gesundheit|gesundheitsdaten|schritt|schlaf|gewicht|herz|puls|blutdruck|sauerstoff|training|kalorien|zyklus|menstru|ernährung/i.test(cleanMessage)
-    ) {
-      const result = await executeHealthTool("read_health_snapshot", {
-        days: 7,
-        category: healthCategoryFromText(cleanMessage)
       });
       return { handled: true, answer: result.answer };
     }
@@ -8865,10 +8841,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     () => void askSol("Wie ist das Wetter?")
   );
 
-  document.getElementById("healthConnectRow").addEventListener("click", () => {
-    void openHealthPermissions();
-  });
-
   document.getElementById("manageServicesButton").addEventListener("click", () => {
     const whatsappText = whatsappStatus.active
       ? "Der WhatsApp-Fahrmodus ist aktiv."
@@ -8876,7 +8848,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     showToast(
       "Jeder Dienst wird einzeln freigegeben. " + whatsappText +
       " Den offiziellen Human-Holo-YouTube-Kanal öffnest du über seine verknüpfte Zeile. " +
-      "Google-Konto, Telefon, Wecker, Galaxy Watch, Health und SmartThings richtest du über ihre Zeile ein. " +
+      "Google-Konto, Telefon, Wecker, Galaxy Watch und SmartThings richtest du über ihre Zeile ein. " +
       "Samsung Galerie öffnet die Bildauswahl; Zurufe werden direkt unter Wichtiges gespeichert. Samsung Notes öffnet nur beim manuellen Antippen."
     );
   });

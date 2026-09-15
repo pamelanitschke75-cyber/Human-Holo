@@ -35,9 +35,9 @@ test("Erinnerung & Vermächtnis ist ein eigener bedienbarer App-Bereich", () => 
   assert.match(ui, /viewName === "memorial"[\s\S]*?loadMemorialEntries/u);
 });
 
-test("die acht freigegebenen Startseitenbereiche bleiben unverändert", () => {
+test("die sieben nicht-medizinischen Startseitenbereiche bleiben erhalten", () => {
   const homeMarkup = ui.match(/humanHoloHome\.innerHTML = `([\s\S]*?)`;\n/u)?.[1] ?? "";
-  assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 8);
+  assert.equal((homeMarkup.match(/class="humanHoloAreaCard /gu) || []).length, 7);
   assert.doesNotMatch(homeMarkup, /Erinnerung &amp; Vermächtnis/u);
 });
 

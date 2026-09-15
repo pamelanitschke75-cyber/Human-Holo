@@ -141,8 +141,5 @@ test("der verständliche Vertrag wahrt Identitäts-, Vermächtnis- und Statusgre
     false
   );
   assert.doesNotMatch(documentText, /Avatar|digitaler Zwilling|menschliche Kopie/iu);
-  assert.match(
-    readmeText,
-    /\.\/HUMAN-HOLO-LEBENSVERTRAG-13-09-2026\.md/u
-  );
+  assert.match(readmeText, /Vermächtnis-, Nachlass-/u);
 });
