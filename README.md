@@ -55,15 +55,16 @@ Eine erneute Aufnahme ist erst nach dokumentierter rechtlicher Prüfung,
 technischer Freigabe und ausdrücklicher Zustimmung von Pamela Christina
 Nitschke möglich.
 
-## Klare Trennung von Pam’s Holo
+## Pam’s Holo
 
-Diese README und der beschriebene Rechts-Hold gelten ausschließlich für das
-**allgemeine Human Holo**, Vorführungen und externe Tests.
+Pam’s Holo bleibt eine getrennte private, ownergebundene Instanz. Persönliche
+Daten, Bilder, Erinnerungen und Einstellungen bleiben erhalten.
 
-**Pam’s Holo ist eine getrennte private, ownergebundene Instanz.** Diese
-Aktualisierung löscht, verändert oder überschreibt keine persönlichen Daten,
-Bilder, Erinnerungen, Einstellungen oder privaten Entwicklungsstände von
-Pam’s Holo.
+Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 15.09.2026
+wurden die medizinischen Funktionen jedoch **auch technisch aus Pam’s Holo
+entfernt**. Gesundheitskachel, Medikamentenerkennung, Health Connect,
+Gesundheitsdaten-Berechtigungen und medizinische Beratung sind weder in Human
+Holo noch in Pam’s Holo verfügbar.
 
 ## Historische Entwicklungsstände
 
