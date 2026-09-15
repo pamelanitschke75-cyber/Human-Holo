@@ -3010,6 +3010,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       .trim();
     if (!text) return "";
 
+    const personalMeetingPatterns = [
+      /^(?:wann|wo)(?:\s+genau)?\s+(?:habe|hab)\s+ich\s+(.+?)\s+(?:kennengelernt|kennen\s+gelernt)$/u,
+      /^(?:wann|wo)(?:\s+genau)?\s+haben\s+(.+?)\s+und\s+ich\s+(?:uns\s+)?(?:kennengelernt|kennen\s+gelernt)$/u,
+      /^(?:wann|wo)(?:\s+genau)?\s+haben\s+ich\s+und\s+(.+?)\s+(?:uns\s+)?(?:kennengelernt|kennen\s+gelernt)$/u
+    ];
+
+    for (const pattern of personalMeetingPatterns) {
+      const person = String(text.match(pattern)?.[1] || "").trim();
+      if (person.length >= 2) {
+        return `${person} kennengelernt`.slice(0, 240);
+      }
+    }
+
     const patterns = [
       /^wei(?:ss|ß)t\s+du\s+noch[,]?\s+was\s+ich\s+dir(?:\s+(?:heute|gestern|vorgestern|damals))?\s+(?:uber|von)\s+(.+?)\s+(?:erzahlt|gesagt)(?:\s+habe)?$/u,
       /^ich\s+habe\s+dir(?:\s+(?:heute|gestern|vorgestern|damals))?\s+(?:etwas|was)\s+(?:uber|von)\s+(.+?)\s+(?:erzahlt|gesagt)[,\s]+(?:wei(?:ss|ß)t|erinnerst)\s+du\b.*$/u,
@@ -4129,6 +4142,57 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     };
   }
 
+  function shoppingListItemFromValue(value) {
+    const cleanValue = cleanExplicitSaveContent(value);
+    if (!cleanValue) return "";
+
+    const parsedCommand = explicitSaveRequestFromMessage(cleanValue);
+    if (
+      parsedCommand?.kind === "list-item" &&
+      normalizeNoteSearchText(parsedCommand.content) !==
+        normalizeNoteSearchText(cleanValue)
+    ) {
+      return shoppingListItemFromValue(parsedCommand.content);
+    }
+
+    const controlWords = new Set([
+      "auf", "in", "inne", "zu", "zur", "zum", "uf", "uff", "op",
+      "die", "der", "den", "dem", "de", "meine", "meiner", "meinen",
+      "es", "das", "dies", "dieses", "ihn", "sie",
+      "bitte", "mal", "ma", "doch", "noch", "gerade", "grad", "jetzt",
+      "setz", "setze", "setzen", "gesetzt", "schreib", "schreibe",
+      "schreiben", "trag", "trage", "tragen", "eintragen", "eingetragen",
+      "pack", "packe", "packen", "speicher", "speichere", "speichern",
+      "hinterleg", "hinterlege", "hinterlegen", "fug", "fuge", "fugen",
+      "hinzufugen", "tu", "tue", "tun", "mach", "mache", "machen",
+      "hinzu", "hinein", "rein", "drauf", "dazu", "ein", "soll", "muss",
+      "gehort", "kommt", "artikel", "eintrag", "einkaufsliste",
+      "einkaufslisten", "einkaufslischt", "einkaufslischte", "einkaufszettel",
+      "einkaufzettel", "einkaufliste", "eikaufsliste", "ichaufslischte",
+      "shoppinglist"
+    ]);
+    const meaningfulWords = normalizeNoteSearchText(cleanValue)
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .split(/\s+/u)
+      .filter(Boolean)
+      .filter((word) => !controlWords.has(word));
+
+    return meaningfulWords.length ? cleanValue : "";
+  }
+
+  function saveShoppingListItem(item) {
+    const cleanItem = shoppingListItemFromValue(item);
+    if (!cleanItem) {
+      return {
+        success: false,
+        missingItem: true,
+        answer:
+          "Mir fehlt der Einkaufsartikel. Sag, schreib oder gebärde zum Beispiel: „Maggi auf die Einkaufsliste setzen.“ Es wurde nichts gespeichert."
+      };
+    }
+    return appendPersonalListItem("Einkaufsliste", cleanItem);
+  }
+
   function executeShoppingListTool(name, args = {}) {
     if (name !== "append_shopping_list_item") {
       return {
@@ -4137,10 +4201,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       };
     }
 
-    const result = appendPersonalListItem(
-      "Einkaufsliste",
-      args?.item
-    );
+    const result = saveShoppingListItem(args?.item);
     return {
       ...result,
       localSaved: Boolean(result?.success),
@@ -7149,9 +7210,117 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.isSolHoloPersonalRecallRequest =
     (message) => Boolean(contextualPersonalRecallQueryFromMessage(message));
 
+  function shoppingListShorthandFromMessage(value) {
+    const cleanMessage = stripHoloInvocation(value);
+    if (!cleanMessage) return null;
+
+    const politeTail =
+      "(?:\\s*[,;:]?\\s*(?:auch\\s+)?(?:bitte\\w*|bittsch\\S*|danke))?[\\s,;:.!?]*$";
+    const patterns = [
+      new RegExp(
+        "^(?:bitte\\s+)?f(?:u|ü|ue)g(?:e)?\\s+(?:mir\\s+)?(?:bitte\\s+)?(.+?)\\s+hinzu" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?schreib(?:e)?\\s+(?:mir\\s+)?(?:bitte\\s+)?(.+?)\\s+(?:auf|in)\\s+(?:(?:die|meine)\\s+)?liste" +
+          politeTail,
+        "iu"
+      )
+    ];
+
+    for (const pattern of patterns) {
+      const content = cleanExplicitSaveContent(
+        cleanMessage.match(pattern)?.[1] || ""
+      );
+      if (content) {
+        return {
+          content,
+          usesPrevious:
+            /^(?:es|das|dies|dieses|den|ihn|sie)$/iu.test(content)
+        };
+      }
+    }
+
+    if (
+      new RegExp(
+        "^(?:bitte\\s+)?(?:f(?:u|ü|ue)g(?:e)?(?:\\s+(?:es|das|dies))?\\s+hinzu|schreib(?:e)?(?:\\s+(?:es|das|dies))?\\s+(?:auf|in)\\s+(?:(?:die|meine)\\s+)?liste)" +
+          politeTail,
+        "iu"
+      ).test(cleanMessage)
+    ) {
+      return {
+        content: "",
+        usesPrevious: true
+      };
+    }
+
+    return null;
+  }
+
+  function handleShoppingListCommand(message) {
+    const explicitRequest = explicitSaveRequestFromMessage(message);
+    const shorthandRequest =
+      shoppingListShorthandFromMessage(message);
+    const request =
+      explicitRequest?.kind === "list-item" &&
+      explicitRequest?.listTitle === "Einkaufsliste"
+        ? explicitRequest
+        : shorthandRequest
+          ? {
+              kind: "list-item",
+              listTitle: "Einkaufsliste",
+              content: shorthandRequest.content,
+              usesPrevious: shorthandRequest.usesPrevious
+            }
+          : null;
+    if (
+      request?.kind !== "list-item" ||
+      request?.listTitle !== "Einkaufsliste"
+    ) {
+      return null;
+    }
+
+    const contentIsReference =
+      request?.usesPrevious === true ||
+      /^(?:es|das|dies|dieses|den|ihn|sie)$/iu.test(
+        String(request.content || "").trim()
+      );
+    const shoppingItem = contentIsReference
+      ? recentPlainUserMessageForSave()
+      : request.content;
+    const result = saveShoppingListItem(shoppingItem);
+    return {
+      handled: true,
+      success: Boolean(result?.success),
+      shoppingList: true,
+      marker: "[LOKALES_NOTIZERGEBNIS]",
+      status: result?.success
+        ? "Unter Wichtiges · Einkaufsliste gespeichert."
+        : "Einkaufsliste wurde nicht gespeichert.",
+      answer: result.answer
+    };
+  }
+
+  window.handleSolHoloShoppingListCommand =
+    handleShoppingListCommand;
+
   window.handleSolHoloLocalAction = async (message) => {
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
+
+    // Schrift und transkribierte Sprache laufen beide über diese Funktion.
+    // Ein ausdrücklicher Einkaufslistenauftrag hat Vorrang vor Tierdialog,
+    // allgemeinem Chat und Notizen, damit der Artikel wirklich lokal landet.
+    const shoppingListAction = handleShoppingListCommand(noteMessage);
+    if (shoppingListAction) {
+      if (shoppingListAction.success) {
+        pendingPersonalNoteText = false;
+        previousPlainUserMessage = "";
+        previousPlainUserMessageAt = 0;
+      }
+      return shoppingListAction;
+    }
 
     const animalConversationAction =
       await window.HumanHoloAnimalHolos

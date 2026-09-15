@@ -504,7 +504,12 @@ test(
 
     assert.match(
       ui,
-      /function executeShoppingListTool\([\s\S]*?appendPersonalListItem\([\s\S]*?"Einkaufsliste"[\s\S]*?window\.executeSolHoloShoppingListTool/u
+      /function saveShoppingListItem\([\s\S]*?appendPersonalListItem\("Einkaufsliste"[\s\S]*?function executeShoppingListTool\([\s\S]*?saveShoppingListItem\(args\?\.item\)[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
+      ui,
+      /Mir fehlt der Einkaufsartikel[\s\S]*?Es wurde nichts gespeichert/u
     );
   }
 );

@@ -295,10 +295,86 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
     ui.indexOf("window.handleSolHoloRealtimeNoteTranscript = async"),
     ui.indexOf("function getHeyHoSolPlugin")
   );
+  const sharedHandler = ui.slice(
+    ui.indexOf("function handleShoppingListCommand"),
+    ui.indexOf("window.handleSolHoloRealtimeNoteTranscript = async")
+  );
+  assert.match(sharedHandler, /explicitSaveRequestFromMessage\(message\)/u);
+  assert.match(sharedHandler, /saveShoppingListItem\(shoppingItem\)/u);
+  assert.match(sharedHandler, /window\.handleSolHoloLocalAction = async/u);
+  assert.match(sharedHandler, /handleShoppingListCommand\(noteMessage\)/u);
+  assert.match(sharedHandler, /Unter Wichtiges · Einkaufsliste gespeichert/u);
   assert.match(realtimeHandler, /handleSolHoloLocalAction/u);
+  assert.match(
+    ui,
+    /function executeShoppingListTool\([\s\S]*?saveShoppingListItem\(args\?\.item\)/u,
+    "Sicher erkannte Gebärden müssen denselben Einkaufslistenspeicher verwenden"
+  );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=83/u);
+  assert.match(html, /sol-holo-ui\.js\?v=84/u);
+});
+
+test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {
+  const source = [
+    functionSource("normalizeNoteSearchText", "noteSecurityWarning"),
+    functionSource("cleanExplicitSaveContent", "explicitListTitle"),
+    functionSource("explicitListTitle", "savedContentCategory"),
+    functionSource("savedContentCategory", "calendarWriteDestinationFromMessage"),
+    functionSource("calendarWriteDestinationFromMessage", "liveWeatherRequestFromMessage"),
+    functionSource("liveWeatherRequestFromMessage", "googleMapsDestinationFromMessage"),
+    functionSource("googleMapsDestinationFromMessage", "explicitSaveRequestFromMessage"),
+    functionSource("explicitSaveRequestFromMessage", "noteTitleFromText"),
+    functionSource("shoppingListItemFromValue", "saveShoppingListItem"),
+    "return shoppingListItemFromValue;"
+  ].join("\n");
+  const itemFrom = new Function(source)();
+
+  assert.equal(itemFrom("setzen"), "");
+  assert.equal(itemFrom("Auf die Einkaufsliste setzen"), "");
+  assert.equal(itemFrom("Einkaufsliste hinzufügen"), "");
+  assert.equal(itemFrom("es"), "");
+  assert.equal(itemFrom("Maggi"), "Maggi");
+  assert.equal(itemFrom("Maggi auf die Einkaufsliste setzen"), "Maggi");
+});
+
+test("Füge hinzu und Schreib es auf die Liste verstehen einen sicheren Rückbezug", () => {
+  const source = [
+    functionSource("normalizeNoteSearchText", "noteSecurityWarning"),
+    functionSource("stripHoloInvocation", "noteSecurityWarning"),
+    functionSource("cleanExplicitSaveContent", "explicitListTitle"),
+    functionSource("shoppingListShorthandFromMessage", "handleShoppingListCommand"),
+    "return shoppingListShorthandFromMessage;"
+  ].join("\n");
+  const shorthand = new Function(source)();
+
+  assert.deepEqual(
+    shorthand("Füge Maggi hinzu"),
+    { content: "Maggi", usesPrevious: false }
+  );
+  assert.deepEqual(
+    shorthand("Schreib Maggi auf die Liste auch bitte"),
+    { content: "Maggi", usesPrevious: false }
+  );
+  assert.deepEqual(
+    shorthand("Füg es hinzu"),
+    { content: "es", usesPrevious: true }
+  );
+  assert.deepEqual(
+    shorthand("Schreib es auf die Liste auch bitte"),
+    { content: "es", usesPrevious: true }
+  );
+
+  const handlerStart = ui.indexOf("  function handleShoppingListCommand");
+  const handlerEnd = ui.indexOf(
+    "  window.handleSolHoloShoppingListCommand",
+    handlerStart
+  );
+  assert.notEqual(handlerStart, -1);
+  assert.ok(handlerEnd > handlerStart);
+  const handler = ui.slice(handlerStart, handlerEnd);
+  assert.match(handler, /recentPlainUserMessageForSave\(\)/u);
+  assert.match(handler, /saveShoppingListItem\(shoppingItem\)/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {

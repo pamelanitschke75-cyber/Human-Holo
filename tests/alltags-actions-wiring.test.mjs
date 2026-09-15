@@ -45,7 +45,7 @@ test("Live-Wetter nutzt die vorhandene OpenAI-Websuche und zeigt Quellen", () =>
   assert.match(html, /messageSources/u);
   assert.match(html, /LOKALES_WETTERERGEBNIS/u);
   assert.match(ui, /\/weather\/status/u);
-  assert.match(serviceWorker, /human-holo-293-animal-floating-dock/u);
+  assert.match(serviceWorker, /human-holo-294-shopping-memory-consistency/u);
 });
 
 test("Realtime erfindet keine Backend-Freigabe als Wetter-Hindernis", () => {
@@ -102,10 +102,25 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
     clientDetector("Wann haben meine Eltern Geburtstag?"),
     "wann haben meine eltern geburtstag"
   );
+  assert.equal(
+    serverDetector("Wann hab ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
+  );
+  assert.equal(
+    clientDetector("Wann hab ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
+  );
+  assert.equal(
+    serverDetector("Wo habe ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
+  );
+  assert.equal(
+    clientDetector("Wo habe ich Steffi kennengelernt?"),
+    "steffi kennengelernt"
+  );
   assert.deepEqual(
     termExtractor("Wann haben meine Eltern Geburtstag?"),
     [
-      "wann",
       "eltern",
       "geburtstag",
       "mutter",
@@ -114,6 +129,17 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
       "papa",
       "geburtsdatum",
       "geboren"
+    ]
+  );
+  assert.deepEqual(
+    termExtractor("Steffi kennengelernt"),
+    [
+      "steffi",
+      "kennengelernt",
+      "kennenlernen",
+      "kennen gelernt",
+      "getroffen",
+      "begegnet"
     ]
   );
   assert.deepEqual(
@@ -159,6 +185,15 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
   assert.match(server, /matching_term_count DESC/u);
   assert.match(server, /matching\.id - \$4::bigint/u);
   assert.match(server, /matching\.id \+ \$4::bigint/u);
+  assert.match(
+    server,
+    /Ein geladener Suchausschnitt ist ein relevanter Ausschnitt und kein Beweis/u
+  );
+  assert.match(
+    server,
+    /ein bekanntes Datum allein beantwortet die Ortsfrage nicht/u
+  );
+  assert.match(html, /Erfragter Einzelaspekt: \$\{requestedDetailLabel\}/u);
   assert.match(server, /create_response:\s*\n\s*!manualResponseRouting/u);
   assert.match(html, /manualResponseRouting:\s*\n\s*true/u);
   assert.match(html, /data\?\.recall\?\.contextAvailable/u);

@@ -11725,6 +11725,21 @@ function speakPersonalRecallResult(
       ""
     ).trim().slice(0, 1200);
 
+
+  const requestedDetail =
+    String(
+      recall?.requestedDetail ||
+      ""
+    ).trim();
+
+
+  const requestedDetailLabel =
+    requestedDetail === "time"
+      ? "Zeit oder Datum"
+      : requestedDetail === "place"
+        ? "Ort"
+        : "";
+
   const directRecall =
     recall?.mode ===
       "recall" ||
@@ -11736,8 +11751,8 @@ function speakPersonalRecallResult(
     directRecall
       ? recall?.found &&
         memoryText
-        ? `Frage: ${cleanQuestion}${contextQuestion ? `\nBezugsfrage: ${contextQuestion}` : ""}\n\nGefundene persönliche Aussagen und klar gekennzeichneter Gesprächsverlauf:\n${memoryText}`
-        : `Frage: ${cleanQuestion}\n\nKeine passende persönliche Aussage wurde gefunden.`
+        ? `Frage: ${cleanQuestion}${contextQuestion ? `\nBezugsfrage: ${contextQuestion}` : ""}${requestedDetailLabel ? `\nErfragter Einzelaspekt: ${requestedDetailLabel}` : ""}\n\nGefundene persönliche Aussagen und klar gekennzeichneter Gesprächsverlauf:\n${memoryText}`
+        : `Frage: ${cleanQuestion}${requestedDetailLabel ? `\nErfragter Einzelaspekt: ${requestedDetailLabel}` : ""}\n\nKeine passende persönliche Aussage wurde gefunden.`
       : `Aktuelle Nachricht: ${cleanQuestion}\n\nPassender ownergebundener Dauerkontext:\n${memoryText}`;
 
 
@@ -14636,10 +14651,24 @@ async function searchRealtimePersonalMemory(
     );
   }
 
-  return String(
-    data?.memory_text ||
-    "Keine passende gespeicherte Erinnerung gefunden."
-  );
+  const requestedDetail =
+    data?.requested_detail === "time"
+      ? "Zeit oder Datum"
+      : data?.requested_detail === "place"
+        ? "Ort"
+        : "";
+
+  return [
+    requestedDetail
+      ? `Erfragter Einzelaspekt: ${requestedDetail}`
+      : "",
+    String(
+      data?.memory_text ||
+      "Keine passende gespeicherte Erinnerung gefunden."
+    )
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 
@@ -16143,7 +16172,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=293",
+          "./service-worker.js?v=294",
           {
             updateViaCache:"none"
           }
@@ -16179,7 +16208,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=83"></script>
+<script src="./sol-holo-ui.js?v=84"></script>
 <script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
