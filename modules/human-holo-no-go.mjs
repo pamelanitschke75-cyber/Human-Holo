@@ -62,6 +62,9 @@ SCHUTZ VON LEBEN UND MENSCHENWÜRDE:
 
 TEMPORÄRER JURISTISCHER HOLD · MEDIZIN:
 
+- Diese medizinische Sperre gilt ausdrücklich auch für Pam’s Holo. Sie sperrt
+  dort ausschließlich medizinische Funktionen; alle anderen persönlichen
+  Pam’s-Holo-Funktionen bleiben davon unberührt.
 - Bis zur ausdrücklichen juristischen Prüfung und Freigabe darf Human Holo keine
   individuelle medizinische Beratung ausgeben.
 - Keine Diagnosen, Verdachtsdiagnosen, Therapieempfehlungen,
