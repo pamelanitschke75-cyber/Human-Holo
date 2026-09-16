@@ -1,0 +1,48 @@
+name: Human Holo Watch
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: human-holo-watch
+  cancel-in-progress: false
+
+jobs:
+  check-holo:
+    name: Check Holo availability and guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Check Human Holo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_URL="https://sol-holo.onrender.com"
+
+          echo "Checking Human Holo availability..."
+          ROOT_STATUS="$(curl --silent --show-error --location --max-time 20 --output /tmp/holo-root.html --write-out '%{http_code}' "$BASE_URL/")"
+
+          if [ "$ROOT_STATUS" != "200" ]; then
+            echo "Human Holo availability check failed: HTTP $ROOT_STATUS"
+            exit 1
+          fi
+
+          echo "Availability OK: HTTP $ROOT_STATUS"
+
+          echo "Checking that private server source remains blocked..."
+          PRIVATE_STATUS="$(curl --silent --show-error --max-time 20 --output /tmp/holo-private.txt --write-out '%{http_code}' "$BASE_URL/server.mjs")"
+
+          if [ "$PRIVATE_STATUS" = "200" ]; then
+            echo "SECURITY CHECK FAILED: /server.mjs is publicly reachable."
+            exit 1
+          fi
+
+          echo "Private source protection OK: HTTP $PRIVATE_STATUS"
+          echo "Human Holo watch completed successfully."
