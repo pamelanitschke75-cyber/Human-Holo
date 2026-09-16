@@ -86,6 +86,12 @@ in Human Holo noch in Pam’s Holo verfügbar. Die Funktionen dürfen erst nach
 dokumentierter rechtlicher Prüfung, technischer Freigabe und ausdrücklicher
 Zustimmung von Pamela Christina Nitschke wieder aktiviert werden.
 
+### Verifizierter äußerer Türsteher
+
+Am 16.09.2026 wurde der getrennte Cloudflare-Türsteher für Pam’s Holo praktisch verifiziert. Der direkte Render-Ursprung lehnt normale externe Direktaufrufe ab, während der Weg über `pam-holo-edge-guard` weiterhin funktioniert. Der gemeinsame Ursprungsschlüssel ist ausschließlich als Secret in Cloudflare und Render gespeichert und wird nicht in GitHub veröffentlicht.
+
+Nachweis: [Pam-Holo Cloudflare-Türsteher – verifiziert am 16.09.2026](./PAM-HOLO-CLOUDFLARE-TUERSTEHER-VERIFIZIERT-16-09-2026.md)
+
 ## Verbindliche Tag-X-Nachlassregel für Pam’s Holo
 
 Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 16.09.2026
@@ -158,6 +164,7 @@ Verbindliche Einzelheiten:
 - [Bestand erhalten, nur erweitern · Regressionstest-Sperre](./HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md)
 - [Sicherheitsrichtlinie · äußerer und innerer Angriffsschutz](./SECURITY.md)
 - [Getrennte Cloudflare-Türsteher · wahrer Aktivierungsstand](./cloudflare/README.md)
+- [Pam-Holo Cloudflare-Türsteher · verifizierter Nachweis](./PAM-HOLO-CLOUDFLARE-TUERSTEHER-VERIFIZIERT-16-09-2026.md)
 
 ## Verbindliche Erledigt-Regel
 
