@@ -1134,6 +1134,57 @@ public class PhoneContactsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void openCalendar(PluginCall call) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject(
+                "Der Handy-Kalender konnte gerade nicht geöffnet werden.",
+                "CALENDAR_ACTIVITY_UNAVAILABLE"
+            );
+            return;
+        }
+
+        Long eventId = numericLong(call, "eventId");
+        Long startMillis = numericLong(call, "startMillis");
+        Uri calendarUri;
+        String openedView;
+
+        if (eventId != null && eventId > 0L) {
+            calendarUri = ContentUris.withAppendedId(
+                CalendarContract.Events.CONTENT_URI,
+                eventId
+            );
+            openedView = "event";
+        } else {
+            long selectedTime =
+                startMillis != null && startMillis > 0L
+                    ? startMillis
+                    : System.currentTimeMillis();
+            Uri.Builder calendarBuilder =
+                CalendarContract.CONTENT_URI.buildUpon().appendPath("time");
+            ContentUris.appendId(calendarBuilder, selectedTime);
+            calendarUri = calendarBuilder.build();
+            openedView = "day";
+        }
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, calendarUri);
+        try {
+            activity.startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("view", openedView);
+            result.put("readOnly", true);
+            call.resolve(result);
+        } catch (ActivityNotFoundException | SecurityException error) {
+            call.reject(
+                "Der Handy-Kalender konnte gerade nicht geöffnet werden.",
+                "CALENDAR_OPEN_FAILED",
+                error
+            );
+        }
+    }
+
+    @PluginMethod
     public void requestCalendarAccess(PluginCall call) {
         if (calendarGranted()) {
             call.resolve(calendarStatus());

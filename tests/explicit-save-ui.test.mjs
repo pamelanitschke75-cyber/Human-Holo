@@ -276,6 +276,8 @@ test("Wichtiges zeigt Kalender, Einkaufsliste und Notizen als eigene Bereiche", 
   assert.match(ui, /requestCalendarAccess/u);
   assert.match(ui, /saveCalendarEvent/u);
   assert.match(ui, /listCalendarEvents/u);
+  assert.match(ui, /openLinkedCalendar/u);
+  assert.match(ui, /plugin\.openCalendar/u);
   assert.match(ui, /Extern gespeichert/u);
   assert.match(ui, /savedDirectly:\s*true/u);
   assert.match(ui, /accessRequired:\s*true/u);
@@ -403,7 +405,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=87/u);
+  assert.match(html, /sol-holo-ui\.js\?v=88/u);
 });
 
 test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {

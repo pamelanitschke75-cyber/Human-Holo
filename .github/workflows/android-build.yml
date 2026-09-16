@@ -440,11 +440,15 @@ jobs:
           grep -q 'CalendarContract.Events.CONTENT_URI' "$calendar_java"
           grep -q 'public void listCalendarEvents' "$calendar_java"
           grep -q 'CalendarContract.Instances.CONTENT_URI' "$calendar_java"
+          grep -q 'public void openCalendar' "$calendar_java"
+          grep -q 'Intent.ACTION_VIEW' "$calendar_java"
           ! grep -q 'Intent.ACTION_INSERT' "$calendar_java"
           grep -q 'window.saveSolHoloCalendarDraft' "$app_ui"
           grep -q 'listCalendarEvents' "$app_ui"
           grep -q 'id="calendarList"' "$app_ui"
           grep -q 'Mit deinem Handy-Kalender verknüpft' "$app_ui"
+          grep -q 'openLinkedCalendar' "$app_ui"
+          grep -q 'Kalender öffnen' "$app_ui"
           ! grep -q 'Tippe dort nur noch auf Speichern' "$app_ui"
 
       - name: Live-Kamera für Realtime prüfen

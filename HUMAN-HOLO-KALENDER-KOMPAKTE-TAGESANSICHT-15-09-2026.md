@@ -21,6 +21,9 @@
    Kalenderquelle vorhanden ist.
 6. Vorhandene externe Kalendereinträge werden durch diese Änderung weder
    gelöscht noch verschoben oder verändert.
+7. Die sichtbare Kalender-Verknüpfung und jede angezeigte Terminkarte bleiben
+   antippbar. Ein bewusster Tipp öffnet den gewählten Tag beziehungsweise den
+   Termin im normalen Handy-Kalender, ohne dabei Daten zu verändern.
 
 ## Unverändert
 

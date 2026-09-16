@@ -3779,6 +3779,33 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
   }
 
+  async function openLinkedCalendar(event = null) {
+    const plugin = getPhoneContactsPlugin();
+    if (typeof plugin?.openCalendar !== "function") {
+      showToast("Kalender öffnen ist erst nach dem App-Update verfügbar.");
+      return false;
+    }
+
+    const eventId = Number(event?.eventId);
+    const startMillis = Number(
+      event?.startMillis || selectedCalendarDayStart().getTime()
+    );
+    try {
+      const result = await plugin.openCalendar({
+        ...(Number.isFinite(eventId) && eventId > 0 ? { eventId } : {}),
+        startMillis
+      });
+      if (!result?.opened) {
+        throw new Error("CALENDAR_OPEN_NOT_CONFIRMED");
+      }
+      return true;
+    } catch (error) {
+      console.error("Handy-Kalender öffnen:", error?.code || error?.name);
+      showToast("Der Handy-Kalender konnte gerade nicht geöffnet werden.");
+      return false;
+    }
+  }
+
   function linkedCalendarDuplicateKey(event) {
     return [
       normalizeNoteSearchText(event.title),
@@ -3837,6 +3864,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const card = document.createElement("article");
     card.className = "noteCard calendarCard";
     card.dataset.calendarEventId = event.id;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute(
+      "aria-label",
+      `${event.title} im Handy-Kalender öffnen`
+    );
 
     const header = document.createElement("div");
     header.className = "noteCardHeader";
@@ -3864,7 +3897,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     footer.className = "noteCardFooter";
     const linked = document.createElement("span");
     linked.className = "calendarLinkedLabel";
-    linked.textContent = "Extern gespeichert";
+    linked.textContent = "Extern gespeichert · antippen";
     footer.appendChild(linked);
     card.append(header, details, footer);
     return card;
@@ -5134,7 +5167,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     await startLiveConversation();
   }
 
-  function renderCalendarAccessState(message, actionLabel, granted = false) {
+  function renderCalendarAccessState(
+    message,
+    actionLabel,
+    granted = false,
+    disabled = false
+  ) {
     const status = document.getElementById("calendarAccessStatus");
     const button = document.getElementById("calendarAccessButton");
     if (status) {
@@ -5143,7 +5181,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
     if (button) {
       button.textContent = actionLabel;
-      button.disabled = Boolean(granted);
+      button.disabled = Boolean(disabled);
+      button.dataset.calendarAction = granted ? "open" : "request";
       button.setAttribute("aria-pressed", String(Boolean(granted)));
     }
   }
@@ -5170,7 +5209,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       if (todayState) todayState.textContent = "Kalender in Holo verknüpft";
       renderCalendarAccessState(
         "Mit deinem Handy-Kalender verknüpft ✅️",
-        "Verknüpft",
+        "Kalender öffnen",
         true
       );
       return true;
@@ -5242,7 +5281,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       todayState.textContent = "Kalender bleibt getrennt";
       renderCalendarAccessState(
         "Persönliche Holo-ID zuerst bestätigen",
-        "Holo-ID nötig"
+        "Holo-ID nötig",
+        false,
+        true
       );
       return;
     }
@@ -5256,7 +5297,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       serviceState.textContent = "Wird geprüft …";
       serviceState.classList.remove("connected", "setup");
     }
-    renderCalendarAccessState("Direktes Speichern wird geprüft …", "Bitte warten");
+    renderCalendarAccessState(
+      "Direktes Speichern wird geprüft …",
+      "Bitte warten",
+      false,
+      true
+    );
 
     try {
       const response = await fetch(
@@ -8774,6 +8820,31 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
   });
 
+  const openCalendarCard = (target) => {
+    const card = target.closest("[data-calendar-event-id]");
+    if (!card) return false;
+    const linkedEvent = linkedCalendarEvents.find(
+      (entry) => entry.id === card.dataset.calendarEventId
+    );
+    if (!linkedEvent) {
+      showToast("Dieser Termin wurde im Kalender nicht mehr gefunden.");
+      return true;
+    }
+    void openLinkedCalendar(linkedEvent);
+    return true;
+  };
+
+  calendarList.addEventListener("click", (event) => {
+    openCalendarCard(event.target);
+  });
+
+  calendarList.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    if (openCalendarCard(event.target)) {
+      event.preventDefault();
+    }
+  });
+
   calendarDayInput.addEventListener("change", () => {
     if (!calendarDayInput.value) {
       calendarDayInput.value = localCalendarDayValue(new Date());
@@ -8790,6 +8861,11 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     "click",
     async () => {
       const plugin = getPhoneContactsPlugin();
+      const button = document.getElementById("calendarAccessButton");
+      if (button?.dataset.calendarAction === "open") {
+        await openLinkedCalendar();
+        return;
+      }
       if (typeof plugin?.requestCalendarAccess !== "function") {
         document.getElementById("googleAccountRow")?.click();
         return;

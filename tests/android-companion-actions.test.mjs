@@ -128,6 +128,9 @@ test("Kalender bleibt extern und Holo zeigt einen kompakten auswählbaren Tag", 
   assert.match(phonePlugin, /CalendarContract\.Instances\.CONTENT_URI/u);
   assert.match(phonePlugin, /public void saveCalendarEvent/u);
   assert.match(phonePlugin, /public void listCalendarEvents/u);
+  assert.match(phonePlugin, /public void openCalendar/u);
+  assert.match(phonePlugin, /Intent\.ACTION_VIEW/u);
+  assert.match(phonePlugin, /CalendarContract\.CONTENT_URI/u);
   assert.match(phonePlugin, /public void requestCalendarAccess/u);
   assert.match(phonePlugin, /matchingCalendarEventId/u);
   assert.match(phonePlugin, /CalendarContract\.Events\.DELETED \+ " = 0"/u);
@@ -148,6 +151,11 @@ test("Kalender bleibt extern und Holo zeigt einen kompakten auswählbaren Tag", 
   assert.match(ui, /linkedCalendarEventFallsOnDay/u);
   assert.match(ui, /utcCalendarDayValue/u);
   assert.match(ui, /Extern gespeichert/u);
+  assert.match(ui, /openLinkedCalendar/u);
+  assert.match(ui, /button\.dataset\.calendarAction = granted \? "open" : "request"/u);
+  assert.match(ui, /button\.disabled = Boolean\(disabled\)/u);
+  assert.doesNotMatch(ui, /button\.disabled = Boolean\(granted\)/u);
+  assert.match(ui, /Kalender öffnen/u);
   assert.match(uiCss, /\.calendarList\{[\s\S]*?display:flex/u);
   assert.match(uiCss, /\.calendarList\{[\s\S]*?overflow-x:auto/u);
   assert.match(uiCss, /\.calendarList \.calendarCard\{[\s\S]*?scroll-snap-align:start/u);

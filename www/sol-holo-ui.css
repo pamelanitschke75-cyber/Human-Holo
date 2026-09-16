@@ -2172,6 +2172,16 @@ body{
   min-width:0;
   padding:12px;
   scroll-snap-align:start;
+  cursor:pointer;
+}
+
+.calendarList .calendarCard:focus-visible{
+  outline:2px solid rgba(115,225,255,.92);
+  outline-offset:2px;
+  box-shadow:
+    0 0 0 4px rgba(78,199,255,.14),
+    0 0 20px rgba(136,82,255,.28),
+    inset 0 1px 0 rgba(255,255,255,.08);
 }
 
 .calendarEventDetails{

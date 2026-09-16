@@ -1,4 +1,4 @@
-const CACHE_VERSION = "human-holo-295-compact-calendar-day-view";
+const CACHE_VERSION = "human-holo-296-calendar-click-restored";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
