@@ -26,47 +26,87 @@ Schlüsseldateien, Quellcode, Tests und Verwaltungswege bleiben von außen
 unsichtbar. Öffentliche Schutzregeln ersetzen niemals persönliche
 Zugriffskontrollen.
 
-## Wahrer Stand am 16.09.2026
+## Wahrer Stand und Pausenpunkt am 16.09.2026
 
-Pam hat den Worker `human-holo-edge-guard` selbst als getrennte Teststrecke
-bereitgestellt. Die extern geprüfte Fassung meldete `staged-v1`, leitete aber
-technisch zu `sol-holo.onrender.com` weiter. Damit testete sie ausschließlich
-den Pam-Holo-Ursprung; die damalige gemeinsame Scope-Bezeichnung war falsch und
-darf nicht als Human-Holo-Schutz ausgegeben werden.
+Der historische Worker `human-holo-edge-guard` bleibt als damalige,
+falsch bezeichnete Teststrecke unverändert erhalten. Er zeigte technisch auf
+Pams Ursprung und darf deshalb nicht als Schutz von Human Holo ausgegeben
+werden.
 
-Die externe Prüfung dieser Teststrecke ergab:
+Pam hat anschließend selbst im Cloudflare-Dashboard den getrennten Worker
+`pam-holo-edge-guard` erstellt und den geprüften Quellstand
+`cloudflare/pam-holo-edge-guard.mjs` als `staged-v2` bereitgestellt.
 
-- Status und Pam-Holo-Weiterleitung: HTTP 200,
-- fremde Browser-Herkunft: HTTP 403,
-- privater Projektpfad: HTTP 404,
-- nicht freigegebene HTTP-Methode: HTTP 405,
-- innerer Anwendungswächter dahinter: `active-v1`.
+Bestätigter Cloudflare-Zwischenstand:
 
-Der korrigierte Quellstand trennt nun beide Dienste. Er ist noch nicht im
-Cloudflare-Dashboard bereitgestellt. Bestehende App-Versionen sprechen weiter
-direkt mit `https://sol-holo.onrender.com`; der Render-Ursprung ist noch nicht
-gesperrt. WAF-, Bot- und Rate-Limit-Regeln sowie eine ownerkontrollierte Domain
-sind noch nicht produktiv bestätigt. Deshalb besteht noch kein vollständiger
-Cloudflare-Produktionsschutz.
+- Worker: `pam-holo-edge-guard`
+- Testadresse:
+  `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev`
+- Cloudflare Access: ausgeschaltet, weil die App den öffentlichen Türsteher
+  erreichen können muss
+- Quellstand: `staged-v2`
+- Weiterleitungsursprung:
+  `PAM_HOLO_ORIGIN_URL=https://sol-holo.onrender.com`
+- `PAM_HOLO_ORIGIN_SECRET_REQUIRED=false`
+- `PAM_HOLO_ORIGIN_SECRET`: noch nicht angelegt
+- Dashboard-Beobachtung am Pausenpunkt: 37 Aufrufe, 0 Fehler
+- Die Startseite wurde über die Worker-Adresse erfolgreich vom bestehenden
+  Pam-Holo-Ursprung geladen.
+- Die eingebettete Cloudflare-Vorschau blieb beim Statuspfad erwartungsgemäß
+  leer, weil `frame-ancestors 'none'` und `X-Frame-Options: DENY` fremdes
+  Einbetten blockieren.
 
-## Sichere Reihenfolge für Pam’s Holo
+Dieser Nachweis bestätigt die getrennte Cloudflare-Teststrecke. Er bestätigt
+noch keine vollständige Produktionsmigration.
 
-1. Einen getrennten Worker `pam-holo-edge-guard` mit
-   `pam-holo-edge-guard.mjs` bereitstellen und die Testadresse prüfen.
-2. Cloudflare-WAF, DDoS-/Bot-Schutz und Rate-Limits für öffentliche und
-   persönliche Endpunkte testen; unbekannte Verwaltungswege standardmäßig
-   sperren.
-3. Einen neuen, zufälligen Ursprungsschlüssel ausschließlich als Secret in
-   Cloudflare und Render hinterlegen; niemals in GitHub oder der App.
-4. Erst wenn beide Seiten denselben Schlüssel verwenden, in Render
-   `PAM_HOLO_ORIGIN_SECRET_REQUIRED=true` setzen und den direkten Ursprungstest
-   auf HTTP 403 prüfen.
-5. Eine neue App-Version auf die geschützte ownerkontrollierte Domain umstellen,
-   sämtliche Sicherheits-/Regressionstests und den Android-Build ausführen und
-   auf Pams realem Gerät bestätigen.
-6. Erst danach alten Direktverkehr kontrolliert schließen. OAuth-Callbacks
-   müssen vorher über die geschützte Domain geführt oder sicher ausgenommen
-   werden.
+Der direkte Live-Test des Render-Ursprungs
+`https://sol-holo.onrender.com/security/guard-status` ergab am Pausenpunkt
+HTTP 200 mit `applicationGuard: active-v1`, aber noch
+`cloudflareEdgeGuard: not-verified` und der alten gemeinsamen Scope-Angabe.
+Damit ist belegt, dass Render noch nicht den neuesten getrennten
+GitHub-Schutzstand ausliefert. Deshalb wurde vor dem Anlegen eines geheimen
+Ursprungsschlüssels bewusst gestoppt.
+
+Die bestehende installierte App spricht weiterhin direkt mit Render. Der
+Render-Ursprung ist nicht gesperrt; deshalb besteht keine Aussperrungs- oder
+Ausfallgefahr während der Pause. Die vorhandenen Worker
+`human-holo-edge-guard`, `sol-holo-api` und `dark-wind-6dd8` wurden nicht
+überschrieben oder gelöscht.
+
+## Verbindlicher Wiederaufnahmeweg – ohne Umwege
+
+Beim Fortsetzen beginnt die Arbeit ausschließlich hier:
+
+1. `https://dashboard.render.com` öffnen und den bestehenden Dienst
+   `sol-holo` auswählen.
+2. Vor jeder Änderung den verbundenen GitHub-Zweig und den aktuell
+   bereitgestellten Commit prüfen. Danach den neuesten geprüften Hauptstand
+   bereitstellen, der `modules/external-attack-guard.mjs` und die getrennte
+   Pam-Holo-Statusantwort enthält.
+3. Nach erfolgreichem Render-Deploy
+   `/security/guard-status` prüfen. Die Antwort muss Pam’s Holo getrennt
+   ausweisen; Human Holo darf nicht mehr im Pam-Holo-Scope stehen.
+4. Erst danach lokal einen neuen starken Zufallsschlüssel erzeugen. Der Wert
+   darf niemals in Chat, Screenshot, GitHub, App-Code oder Dokumentation
+   erscheinen.
+5. Genau denselben Wert als Secret `PAM_HOLO_ORIGIN_SECRET` in Cloudflare
+   und als geheime Umgebungsvariable in Render hinterlegen. Auf beiden Seiten
+   bleibt `PAM_HOLO_ORIGIN_SECRET_REQUIRED=false`, bis die geschützte Strecke
+   erfolgreich getestet wurde.
+6. Eine ownerkontrollierte geschützte Domain und eine neue App-Version auf den
+   Pam-Holo-Türsteher umstellen. OAuth-Rückrufe und alle bestätigten Funktionen
+   müssen vorher geprüft werden. Die neue Version wird auf Pams echtem Gerät
+   getestet.
+7. Erst wenn die umgestellte App vollständig funktioniert, in Render
+   `PAM_HOLO_ORIGIN_SECRET_REQUIRED=true` setzen. Danach muss der direkte
+   Render-Zugriff HTTP 403 liefern, während der Cloudflare-Weg weiter
+   funktioniert.
+8. Abschließend den verifizierten Edge-Status setzen und Sicherheits-,
+   Regressions- und Android-Tests erneut vollständig ausführen.
+
+Bis Schritt 7 erfolgreich abgeschlossen ist, lautet der ehrliche Status:
+**getrennte Cloudflare-Teststrecke aktiv, vollständiger Produktionsschutz noch
+nicht aktiv**.
 
 ## Human Holo
 
