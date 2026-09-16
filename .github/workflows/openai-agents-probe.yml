@@ -46,6 +46,9 @@ jobs:
       - name: Verify read-only bridge safety rules
         run: npm run test:read-only-bridge
 
+      - name: Verify owner metadata fail-closed gate
+        run: npm run test:owner-metadata-gate
+
       - name: Run managed Agents API probe
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

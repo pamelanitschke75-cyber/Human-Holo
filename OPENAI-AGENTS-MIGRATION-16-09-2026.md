@@ -51,6 +51,21 @@ Stand der Render-Postgres-Struktur am 16.09.2026:
 - `human_holo_animal_profile_photo`: 0 Datensätze
 - `human_holo_single_call_proof`: 0 Datensätze
 
+## Owner-Metadatenprüfung – Migration bewusst blockiert
+
+Die Live-Prüfung am 16.09.2026 lief in einer schreibgeschützten Render-Transaktion und gab ausschließlich Tabellen- und Zahlenmetadaten aus. Owner-IDs, Texte, Kalender- oder Nachrichteninhalte, Erinnerungsinhalte und Tokenwerte wurden nicht ausgegeben.
+
+- 14 owner-bezogene Tabellen wurden strukturell geprüft.
+- In 12 Tabellen ist die Owner-Zuordnung verpflichtend und indexiert.
+- In den beiden Altbestandstabellen `sol_memory` und `sol_long_term_memory` ist `clone_id` noch optional und nicht indexiert.
+- In `sol_memory` sind 1.597 von 2.130 Zeilen ohne Owner-Zuordnung.
+- Insgesamt wurden zwei voneinander verschiedene, aber nicht offengelegte Owner-Bereiche gezählt.
+- `sol_google_tokens` enthält Metadaten zu beiden Bereichen; die Tokenwerte selbst wurden nicht gelesen.
+- Für die 14 Tabellen sind keine PostgreSQL-Row-Level-Security-Regeln aktiv. Die Trennung stützt sich damit derzeit auf Anwendungsschutz, Pflichtfelder und Indizes und ist nicht zusätzlich durch Datenbankrichtlinien erzwungen.
+- Keine produktive Zeile wurde verändert.
+
+Das Fail-closed-Gate im isolierten Draft-Zweig blockiert deshalb jeden späteren Memory-Export, solange unzugeordnete Zeilen vorhanden sind oder mehrere Owner-Bereiche ohne ausdrückliche Partitionierung gemeinsam verarbeitet würden. Die Produktivdaten bleiben unverändert.
+
 ## Zielabbildung
 
 ### Zu OpenAI
