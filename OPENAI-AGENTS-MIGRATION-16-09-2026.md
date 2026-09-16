@@ -5,87 +5,113 @@ Branch: `openai-agents-migration`
 
 ## Ziel
 
-Human Holo schrittweise stärker auf OpenAI-Infrastruktur verlagern, ohne das produktive Pam-Holo oder den aktuellen Render-Dienst zu gefährden.
+Human Holo soll so weit technisch sinnvoll vollständig auf OpenAI-Infrastruktur verlagert werden. Render wird erst abgeschaltet oder verkleinert, wenn für jede produktive Funktion ein getesteter Ersatz vorhanden ist. Das produktive Pam-Holo bleibt bis dahin unverändert und funktionsfähig.
 
 ## Sicherheitsregel
 
 - `main` bleibt produktiv und unverändert, bis ein paralleler OpenAI-Weg nachweislich funktioniert.
-- Keine Änderung an Pam-Holo-Gedächtnis, persönlichen Daten, Kalenderdaten oder produktiver Datenbank in dieser Phase.
+- Keine Änderung an Pam-Holo-Gedächtnis, persönlichen Daten, Kalenderdaten oder produktiver Datenbank in der Testphase.
 - Keine medizinischen Beratungsfunktionen aktivieren; bestehende rechtliche Pause bleibt bestehen.
 - Keine Zugangsdaten oder API-Schlüssel im Repository speichern.
+- Erinnerungsdaten, Zugangsdaten, Geräteidentitäten und externe Provider-Tokens bleiben logisch getrennt.
 
 ## Kostenleitplanken
 
-- Kosten bleiben ein festes Migrationskriterium; keine Architekturänderung darf unnötige laufende Fixkosten erzeugen.
+- Monatlicher Gesamtdeckel für Human Holo: 120 EUR. Ziel ist deutlich darunter zu bleiben.
 - Routine-, Prüf- und Hintergrundaufgaben bevorzugt mit `gpt-5.6-luna` ausführen.
-- Leistungsstärkere Modelle nur für Aufgaben einsetzen, bei denen Luna qualitativ nicht ausreicht.
-- Keine dauerhaft laufenden Render-Worker nur für Agenten- oder Prüfaufgaben; zeitgesteuerte Auslöser bevorzugt über GitHub Actions und die eigentliche Agentenarbeit über OpenAI.
-- Vor dem Abschalten oder Hochstufen eines bestehenden Dienstes tatsächliche Nutzungs- und Kostenwerte vergleichen.
-- Render erst dann verkleinern, wenn der OpenAI-Ersatz stabil getestet ist und die Gesamtkosten dadurch gleich bleiben oder sinken.
+- Leistungsstärkere Modelle nur einsetzen, wenn Luna qualitativ nicht ausreicht.
+- Keine dauerhaft laufenden Render-Worker nur für Agenten- oder Prüfaufgaben.
+- Zeitgesteuerte Auslöser bevorzugt über GitHub Actions; Agentenarbeit über OpenAI.
+- Vor Abschalten oder Hochstufen eines Dienstes tatsächliche Nutzungs- und Kostenwerte vergleichen.
 - Keine kostenpflichtige Infrastruktur vorsorglich aktivieren; erst bei nachgewiesenem Bedarf.
+
+## Aktuell bestätigte OpenAI-Bausteine
+
+- Managed Agents Sessions funktionieren im isolierten Testzweig.
+- OpenAI Conversations sind als persistenter Gesprächszustand vorgesehen.
+- OpenAI Files + Vector Stores sind Kandidaten für semantisches Langzeitgedächtnis und Wiederfinden von Erinnerungen.
+- GitHub Actions kann OpenAI-Aufgaben zeitgesteuert anstoßen; kein Render-Worker erforderlich.
+
+## Produktives Speicherinventar – nur Struktur und Anzahl, keine Inhalte ausgelesen
+
+Stand der Render-Postgres-Struktur am 16.09.2026:
+
+- `sol_fulltime_memory`: 5.834 Datensätze
+- `sol_memory`: 2.130 Datensätze
+- `sol_identity_memory`: 104 Datensätze
+- `sol_identity_memory_supersession`: 22 Datensätze
+- `sol_long_term_memory`: 18 Datensätze
+- `sol_calendar_actions`: 15 Datensätze
+- `sol_google_tokens`: 2 Datensätze
+- `sol_trusted_app_devices`: 1 Datensatz
+- `sol_notes`: 0 Datensätze
+- `sol_smartthings_allowed_devices`: 0 Datensätze
+- `sol_smartthings_tokens`: 0 Datensätze
+- `human_holo_voice_profiles`: 0 Datensätze
+- `human_holo_animal_profile_photo`: 0 Datensätze
+- `human_holo_single_call_proof`: 0 Datensätze
+
+## Zielabbildung
+
+### Zu OpenAI
+
+- Agenten- und Aufgabenlogik
+- Gesprächszustand über Conversations
+- semantisches Erinnern über Files/Vector Stores
+- längere Agentenläufe und Tool-Orchestrierung
+- später ausgewählte OpenClaw-/Alltagslogik
+
+### Nicht in semantischen OpenAI-Speicher mischen
+
+- Google OAuth Access-/Refresh-Tokens
+- SmartThings-Tokens
+- Trusted-App-Geräteschlüssel und Zertifikats-Fingerprints
+- kurzlebige Sicherheitsnachweise
+
+Diese Daten sind Zugangsdaten/Sicherheitszustand und müssen separat, verschlüsselt und minimal gehalten werden. Sie dürfen nicht als normale Erinnerung indexiert werden.
 
 ## Ist-Zustand
 
 - Produktiver Server: Node/Express auf Render.
 - Persistenz: PostgreSQL über `DATABASE_URL`.
 - OpenAI: Responses API und Realtime werden bereits genutzt.
-- Aktuelles Repository verwendet `openai` 5.x.
-- Hintergrund-Wächter läuft getrennt über GitHub Actions; kein Render-Worker erforderlich.
-
-## Was zuerst zu OpenAI kann
-
-1. Agenten-/Aufgabenlogik
-   - Managed Agents Sessions
-   - OpenAI-hosted execution environments
-   - Tool-Orchestrierung und länger laufende Agenten-Turns
-
-2. Teile der bisherigen Server-Orchestrierung
-   - Aufgaben zerlegen
-   - Tool-Auswahl
-   - Web-/Datei-/Code-Arbeit, sofern die jeweilige OpenAI-Agentenumgebung dafür geeignet und freigegeben ist
-
-3. Später prüfen
-   - welche OpenClaw-/Alltags-Logik durch OpenAI Agents ersetzt werden kann
-   - welche Hintergrundaufgaben durch GitHub Actions nur noch angestoßen und anschließend von OpenAI ausgeführt werden können
-
-## Was vorerst bei Render bleibt
-
-- öffentlicher App-Endpunkt für die installierte Android-App
-- PostgreSQL und dauerhaftes persönliches Gedächtnis
-- Authentifizierung/Trusted-App-Session und bestehende Schutzschicht
-- Realtime-Token-Ausgabe und alle produktiven App-Routen, bis der Ersatz getestet ist
-- Integrationen, die dauerhafte Server-Credentials oder feste Webhooks benötigen
-
-## Technische Voraussetzung für den Testzweig
-
-Die Agents API wurde dem offiziellen OpenAI Node SDK ab Version 7.15 hinzugefügt. Die aktuelle SDK-Reihe benötigt Node 22 oder neuer. Deshalb wird die Migration isoliert in diesem Branch aufgebaut und nicht direkt in der produktiven Render-Konfiguration getestet.
+- Produktives Repository verwendet derzeit `openai` 5.x.
+- Migrations-Prototyp verwendet isoliert OpenAI SDK 7.16+ und Node 22.
+- Hintergrund-Wächter läuft über GitHub Actions; kein Render-Worker erforderlich.
 
 ## Phasen
 
-### Phase 1 – isolierter Agenten-Prototyp
-- separates Experiment-Verzeichnis
-- Node 22
-- OpenAI SDK 7.16+
-- API-Key ausschließlich aus Umgebung
-- keine Verbindung zur produktiven Human-Holo-Datenbank
-- keine schreibenden externen Aktionen
+### Phase 1 – OpenAI-Bausteine beweisen
 
-### Phase 2 – Read-only Human-Holo Bridge
-- Agent darf ausgewählte, nicht sensible Informationen über eine eng begrenzte Bridge abrufen
-- keine persönlichen Schreibzugriffe
-- vollständige Protokollierung
+- Managed Agents Session: erfolgreich getestet.
+- Conversation + Vector-Store-Memory: isolierter Test mit ausschließlich synthetischen Daten.
+- Keine produktiven personenbezogenen Daten in dieser Phase.
 
-### Phase 3 – paralleler App-Test
-- Pam-Holo kann ausgewählte Aufgaben wahlweise über alten oder neuen Pfad ausführen
-- alter Render-Pfad bleibt Fallback
-- Ergebnisse vergleichen
+### Phase 2 – produktive Daten sicher exportierbar machen
 
-### Phase 4 – Render verkleinern
-Erst wenn der OpenAI-Pfad stabil ist:
-- ersetzte Orchestrierungslogik aus Render entfernen
-- Render nur noch als schlanke API-/Persistenzschicht betreiben
-- Kosten und Ausfallsicherheit neu bewerten
+- Exportformat für Vollzeit-, Identity- und Long-Term-Memory definieren.
+- Owner-ID und Quelle pro Erinnerung erhalten.
+- Prüfsummen erhalten, damit Vollständigkeit nach Migration kontrollierbar ist.
+- Zugangsdaten ausdrücklich aus dem Memory-Export ausschließen.
 
-## Nicht-Ziel
+### Phase 3 – Parallelimport und Vergleich
 
-Render wird nicht vorschnell abgeschaltet. Die OpenAI-hosted Agentenumgebung ist eine Ausführungsumgebung für Agenten-Sessions und derzeit kein 1:1-Ersatz für einen permanenten öffentlichen Node/Express-Server plus PostgreSQL.
+- Erinnerungen zunächst kopieren, nicht verschieben.
+- Stichproben und Anzahl/Prüfsummen vergleichen.
+- alter Render-Speicher bleibt Fallback, bis Vollständigkeit bestätigt ist.
+
+### Phase 4 – App-Pfade umstellen
+
+- Agenten-/Memory-Leseweg auf OpenAI schalten.
+- Schreibweg kontrolliert umstellen.
+- Kalender, Nachrichten, Geräte und Realtime jeweils separat testen.
+
+### Phase 5 – Render zurückbauen
+
+- erst nach erfolgreicher Parallelphase.
+- keine Datenbank löschen, bevor Export, Import und Wiederabruf bestätigt sind.
+- verbleibende Serverfunktion nur behalten, wenn OpenAI dafür keinen geeigneten Ersatz bietet.
+
+## Wichtige technische Grenze
+
+OpenAI Conversations, Files, Vector Stores und Agents ersetzen viele Orchestrierungs- und Memory-Aufgaben, sind aber kein klassischer relationaler PostgreSQL-Server. Sicherheitsdaten, OAuth-Tokens, Gerätevertrauen und externe Webhooks müssen deshalb entweder in einer geeigneten geschützten Persistenz verbleiben oder durch einen anderen dafür vorgesehenen Mechanismus ersetzt werden.
