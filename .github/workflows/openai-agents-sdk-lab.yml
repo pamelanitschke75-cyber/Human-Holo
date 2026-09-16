@@ -18,18 +18,25 @@ jobs:
   agents-sdk-compatibility:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 24]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
 
-      - name: Install dependencies without postinstall side effects
+      - name: Install current Human Holo dependencies
         run: npm ci --ignore-scripts
+
+      - name: Overlay OpenAI SDK 7.15.0 for isolated lab test
+        run: npm install --ignore-scripts --no-save openai@7.15.0
 
       - name: Check Agents SDK surface
         run: node scripts/check-openai-agents-sdk.mjs
