@@ -8,7 +8,7 @@
     "android:build": "cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
-    "@capacitor/android": "^7.0.0",
+    "@capacitor/android": "^8.5.2",
     "@capacitor/core": "^7.0.0",
     "@mediapipe/tasks-vision": "1.0.1",
     "cors": "^2.8.5",
