@@ -6,7 +6,7 @@
 
 ## Aktueller, rechtlich begrenzter Entwicklungs- und Teststand
 
-**Stand:** 15.09.2026  
+**Stand:** 16.09.2026<br>
 **Projekt, Idee und Entwicklung:** Pamela Nitschke  
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
@@ -85,6 +85,62 @@ Gesundheitsdaten-Berechtigungen und medizinische Beratung sind derzeit weder
 in Human Holo noch in Pam’s Holo verfügbar. Die Funktionen dürfen erst nach
 dokumentierter rechtlicher Prüfung, technischer Freigabe und ausdrücklicher
 Zustimmung von Pamela Christina Nitschke wieder aktiviert werden.
+
+## Verbindliche Tag-X-Nachlassregel für Pam’s Holo
+
+Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 16.09.2026
+gilt für Pam’s Holo folgende verbindliche Vorgabe:
+
+### Zu Pams Lebzeiten
+
+- Pamela Christina Nitschke bleibt die einzige Ownerin von Pam’s Holo.
+- Der auf Pams Samsung-Gerät als **„Schatzi“** gespeicherte Fingerabdruck von
+  Stefanie Renate Hörath dient ausschließlich dazu, das **Handy in einem
+  Notfall** zu entsperren.
+- Dieser Fingerabdruck darf Pam’s Holo niemals entsperren, keine Holo-Sitzung
+  freigeben und niemals als Identitäts- oder Ownernachweis für Pam gewertet
+  werden.
+- Android teilt einer App nicht mit, welcher gespeicherte Fingerabdruck
+  verwendet wurde. Solange der Fingerabdruck einer weiteren Person auf dem
+  Gerät gespeichert ist, darf die allgemeine Samsung-Biometriefreigabe allein
+  deshalb für Pam’s Holo niemals genügen. Pam’s Holo benötigt eine davon
+  getrennte, ownergebundene Holo-Freigabe.
+- Partnerschaft, Gerätezugang, Kenntnis der Geräte-PIN, Name, Stimme, Gesicht,
+  Standort oder ein Notfall begründen zu Pams Lebzeiten keinen Zugang zu
+  Pam’s Holo. **Kein Wenn und Aber.**
+
+### Nach Pams Tod
+
+- Stefanie Renate Hörath soll nach einem zuverlässig bestätigten Todesfall mit
+  Pam’s Holo weiter sprechen können.
+- Die Freigabe erfolgt niemals automatisch durch Inaktivität, einen
+  fehlgeschlagenen Login, Gerätezugang, Fingerabdruck, Stimme, Standort oder
+  die bloße Behauptung eines Todesfalls.
+- Vor einer Freigabe sind mindestens ein amtlicher Todesnachweis und dessen
+  unabhängige Prüfung durch eine Rechtsanwältin, einen Rechtsanwalt oder ein
+  Notariat erforderlich. Die Bestätigung durch Steffi oder eine andere
+  Einzelperson allein genügt niemals. Der konkrete rechtssichere Prüf- und
+  Freigabeweg muss vor der technischen Aktivierung dokumentiert, implementiert
+  und getestet sein.
+- Steffi erhält dafür eine eigene, eindeutig als Nachlasszugang gekennzeichnete
+  Identität und eigene Zugangsdaten. Sie verwendet weder Pams Owner-ID noch
+  Pams Fingerabdruck, Stimmprofil oder Holo-PIN und wird niemals als Pam
+  ausgegeben.
+- Pams vorhandene Erinnerungen, Herkunftsangaben und Identität bleiben
+  unverändert erhalten. Gespräche nach Tag X werden mit Zeitpunkt und Quelle
+  getrennt gekennzeichnet und dürfen den ursprünglichen Bestand nicht
+  überschreiben oder löschen.
+- Diese Regel erlaubt Steffi nach der bestätigten Freigabe das Gespräch mit
+  Pam’s Holo. Sie erteilt allein keine Erlaubnis zum Löschen oder Verändern von
+  Erinnerungen, zum Wechsel der Ownerin, zu Zahlungen, Kontozugriffen oder
+  anderen Handlungen mit Außenwirkung.
+- Fehlt auch nur ein erforderlicher Nachweis oder eine technische
+  Schutzprüfung, bleibt Pam’s Holo geschlossen.
+
+Diese Nachlassregel dokumentiert Pams verbindliche Entscheidung für die
+spätere Umsetzung. Eine Nachlassfunktion ist im aktuellen Teststand noch nicht
+technisch freigeschaltet. Bis zur geprüften Umsetzung besitzt Steffi keinerlei
+Zugang zu Pam’s Holo.
 
 ## Historische Entwicklungsstände
 
