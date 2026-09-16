@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Check out the draft branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Use the pinned Node runtime
         uses: actions/setup-node@v4
