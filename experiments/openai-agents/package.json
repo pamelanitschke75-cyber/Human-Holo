@@ -6,7 +6,8 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "probe": "node probe.mjs"
+    "probe": "node probe.mjs",
+    "memory-probe": "node memory-probe.mjs"
   },
   "dependencies": {
     "openai": "^7.16.0"
