@@ -157,6 +157,7 @@ Verbindliche Einzelheiten:
 - [Verbindliche GitHub- und Erledigt-Regel](./VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md)
 - [Bestand erhalten, nur erweitern · Regressionstest-Sperre](./HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md)
 - [Sicherheitsrichtlinie · äußerer und innerer Angriffsschutz](./SECURITY.md)
+- [Getrennte Cloudflare-Türsteher · wahrer Aktivierungsstand](./cloudflare/README.md)
 
 ## Verbindliche Erledigt-Regel
 

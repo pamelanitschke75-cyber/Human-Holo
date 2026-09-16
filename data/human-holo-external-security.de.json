@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "contract_id": "human-holo-external-attack-protection",
   "adopted_on": "2026-09-16",
   "status": "binding",
@@ -35,7 +35,39 @@
     "cleartext_network_traffic_allowed": false,
     "user_installed_certificate_authorities_trusted": false,
     "automatic_android_cloud_backup_allowed": false,
-    "encrypted_user_controlled_human_holo_backup_preserved": true
+    "encrypted_user_controlled_human_holo_backup_preserved": true,
+    "app_unlock_required_on_start": true,
+    "immediate_lock_on_background": true,
+    "strong_android_biometric_or_device_credential_required": true,
+    "biometric_raw_data_available_to_holo": false,
+    "android_reports_which_enrolled_fingerprint_matched": false,
+    "enrolled_fingerprints_create_or_switch_holo_identities": false,
+    "biometric_authorizes_the_device_not_a_named_person": true,
+    "fixed_owner_id": "pam-sol",
+    "emergency_phone_only_fingerprint_allowed": true,
+    "emergency_phone_only_fingerprint_label": "Schatzi",
+    "emergency_phone_only_fingerprint_must_not_unlock_holo": true,
+    "android_biometric_alone_sufficient_for_holo_owner_access": false,
+    "separate_holo_owner_factor_required": true,
+    "separate_holo_owner_factor_status": "required-before-app-release"
+  },
+  "anti_manipulation_guard": {
+    "hey_pam_preserved": true,
+    "wake_phrase_required": true,
+    "local_three_sample_owner_voice_profile_required": true,
+    "voice_profile_is_separate_from_android_device_authorization": true,
+    "wake_service_exported_to_other_apps": false,
+    "background_microphone_requires_visible_android_notification": true,
+    "openai_custom_voice_requires_provider_consent_id": true,
+    "unknown_or_incomplete_factor_fails_closed": true
+  },
+  "surface_policy": {
+    "public_surfaces_are_protected": true,
+    "public_access_means_unprotected": false,
+    "personal_surfaces_require_owner_device_and_session_binding": true,
+    "internal_and_administrative_surfaces_are_public": false,
+    "passive_device_location_allowed": false,
+    "hidden_camera_capture_allowed": false
   },
   "supply_chain_guard": {
     "repository_secret_scan_required": true,
@@ -44,9 +76,12 @@
     "known_runtime_vulnerabilities_at_adoption": 0,
     "permanent_regression_tests_required": true
   },
-  "external_edge_guard": {
+  "external_edge_guards": {
     "provider": "Cloudflare",
-    "role": "WAF, DDoS- und Bot-Schutz vor dem Render-Ursprung",
+    "role": "Getrennter WAF-, DDoS-, Bot- und Ursprungsschutz vor jedem Dienst",
+    "shared_worker_allowed": false,
+    "shared_origin_secret_allowed": false,
+    "shared_server_or_database_allowed": false,
     "account_access": {
       "owner_only": true,
       "owner": "Pamela Christina Nitschke",
@@ -58,14 +93,42 @@
       "additional_account_users_allowed": false,
       "dashboard_changes_confirmed_only_by_owner": true
     },
-    "planned_worker_name": "human-holo-edge-guard",
     "existing_workers_preserved": [
       "sol-holo-api",
       "dark-wind-6dd8"
     ],
-    "source_path": "cloudflare/human-holo-edge-guard.mjs",
-    "status": "separate-staging-source-prepared-pending-deployment",
-    "active": false,
+    "pam_holo": {
+      "worker_name": "pam-holo-edge-guard",
+      "source_path": "cloudflare/pam-holo-edge-guard.mjs",
+      "origin": "https://sol-holo.onrender.com",
+      "corrected_source_version": "staged-v2",
+      "corrected_source_deployed": false,
+      "existing_traffic_migrated": false,
+      "production_traffic_protected": false,
+      "render_origin_locked": false,
+      "owner_controlled_domain_attached": false,
+      "historical_misnamed_staging_worker": {
+        "url": "https://human-holo-edge-guard.pamela-nitschke75.workers.dev",
+        "version": "staged-v1",
+        "actually_tested_scope": "Pam’s Holo",
+        "verified_at": "2026-09-16",
+        "status_endpoint_http": 200,
+        "render_proxy_http": 200,
+        "foreign_browser_origin_blocked_http": 403,
+        "private_project_path_hidden_http": 404,
+        "unsupported_method_blocked_http": 405,
+        "inner_application_guard_verified": "active-v1"
+      }
+    },
+    "human_holo": {
+      "worker_name": "human-holo-edge-guard",
+      "source_path": "cloudflare/human-holo-edge-guard.mjs",
+      "pam_holo_origin_forbidden": true,
+      "deployment_stage": "blocked-until-separate-origin-exists",
+      "production_traffic_protected": false,
+      "fail_closed": true
+    },
+    "production_active": false,
     "must_not_be_claimed_active_before_verification": true,
     "prerequisites": [
       "separate-worker-deployed-and-tested",
@@ -73,7 +136,8 @@
       "proxied-dns-route-to-render",
       "tested-waf-and-rate-limit-rules",
       "client-migration-without-breaking-existing-builds",
-      "verified-origin-lock-after-migration"
+      "verified-origin-lock-after-migration",
+      "separate-worker-origin-secret-and-database-per-service"
     ]
   },
   "change_protection": {
@@ -86,6 +150,9 @@
     "modules/external-attack-guard.mjs",
     "scripts/security-release-gate.mjs",
     "tests/external-attack-guard.test.mjs",
+    "tests/anti-manipulation-security.test.mjs",
+    "tests/cloudflare-edge-guard.test.mjs",
+    "tests/human-holo-custom-voice.test.mjs",
     "tests/security-release-gate.test.mjs",
     ".github/workflows/android-build.yml",
     ".github/workflows/codeql.yml",

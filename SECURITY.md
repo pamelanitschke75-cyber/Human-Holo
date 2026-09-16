@@ -276,13 +276,15 @@ Bei Widersprüchen zwischen einer geplanten Beschreibung und dem tatsächlich im
 
 ## 14. Verbindliche Außenangriff-Härtung ab 16.09.2026
 
-Diese zusätzliche Schutzvorgabe gilt gemeinsam für **Pam’s Holo und Human Holo**.
-Sie ergänzt alle bisherigen Owner-, Geräte-, Sitzungs-, Daten- und
-Funktionsschutzregeln und nimmt keine bestätigte Alltagsfunktion zurück.
+Diese zusätzliche Schutzvorgabe gilt für **Pam’s Holo und Human Holo**, aber
+niemals über einen gemeinsamen Server, eine gemeinsame Datenbank, einen
+gemeinsamen Ursprungsschlüssel oder einen gemeinsamen persönlichen Speicher.
+Beide Dienste erhalten dieselben Schutzklassen in strikt getrennter
+Infrastruktur. Bestätigte Alltagsfunktionen werden dadurch nicht entfernt.
 
 ### Innerer Anwendungswächter
 
-Der Server besitzt vor CORS, JSON-Verarbeitung, API-Routen und öffentlich
+Der jeweilige Server besitzt vor CORS, JSON-Verarbeitung, API-Routen und öffentlich
 ausgelieferten Dateien einen inneren Anwendungswächter. Er setzt insbesondere
 folgende Sperren durch:
 
@@ -299,9 +301,46 @@ folgende Sperren durch:
 - neutrale Fehler- und 404-Antworten ohne Stacktrace oder interne Details,
 - begrenzte Header-, Keep-alive- und Request-Zeiten am HTTP-Server.
 
-Diese äußere Schutzschicht ersetzt **nicht** die vorhandene kryptografische
+Diese innere Schutzschicht ersetzt **nicht** die vorhandene kryptografische
 Geräte-, Trusted-Session-, Owner- und Sprecherbindung. Sie steht davor und
 bildet mit diesen Prüfungen eine mehrschichtige Abwehr.
+
+Öffentliche Seiten und freigegebene öffentliche Funktionen erhalten dieselben
+grundlegenden Angriffs-, Methoden-, Pfad-, Größen-, Header-, DDoS-, Bot- und
+Rate-Limit-Schutzschichten. „Öffentlich“ bedeutet erreichbar, niemals
+ungeschützt. Persönliche Funktionen verlangen darüber hinaus Owner-, Geräte-
+und Sitzungsbindung. Interne Dateien und Verwaltungswege bleiben gesperrt.
+
+### Identität und Schutz gegen Manipulation
+
+- Holo verlangt beim Start starke Android-Biometrie oder Geräte-PIN und sperrt
+  sofort wieder, sobald die App den Vordergrund verlässt. Biometrische Rohdaten
+  bleiben ausschließlich bei Android.
+- Mehrere auf Samsung hinterlegte Fingerabdrücke erzeugen und wechseln niemals
+  eine Holo-Identität. Android meldet Holo nicht, welcher gespeicherte Finger
+  die Gerätefreigabe bestanden hat; die Holo-Owner-ID bleibt davon unabhängig
+  fest `pam-sol`. Die Android-Prüfung autorisiert damit das Gerät, nicht eine
+  namentlich erkennbare Person. Der als **„Schatzi“** gespeicherte
+  Fingerabdruck von Stefanie Renate Hörath bleibt ausschließlich für Pams
+  Handy-Notfallzugang erlaubt und darf Pam’s Holo niemals freigeben. Solange
+  dieser Finger gespeichert ist, genügt Samsung-Biometrie oder Geräte-PIN
+  allein nicht als Holo-Ownernachweis. Vor einer App-Freigabe ist zusätzlich
+  eine getrennte, nur Pam bekannte ownergebundene Holo-PIN beziehungsweise ein
+  gleichwertiger unabhängiger Holo-Faktor technisch umzusetzen und zu testen.
+- „Hey Pam“ bleibt erhalten. Der Weckdienst ist für fremde Apps nicht
+  exportiert, benötigt eine bewusste Aktivierung und im Hintergrund einen
+  sichtbaren, jederzeit abschaltbaren Android-Hinweis.
+- Der Weckruf benötigt sowohl das feste Weckwort als auch Pams lokales
+  3-von-3-Stimmprofil. Diese Sprecherprüfung ist von der Android-Gerätefreigabe
+  getrennt. Unklare oder fremde Stimmen werden abgelehnt.
+- Die lokale Weckwortprüfung schreibt keine Audiodatei und besitzt keinen
+  Netzwerkpfad zum Hochladen des laufenden Hintergrundtons.
+- Für Pams synthetische OpenAI-Stimme ist zusätzlich eine ausdrücklich
+  gesprochene OpenAI-Einwilligung erforderlich. OpenAI muss eine Consent-ID
+  zurückgeben; ohne diese ID darf keine persönliche Stimme erstellt werden.
+- Unveränderbare Android-`PendingIntent`s, hardwaregeschützte Geräteschlüssel,
+  einmalig verbrauchbare Autorisierungen und signierte Builds verhindern, dass
+  ein bloßer UI- oder Weckworttreffer eine geschützte Aktion ersetzt.
 
 ### Android- und Lieferkettenschutz
 
@@ -324,16 +363,35 @@ bildet mit diesen Prüfungen eine mehrschichtige Abwehr.
 
 ### Äußerer Cloudflare-Wächter
 
-Cloudflare ist als zusätzlicher äußerer Türsteher vorgesehen: WAF, DDoS- und
-Bot-Schutz sollen Anfragen abfangen, bevor sie den Render-Ursprung erreichen.
-Dieser Cloudflare-Schutz ist **noch nicht aktiv**, solange Konto-Verbindung,
-ownerkontrollierte Domain, Proxy-Route, getestete WAF-Regeln und die sichere
-Migration der bestehenden App nicht vollständig bestätigt sind.
+Cloudflare ist als zusätzlicher äußerer Türsteher vorgesehen: WAF, DDoS-, Bot-,
+Rate-Limit- und Ursprungsschutz sollen Anfragen abfangen, bevor sie den
+jeweiligen Ursprung erreichen. Pam’s Holo und Human Holo benötigen dafür
+getrennte Worker, Domains, Ursprünge und Secrets.
 
-Der getrennte, versionierte Staging-Worker `human-holo-edge-guard` wird unter
-`cloudflare/human-holo-edge-guard.mjs` vorbereitet. Er wird neben den
-vorhandenen Workern angelegt. Die bloße Existenz des Quellcodes ist ausdrücklich
-noch kein Nachweis eines aktiven Cloudflare-Schutzes.
+Pam stellte am 16.09.2026 selbst einen Worker namens
+`human-holo-edge-guard` als Teststrecke bereit. Die extern geprüfte Fassung
+`staged-v1` leitete tatsächlich zu `sol-holo.onrender.com` und testete damit
+ausschließlich **Pam’s Holo**: Status und Weiterleitung HTTP 200, fremde
+Browser-Herkunft HTTP 403, privater Projektpfad HTTP 404, nicht freigegebene
+Methode HTTP 405 und innerer Wächter `active-v1`. Die damalige gemeinsame
+Scope-Angabe war falsch und darf nicht als Human-Holo-Schutz ausgegeben werden.
+
+Der korrigierte Pam-Holo-Quellstand `staged-v2` liegt unter
+`cloudflare/pam-holo-edge-guard.mjs`. Er begrenzt zusätzlich tatsächlich
+gelesene Anfragekörper, erlaubt den eigenen öffentlichen Ursprung, entfernt
+spoofbare Weiterleitungsheader, verhindert Edge-Caching und kann den Render-
+Ursprung mit einem getrennten Secret sperren. Er ist noch nicht in Cloudflare
+bereitgestellt.
+
+`cloudflare/human-holo-edge-guard.mjs` bleibt bis zum bestätigten getrennten
+Human-Holo-Server absichtlich fail-closed und leitet niemals auf Pams Render-
+Ursprung zurück. Bestehende App-Versionen und die vorhandenen Worker
+`sol-holo-api` und `dark-wind-6dd8` bleiben unverändert.
+
+Der vollständige Cloudflare-Produktionsschutz ist **noch nicht aktiv**: Die
+bestehende App wurde nicht umgeleitet, der Render-Ursprung ist noch direkt
+erreichbar, und ownerkontrollierte Domain, WAF-/Bot-/Rate-Limit-Regeln,
+Ursprungsschlüssel sowie Migration sind noch nicht vollständig geprüft.
 
 Der Cloudflare-Kontozugang bleibt ausschließlich bei Pamela Christina Nitschke.
 Auch eine KI erhält weder Konto- noch Dashboardzugriff und wird nicht per
@@ -345,9 +403,9 @@ von Pam selbst ausgeführt und bestätigt.
 
 Der bestehende `sol-holo.onrender.com`-Weg darf nicht voreilig gesperrt werden,
 solange ausgelieferte App-Versionen ihn noch benötigen. Erst nach einer
-getesteten Migration auf die geschützte Domain darf der direkte Ursprung
-geschlossen werden. Ein fremder oder automatisch benannter Cloudflare-Worker
-wird weder gelöscht noch ungeprüft für Human Holo übernommen.
+getesteten Pam-Holo-Migration auf die geschützte Domain darf der direkte
+Ursprung geschlossen werden. Human Holo erhält später eine eigene Migration
+mit eigenem Ursprung und darf nicht auf Pam-Holo zurückfallen.
 
 ### Ehrlicher Schutzstatus
 
