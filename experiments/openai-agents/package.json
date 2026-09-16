@@ -7,7 +7,9 @@
   },
   "scripts": {
     "probe": "node probe.mjs",
-    "memory-probe": "node memory-probe.mjs"
+    "memory-probe": "node memory-probe.mjs",
+    "read-only-bridge": "node read-only-bridge.mjs",
+    "test:read-only-bridge": "node --test read-only-bridge.test.mjs"
   },
   "dependencies": {
     "openai": "^7.16.0"

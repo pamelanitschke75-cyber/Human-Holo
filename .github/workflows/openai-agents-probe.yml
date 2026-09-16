@@ -20,7 +20,6 @@ jobs:
       run:
         working-directory: experiments/openai-agents
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       HUMAN_HOLO_AGENT_MODEL: gpt-5.6-luna
     steps:
       - name: Checkout isolated migration branch
@@ -32,6 +31,8 @@ jobs:
           node-version: "22"
 
       - name: Verify API secret exists
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then
@@ -42,8 +43,20 @@ jobs:
       - name: Install isolated dependencies
         run: npm install --ignore-scripts
 
+      - name: Verify read-only bridge safety rules
+        run: npm run test:read-only-bridge
+
       - name: Run managed Agents API probe
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run probe
 
       - name: Run OpenAI hosted memory probe
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run memory-probe
+
+      - name: Run strict Holo read-only bridge
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run read-only-bridge
