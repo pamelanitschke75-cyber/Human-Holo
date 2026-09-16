@@ -24,25 +24,55 @@ jobs:
         run: |
           set -euo pipefail
 
-          BASE_URL="https://sol-holo.onrender.com"
+          EDGE_STATUS_URL="https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/security/guard-status"
+          ORIGIN_URL="https://sol-holo.onrender.com"
+          STATUS_BODY="${RUNNER_TEMP}/holo-guard-status.json"
+          STATUS_HEADERS="${RUNNER_TEMP}/holo-guard-status.headers"
 
-          echo "Checking Human Holo availability..."
-          ROOT_STATUS="$(curl --silent --show-error --location --max-time 20 --output /tmp/holo-root.html --write-out '%{http_code}' "$BASE_URL/")"
+          echo "Checking protected Human Holo edge status..."
+          EDGE_STATUS="$(curl --silent --show-error --max-time 20 --dump-header "$STATUS_HEADERS" --output "$STATUS_BODY" --write-out '%{http_code}' "$EDGE_STATUS_URL")"
 
-          if [ "$ROOT_STATUS" != "200" ]; then
-            echo "Human Holo availability check failed: HTTP $ROOT_STATUS"
+          if [ "$EDGE_STATUS" != "200" ]; then
+            echo "Protected Human Holo edge check failed: HTTP $EDGE_STATUS"
             exit 1
           fi
 
-          echo "Availability OK: HTTP $ROOT_STATUS"
-
-          echo "Checking that private server source remains blocked..."
-          PRIVATE_STATUS="$(curl --silent --show-error --max-time 20 --output /tmp/holo-private.txt --write-out '%{http_code}' "$BASE_URL/server.mjs")"
-
-          if [ "$PRIVATE_STATUS" = "200" ]; then
-            echo "SECURITY CHECK FAILED: /server.mjs is publicly reachable."
+          tr -d '\r' < "$STATUS_HEADERS" > "${STATUS_HEADERS}.normalized"
+          if ! grep --extended-regexp --ignore-case --quiet '^x-pam-holo-edge-guard:[[:space:]]*staged-v2$' "${STATUS_HEADERS}.normalized"; then
+            echo "SECURITY CHECK FAILED: Cloudflare edge guard header is missing."
+            exit 1
+          fi
+          if ! grep --extended-regexp --ignore-case --quiet '^x-human-holo-guard:[[:space:]]*active-v1$' "${STATUS_HEADERS}.normalized"; then
+            echo "SECURITY CHECK FAILED: Human Holo application guard header is missing."
             exit 1
           fi
 
-          echo "Private source protection OK: HTTP $PRIVATE_STATUS"
+          jq --exit-status '
+            .protected == true and
+            .serviceBoundary == "separate-from-human-holo" and
+            .applicationGuard == "active-v1" and
+            .wildcardCors == false and
+            .rateLimit == true and
+            .privateProjectFilesPublic == false and
+            .scope == ["Pam’s Holo"] and
+            (.renderOriginGuard | type == "string" and length > 0) and
+            (.cloudflareEdgeGuard | type == "string" and length > 0)
+          ' "$STATUS_BODY" > /dev/null
+
+          echo "Protected availability and guard status OK: HTTP $EDGE_STATUS"
+
+          echo "Checking that direct Render access remains blocked..."
+          ORIGIN_STATUS="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$ORIGIN_URL/")"
+          if [ "$ORIGIN_STATUS" != "403" ]; then
+            echo "SECURITY CHECK FAILED: Direct Render access returned HTTP $ORIGIN_STATUS instead of 403."
+            exit 1
+          fi
+
+          PRIVATE_STATUS="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$ORIGIN_URL/server.mjs")"
+          if [ "$PRIVATE_STATUS" != "403" ]; then
+            echo "SECURITY CHECK FAILED: Private server source returned HTTP $PRIVATE_STATUS instead of 403."
+            exit 1
+          fi
+
+          echo "Direct Render access and private source remain blocked."
           echo "Human Holo watch completed successfully."
