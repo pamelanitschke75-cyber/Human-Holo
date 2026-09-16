@@ -1,6 +1,11 @@
 name: Human Holo Watch
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/holo-watch.yml"
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
