@@ -1640,11 +1640,16 @@ app.get("/security/guard-status", (_req, res) => {
     })
     .json({
       protected: true,
-      scope: ["Pam’s Holo", "Human Holo"],
+      scope: ["Pam’s Holo"],
+      serviceBoundary: "separate-from-human-holo",
       applicationGuard: "active-v1",
       wildcardCors: false,
       rateLimit: true,
       privateProjectFilesPublic: false,
+      renderOriginGuard:
+        externalAttackGuard.originSecretConfigured
+          ? "configured"
+          : "not-configured",
       cloudflareEdgeGuard:
         process.env.HOLO_EDGE_GUARD_ACTIVE === "true"
           ? "verified-active"
