@@ -1,0 +1,35 @@
+name: OpenAI Agents SDK Lab
+
+on:
+  push:
+    branches:
+      - openai-hosted-agent-lab
+    paths:
+      - package.json
+      - package-lock.json
+      - scripts/check-openai-agents-sdk.mjs
+      - .github/workflows/openai-agents-sdk-lab.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agents-sdk-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies without postinstall side effects
+        run: npm ci --ignore-scripts
+
+      - name: Check Agents SDK surface
+        run: node scripts/check-openai-agents-sdk.mjs
