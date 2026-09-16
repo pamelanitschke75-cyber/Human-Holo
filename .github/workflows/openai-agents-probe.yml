@@ -1,0 +1,48 @@
+name: OpenAI Agents Migration Probe
+
+on:
+  push:
+    branches:
+      - openai-agents-migration
+    paths:
+      - "experiments/openai-agents/**"
+      - ".github/workflows/openai-agents-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: experiments/openai-agents
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      HUMAN_HOLO_AGENT_MODEL: gpt-5.6-luna
+    steps:
+      - name: Checkout isolated migration branch
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: experiments/openai-agents/package-lock.json
+
+      - name: Verify API secret exists
+        shell: bash
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY repository secret is not configured."
+            exit 2
+          fi
+
+      - name: Install isolated dependencies
+        run: npm install --ignore-scripts
+
+      - name: Run managed Agents API probe
+        run: npm run probe
