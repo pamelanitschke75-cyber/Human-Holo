@@ -16,7 +16,6 @@ const client = new OpenAI({ apiKey });
 const session = await client.beta.agents.sessions.create({
   environment: { type: "none" },
   agent: {
-    name: "Human Holo Migration Probe",
     model,
     instructions: [
       "Du bist ein isolierter technischer Human-Holo-Migrationstest.",
