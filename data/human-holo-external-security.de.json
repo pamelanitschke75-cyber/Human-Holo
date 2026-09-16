@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "contract_id": "human-holo-external-attack-protection",
   "adopted_on": "2026-09-16",
   "status": "binding",
@@ -102,7 +102,7 @@
       "source_path": "cloudflare/pam-holo-edge-guard.mjs",
       "origin": "https://sol-holo.onrender.com",
       "corrected_source_version": "staged-v2",
-      "corrected_source_deployed": false,
+      "corrected_source_deployed": true,
       "existing_traffic_migrated": false,
       "production_traffic_protected": false,
       "render_origin_locked": false,
@@ -118,7 +118,32 @@
         "private_project_path_hidden_http": 404,
         "unsupported_method_blocked_http": 405,
         "inner_application_guard_verified": "active-v1"
-      }
+      },
+      "deployment_url": "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev",
+      "deployment_stage": "separate-staging-worker",
+      "cloudflare_access_enabled": false,
+      "runtime_configuration": {
+        "PAM_HOLO_ORIGIN_URL": "https://sol-holo.onrender.com",
+        "PAM_HOLO_ORIGIN_SECRET_REQUIRED": "false",
+        "PAM_HOLO_ORIGIN_SECRET_CONFIGURED": false
+      },
+      "dashboard_checkpoint": {
+        "observed_on": "2026-09-16",
+        "invocations": 37,
+        "errors": 0,
+        "root_proxy_loaded": true,
+        "embedded_status_preview_blocked_by_frame_protection": true
+      },
+      "render_checkpoint": {
+        "checked_on": "2026-09-16",
+        "http_status": 200,
+        "application_guard": "active-v1",
+        "cloudflare_edge_guard": "not-verified",
+        "latest_separated_github_guard_deployed": false,
+        "old_combined_scope_still_reported": true
+      },
+      "pause_reason": "Render liefert noch nicht den neuesten getrennten GitHub-Schutzstand aus; vor Ursprungsschlüssel und Ursprungssperre sicher gestoppt.",
+      "resume_next_step": "Render-Dashboard öffnen, Dienst sol-holo auswählen, verbundenen Hauptzweig und Commit prüfen und erst dann den neuesten geprüften GitHub-Stand bereitstellen."
     },
     "human_holo": {
       "worker_name": "human-holo-edge-guard",
@@ -138,6 +163,17 @@
       "client-migration-without-breaking-existing-builds",
       "verified-origin-lock-after-migration",
       "separate-worker-origin-secret-and-database-per-service"
+    ],
+    "safe_activation_order": [
+      "deploy-and-verify-latest-separated-render-guard",
+      "generate-one-local-secret-never-recorded-in-chat-or-github",
+      "store-same-secret-in-cloudflare-and-render-with-requirement-still-false",
+      "test-protected-cloudflare-path",
+      "attach-owner-controlled-domain-and-migrate-new-app-build-and-oauth-callbacks",
+      "verify-real-device-app-through-cloudflare",
+      "only-then-require-origin-secret-on-render",
+      "verify-direct-render-http-403-and-cloudflare-http-200",
+      "rerun-security-regression-and-android-release-gates"
     ]
   },
   "change_protection": {
