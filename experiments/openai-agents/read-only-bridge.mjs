@@ -2,10 +2,11 @@ import OpenAI from "openai";
 import { pathToFileURL } from "node:url";
 
 export const HUMAN_HOLO_READ_ONLY_URL =
-  "https://sol-holo.onrender.com/security/guard-status";
+  "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/security/guard-status";
 
 const MAX_STATUS_BYTES = 8_192;
 const FETCH_TIMEOUT_MS = 15_000;
+const EXPECTED_EDGE_GUARD = "staged-v2";
 
 function assertPlainObject(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -92,6 +93,12 @@ export async function readHoloGuardStatus(fetchImpl = globalThis.fetch) {
       throw new Error(
         `Holo-Read-only-Status nicht erreichbar: HTTP ${response?.status ?? "unbekannt"}.`
       );
+    }
+    if (response.headers?.get?.("x-pam-holo-edge-guard") !== EXPECTED_EDGE_GUARD) {
+      throw new Error("Der bestätigte Cloudflare-Türsteher fehlt.");
+    }
+    if (response.headers?.get?.("x-human-holo-guard") !== "active-v1") {
+      throw new Error("Der bestätigte Pam-Holo-Anwendungsschutz fehlt.");
     }
 
     const declaredLength = Number(response.headers?.get?.("content-length") || 0);

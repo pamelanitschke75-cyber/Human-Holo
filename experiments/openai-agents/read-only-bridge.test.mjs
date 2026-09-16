@@ -73,7 +73,11 @@ test("Bridge verwendet ausschließlich festen GET-Lesepfad ohne Redirect", async
       secret: "wird-entfernt"
     }), {
       status: 200,
-      headers: { "content-type": "application/json" }
+      headers: {
+        "content-type": "application/json",
+        "x-pam-holo-edge-guard": "staged-v2",
+        "x-human-holo-guard": "active-v1"
+      }
     });
   });
 
@@ -150,7 +154,13 @@ test("Agent erhält nur gefilterten Status und die temporäre Session wird gelö
         ownerId: "nicht-freigegeben",
         calendar: ["nicht-freigegeben"],
         secret: "nicht-freigegeben"
-      }), { status: 200 })
+      }), {
+        status: 200,
+        headers: {
+          "x-pam-holo-edge-guard": "staged-v2",
+          "x-human-holo-guard": "active-v1"
+        }
+      })
     });
 
     assert.equal(proof.ok, true);
@@ -173,4 +183,14 @@ test("Agent erhält nur gefilterten Status und die temporäre Session wird gelö
     if (previousModel === undefined) delete process.env.HUMAN_HOLO_AGENT_MODEL;
     else process.env.HUMAN_HOLO_AGENT_MODEL = previousModel;
   }
+});
+
+test("Bridge lehnt eine Umgehung des Cloudflare-Türstehers ab", async () => {
+  await assert.rejects(
+    readHoloGuardStatus(async () => new Response(JSON.stringify(validStatus), {
+      status: 200,
+      headers: { "x-human-holo-guard": "active-v1" }
+    })),
+    /Cloudflare-Türsteher/u
+  );
 });
