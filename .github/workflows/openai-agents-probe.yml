@@ -44,3 +44,6 @@ jobs:
 
       - name: Run managed Agents API probe
         run: npm run probe
+
+      - name: Run OpenAI hosted memory probe
+        run: npm run memory-probe
