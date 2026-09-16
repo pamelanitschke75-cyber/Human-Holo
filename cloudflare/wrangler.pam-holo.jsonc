@@ -6,6 +6,6 @@
   "workers_dev": true,
   "vars": {
     "PAM_HOLO_ORIGIN_URL": "https://sol-holo.onrender.com",
-    "PAM_HOLO_ORIGIN_SECRET_REQUIRED": "false"
+    "PAM_HOLO_ORIGIN_SECRET_REQUIRED": "true"
   }
 }
