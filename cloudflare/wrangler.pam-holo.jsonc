@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pam-holo-edge-guard",
+  "main": "pam-holo-edge-guard.mjs",
+  "compatibility_date": "2026-09-16",
+  "workers_dev": true,
+  "vars": {
+    "PAM_HOLO_ORIGIN_URL": "https://sol-holo.onrender.com",
+    "PAM_HOLO_ORIGIN_SECRET_REQUIRED": "false"
+  }
+}

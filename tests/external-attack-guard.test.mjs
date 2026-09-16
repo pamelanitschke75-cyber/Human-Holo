@@ -142,6 +142,59 @@ test("Projektquellen, Geheimnisdateien und Traversal bleiben von außen unsichtb
   );
   assert.equal(traversal.nextCalled, false);
   assert.equal(traversal.res.statusCode, 400);
+
+  for (const encodedPath of [
+    "/assets/%2e%2e/server.mjs",
+    "/assets/.%2e/server.mjs",
+    "/assets/%252e%252e/server.mjs",
+    "/assets%2fserver.mjs",
+    "/assets%5cserver.mjs"
+  ]) {
+    const encoded = run(
+      createExternalAttackGuard({ environment: {} }),
+      request({ url: encodedPath })
+    );
+    assert.equal(encoded.nextCalled, false, encodedPath);
+    assert.equal(encoded.res.statusCode, 400, encodedPath);
+  }
+});
+
+test("Pam-Holo-Ursprungsschutz sperrt direkte Zugriffe konstant und fail-closed", () => {
+  const missingConfiguration = run(
+    createExternalAttackGuard({
+      environment: { PAM_HOLO_ORIGIN_SECRET_REQUIRED: "true" }
+    }),
+    request()
+  );
+  assert.equal(missingConfiguration.nextCalled, false);
+  assert.equal(missingConfiguration.res.statusCode, 503);
+
+  const guard = createExternalAttackGuard({
+    environment: {
+      PAM_HOLO_ORIGIN_SECRET_REQUIRED: "true",
+      PAM_HOLO_ORIGIN_SECRET: "server-only-pam-secret"
+    }
+  });
+  const direct = run(guard, request());
+  assert.equal(direct.nextCalled, false);
+  assert.equal(direct.res.statusCode, 403);
+
+  const spoofed = run(
+    guard,
+    request({ headers: { "x-pam-holo-origin-guard": "wrong-secret" } })
+  );
+  assert.equal(spoofed.nextCalled, false);
+  assert.equal(spoofed.res.statusCode, 403);
+
+  const edge = run(
+    guard,
+    request({
+      headers: { "x-pam-holo-origin-guard": "server-only-pam-secret" }
+    })
+  );
+  assert.equal(edge.nextCalled, true);
+  assert.equal(guard.originSecretRequired, true);
+  assert.equal(guard.originSecretConfigured, true);
 });
 
 test("Methoden und komprimierte Anfragekörper werden eng begrenzt", () => {
@@ -197,5 +250,11 @@ test("Server bindet den Wächter vor CORS, JSON und öffentlichen Dateien ein", 
   assert.match(serverSource, /httpServer\.headersTimeout = 15 \* 1000/u);
   assert.match(serverSource, /httpServer\.maxHeadersCount = 100/u);
   assert.match(serverSource, /app\.get\("\/security\/guard-status"/u);
+  assert.match(serverSource, /scope:\s*\["Pam’s Holo"\]/u);
+  assert.match(serverSource, /serviceBoundary:\s*"separate-from-human-holo"/u);
+  assert.doesNotMatch(
+    serverSource,
+    /scope:\s*\["Pam’s Holo",\s*"Human Holo"\]/u
+  );
   assert.match(serverSource, /cloudflareEdgeGuard:/u);
 });

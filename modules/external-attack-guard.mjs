@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 
 const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
   "https://sol-holo.onrender.com",
@@ -144,8 +144,7 @@ function requestPath(req) {
   const rawPath = rawTarget.split("?", 1)[0] || "/";
   if (
     rawPath.includes("\\") ||
-    /%(?:00|2f|5c)/iu.test(rawPath) ||
-    /(?:%2e){2}/iu.test(rawPath)
+    /%(?:00|2e|2f|5c|25)/iu.test(rawPath)
   ) {
     return { errorStatus: 400, rawTarget, pathname: "" };
   }
@@ -159,6 +158,24 @@ function requestPath(req) {
     return { errorStatus: 400, rawTarget, pathname: "" };
   }
   return { errorStatus: 0, rawTarget, pathname };
+}
+
+function configuredOriginSecret(environment) {
+  return String(environment.PAM_HOLO_ORIGIN_SECRET || "").trim();
+}
+
+function originSecretRequired(environment) {
+  return String(environment.PAM_HOLO_ORIGIN_SECRET_REQUIRED || "") === "true";
+}
+
+function secretsMatch(receivedValue, expectedValue) {
+  const received = Buffer.from(String(receivedValue || ""), "utf8");
+  const expected = Buffer.from(String(expectedValue || ""), "utf8");
+  return (
+    received.length > 0 &&
+    received.length === expected.length &&
+    timingSafeEqual(received, expected)
+  );
 }
 
 export function isPrivateProjectPath(pathnameValue) {
@@ -261,6 +278,8 @@ export function createExternalAttackGuard({
   });
   const buckets = new Map();
   let lastCleanupMillis = 0;
+  const expectedOriginSecret = configuredOriginSecret(environment);
+  const requireOriginSecret = originSecretRequired(environment);
 
   function originAllowed(originValue) {
     const origin = String(originValue || "").trim();
@@ -338,6 +357,17 @@ export function createExternalAttackGuard({
       return;
     }
 
+    if (requireOriginSecret) {
+      if (!expectedOriginSecret) {
+        endJson(res, 503, "Ursprungsschutz ist nicht vollständig konfiguriert.");
+        return;
+      }
+      if (!secretsMatch(header(req, "X-Pam-Holo-Origin-Guard"), expectedOriginSecret)) {
+        endJson(res, 403, "Direkter Ursprungszugriff ist nicht freigegeben.");
+        return;
+      }
+    }
+
     const origin = header(req, "Origin");
     if (!originAllowed(origin)) {
       endJson(res, 403, "Externe Herkunft nicht freigegeben.");
@@ -381,6 +411,8 @@ export function createExternalAttackGuard({
     allowedOrigins: Object.freeze([...allowedOrigins]),
     corsOptions,
     middleware,
+    originSecretRequired: requireOriginSecret,
+    originSecretConfigured: requireOriginSecret && Boolean(expectedOriginSecret),
     originAllowed,
     trustProxyHops
   });
