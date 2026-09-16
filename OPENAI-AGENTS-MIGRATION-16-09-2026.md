@@ -14,6 +14,16 @@ Human Holo schrittweise stärker auf OpenAI-Infrastruktur verlagern, ohne das pr
 - Keine medizinischen Beratungsfunktionen aktivieren; bestehende rechtliche Pause bleibt bestehen.
 - Keine Zugangsdaten oder API-Schlüssel im Repository speichern.
 
+## Kostenleitplanken
+
+- Kosten bleiben ein festes Migrationskriterium; keine Architekturänderung darf unnötige laufende Fixkosten erzeugen.
+- Routine-, Prüf- und Hintergrundaufgaben bevorzugt mit `gpt-5.6-luna` ausführen.
+- Leistungsstärkere Modelle nur für Aufgaben einsetzen, bei denen Luna qualitativ nicht ausreicht.
+- Keine dauerhaft laufenden Render-Worker nur für Agenten- oder Prüfaufgaben; zeitgesteuerte Auslöser bevorzugt über GitHub Actions und die eigentliche Agentenarbeit über OpenAI.
+- Vor dem Abschalten oder Hochstufen eines bestehenden Dienstes tatsächliche Nutzungs- und Kostenwerte vergleichen.
+- Render erst dann verkleinern, wenn der OpenAI-Ersatz stabil getestet ist und die Gesamtkosten dadurch gleich bleiben oder sinken.
+- Keine kostenpflichtige Infrastruktur vorsorglich aktivieren; erst bei nachgewiesenem Bedarf.
+
 ## Ist-Zustand
 
 - Produktiver Server: Node/Express auf Render.
