@@ -12,12 +12,17 @@ on:
       - "android-native/**"
       - "scripts/**"
       - "modules/**"
+      - "data/**"
       - "tests/**"
       - "licenses/**"
       - "server.mjs"
       - "video-upload-security.mjs"
       - "package.json"
       - "package-lock.json"
+      - "README.md"
+      - "SECURITY.md"
+      - "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md"
+      - "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md"
   push:
     branches:
       - main
@@ -60,6 +65,7 @@ on:
       - "server.mjs"
       - "video-upload-security.mjs"
       - "modules/**"
+      - "data/**"
       - "licenses/**"
       - "package.json"
       - "package-lock.json"
@@ -73,10 +79,18 @@ on:
       - "scripts/install-access-security.mjs"
       - "scripts/install-speaker-identity.mjs"
       - "scripts/install-whatsapp-driving-mode.mjs"
+      - "README.md"
+      - "SECURITY.md"
+      - "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md"
+      - "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md"
+
+permissions:
+  contents: read
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Repository laden
@@ -151,7 +165,16 @@ jobs:
           fi
 
       - name: Node-Abhängigkeiten installieren
-        run: npm install
+        run: npm ci
+
+      - name: Geheimnisse und private Schlüsseldateien sperren
+        run: node scripts/security-release-gate.mjs
+
+      - name: NPM-Laufzeit-Sicherheitsgate
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Verbindlichen Bestandsschutz und Regressionstest-Verantwortung prüfen
+        run: node --test tests/bestandsschutz-release-gate.test.mjs
 
       - name: Stille Modultests ausführen
         run: node --test tests/*.test.mjs
@@ -487,6 +510,28 @@ jobs:
       - name: Mehrfaktor-Zugriffssicherheit einbinden
         run: node scripts/install-access-security.mjs
 
+      - name: Android-Netzwerk und automatische Backups geschlossen prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          network_rules="android/app/src/main/res/xml/human_holo_network_security_config.xml"
+          legacy_backup_rules="android/app/src/main/res/xml/sol_holo_backup_rules.xml"
+          modern_backup_rules="android/app/src/main/res/xml/sol_holo_data_extraction_rules.xml"
+          test -s "$network_rules"
+          test -s "$legacy_backup_rules"
+          test -s "$modern_backup_rules"
+          grep -q 'android:usesCleartextTraffic="false"' "$app_manifest"
+          grep -q 'android:networkSecurityConfig="@xml/human_holo_network_security_config"' "$app_manifest"
+          grep -q 'android:allowBackup="false"' "$app_manifest"
+          grep -q 'cleartextTrafficPermitted="false"' "$network_rules"
+          grep -q '<certificates src="system" />' "$network_rules"
+          ! grep -q '<certificates src="user"' "$network_rules"
+          ! grep -q '<include ' "$legacy_backup_rules"
+          ! grep -q '<include ' "$modern_backup_rules"
+          grep -q '<cloud-backup>' "$modern_backup_rules"
+          grep -q '<device-transfer>' "$modern_backup_rules"
+          grep -q '<exclude domain="device_sharedpref" path="." />' "$modern_backup_rules"
+
       - name: Verschlüsselte Sicherung und Ausschlüsse prüfen
         run: |
           set -Eeuo pipefail
@@ -519,10 +564,11 @@ jobs:
           grep -q "registerPlugin(SolBackupPlugin.class)" "$app_java"
           grep -q "Intent.ACTION_CREATE_DOCUMENT" "$backup_java"
           grep -q "Intent.ACTION_OPEN_DOCUMENT" "$backup_java"
-          grep -q "sol_holo_access_security_v1_pam-sol.xml" "$backup_rules"
-          grep -q "sol_holo_speaker_identity.xml" "$backup_rules"
-          grep -q "sol_holo_access_security_v1_pam-sol.xml" "$extraction_rules"
-          grep -q "sol_holo_speaker_identity.xml" "$extraction_rules"
+          ! grep -q '<include ' "$backup_rules"
+          ! grep -q '<include ' "$extraction_rules"
+          grep -q '<exclude domain="sharedpref" path="." />' "$backup_rules"
+          grep -q '<exclude domain="sharedpref" path="." />' "$extraction_rules"
+          grep -q '<exclude domain="device_sharedpref" path="." />' "$extraction_rules"
           ! grep -q "READ_EXTERNAL_STORAGE\|WRITE_EXTERNAL_STORAGE" "$backup_java"
 
       - name: Direkte Samsung-Notes-Übergabe prüfen

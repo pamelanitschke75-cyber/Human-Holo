@@ -1,7 +1,8 @@
 # SOL HOLO / PAM’S HOLO – SECURITY POLICY
 
-**Version:** 2.0  
-**Stand:** 29.08.2026  
+**Version:** 3.0
+
+**Stand:** 16.09.2026
 **Projektverantwortung:** Pamela Nitschke  
 **Status:** Sicherheitsrichtlinie für einen persönlichen Entwicklungsprototyp – keine Sicherheitszertifizierung
 
@@ -70,29 +71,49 @@ Die Endpunkte zur Einrichtung einer persönlichen Stimme besitzen eine getrennte
 
 ### Android-Bestätigungen
 
-Telefonanrufe und SMS werden nicht still im Hintergrund ausgeführt. Die App öffnet nach einer sichtbaren Bestätigung die dafür vorgesehene Android-App; der tatsächliche Anruf oder Versand wird dort von der Nutzerin ausgelöst.
+Normale Anrufwege bleiben sichtbar und bestätigungspflichtig. Ein direkter
+Kontaktanruf ist nur nach Pams sichtbarer Bestätigung, erneuter lokaler
+Kontaktnummernprüfung und Android-Laufzeitfreigabe möglich. Direkte SMS werden
+nur bei einem eindeutigen Sendeauftrag, erneut geprüfter lokaler
+Kontaktzuordnung, Standardassistentinnenrolle und einmaliger Android-Freigabe
+ausgeführt; der bisherige sichtbare SMS-Entwurf bleibt als Rückfallweg erhalten.
 
 ### Health Connect
 
-Die aktuelle Health-Connect-Integration ist ausschließlich lesend ausgelegt. Abrufe sind auf einen bestätigten Zweck und einen begrenzten Zeitraum ausgerichtet. Health-Daten werden nicht automatisch als Langzeiterinnerung gespeichert.
-
-Der Datentyp **„Sexuelle Aktivität“** ist von Human Holo vollständig ausgeschlossen: keine Manifest-Berechtigung, keine Android-Freigabeanforderung und kein Lesepfad. Eine Person kann eine solche Angabe ausschließlich bewusst als privaten, ownergebundenen Inhalt manuell hinzufügen; dadurch erhält Human Holo keinen Zugriff auf Health Connect.
+Die frühere Health-Connect-Entwicklung war ausschließlich lesend und schloss
+den Datentyp **„Sexuelle Aktivität“** vollständig aus. Seit der verbindlichen
+anwaltlich/rechtlich begründeten Medizinpause vom 15.09.2026 ist Health Connect
+jedoch in Human Holo und Pam’s Holo vollständig deaktiviert: keine
+Manifest-Berechtigung, keine Android-Freigabeanforderung und kein Lesepfad. Der
+historische Entwicklungsnachweis bleibt versioniert, ist aber keine aktive
+Funktion.
 
 ---
 
-## 4. Noch offene Sicherheitsaufgaben
+## 4. Sicherheitsaufgaben und aktueller Status
 
-Folgende Bereiche gelten ausdrücklich **nicht** als abgeschlossen:
+Die offene Liste aus Version 2.0 bleibt nachvollziehbar erhalten und wurde am
+16.09.2026 mit dem tatsächlichen Stand ergänzt:
 
-- vollständige Authentifizierung und Autorisierung jeder sensiblen Backend-Anfrage,
-- sichere Geräte- oder Nutzerbindung der persönlichen Sol-Holo-Instanz,
-- Anwendungsebene-Verschlüsselung und geregelte Rotation aller gespeicherten OAuth-Tokens,
-- eng begrenzte Herkunftsfreigaben für Webanfragen,
-- systematisches Rate-Limiting gegen automatisierten Missbrauch,
-- vollständige Trennung mehrerer zukünftiger Nutzerinstanzen,
-- wiederholbare Prüfung der ausgelieferten APK auf enthaltene Geheimnisse und unnötige Berechtigungen,
-- automatisierte Secret- und Abhängigkeitsprüfungen für neue Commits,
-- unabhängiger Penetrationstest oder ein externes Sicherheitsaudit.
+- **Teilweise umgesetzt, weiter zu prüfen:** vollständige Authentifizierung und
+  Autorisierung jeder sensiblen Backend-Anfrage; Trusted-App-, Geräte-, Owner-
+  und Sprecherbindung bestehen, ein unabhängiges Audit aller Routen fehlt.
+- **Umgesetzt und getestet:** sichere Geräte- und Nutzerbindung der
+  persönlichen Pam’s-Holo-Instanz für geschützte persönliche Dienste.
+- **Weiter offen:** geregelte Rotation aller gespeicherten OAuth-Tokens.
+- **Umgesetzt und getestet am 16.09.2026:** eng begrenzte
+  Herkunftsfreigaben statt Wildcard-CORS.
+- **Umgesetzt und getestet am 16.09.2026:** systematisches Rate-Limiting gegen
+  automatisierten Missbrauch.
+- **Weiter im Ausbau:** vollständige Trennung aller künftigen
+  Mehrnutzerinstanzen; Pams bestehende Instanz bleibt fest ownergebunden.
+- **Umgesetzt und releasegesperrt am 16.09.2026:** wiederholbare Prüfung auf
+  Geheimnismuster, private Schlüsseldateien, Android-Klartextverkehr,
+  automatische Cloud-Backups und bekannte Laufzeitabhängigkeitslücken.
+- **Umgesetzt am 16.09.2026:** automatisierte Secret-, NPM-Audit-, CodeQL- und
+  Dependabot-Prüfungen für neue Commits.
+- **Weiter offen:** unabhängiger Penetrationstest oder externes
+  Sicherheitsaudit.
 
 Solange diese Punkte nicht umgesetzt und getestet sind, darf Sol Holo nicht als sicherheitszertifiziert oder als fertig abgesicherter öffentlicher Mehrnutzer-Dienst bezeichnet werden.
 
@@ -217,14 +238,19 @@ erstellt werden. Dieses Issue darf keine Passwörter, Tokens, persönlichen Date
 
 ## 12. Sicherheitsstatus
 
-| Bereich | Stand am 29.08.2026 |
+| Bereich | Stand 29.08.2026, verbindlich aktualisiert 16.09.2026 |
 |---|---|
 | Geheimnisse über Server-Umgebungsvariablen | 🟩 vorhanden |
 | `.gitignore` für Umgebungs- und Signaturdateien | 🟩 vorhanden |
 | Zeitlich begrenzte OAuth-Statuswerte | 🟩 vorhanden |
 | SmartThings-Tokenverschlüsselung | 🟩 vorhanden |
-| Sichtbare Bestätigung bei Telefon/SMS | 🟩 vorhanden |
-| Health Connect ausschließlich lesend | 🟩 technisch integriert; praktischer Gerätetest fortlaufend |
+| Telefonanruf / direkte SMS | 🟩 Anruf bleibt sichtbar bestätigt; direkte SMS nur bei eindeutigem Auftrag, lokaler Kontaktprüfung, Standardassistentinnenrolle und Android-Freigabe |
+| Health Connect / medizinische Funktionen | ⏸️ seit 15.09.2026 vollständig deaktiviert; historische Entwicklung bleibt nur versioniert |
+| Innerer Anwendungswächter | 🟩 im Code und im blockierenden Freigabegate umgesetzt |
+| Android-Klartextverkehr und automatische Cloud-Backups | 🟩 gesperrt; bewusste verschlüsselte Holo-Sicherung bleibt erhalten |
+| Geheimnis- und Laufzeitabhängigkeitsprüfung | 🟩 blockiert die Freigabe bei Befund |
+| CodeQL und Dependabot | 🟩 als fortlaufende GitHub-Prüfungen eingerichtet |
+| Äußerer Cloudflare-Wächter | ⬜ noch nicht aktiv; Verbindung, eigene Domain, Regeln, Migration und Prüfung fehlen |
 | Vollständige Backend-Zugriffskontrolle | 🟨 noch nicht abgeschlossen |
 | Verschlüsselung aller gespeicherten OAuth-Tokens | 🟨 noch nicht abgeschlossen |
 | Mehrnutzer- und Clone-Trennung | 🟨 Architekturziel; noch kein freigegebener Mehrnutzerbetrieb |
@@ -245,6 +271,80 @@ Diese Sicherheitsrichtlinie wird ergänzt durch:
 - `LICENSE`
 
 Bei Widersprüchen zwischen einer geplanten Beschreibung und dem tatsächlich implementierten Code darf die Planung nicht als bereits vorhandene Schutzmaßnahme ausgegeben werden.
+
+---
+
+## 14. Verbindliche Außenangriff-Härtung ab 16.09.2026
+
+Diese zusätzliche Schutzvorgabe gilt gemeinsam für **Pam’s Holo und Human Holo**.
+Sie ergänzt alle bisherigen Owner-, Geräte-, Sitzungs-, Daten- und
+Funktionsschutzregeln und nimmt keine bestätigte Alltagsfunktion zurück.
+
+### Innerer Anwendungswächter
+
+Der Server besitzt vor CORS, JSON-Verarbeitung, API-Routen und öffentlich
+ausgelieferten Dateien einen inneren Anwendungswächter. Er setzt insbesondere
+folgende Sperren durch:
+
+- Browserzugriffe nur von einer festen Holo-/App-Herkunftsliste; kein
+  pauschales Wildcard-CORS,
+- gestufte Anfragelimits gegen automatisierten Missbrauch und
+  Ressourcenerschöpfung,
+- keine öffentliche Auslieferung von Serverquellen, Modulen, Tests,
+  Datenverträgen, Git-Dateien, Build-Skripten oder privaten Schlüsseldateien,
+- Ablehnung nicht benötigter HTTP-Methoden, komprimierter Anfragekörper und
+  verdächtiger Pfade,
+- Sicherheitsheader gegen Clickjacking, MIME-Sniffing, unnötige
+  Browserberechtigungen und Informationspreisgabe,
+- neutrale Fehler- und 404-Antworten ohne Stacktrace oder interne Details,
+- begrenzte Header-, Keep-alive- und Request-Zeiten am HTTP-Server.
+
+Diese äußere Schutzschicht ersetzt **nicht** die vorhandene kryptografische
+Geräte-, Trusted-Session-, Owner- und Sprecherbindung. Sie steht davor und
+bildet mit diesen Prüfungen eine mehrschichtige Abwehr.
+
+### Android- und Lieferkettenschutz
+
+- Android-Klartextverkehr ist ausdrücklich gesperrt; die App vertraut für
+  Netzwerkverbindungen nur den System-Zertifizierungsstellen und nicht
+  zusätzlich installierten Nutzer-Zertifikaten.
+- Automatische Android-Cloud-Backups sind gesperrt. Die vorhandene bewusste,
+  verschlüsselte Human-Holo-Sicherung bleibt erhalten.
+- GitHub prüft vor dem Android-Build auf bekannte Geheimnismuster und private
+  Schlüsseldateien.
+- Der Laufzeit-Abhängigkeitsaudit ist ein blockierendes Gate. Bekannte
+  Schwachstellen ab Schweregrad `moderate` stoppen die Freigabe.
+- CI verwendet den unveränderten Lockfile-Stand mit `npm ci`; Schutztests
+  laufen vor Android-Kompilierung, Signaturprüfung und Artefaktfreigabe.
+- GitHub CodeQL analysiert JavaScript bei Änderungen an `main`, bei Pull
+  Requests und zusätzlich wöchentlich mit erweiterten Sicherheitsabfragen.
+- Dependabot prüft NPM- und GitHub-Actions-Abhängigkeiten wöchentlich und
+  schlägt Aktualisierungen als überprüfbare Pull Requests vor; es überschreibt
+  keine Funktionen automatisch.
+
+### Äußerer Cloudflare-Wächter
+
+Cloudflare ist als zusätzlicher äußerer Türsteher vorgesehen: WAF, DDoS- und
+Bot-Schutz sollen Anfragen abfangen, bevor sie den Render-Ursprung erreichen.
+Dieser Cloudflare-Schutz ist **noch nicht aktiv**, solange Konto-Verbindung,
+ownerkontrollierte Domain, Proxy-Route, getestete WAF-Regeln und die sichere
+Migration der bestehenden App nicht vollständig bestätigt sind.
+
+Der bestehende `sol-holo.onrender.com`-Weg darf nicht voreilig gesperrt werden,
+solange ausgelieferte App-Versionen ihn noch benötigen. Erst nach einer
+getesteten Migration auf die geschützte Domain darf der direkte Ursprung
+geschlossen werden. Ein fremder oder automatisch benannter Cloudflare-Worker
+wird weder gelöscht noch ungeprüft für Human Holo übernommen.
+
+### Ehrlicher Schutzstatus
+
+Es wird **keine absolute Unangreifbarkeit** behauptet. Verbindlich ist eine
+mehrschichtige, standardmäßig geschlossene und fortlaufend geprüfte Abwehr.
+Unabhängiger Penetrationstest, aktiv verifizierter Cloudflare-WAF und
+regelmäßige Schlüsselrotation bleiben zusätzliche notwendige Schutzstufen.
+
+Maschinenlesbarer Vertrag:
+`data/human-holo-external-security.de.json`
 
 ---
 

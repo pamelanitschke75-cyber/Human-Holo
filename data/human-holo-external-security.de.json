@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "human-holo-external-attack-protection",
+  "adopted_on": "2026-09-16",
+  "status": "binding",
+  "scope": [
+    "Pam’s Holo",
+    "Human Holo"
+  ],
+  "security_claim": {
+    "absolute_invulnerability_claimed": false,
+    "defense_in_depth_required": true,
+    "fail_closed_for_unknown_external_access": true
+  },
+  "application_guard": {
+    "implementation_status": "release-gated",
+    "protections": {
+      "browser_origins_are_allowlisted": true,
+      "wildcard_cors_allowed": false,
+      "request_rate_is_limited": true,
+      "private_project_files_are_publicly_served": false,
+      "unsupported_methods_are_allowed": false,
+      "compressed_request_bodies_are_allowed": false,
+      "security_headers_are_required": true,
+      "express_fingerprinting_header_is_enabled": false,
+      "generic_external_error_responses_are_required": true
+    },
+    "production_activation_requires": [
+      "merged-main",
+      "successful-github-security-and-regression-gates",
+      "successful-render-deploy"
+    ]
+  },
+  "android_guard": {
+    "cleartext_network_traffic_allowed": false,
+    "user_installed_certificate_authorities_trusted": false,
+    "automatic_android_cloud_backup_allowed": false,
+    "encrypted_user_controlled_human_holo_backup_preserved": true
+  },
+  "supply_chain_guard": {
+    "repository_secret_scan_required": true,
+    "runtime_dependency_audit_blocks_moderate_high_and_critical": true,
+    "immutable_ci_install_required": true,
+    "known_runtime_vulnerabilities_at_adoption": 0,
+    "permanent_regression_tests_required": true
+  },
+  "external_edge_guard": {
+    "provider": "Cloudflare",
+    "role": "WAF, DDoS- und Bot-Schutz vor dem Render-Ursprung",
+    "status": "pending-connection-and-custom-domain",
+    "active": false,
+    "must_not_be_claimed_active_before_verification": true,
+    "prerequisites": [
+      "connected-cloudflare-account",
+      "owner-controlled-domain",
+      "proxied-dns-route-to-render",
+      "tested-waf-and-rate-limit-rules",
+      "client-migration-without-breaking-existing-builds",
+      "verified-origin-lock-after-migration"
+    ]
+  },
+  "change_protection": {
+    "existing_confirmed_features_may_be_removed": false,
+    "security_changes_must_be_additive_where_possible": true,
+    "unavoidable_security_restrictions_are_minimal_transparent_and_tested": true,
+    "project_owner_is_recurring_regression_tester": false
+  },
+  "evidence": [
+    "modules/external-attack-guard.mjs",
+    "scripts/security-release-gate.mjs",
+    "tests/external-attack-guard.test.mjs",
+    "tests/security-release-gate.test.mjs",
+    ".github/workflows/android-build.yml",
+    ".github/workflows/codeql.yml",
+    ".github/dependabot.yml",
+    "SECURITY.md"
+  ]
+}

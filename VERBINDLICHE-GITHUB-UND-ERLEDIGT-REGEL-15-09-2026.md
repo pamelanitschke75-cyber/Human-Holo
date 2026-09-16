@@ -29,6 +29,30 @@ Alle folgenden Punkte müssen zusammen erfüllt sein:
 8. Bestehende historische Nachweise bleiben erhalten, werden aber eindeutig als historisch, pausiert oder überholt gekennzeichnet.
 9. Änderungen an Human Holo dürfen Pam’s Holo, persönliche Daten, Bilder, Erinnerungen, Einstellungen oder bestehende Funktionen nicht unbeabsichtigt verändern.
 10. Bei Recht, Datenschutz, Gesundheit, Play Store, Berechtigungen, Signatur und Releases gilt: **Kein „erledigt“ ohne doppelte Prüfung von technischem Stand und öffentlich sichtbarer Dokumentation.**
+11. Jede Änderung baut auf dem aktuellen bestätigten `main` auf. Ältere Dateien
+    oder frühere Funktionsstände dürfen keine neuere bestätigte Funktion
+    überschreiben.
+12. Bereits besprochene oder bestätigte Entscheidungen werden nicht still neu
+    ausgelegt. Eine Anpassung ergänzt den bisherigen Stand; eine abweichende
+    inhaltliche Änderung benötigt vorher Pams ausdrückliche Entscheidung.
+13. Vor einer APK-Freigabe liegen der Änderungsvergleich, alle bestehenden
+    Regressionstests, ein Rückfalltest für die konkrete Änderung sowie ein
+    erfolgreicher Android-Build einschließlich Signaturprüfung vor.
+14. Pamela Christina Nitschke ist Projektinhaberin, nicht die wiederholte
+    Regressionstesterin für bereits bestätigte Funktionen. Ihre praktische
+    Geräteprüfung beschränkt sich auf neue oder ausdrücklich geänderte
+    Bedienungen, die nicht vollständig automatisierbar sind.
+15. **Immer nur erweitern, niemals einen Schritt zurück.** Eine Abweichung ist
+    nur bei objektiv dringender Notwendigkeit zum Schutz von Daten, Sicherheit,
+    rechtlichen Vorgaben oder technischer Funktionsfähigkeit zulässig. Sie wird
+    auf das notwendige Minimum begrenzt, transparent dokumentiert und der
+    vorherige Stand bleibt versioniert. Bequemlichkeit oder Zeitdruck reichen
+    dafür nicht aus.
+16. Die aufgrund anwaltlicher beziehungsweise rechtlicher Bewertung pausierten
+    medizinischen Funktionen sind das verbindliche Beispiel für eine solche
+    Ausnahme. Ihre historische Entwicklung gilt nicht als gelöscht oder
+    aufgegeben. Eine Reaktivierung erfordert dokumentierte rechtliche Prüfung,
+    technische Freigabe und Pams ausdrückliche Zustimmung.
 
 ## Nachweis gegenüber Pam
 

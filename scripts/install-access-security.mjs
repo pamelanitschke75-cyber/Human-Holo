@@ -25,6 +25,10 @@ const manifestPath = join(androidApp, "src", "main", "AndroidManifest.xml");
 const xmlTarget = join(androidApp, "src", "main", "res", "xml");
 const fullBackupRulesPath = join(xmlTarget, "sol_holo_backup_rules.xml");
 const dataExtractionRulesPath = join(xmlTarget, "sol_holo_data_extraction_rules.xml");
+const networkSecurityConfigPath = join(
+  xmlTarget,
+  "human_holo_network_security_config.xml"
+);
 
 for (const required of [mainActivityPath, buildGradlePath, manifestPath]) {
   if (!existsSync(required)) {
@@ -98,39 +102,51 @@ if (!activity.includes(backupRegistration)) {
 }
 
 /*
- * Wiederherstellungsgrundlage
- * --------------------------
- * Normale App-Daten, WebView/LocalStorage, Einstellungen und Datenbanken
- * dürfen Android Auto Backup bzw. Geräteübertragung verwenden. Zwei
- * Sicherheitsbereiche werden absichtlich NICHT übernommen:
+ * Androids unsichtbare Auto-Backups und Geräteübertragungen sind geschlossen.
+ * Das Manifest schaltet Backups aus; die XML-Regeln schließen zusätzlich alle
+ * App-Domänen aus, weil einzelne Hersteller auf neueren Android-Versionen
+ * Geräteübertragungen trotz allowBackup=false unterschiedlich behandeln.
  *
- * 1. sol_holo_access_security_v1_pam-sol
- *    enthält Metadaten zu einem Android-Keystore-Geräteschlüssel. Der private
- *    Schlüssel ist hardwaregebunden und kann nicht sicher auf ein neues Gerät
- *    kopiert werden. Eine wiederhergestellte Metadatei ohne den zugehörigen
- *    Schlüssel würde einen falschen bzw. kaputten Gerätezustand erzeugen.
- *
- * 2. sol_holo_speaker_identity
- *    enthält lokale Sprecher-Embeddings. Diese biometrisch abgeleiteten Daten
- *    werden nicht in ein allgemeines Cloud-Backup gelegt. Auf einem neuen
- *    Gerät wird die Stimme bewusst erneut eingerichtet.
- *
- * Servergespeicherte, owner-gebundene Erinnerungen bleiben davon unabhängig
- * erhalten. Nach Gerätewechsel muss die sichere App-Sitzung neu gebunden
- * werden; erst danach dürfen persönliche Serverdaten wieder verwendet werden.
+ * Die vorhandene, bewusst von Pam ausgelöste Human-Holo-Sicherung bleibt davon
+ * getrennt: Sie exportiert ausschließlich die Positivliste als verschlüsselten
+ * Chiffretext über den System-Dateidialog. Gerätebindung und Sprecherprofil
+ * werden auf einem neuen Gerät weiterhin bewusst neu eingerichtet.
  */
 mkdirSync(xmlTarget, { recursive: true });
+
+const legacyBackupDomains = Object.freeze([
+  "root",
+  "file",
+  "database",
+  "sharedpref",
+  "external"
+]);
+const modernBackupDomains = Object.freeze([
+  ...legacyBackupDomains,
+  "device_root",
+  "device_file",
+  "device_database",
+  "device_sharedpref"
+]);
+const explicitlySensitiveSharedPreferences = Object.freeze([
+  "sol_holo_access_security_v1.xml",
+  "sol_holo_access_security_v1_pam-sol.xml",
+  "sol_holo_speaker_identity.xml"
+]);
+const exclusions = domains => domains
+  .map(domain => `        <exclude domain="${domain}" path="." />\n`)
+  .join("");
+const sensitivePreferenceExclusions = () =>
+  explicitlySensitiveSharedPreferences
+    .map(path => `        <exclude domain="sharedpref" path="${path}" />\n`)
+    .join("");
 
 writeFileSync(
   fullBackupRulesPath,
   `<?xml version="1.0" encoding="utf-8"?>\n` +
     `<full-backup-content>\n` +
-    `    <include domain="file" path="." />\n` +
-    `    <include domain="database" path="." />\n` +
-    `    <include domain="sharedpref" path="." />\n` +
-    `    <exclude domain="sharedpref" path="sol_holo_access_security_v1.xml" />\n` +
-    `    <exclude domain="sharedpref" path="sol_holo_access_security_v1_pam-sol.xml" />\n` +
-    `    <exclude domain="sharedpref" path="sol_holo_speaker_identity.xml" />\n` +
+    exclusions(legacyBackupDomains).replaceAll("        ", "    ") +
+    sensitivePreferenceExclusions().replaceAll("        ", "    ") +
     `</full-backup-content>\n`,
   "utf8"
 );
@@ -140,22 +156,27 @@ writeFileSync(
   `<?xml version="1.0" encoding="utf-8"?>\n` +
     `<data-extraction-rules>\n` +
     `    <cloud-backup>\n` +
-    `        <include domain="file" path="." />\n` +
-    `        <include domain="database" path="." />\n` +
-    `        <include domain="sharedpref" path="." />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_access_security_v1.xml" />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_access_security_v1_pam-sol.xml" />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_speaker_identity.xml" />\n` +
+    exclusions(modernBackupDomains) +
+    sensitivePreferenceExclusions() +
     `    </cloud-backup>\n` +
     `    <device-transfer>\n` +
-    `        <include domain="file" path="." />\n` +
-    `        <include domain="database" path="." />\n` +
-    `        <include domain="sharedpref" path="." />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_access_security_v1.xml" />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_access_security_v1_pam-sol.xml" />\n` +
-    `        <exclude domain="sharedpref" path="sol_holo_speaker_identity.xml" />\n` +
+    exclusions(modernBackupDomains) +
+    sensitivePreferenceExclusions() +
     `    </device-transfer>\n` +
     `</data-extraction-rules>\n`,
+  "utf8"
+);
+
+writeFileSync(
+  networkSecurityConfigPath,
+  `<?xml version="1.0" encoding="utf-8"?>\n` +
+    `<network-security-config>\n` +
+    `    <base-config cleartextTrafficPermitted="false">\n` +
+    `        <trust-anchors>\n` +
+    `            <certificates src="system" />\n` +
+    `        </trust-anchors>\n` +
+    `    </base-config>\n` +
+    `</network-security-config>\n`,
   "utf8"
 );
 
@@ -168,9 +189,14 @@ if (!match) {
 
 let attributes = match[1];
 const requiredApplicationAttributes = [
-  ["android:allowBackup", "true"],
+  ["android:allowBackup", "false"],
   ["android:fullBackupContent", "@xml/sol_holo_backup_rules"],
-  ["android:dataExtractionRules", "@xml/sol_holo_data_extraction_rules"]
+  ["android:dataExtractionRules", "@xml/sol_holo_data_extraction_rules"],
+  ["android:usesCleartextTraffic", "false"],
+  [
+    "android:networkSecurityConfig",
+    "@xml/human_holo_network_security_config"
+  ]
 ];
 
 for (const [name, value] of requiredApplicationAttributes) {
@@ -191,8 +217,8 @@ writeFileSync(manifestPath, manifest, "utf8");
 // default-wallet role.
 console.log(
   "Sol-Holo-Mehrfaktorgrundlage eingebunden: registriertes Gerät + " +
-  "Android-Systemauthentifizierung. Sichere Android-Wiederherstellung ist " +
-  "aktiv; gerätegebundene Schlüssel und Sprecher-Embeddings bleiben bewusst " +
-  "vom Backup ausgeschlossen. NFC/Watch bleibt bis zum echten Challenge-, " +
+  "Android-Systemauthentifizierung. Automatische Android-Cloud-Backups und " +
+  "unverschlüsselter Netzwerkverkehr sind gesperrt; die bewusste verschlüsselte " +
+  "Human-Holo-Sicherung bleibt erhalten. NFC/Watch bleibt bis zum echten Challenge-, " +
   "Attestierungs- und Companion-Test fail-closed."
 );

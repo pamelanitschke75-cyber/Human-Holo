@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "human-holo-bestandsschutz-release-gate",
+  "adopted_on": "2026-09-16",
+  "status": "binding",
+  "decision": {
+    "project_owner_full_name": "Pamela Christina Nitschke",
+    "reference_owner_id": "pam-sol",
+    "reference_instance": "Pam’s Holo"
+  },
+  "principles": {
+    "always_extend_never_step_back": true,
+    "step_back_allowed_only_if_objectively_urgent": true,
+    "convenience_or_time_pressure_counts_as_urgent": false,
+    "urgent_exception_is_minimal_transparent_and_versioned": true,
+    "current_confirmed_main_is_only_baseline": true,
+    "older_files_may_overwrite_current_state": false,
+    "confirmed_discussions_may_be_silently_reinterpreted": false,
+    "changes_adjust_and_extend_instead_of_replacing": true,
+    "unrelated_changes_allowed": false,
+    "destructive_change_requires_prior_explicit_owner_decision": true,
+    "project_owner_is_recurring_regression_tester": false
+  },
+  "urgent_exception_examples": [
+    {
+      "id": "medical-functions-legal-pause-2026-09-15",
+      "reason": "documented-legal-review",
+      "active_scope_removed_or_paused": true,
+      "historical_development_deleted": false,
+      "reactivation_requires": [
+        "documented-legal-review",
+        "technical-clearance",
+        "explicit-project-owner-approval"
+      ]
+    }
+  ],
+  "required_before_release": {
+    "diff_against_current_main_reviewed": true,
+    "file_deletions_and_removed_logic_reviewed": true,
+    "existing_regression_suite_must_pass": true,
+    "new_or_repaired_behavior_has_permanent_regression_test": true,
+    "tests_may_be_weakened_to_make_build_green": false,
+    "android_sync_must_pass": true,
+    "android_compile_must_pass": true,
+    "signature_verification_must_pass": true,
+    "artifact_upload_must_pass": true,
+    "any_failed_gate_blocks_release": true
+  },
+  "owner_device_check": {
+    "previously_confirmed_functions_retested_after_every_change": false,
+    "scope": "new-or-explicitly-changed-device-only-behavior",
+    "automation_gap_disclosed_before_release": true
+  },
+  "evidence": [
+    "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md",
+    "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md",
+    "tests/bestandsschutz-release-gate.test.mjs",
+    ".github/workflows/android-build.yml"
+  ]
+}

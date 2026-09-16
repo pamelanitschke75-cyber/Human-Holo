@@ -16,10 +16,13 @@
     "googleapis": "^175.0.0",
     "openai": "^5.0.0",
     "pg": "^8.22.0",
-    "ws": "^8.18.0"
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@capacitor/assets": "3.0.5",
     "@capacitor/cli": "^7.0.0"
+  },
+  "overrides": {
+    "qs": "6.16.0"
   }
 }

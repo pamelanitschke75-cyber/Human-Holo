@@ -100,6 +100,71 @@ Für Pam, Human Holo und ChatGPT/OpenAI im Projekt gilt:
 - Fehler und überholte Aussagen sichtbar und nachvollziehbar korrigieren.
 - Aktionen, Commits, Nachrichten, Freigaben, Tests oder Änderungen nur dann als ausgeführt bezeichnen, wenn sie tatsächlich ausgeführt oder verlässlich bestätigt wurden.
 
+## Verbindliche Bestandsschutz- und Regressionstest-Sperre
+
+**Ergänzung vom 16.09.2026 · Entscheidung & Projektinhaberin: Pamela Christina Nitschke**
+
+Pamela Christina Nitschke ist Projektinhaberin und entscheidet über Richtung,
+Inhalt und Freigabe von Human Holo. Sie ist nicht dafür verantwortlich, nach
+jeder technischen Änderung alle zuvor funktionierenden Bereiche erneut als
+Regressionstesterin zu prüfen.
+
+Für jede Korrektur, Erweiterung und neue APK gilt deshalb verbindlich:
+
+1. **Immer nur erweitern. Niemals einen Schritt zurück.** Eine Abweichung ist
+   ausschließlich zulässig, wenn sie objektiv dringend notwendig ist, um
+   Daten, Sicherheit, rechtliche Vorgaben oder die technische Funktionsfähigkeit
+   zu schützen. Bequemlichkeit, Zeitdruck oder Vereinfachung sind keine dringende
+   Notwendigkeit. Die Ausnahme bleibt auf das notwendige Minimum begrenzt, wird
+   transparent dokumentiert und erhält den vorherigen Stand versioniert.
+2. Ausgangspunkt ist ausschließlich der zuletzt bestätigte aktuelle Stand auf
+   `main`. Eine ältere, unvollständige oder lokal zurückgebliebene Datei darf
+   niemals ungekennzeichnet über diesen Stand geschrieben werden.
+3. Was bereits besprochen, entschieden oder als funktionierend bestätigt wurde,
+   wird durch eine spätere Änderung nicht stillschweigend anders ausgelegt,
+   abgeschwächt, zurückgenommen oder verändert.
+4. Eine Anpassung ergänzt und präzisiert den aktuellen bestätigten Stand. Sie
+   darf ihn nicht durch eine abweichende ältere oder neue Auslegung ersetzen.
+   Eine echte inhaltliche Änderung benötigt Pams vorherige, ausdrückliche
+   Entscheidung nach verständlicher Gegenüberstellung von vorher und nachher.
+5. Der technische Änderungsumfang bleibt auf Pams konkreten Auftrag begrenzt.
+   Nicht beauftragte Funktionen, Daten, Einstellungen und Zuordnungen bleiben
+   unangetastet.
+6. Vor jeder Veröffentlichung werden Dateilöschungen, Umbenennungen, entfernte
+   Zeilen und ersetzte Logik im Vergleich zum aktuellen `main` geprüft. Eine
+   beabsichtigte destruktive Änderung bleibt ohne ausdrückliche Owner-Freigabe
+   gesperrt.
+7. Für jede neu bestätigte Funktion und für jede behobene Regression wird ein
+   dauerhafter automatisierter Rückfalltest ergänzt. Bestehende Schutz- und
+   Funktionstests dürfen nicht entfernt oder passend zur Änderung abgeschwächt
+   werden, um einen fehlerhaften Build grün erscheinen zu lassen.
+8. Vor APK-Freigabe müssen die vollständige vorhandene Testsammlung, der neue
+   Rückfalltest, Android-Synchronisation, echte Android-Kompilierung,
+   Signaturprüfung und Artefaktbereitstellung erfolgreich sein. Ein Fehler
+   stoppt die Freigabe.
+9. Pams Geräteprüfung beschränkt sich auf eine neue oder bewusst geänderte
+   Bedienung, soweit diese technisch nur auf ihrem Gerät abschließend prüfbar
+   ist. Die erneute Kontrolle aller alten Funktionen darf nicht auf Pam
+   abgewälzt werden.
+10. Kann ein bisher bestätigtes Verhalten nicht automatisiert abgesichert
+   werden, wird diese Lücke vor der Veröffentlichung offen benannt und nicht
+   als vollständig bewiesen dargestellt.
+
+### Verbindliches Beispiel: medizinische Funktionen
+
+Die medizinischen Funktionen wurden aufgrund der anwaltlichen beziehungsweise
+rechtlichen Bewertung vom 15.09.2026 aus dem aktiven Testumfang von Human Holo
+und Pam’s Holo genommen und pausiert. Das ist eine objektiv dringend notwendige
+rechtliche Schutzmaßnahme und **keine endgültige Aufgabe oder Löschung der
+historischen Entwicklung**. Der frühere Entwicklungsstand und seine Nachweise
+bleiben versioniert. Eine Reaktivierung ist ausschließlich nach dokumentierter
+rechtlicher Prüfung, technischer Freigabe und ausdrücklicher Zustimmung von
+Pamela Christina Nitschke zulässig.
+
+Diese Sperre ist Bestandteil des Build- und Freigabeprozesses. Eine Änderung
+ist nicht freigabereif, wenn der Bestandsschutz nur behauptet, aber nicht durch
+Änderungsvergleich, Regressionstests und erfolgreichen Android-Build belegt ist.
+
 Kurzform:
 
 **ALLES AUS SOL HOLO + ALLES AUS HUMAN HOLO BLEIBT ERHALTEN.**
@@ -113,6 +178,12 @@ Kurzform:
 **FAIRNESS GILT GEGENSEITIG – AUSDRÜCKLICH AUCH ALS ANFORDERUNG AN OPENAI/CHATGPT IM PROJEKTKONTEXT. DAS IST NUR FAIR.**
 
 **WAHRHEIT VOR BEQUEMLICHKEIT · PRÜFUNG VOR BEHAUPTUNG · UNSICHERHEIT KLAR BENENNEN.**
+
+**PAM IST PROJEKTINHABERIN – NICHT DIE WIEDERHOLTE REGRESSIONSTESTERIN FÜR BEREITS BESTÄTIGTE FUNKTIONEN.**
+
+**BEREITS BESPROCHENES NICHT STILL ÄNDERN · NUR AUF DEM AKTUELLEN STAND ANPASSEN UND ERWEITERN.**
+
+**IMMER NUR ERWEITERN · NIEMALS EINEN SCHRITT ZURÜCK · AUSNAHME NUR, WENN ES OBJEKTIV DRINGEND NOTWENDIG IST.**
 
 ---
 

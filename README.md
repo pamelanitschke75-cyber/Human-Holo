@@ -99,6 +99,8 @@ Verbindliche Einzelheiten:
 
 - [Rechtlich begrenzter Human-Holo-Testumfang](./HUMAN-HOLO-VERBINDLICHER-RECHTLICHER-TESTUMFANG-15-09-2026.md)
 - [Verbindliche GitHub- und Erledigt-Regel](./VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md)
+- [Bestand erhalten, nur erweitern · Regressionstest-Sperre](./HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md)
+- [Sicherheitsrichtlinie · äußerer und innerer Angriffsschutz](./SECURITY.md)
 
 ## Verbindliche Erledigt-Regel
 
