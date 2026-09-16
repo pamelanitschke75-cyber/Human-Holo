@@ -330,6 +330,19 @@ Dieser Cloudflare-Schutz ist **noch nicht aktiv**, solange Konto-Verbindung,
 ownerkontrollierte Domain, Proxy-Route, getestete WAF-Regeln und die sichere
 Migration der bestehenden App nicht vollständig bestätigt sind.
 
+Der getrennte, versionierte Staging-Worker `human-holo-edge-guard` wird unter
+`cloudflare/human-holo-edge-guard.mjs` vorbereitet. Er wird neben den
+vorhandenen Workern angelegt. Die bloße Existenz des Quellcodes ist ausdrücklich
+noch kein Nachweis eines aktiven Cloudflare-Schutzes.
+
+Der Cloudflare-Kontozugang bleibt ausschließlich bei Pamela Christina Nitschke.
+Auch eine KI erhält weder Konto- noch Dashboardzugriff und wird nicht per
+Plugin, OAuth-Verbindung, Fernsteuerung oder API-Token mit dem Konto verbunden.
+Passwörter und API-Schlüssel werden nicht geteilt; weitere Kontobenutzer werden
+nicht angelegt. Eine KI darf ausschließlich außerhalb des Cloudflare-Kontos
+Quellcode vorbereiten und Anleitungen geben. Sämtliche Dashboard-Schritte werden
+von Pam selbst ausgeführt und bestätigt.
+
 Der bestehende `sol-holo.onrender.com`-Weg darf nicht voreilig gesperrt werden,
 solange ausgelieferte App-Versionen ihn noch benötigen. Erst nach einer
 getesteten Migration auf die geschützte Domain darf der direkte Ursprung

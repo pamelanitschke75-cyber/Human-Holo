@@ -47,11 +47,28 @@
   "external_edge_guard": {
     "provider": "Cloudflare",
     "role": "WAF, DDoS- und Bot-Schutz vor dem Render-Ursprung",
-    "status": "pending-connection-and-custom-domain",
+    "account_access": {
+      "owner_only": true,
+      "owner": "Pamela Christina Nitschke",
+      "ai_account_access_allowed": false,
+      "ai_dashboard_control_allowed": false,
+      "oauth_connector_allowed": false,
+      "api_token_sharing_allowed": false,
+      "shared_credentials_allowed": false,
+      "additional_account_users_allowed": false,
+      "dashboard_changes_confirmed_only_by_owner": true
+    },
+    "planned_worker_name": "human-holo-edge-guard",
+    "existing_workers_preserved": [
+      "sol-holo-api",
+      "dark-wind-6dd8"
+    ],
+    "source_path": "cloudflare/human-holo-edge-guard.mjs",
+    "status": "separate-staging-source-prepared-pending-deployment",
     "active": false,
     "must_not_be_claimed_active_before_verification": true,
     "prerequisites": [
-      "connected-cloudflare-account",
+      "separate-worker-deployed-and-tested",
       "owner-controlled-domain",
       "proxied-dns-route-to-render",
       "tested-waf-and-rate-limit-rules",

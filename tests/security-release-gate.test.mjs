@@ -136,10 +136,44 @@ test("Sicherheitsrichtlinie trennt aktiven Innenwächter vom noch offenen Außen
   assert.equal(securityContract.external_edge_guard.active, false);
   assert.equal(
     securityContract.external_edge_guard.status,
-    "pending-connection-and-custom-domain"
+    "separate-staging-source-prepared-pending-deployment"
+  );
+  assert.equal(
+    securityContract.external_edge_guard.planned_worker_name,
+    "human-holo-edge-guard"
+  );
+  assert.deepEqual(
+    securityContract.external_edge_guard.existing_workers_preserved,
+    ["sol-holo-api", "dark-wind-6dd8"]
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access.owner_only,
+    true
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access.ai_account_access_allowed,
+    false
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access.ai_dashboard_control_allowed,
+    false
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access.oauth_connector_allowed,
+    false
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access.api_token_sharing_allowed,
+    false
+  );
+  assert.equal(
+    securityContract.external_edge_guard.account_access
+      .dashboard_changes_confirmed_only_by_owner,
+    true
   );
   assert.match(securityPolicy, /Pam’s Holo und Human Holo/u);
   assert.match(securityPolicy, /[Ii]nnerer Anwendungswächter/u);
+  assert.match(securityPolicy, /KI erhält weder Konto- noch Dashboardzugriff/u);
   assert.match(securityPolicy, /Cloudflare[\s\S]*noch nicht aktiv/u);
   assert.match(securityPolicy, /keine absolute Unangreifbarkeit/u);
 });

@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "human-holo-edge-guard",
+  "main": "human-holo-edge-guard.mjs",
+  "compatibility_date": "2026-09-16",
+  "workers_dev": true,
+  "vars": {
+    "HUMAN_HOLO_ORIGIN_URL": "https://sol-holo.onrender.com",
+    "HUMAN_HOLO_ORIGIN_SECRET_REQUIRED": "false"
+  }
+}
