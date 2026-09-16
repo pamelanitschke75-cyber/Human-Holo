@@ -1,0 +1,14 @@
+{
+  "name": "human-holo-openai-agents-prototype",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "probe": "node probe.mjs"
+  },
+  "dependencies": {
+    "openai": "^7.16.0"
+  }
+}
