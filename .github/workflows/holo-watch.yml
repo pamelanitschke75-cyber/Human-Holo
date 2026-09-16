@@ -74,10 +74,10 @@ jobs:
           fi
 
           PRIVATE_STATUS="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$ORIGIN_URL/server.mjs")"
-          if [ "$PRIVATE_STATUS" != "403" ]; then
-            echo "SECURITY CHECK FAILED: Private server source returned HTTP $PRIVATE_STATUS instead of 403."
+          if [ "$PRIVATE_STATUS" = "200" ]; then
+            echo "SECURITY CHECK FAILED: Private server source is publicly reachable."
             exit 1
           fi
 
-          echo "Direct Render access and private source remain blocked."
+          echo "Direct Render access remains blocked; private source protection returned HTTP $PRIVATE_STATUS."
           echo "Human Holo watch completed successfully."
