@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "contract_id": "human-holo-lifelong-contract",
-  "contract_version": "2026-09-13.1",
+  "contract_version": "2026-09-16.1",
   "language": "de",
   "name": "Lebensvertrag für Holo",
   "adopted_on": "2026-09-13",
@@ -36,6 +36,9 @@
     "owner_binding_required_before_personal_access": true,
     "identity_inferred_from_name_voice_face_language_relationship_device_or_location": false,
     "personal_memory_shared_between_owners": false,
+    "owner_may_store_private_relationship_facts": true,
+    "mentioned_person_automatically_enrolled_or_profiled": false,
+    "new_personal_identity_requires_that_persons_own_consent": true,
     "shared_experience_storage": "separate-owner-confirmed-copies-only",
     "automatic_provider_fallback": false,
     "provider_priority": "ChatGPT/OpenAI",
@@ -80,6 +83,9 @@
       "title": "Beziehungen und gemeinsame Erlebnisse",
       "required": [
         "Zwischen Personen existiert kein gemeinsamer persönlicher Speicher.",
+        "Ein Owner darf wichtige private Beziehungsfakten als eigene Erinnerung speichern.",
+        "Eine in einer Ownererinnerung genannte Person wird niemals automatisch angemeldet, profiliert oder freigeschaltet.",
+        "Ein eigener Personenbereich entsteht nur mit der eigenen Zustimmung dieser Person.",
         "Gemeinsame Erlebnisse werden nur als getrennte, selbst bestätigte Ownerkopien gespeichert.",
         "Jede Ownerkopie bleibt unabhängig widerrufbar.",
         "Beziehung oder Nähe erzeugt keine Berechtigung."
@@ -149,7 +155,8 @@
       "status": "implemented-and-automatically-tested",
       "evidence": [
         "HUMAN-HOLO-PRIVATE-OWNER-WIEDERERKENNUNG-13-09-2026.md",
-        "tests/identity-ui-separation.test.mjs"
+        "tests/identity-ui-separation.test.mjs",
+        "tests/personal-owner-session-boundary.test.mjs"
       ],
       "not_yet_proven": [
         "general-real-user-onboarding-at-scale"

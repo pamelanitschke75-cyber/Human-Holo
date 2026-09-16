@@ -2032,20 +2032,7 @@ app.get(
   "/auth/google",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .type("text")
-          .send(
-            "Die Google-Verbindung bleibt bis zur sicheren App-Sitzungsbindung geschlossen."
-          );
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2090,16 +2077,7 @@ app.post(
   "/auth/google/start",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({ "Cache-Control": "no-store, max-age=0" })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            started: false
-          });
-      }
-      const identity = resolveRequestIdentity(req, res);
+      const identity = requireTrustedOwnerIdentity(req, res);
       if (!identity) return;
       const oauth2Client = createGoogleOAuthClient();
       const authUrl = oauth2Client.generateAuthUrl({
@@ -2327,22 +2305,7 @@ app.get(
   "/google/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            connected: false,
-            allRequestedAccessGranted: false,
-            services: googleServiceAccess("")
-          });
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2533,20 +2496,7 @@ async function exchangeSmartThingsToken(parameters) {
 */
 
 app.get("/auth/smartthings", (req, res) => {
-  if (!hasTrustedGooglePersonalReadGate(req)) {
-    return res
-      .status(503)
-      .set({
-        "Cache-Control": "no-store, max-age=0",
-        Pragma: "no-cache"
-      })
-      .type("text")
-      .send(
-        "Die SmartThings-Verbindung bleibt bis zur sicheren App-Sitzungsbindung geschlossen."
-      );
-  }
-
-  const identity = resolveQueryIdentity(req, res);
+  const identity = requireTrustedOwnerQueryIdentity(req, res);
   if (!identity) {
     return;
   }
@@ -2641,23 +2591,7 @@ Eine Geräteaktion wird erst nach deiner Bestätigung ausgeführt.</p>
 
 app.get("/smartthings/status", async (req, res) => {
   try {
-    if (!hasTrustedGooglePersonalReadGate(req)) {
-      return res
-        .status(503)
-        .set({
-          "Cache-Control": "no-store, max-age=0",
-          Pragma: "no-cache"
-        })
-        .json({
-          error: "TRUSTED_APP_SESSION_REQUIRED",
-          configured: smartThingsConfigured(),
-          connected: false,
-          selectedDevicesOnly: true,
-          actionsRequireConfirmation: true
-        });
-    }
-
-    const identity = resolveQueryIdentity(req, res);
+    const identity = requireTrustedOwnerQueryIdentity(req, res);
     if (!identity) {
       return;
     }
@@ -2716,20 +2650,7 @@ app.get(
   "/calendar/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            connected: false
-          });
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2992,6 +2913,66 @@ function requireTrustedOwnerIdentity(
       return null;
     }
   }
+
+  if (!identity) {
+    return null;
+  }
+
+  if (
+    trustedSession.ownerId !==
+    identity.ownerId
+  ) {
+    res
+      .status(403)
+      .set({
+        "Cache-Control": "no-store, max-age=0",
+        Pragma: "no-cache"
+      })
+      .json({
+        error:
+          "TRUSTED_SESSION_SCOPE_MISMATCH",
+        persisted:
+          false
+      });
+
+    return null;
+  }
+
+  return identity;
+}
+
+function requireTrustedOwnerQueryIdentity(
+  req,
+  res
+) {
+  const trustedSession =
+    trustedAppSessions
+      .validateRequest(
+        req
+      );
+
+  if (!trustedSession) {
+    res
+      .status(401)
+      .set({
+        "Cache-Control": "no-store, max-age=0",
+        Pragma: "no-cache"
+      })
+      .json({
+        error:
+          "TRUSTED_APP_SESSION_REQUIRED",
+        persisted:
+          false
+      });
+
+    return null;
+  }
+
+  const identity =
+    resolveQueryIdentity(
+      req,
+      res
+    );
 
   if (!identity) {
     return null;
@@ -3380,27 +3361,9 @@ app.post(
 );
 
 async function handleGooglePersonalRead(req, res, operation, action) {
-  // Die Render-URL ist öffentlich erreichbar. Persönliche Mail-, Kontakt-
-  // und Drive-Inhalte bleiben deshalb deaktiviert, bis eine vertrauenswürdige
-  // App-Sitzung den serverseitigen Gate-Beweis injiziert. Eine ownerId allein
-  // ist ausdrücklich keine Authentifizierung.
-  if (!hasTrustedGooglePersonalReadGate(req)) {
-    return res
-      .status(503)
-      .set({
-        "Cache-Control": "no-store, max-age=0",
-        Pragma: "no-cache"
-      })
-      .json({
-        error: "TRUSTED_APP_SESSION_REQUIRED",
-        message:
-          "Der persönliche Google-Lesezugriff bleibt bis zur sicheren App-Sitzungsbindung deaktiviert.",
-        persisted: false,
-        readOnly: true
-      });
-  }
-
-  const identity = resolveRequestIdentity(req, res);
+  // Eine ownerId allein ist ausdrücklich keine Authentifizierung. Die
+  // kryptografisch bestätigte App-Sitzung muss genau demselben Owner gehören.
+  const identity = requireTrustedOwnerIdentity(req, res);
   if (!identity) {
     return;
   }
@@ -5636,7 +5599,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        resolveRequestIdentity(
+        requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -5746,7 +5709,7 @@ app.post(
   "/gmail/action",
   async (req, res) => {
     try {
-      const identity = resolveRequestIdentity(req, res);
+      const identity = requireTrustedOwnerIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -9854,7 +9817,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        resolveRequestIdentity(
+        requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -10505,7 +10468,7 @@ app.post("/realtime/token", async (req, res) => {
 
   try {
     const identity =
-      resolveRequestIdentity(
+      requireTrustedOwnerIdentity(
         req,
         res
       );
@@ -12165,6 +12128,16 @@ app.post(
         "no-cache"
     });
 
+    const identity =
+      requireTrustedOwnerIdentity(
+        req,
+        res
+      );
+
+    if (!identity) {
+      return;
+    }
+
     const videoBuffer =
       Buffer.isBuffer(req.body)
         ? req.body
@@ -12401,7 +12374,7 @@ app.post("/sol", async (req, res) => {
     }
 
     const identity =
-      resolveRequestIdentity(
+      requireTrustedOwnerIdentity(
         req,
         res
       );

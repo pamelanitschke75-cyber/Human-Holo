@@ -10420,6 +10420,39 @@ async function sendMessage(
   }
 
 
+  let privateSession;
+
+
+  try{
+
+    chatStatus.textContent =
+      "Sichere persönliche Holo-Sitzung wird bestätigt …";
+
+
+    privateSession =
+      await ensureFulltimeHistorySession(
+        true
+      );
+
+  }catch{
+
+    privateSession =
+      null;
+  }
+
+
+  if(
+    !privateSession?.trusted
+  ){
+
+    chatStatus.textContent =
+      "Pam’s Holo bleibt gesperrt, bis dein persönliches Gerät die Sitzung bestätigt.";
+
+
+    return;
+  }
+
+
   const knownPersonAuthorization =
     window.SolHoloKnownPersonRecognition
       ?.authorize?.({
@@ -10681,6 +10714,11 @@ async function sendMessage(
 
             backendUrl:
               BACKEND_URL,
+
+            trustedSessionHeaders:
+              window.SolHoloTrustedSession
+                ?.headers?.() ||
+              {},
 
             durationSeconds:
               videoDurationToSend,
@@ -15220,6 +15258,41 @@ async function startLiveConversation(){
   if(
     !identity
   ){
+
+    return;
+  }
+
+
+  let privateSession;
+
+
+  try{
+
+    setLiveStatus(
+      "Sichere persönliche Holo-Sitzung wird bestätigt …"
+    );
+
+
+    privateSession =
+      await ensureFulltimeHistorySession(
+        true
+      );
+
+  }catch{
+
+    privateSession =
+      null;
+  }
+
+
+  if(
+    !privateSession?.trusted
+  ){
+
+    setLiveStatus(
+      "Pam’s Holo bleibt gesperrt, bis dein persönliches Gerät die Sitzung bestätigt."
+    );
+
 
     return;
   }
