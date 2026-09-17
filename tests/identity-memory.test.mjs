@@ -76,6 +76,9 @@ test("Always-on-Vertrag bleibt updatefest, ownergebunden und verlustfrei", () =>
     correctionsPreserveHistory: true,
     ownerConfirmedRemovalOnly: true,
     isolatedPerOwner: true,
+    privateRelationshipFactsBelongToTheRememberingOwner: true,
+    mentionedPeopleAreNeverAutoEnrolled: true,
+    newPersonalIdentityRequiresThatPersonsOwnConsent: true,
     newIdentityStartsEmpty: true
   });
 });

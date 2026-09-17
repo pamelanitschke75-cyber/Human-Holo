@@ -131,12 +131,15 @@ test("private Google-Inhalte bleiben ohne vertrauenswürdige App-Sitzung fail-cl
   assert.match(server, /createTrustedAppSessionManager/u);
   assert.match(server, /trustedAppSessions\.validateRequest\(req\)/u);
   assert.match(server, /hasTrustedGooglePersonalReadGate\(req\)/u);
+  assert.match(server, /function requireTrustedOwnerIdentity/u);
+  assert.match(server, /function requireTrustedOwnerQueryIdentity/u);
   assert.match(server, /TRUSTED_APP_SESSION_REQUIRED/u);
   assert.match(server, /Eine ownerId allein[\s\S]*keine Authentifizierung/u);
   assert.match(server, /handleCalendarWriteRequest\([\s\S]*trustedAppSession = false/u);
   assert.match(server, /needsTrustedAppSession: true/u);
-  assert.match(server, /\/auth\/google[\s\S]*hasTrustedGooglePersonalReadGate\(req\)/u);
-  assert.match(server, /\/auth\/smartthings[\s\S]*hasTrustedGooglePersonalReadGate\(req\)/u);
+  assert.match(server, /\/auth\/google[\s\S]*requireTrustedOwnerQueryIdentity\(req, res\)/u);
+  assert.match(server, /\/auth\/smartthings[\s\S]*requireTrustedOwnerQueryIdentity\(req, res\)/u);
+  assert.match(server, /trustedSession\.ownerId !==[\s\S]*identity\.ownerId/u);
   assert.match(server, /GOOGLE_OWNER_ACCOUNT_MISMATCH/u);
   assert.match(sessionClient, /signTrustedSessionChallenge/u);
   assert.match(sessionClient, /x-sol-holo-trusted-session/u);

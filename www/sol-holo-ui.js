@@ -5306,7 +5306,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const response = await fetch(
-        "https://sol-holo.onrender.com/google/status?" + identityQuery,
+        "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/google/status?" + identityQuery,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5415,7 +5415,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const response = await fetch(
-        `https://sol-holo.onrender.com/smartthings/status?${identityQuery}`,
+        `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/smartthings/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -8956,7 +8956,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     let authUrl = "";
     try {
       const response = await fetch(
-        "https://sol-holo.onrender.com/auth/google/start",
+        "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/google/start",
         {
           method: "POST",
           headers: {
@@ -9064,7 +9064,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       grantKnownPersonSelfConsent();
     });
 
-  document.getElementById("smartThingsRow").addEventListener("click", () => {
+  document.getElementById("smartThingsRow").addEventListener("click", async () => {
     const identity = requireActivePersonalOwner();
     if (!identity) {
       return;
@@ -9077,11 +9077,6 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return;
     }
 
-    if (smartThingsStatus.trustedSessionRequired) {
-      showToast("Bestätige zuerst die sichere S23-Sitzung bei Google.");
-      return;
-    }
-
     if (!smartThingsStatus.configured) {
       showToast(
         "Die sichere SmartThings-Verbindung ist vorbereitet. " +
@@ -9090,21 +9085,53 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return;
     }
 
-    const identityQuery = new URLSearchParams({
-      ownerId: identity.ownerId,
-      selectedSpeakerId: identity.speakerId
-    });
-    const authUrl =
-      `https://sol-holo.onrender.com/auth/smartthings?${identityQuery}`;
+    try {
+      const session = await window.SolHoloTrustedSession?.ensure?.({
+        interactive: true
+      });
+      if (!session?.trusted) {
+        throw new Error("TRUSTED_APP_SESSION_NOT_CONFIRMED");
+      }
 
-    const authWindow = window.open(
-      authUrl,
-      "_blank",
-      "noopener"
-    );
+      const response = await fetch(
+        `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/smartthings/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(window.SolHoloTrustedSession?.headers?.() || {})
+          },
+          body: JSON.stringify({
+            ownerId: identity.ownerId,
+            selectedSpeakerId: identity.speakerId
+          }),
+          cache: "no-store"
+        }
+      );
+      const data = await response.json();
+      if (!response.ok || !data?.authUrl) {
+        throw new Error(
+          data?.error ||
+          "Die SmartThings-Verbindung konnte nicht gestartet werden."
+        );
+      }
 
-    if (!authWindow) {
-      window.location.href = authUrl;
+      const authWindow = window.open(
+        data.authUrl,
+        "_blank",
+        "noopener"
+      );
+      if (!authWindow) {
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error("SmartThings-Verbindung:", error?.code || error?.name);
+      showToast(
+        String(
+          error?.message ||
+          "SmartThings ist gerade nicht erreichbar."
+        )
+      );
     }
   });
 

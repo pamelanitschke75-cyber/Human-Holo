@@ -1047,11 +1047,47 @@ const GOOGLE_CLIENT_SECRET =
     ""
   ).trim();
 
+const PAM_HOLO_EDGE_ORIGIN =
+  "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev";
+
+const PAM_HOLO_RENDER_ORIGIN =
+  "https://sol-holo.onrender.com";
+
+function protectedOAuthRedirectUri(
+  configuredValue,
+  callbackPath
+) {
+  const edgeRedirect =
+    `${PAM_HOLO_EDGE_ORIGIN}${callbackPath}`;
+
+  const configured =
+    String(
+      configuredValue ||
+      edgeRedirect
+    ).trim();
+
+  const originGuardRequired =
+    String(
+      process.env.PAM_HOLO_ORIGIN_SECRET_REQUIRED ||
+      ""
+    ).trim() === "true";
+
+  if (
+    originGuardRequired &&
+    configured ===
+      `${PAM_HOLO_RENDER_ORIGIN}${callbackPath}`
+  ) {
+    return edgeRedirect;
+  }
+
+  return configured;
+}
+
 const GOOGLE_REDIRECT_URI =
-  String(
-    process.env.GOOGLE_REDIRECT_URI ||
-    "https://sol-holo.onrender.com/auth/google/callback"
-  ).trim();
+  protectedOAuthRedirectUri(
+    process.env.GOOGLE_REDIRECT_URI,
+    "/auth/google/callback"
+  );
 
 const GOOGLE_CALENDAR_ID =
   String(
@@ -1150,10 +1186,10 @@ const SMARTTHINGS_CLIENT_SECRET =
   String(process.env.SMARTTHINGS_CLIENT_SECRET || "").trim();
 
 const SMARTTHINGS_REDIRECT_URI =
-  String(
-    process.env.SMARTTHINGS_REDIRECT_URI ||
-    "https://sol-holo.onrender.com/auth/smartthings/callback"
-  ).trim();
+  protectedOAuthRedirectUri(
+    process.env.SMARTTHINGS_REDIRECT_URI,
+    "/auth/smartthings/callback"
+  );
 
 const SMARTTHINGS_TOKEN_ENCRYPTION_KEY =
   String(process.env.SMARTTHINGS_TOKEN_ENCRYPTION_KEY || "").trim();
@@ -2032,20 +2068,7 @@ app.get(
   "/auth/google",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .type("text")
-          .send(
-            "Die Google-Verbindung bleibt bis zur sicheren App-Sitzungsbindung geschlossen."
-          );
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2090,16 +2113,7 @@ app.post(
   "/auth/google/start",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({ "Cache-Control": "no-store, max-age=0" })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            started: false
-          });
-      }
-      const identity = resolveRequestIdentity(req, res);
+      const identity = requireTrustedOwnerIdentity(req, res);
       if (!identity) return;
       const oauth2Client = createGoogleOAuthClient();
       const authUrl = oauth2Client.generateAuthUrl({
@@ -2327,22 +2341,7 @@ app.get(
   "/google/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            connected: false,
-            allRequestedAccessGranted: false,
-            services: googleServiceAccess("")
-          });
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2532,21 +2531,53 @@ async function exchangeSmartThingsToken(parameters) {
   ==========================================================
 */
 
-app.get("/auth/smartthings", (req, res) => {
-  if (!hasTrustedGooglePersonalReadGate(req)) {
-    return res
-      .status(503)
-      .set({
-        "Cache-Control": "no-store, max-age=0",
-        Pragma: "no-cache"
-      })
-      .type("text")
-      .send(
-        "Die SmartThings-Verbindung bleibt bis zur sicheren App-Sitzungsbindung geschlossen."
-      );
-  }
+function createSmartThingsAuthorizationUrl(ownerId) {
+  const authorizationUrl = new URL(SMARTTHINGS_AUTHORIZE_URL);
+  authorizationUrl.searchParams.set("client_id", SMARTTHINGS_CLIENT_ID);
+  authorizationUrl.searchParams.set("response_type", "code");
+  authorizationUrl.searchParams.set("redirect_uri", SMARTTHINGS_REDIRECT_URI);
+  authorizationUrl.searchParams.set("scope", SMARTTHINGS_SCOPES.join(" "));
+  authorizationUrl.searchParams.set(
+    "state",
+    createSmartThingsOAuthState(ownerId)
+  );
+  return authorizationUrl.toString();
+}
 
-  const identity = resolveQueryIdentity(req, res);
+app.post("/auth/smartthings/start", (req, res) => {
+  try {
+    const identity = requireTrustedOwnerIdentity(req, res);
+    if (!identity) {
+      return;
+    }
+
+    if (!smartThingsConfigured()) {
+      return res
+        .status(503)
+        .set({ "Cache-Control": "no-store, max-age=0" })
+        .json({
+          error: "SMARTTHINGS_NOT_CONFIGURED",
+          started: false
+        });
+    }
+
+    return res
+      .set({ "Cache-Control": "no-store, max-age=0" })
+      .json({
+        started: true,
+        authUrl: createSmartThingsAuthorizationUrl(identity.ownerId)
+      });
+  } catch (error) {
+    console.error("SmartThings OAuth Start Fehler:", error?.name || "Fehler");
+    return res.status(500).json({
+      error: "SMARTTHINGS_AUTH_START_FAILED",
+      started: false
+    });
+  }
+});
+
+app.get("/auth/smartthings", (req, res) => {
+  const identity = requireTrustedOwnerQueryIdentity(req, res);
   if (!identity) {
     return;
   }
@@ -2558,17 +2589,9 @@ app.get("/auth/smartthings", (req, res) => {
     );
   }
 
-  const authorizationUrl = new URL(SMARTTHINGS_AUTHORIZE_URL);
-  authorizationUrl.searchParams.set("client_id", SMARTTHINGS_CLIENT_ID);
-  authorizationUrl.searchParams.set("response_type", "code");
-  authorizationUrl.searchParams.set("redirect_uri", SMARTTHINGS_REDIRECT_URI);
-  authorizationUrl.searchParams.set("scope", SMARTTHINGS_SCOPES.join(" "));
-  authorizationUrl.searchParams.set(
-    "state",
-    createSmartThingsOAuthState(identity.ownerId)
+  return res.redirect(
+    createSmartThingsAuthorizationUrl(identity.ownerId)
   );
-
-  return res.redirect(authorizationUrl.toString());
 });
 
 app.get("/auth/smartthings/callback", async (req, res) => {
@@ -2641,23 +2664,7 @@ Eine Geräteaktion wird erst nach deiner Bestätigung ausgeführt.</p>
 
 app.get("/smartthings/status", async (req, res) => {
   try {
-    if (!hasTrustedGooglePersonalReadGate(req)) {
-      return res
-        .status(503)
-        .set({
-          "Cache-Control": "no-store, max-age=0",
-          Pragma: "no-cache"
-        })
-        .json({
-          error: "TRUSTED_APP_SESSION_REQUIRED",
-          configured: smartThingsConfigured(),
-          connected: false,
-          selectedDevicesOnly: true,
-          actionsRequireConfirmation: true
-        });
-    }
-
-    const identity = resolveQueryIdentity(req, res);
+    const identity = requireTrustedOwnerQueryIdentity(req, res);
     if (!identity) {
       return;
     }
@@ -2716,20 +2723,7 @@ app.get(
   "/calendar/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
-        return res
-          .status(503)
-          .set({
-            "Cache-Control": "no-store, max-age=0",
-            Pragma: "no-cache"
-          })
-          .json({
-            error: "TRUSTED_APP_SESSION_REQUIRED",
-            connected: false
-          });
-      }
-
-      const identity = resolveQueryIdentity(req, res);
+      const identity = requireTrustedOwnerQueryIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -2992,6 +2986,66 @@ function requireTrustedOwnerIdentity(
       return null;
     }
   }
+
+  if (!identity) {
+    return null;
+  }
+
+  if (
+    trustedSession.ownerId !==
+    identity.ownerId
+  ) {
+    res
+      .status(403)
+      .set({
+        "Cache-Control": "no-store, max-age=0",
+        Pragma: "no-cache"
+      })
+      .json({
+        error:
+          "TRUSTED_SESSION_SCOPE_MISMATCH",
+        persisted:
+          false
+      });
+
+    return null;
+  }
+
+  return identity;
+}
+
+function requireTrustedOwnerQueryIdentity(
+  req,
+  res
+) {
+  const trustedSession =
+    trustedAppSessions
+      .validateRequest(
+        req
+      );
+
+  if (!trustedSession) {
+    res
+      .status(401)
+      .set({
+        "Cache-Control": "no-store, max-age=0",
+        Pragma: "no-cache"
+      })
+      .json({
+        error:
+          "TRUSTED_APP_SESSION_REQUIRED",
+        persisted:
+          false
+      });
+
+    return null;
+  }
+
+  const identity =
+    resolveQueryIdentity(
+      req,
+      res
+    );
 
   if (!identity) {
     return null;
@@ -3380,27 +3434,9 @@ app.post(
 );
 
 async function handleGooglePersonalRead(req, res, operation, action) {
-  // Die Render-URL ist öffentlich erreichbar. Persönliche Mail-, Kontakt-
-  // und Drive-Inhalte bleiben deshalb deaktiviert, bis eine vertrauenswürdige
-  // App-Sitzung den serverseitigen Gate-Beweis injiziert. Eine ownerId allein
-  // ist ausdrücklich keine Authentifizierung.
-  if (!hasTrustedGooglePersonalReadGate(req)) {
-    return res
-      .status(503)
-      .set({
-        "Cache-Control": "no-store, max-age=0",
-        Pragma: "no-cache"
-      })
-      .json({
-        error: "TRUSTED_APP_SESSION_REQUIRED",
-        message:
-          "Der persönliche Google-Lesezugriff bleibt bis zur sicheren App-Sitzungsbindung deaktiviert.",
-        persisted: false,
-        readOnly: true
-      });
-  }
-
-  const identity = resolveRequestIdentity(req, res);
+  // Eine ownerId allein ist ausdrücklich keine Authentifizierung. Die
+  // kryptografisch bestätigte App-Sitzung muss genau demselben Owner gehören.
+  const identity = requireTrustedOwnerIdentity(req, res);
   if (!identity) {
     return;
   }
@@ -5636,7 +5672,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        resolveRequestIdentity(
+        requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -5746,7 +5782,7 @@ app.post(
   "/gmail/action",
   async (req, res) => {
     try {
-      const identity = resolveRequestIdentity(req, res);
+      const identity = requireTrustedOwnerIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -9854,7 +9890,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        resolveRequestIdentity(
+        requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -10505,7 +10541,7 @@ app.post("/realtime/token", async (req, res) => {
 
   try {
     const identity =
-      resolveRequestIdentity(
+      requireTrustedOwnerIdentity(
         req,
         res
       );
@@ -12165,6 +12201,16 @@ app.post(
         "no-cache"
     });
 
+    const identity =
+      requireTrustedOwnerIdentity(
+        req,
+        res
+      );
+
+    if (!identity) {
+      return;
+    }
+
     const videoBuffer =
       Buffer.isBuffer(req.body)
         ? req.body
@@ -12401,7 +12447,7 @@ app.post("/sol", async (req, res) => {
     }
 
     const identity =
-      resolveRequestIdentity(
+      requireTrustedOwnerIdentity(
         req,
         res
       );

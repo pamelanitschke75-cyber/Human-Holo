@@ -197,7 +197,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const response = await fetch(
-        "https://sol-holo.onrender.com/calendar/status",
+        "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/calendar/status",
         { cache: "no-store" }
       );
       const data = await response.json();
@@ -648,13 +648,13 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     const authWindow = window.open(
-      "https://sol-holo.onrender.com/auth/google",
+      "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/google",
       "_blank",
       "noopener"
     );
 
     if (!authWindow) {
-      window.location.href = "https://sol-holo.onrender.com/auth/google";
+      window.location.href = "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/google";
     }
   });
 

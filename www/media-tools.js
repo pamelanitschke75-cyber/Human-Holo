@@ -297,7 +297,8 @@
     file,
     onProgress = null,
     onStage = null,
-    signal = null
+    signal = null,
+    trustedSessionHeaders = {}
   }) {
     const videoFile =
       validateVideoFile(file);
@@ -317,6 +318,22 @@
 
     const endpoint =
       `${String(backendUrl || "").replace(/\/$/, "")}/sol/video-transcript`;
+
+    const trustedSessionToken = String(
+      trustedSessionHeaders?.["x-sol-holo-trusted-session"] ||
+      trustedSessionHeaders?.["X-Sol-Holo-Trusted-Session"] ||
+      ""
+    ).trim();
+
+    if (
+      !/^[A-Za-z0-9_-]{32,256}$/u.test(trustedSessionToken)
+    ) {
+      return Promise.reject(
+        new Error(
+          "Die sichere persönliche Holo-Sitzung fehlt. Das Video wurde nicht übertragen."
+        )
+      );
+    }
 
     return new Promise((resolve, reject) => {
       const request =
@@ -380,6 +397,11 @@
       request.setRequestHeader(
         "X-Sol-Video-Confirmation",
         "send-once"
+      );
+
+      request.setRequestHeader(
+        "X-Sol-Holo-Trusted-Session",
+        trustedSessionToken
       );
 
       request.upload.addEventListener(

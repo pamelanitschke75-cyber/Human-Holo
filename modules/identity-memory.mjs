@@ -30,6 +30,9 @@ export const MEMORY_PERSISTENCE_CONTRACT = Object.freeze({
   correctionsPreserveHistory: true,
   ownerConfirmedRemovalOnly: true,
   isolatedPerOwner: true,
+  privateRelationshipFactsBelongToTheRememberingOwner: true,
+  mentionedPeopleAreNeverAutoEnrolled: true,
+  newPersonalIdentityRequiresThatPersonsOwnConsent: true,
   newIdentityStartsEmpty: true
 });
 
