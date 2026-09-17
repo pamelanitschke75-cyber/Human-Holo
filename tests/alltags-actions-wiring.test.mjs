@@ -241,6 +241,28 @@ test("ein ausdrücklicher Kalenderauftrag wird ohne zweite Inhaltsfreigabe ausge
   );
 });
 
+test("Mitdenk-Anfragen mit belegten Erinnerungen bleiben im Gedächtnisweg", () => {
+  const serverDetector = new Function(
+    `${sourceFunction("looksLikeCalendarWriteRequest", "parseJsonText")}\n` +
+    "return looksLikeCalendarWriteRequest;"
+  )();
+  const uiStart = ui.indexOf("function normalizeNoteSearchText");
+  const uiEnd = ui.indexOf("function liveWeatherRequestFromMessage", uiStart);
+  const clientDetector = new Function(
+    `${ui.slice(uiStart, uiEnd)}\nreturn calendarWriteDestinationFromMessage;`
+  )();
+  const thinkingMemoryPrompt =
+    "Was haben wir zuletzt noch offen gelassen? Nutze nur meine belegten Erinnerungen und frage nach, wenn der Bezug nicht eindeutig ist.";
+
+  for (const detector of [serverDetector, clientDetector]) {
+    assert.equal(detector(thinkingMemoryPrompt), false);
+    assert.equal(detector("Welche offenen Erinnerungen haben wir?"), false);
+    assert.equal(detector("Was wollten wir später noch klären?"), false);
+    assert.equal(detector("Erinnerung: Morgen 13 Uhr Zahnarzt"), true);
+    assert.equal(detector("Morgen 13 Uhr Zahnarzt"), true);
+  }
+});
+
 test("ausgeschriebene Monatsdaten nehmen in Text und Sprache denselben Kalenderweg", () => {
   const serverDetector = new Function(
     `${sourceFunction("looksLikeCalendarWriteRequest", "parseJsonText")}\n` +
