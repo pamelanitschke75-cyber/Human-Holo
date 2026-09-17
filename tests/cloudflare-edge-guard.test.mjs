@@ -214,3 +214,42 @@ test("Ursprungsfehler geben keine internen Einzelheiten preis", async () => {
   assert.doesNotMatch(body, /private upstream detail/u);
   assert.doesNotMatch(body, /sol-holo\.onrender\.com/u);
 });
+
+
+test("Pam-Holo-Clients und OAuth-Callbacks verwenden ausschließlich den Türsteher", async () => {
+  const clientPaths = [
+    "index.html",
+    "sol-holo-ui.js",
+    "www/index.html",
+    "www/sol-holo-ui.js",
+    "www/trusted-app-session.mjs",
+    "www/sol-holo-backup.mjs",
+    "www/human-holo-animal-holos.mjs"
+  ];
+  const clientSources = await Promise.all(
+    clientPaths.map((path) => readFile(new URL(path, root), "utf8"))
+  );
+
+  for (let index = 0; index < clientSources.length; index += 1) {
+    assert.match(
+      clientSources[index],
+      /https:\/\/pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev/u,
+      clientPaths[index]
+    );
+    assert.doesNotMatch(
+      clientSources[index],
+      /https:\/\/sol-holo\.onrender\.com/u,
+      clientPaths[index]
+    );
+  }
+
+  const server = await readFile(new URL("server.mjs", root), "utf8");
+  assert.match(
+    server,
+    /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev\/auth\/google\/callback/u
+  );
+  assert.match(
+    server,
+    /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev\/auth\/smartthings\/callback/u
+  );
+});

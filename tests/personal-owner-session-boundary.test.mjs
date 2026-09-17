@@ -29,6 +29,7 @@ test("persönliche Chat-, Sprach-, Medien- und Google-Wege verlangen die Owner-S
   for (const marker of [
     'app.post("/sol"',
     'app.post("/realtime/token"',
+    'app.post("/auth/smartthings/start"',
     '  "/live/memory",',
     '  "/sol/video-transcript",',
     '  "/calendar/action",',
@@ -86,6 +87,11 @@ test("Pam-App bestätigt die Sitzung vor Text, Sprache und Video", async () => {
     /request\.setRequestHeader\(\s*"X-Sol-Holo-Trusted-Session",\s*trustedSessionToken\s*\)/u
   );
   assert.match(media, /Die sichere persönliche Holo-Sitzung fehlt/u);
+  assert.match(html, /auth\/smartthings\/start/u);
+  assert.match(
+    html,
+    /SolHoloTrustedSession\?\.ensure\?\.\([\s\S]*?auth\/smartthings\/start/u
+  );
 });
 
 test("Pams private Familienerinnerung erzeugt kein Profil der genannten Person", () => {

@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 
 const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
   "https://sol-holo.onrender.com",
+  "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev",
   "http://localhost",
   "https://localhost",
   "capacitor://localhost",

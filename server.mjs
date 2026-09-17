@@ -1050,7 +1050,7 @@ const GOOGLE_CLIENT_SECRET =
 const GOOGLE_REDIRECT_URI =
   String(
     process.env.GOOGLE_REDIRECT_URI ||
-    "https://sol-holo.onrender.com/auth/google/callback"
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/google/callback"
   ).trim();
 
 const GOOGLE_CALENDAR_ID =
@@ -1152,7 +1152,7 @@ const SMARTTHINGS_CLIENT_SECRET =
 const SMARTTHINGS_REDIRECT_URI =
   String(
     process.env.SMARTTHINGS_REDIRECT_URI ||
-    "https://sol-holo.onrender.com/auth/smartthings/callback"
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/smartthings/callback"
   ).trim();
 
 const SMARTTHINGS_TOKEN_ENCRYPTION_KEY =
@@ -2495,6 +2495,51 @@ async function exchangeSmartThingsToken(parameters) {
   ==========================================================
 */
 
+function createSmartThingsAuthorizationUrl(ownerId) {
+  const authorizationUrl = new URL(SMARTTHINGS_AUTHORIZE_URL);
+  authorizationUrl.searchParams.set("client_id", SMARTTHINGS_CLIENT_ID);
+  authorizationUrl.searchParams.set("response_type", "code");
+  authorizationUrl.searchParams.set("redirect_uri", SMARTTHINGS_REDIRECT_URI);
+  authorizationUrl.searchParams.set("scope", SMARTTHINGS_SCOPES.join(" "));
+  authorizationUrl.searchParams.set(
+    "state",
+    createSmartThingsOAuthState(ownerId)
+  );
+  return authorizationUrl.toString();
+}
+
+app.post("/auth/smartthings/start", (req, res) => {
+  try {
+    const identity = requireTrustedOwnerIdentity(req, res);
+    if (!identity) {
+      return;
+    }
+
+    if (!smartThingsConfigured()) {
+      return res
+        .status(503)
+        .set({ "Cache-Control": "no-store, max-age=0" })
+        .json({
+          error: "SMARTTHINGS_NOT_CONFIGURED",
+          started: false
+        });
+    }
+
+    return res
+      .set({ "Cache-Control": "no-store, max-age=0" })
+      .json({
+        started: true,
+        authUrl: createSmartThingsAuthorizationUrl(identity.ownerId)
+      });
+  } catch (error) {
+    console.error("SmartThings OAuth Start Fehler:", error?.name || "Fehler");
+    return res.status(500).json({
+      error: "SMARTTHINGS_AUTH_START_FAILED",
+      started: false
+    });
+  }
+});
+
 app.get("/auth/smartthings", (req, res) => {
   const identity = requireTrustedOwnerQueryIdentity(req, res);
   if (!identity) {
@@ -2508,17 +2553,9 @@ app.get("/auth/smartthings", (req, res) => {
     );
   }
 
-  const authorizationUrl = new URL(SMARTTHINGS_AUTHORIZE_URL);
-  authorizationUrl.searchParams.set("client_id", SMARTTHINGS_CLIENT_ID);
-  authorizationUrl.searchParams.set("response_type", "code");
-  authorizationUrl.searchParams.set("redirect_uri", SMARTTHINGS_REDIRECT_URI);
-  authorizationUrl.searchParams.set("scope", SMARTTHINGS_SCOPES.join(" "));
-  authorizationUrl.searchParams.set(
-    "state",
-    createSmartThingsOAuthState(identity.ownerId)
+  return res.redirect(
+    createSmartThingsAuthorizationUrl(identity.ownerId)
   );
-
-  return res.redirect(authorizationUrl.toString());
 });
 
 app.get("/auth/smartthings/callback", async (req, res) => {

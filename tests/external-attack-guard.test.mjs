@@ -68,6 +68,10 @@ test("nur feste Holo-, Render- und App-Herkünfte werden zugelassen", () => {
     HOLO_ALLOWED_ORIGINS: "https://api.human-holo.example"
   });
   assert.equal(allowed.has("https://sol-holo.onrender.com"), true);
+  assert.equal(
+    allowed.has("https://pam-holo-edge-guard.pamela-nitschke75.workers.dev"),
+    true
+  );
   assert.equal(allowed.has("http://localhost"), true);
   assert.equal(allowed.has("capacitor://localhost"), true);
   assert.equal(allowed.has("https://human-holo.example"), true);
