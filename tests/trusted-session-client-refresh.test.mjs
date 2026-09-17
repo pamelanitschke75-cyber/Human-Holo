@@ -198,7 +198,7 @@ async function openEveryday(client) {
   });
 }
 
-test("nach lokalem Fingerprint-Appzugang baut das registrierte Gerät die Alltagssitzung ohne zweiten Fingerprint auf; Schutzstufe fragt erneut", async () => {
+test("das registrierte Gerät baut die Alltagssitzung ohne Fingerprint auf; die Schutzstufe fragt getrennt", async () => {
   const { client, events, requestedUrls } = await fixture();
   const everyday = await openEveryday(client);
 
@@ -230,13 +230,13 @@ test("nach lokalem Fingerprint-Appzugang baut das registrierte Gerät die Alltag
   assert.ok(requestedUrls.every(url => !url.includes(".onrender.com")));
 });
 
-test("der Fingerprint-Appzugang baut die Alltagssitzung ohne zweiten Prompt auf", async () => {
+test("eine bereits erteilte Alltagserlaubnis wird ohne zusätzlichen Prompt verwendet", async () => {
   const { client, events } = await fixture();
   const result = await client.ensureTrustedAppSession({
     interactive: false,
     accessLevel: EVERYDAY_ACCESS,
     allowBootstrap: false,
-    authorizationId: "fingerprint-everyday-grant",
+    authorizationId: "preauthorized-everyday-grant",
     authorizationExpiresAtMillis: Date.now() + 60_000
   });
 
@@ -245,10 +245,10 @@ test("der Fingerprint-Appzugang baut die Alltagssitzung ohne zweiten Prompt auf"
     events.map(event => event.type),
     ["device", "challenge", "sign", "complete"]
   );
-  assert.equal(events[2].authorizationId, "fingerprint-everyday-grant");
+  assert.equal(events[2].authorizationId, "preauthorized-everyday-grant");
 });
 
-test("der Fingerprint-Appzugang geht bei einer parallelen Startprüfung nicht verloren", async () => {
+test("eine einmalige Alltagserlaubnis geht bei einer parallelen Startprüfung nicht verloren", async () => {
   const { client, events } = await fixture({
     deviceLookupDelayMillis: 25
   });
@@ -261,7 +261,7 @@ test("der Fingerprint-Appzugang geht bei einer parallelen Startprüfung nicht ve
     interactive: false,
     accessLevel: EVERYDAY_ACCESS,
     allowBootstrap: false,
-    authorizationId: "fingerprint-everyday-grant",
+    authorizationId: "preauthorized-everyday-grant",
     authorizationExpiresAtMillis: Date.now() + 60_000
   });
 
@@ -278,7 +278,7 @@ test("der Fingerprint-Appzugang geht bei einer parallelen Startprüfung nicht ve
   );
   assert.equal(
     events.find(event => event.type === "sign")?.authorizationId,
-    "fingerprint-everyday-grant"
+    "preauthorized-everyday-grant"
   );
 });
 

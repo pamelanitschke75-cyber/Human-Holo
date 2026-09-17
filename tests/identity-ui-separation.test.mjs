@@ -90,7 +90,7 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=11/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=12/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /OWNER_EVERYDAY_ACCESS/u);
@@ -101,35 +101,13 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   assert.match(appLock, /„Hey Pam“ ist ausschließlich der Weckruf/u);
   assert.match(
     appLock,
-    /plugin\.authorizeAppAccess\(\{[\s\S]*ownerId: APP_OWNER_ID,[\s\S]*useRegisteredWatch: false/u
-  );
-  assert.match(
-    appLock,
-    /authenticationType !== "system_strong_biometric"/u
-  );
-  assert.match(
-    appLock,
-    /plugin\.consumeCriticalAuthorization\(\{[\s\S]*action: "unlock_app"/u
-  );
-  assert.match(
-    appLock,
-    /authorizeAppAccess[\s\S]*consumeCriticalAuthorization[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
-  );
-  assert.match(appLock, /ownerEverydayAuthorizationId/u);
-  assert.match(appLock, /ownerEverydayAuthorizationExpiresAtMillis/u);
-  assert.match(
-    nativeSecurity,
-    /purpose == AuthenticationPurpose\.APP_ACCESS[\s\S]*OWNER_EVERYDAY_SESSION_ACTION[\s\S]*ownerEverydayAuthorizationId/u
-  );
-  assert.doesNotMatch(
-    appLock,
-    /status\?\.device\?\.registered !== true[\s\S]{0,300}revealApp\(\)/u
+    /status\?\.device\?\.registered !== true[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
   );
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /Browseransicht bleibt geschlossen/u);
   assert.match(appLock, /ensureProtectedPamHoloAccess/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
-  assert.match(appLock, /authorizeAppAccess/u);
+  assert.doesNotMatch(appLock, /authorizeAppAccess/u);
   const appAccessMethod = nativeSecurity.slice(
     nativeSecurity.indexOf("public void authorizeAppAccess"),
     nativeSecurity.indexOf("public void authorizeBiometricRecovery")
