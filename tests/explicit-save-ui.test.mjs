@@ -10,6 +10,10 @@ const html = fs.readFileSync(
   new URL("../www/index.html", import.meta.url),
   "utf8"
 );
+const css = fs.readFileSync(
+  new URL("../www/sol-holo-ui.css", import.meta.url),
+  "utf8"
+);
 
 function functionSource(name, nextName) {
   const start = ui.indexOf(`  function ${name}`);
@@ -405,7 +409,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=88/u);
+  assert.match(html, /sol-holo-ui\.js\?v=89/u);
 });
 
 test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {
@@ -468,6 +472,178 @@ test("Füge hinzu und Schreib es auf die Liste verstehen einen sicheren Rückbez
   const handler = ui.slice(handlerStart, handlerEnd);
   assert.match(handler, /recentPlainUserMessageForSave\(\)/u);
   assert.match(handler, /saveShoppingListItem\(shoppingItem\)/u);
+});
+
+test("einzelne Einkaufsartikel werden über Text und Sprache eindeutig geändert oder gelöscht", () => {
+  const source = [
+    functionSource("normalizeNoteSearchText", "stripHoloInvocation"),
+    functionSource("stripHoloInvocation", "noteSecurityWarning"),
+    functionSource("cleanExplicitSaveContent", "explicitListTitle"),
+    functionSource("isShoppingListNote", "shoppingItemsFromNote"),
+    functionSource("shoppingItemsFromNote", "isShoppingListReadRequest"),
+    functionSource("shoppingListEntries", "resolveShoppingListEntry"),
+    functionSource("shoppingListMutationFromMessage", "handleShoppingListMutationCommand"),
+    "return shoppingListMutationFromMessage;"
+  ].join("\n");
+  const parse = new Function("personalNotes", source)([
+    {
+      id: "shopping",
+      title: "Einkaufsliste",
+      text: "• Milch\n• Brot"
+    }
+  ]);
+
+  assert.deepEqual(
+    parse("Ändere Milch in Hafermilch"),
+    {
+      action: "update",
+      currentItem: "Milch",
+      replacement: "Hafermilch",
+      listNamed: false
+    }
+  );
+  assert.deepEqual(
+    parse("Ersetze Milch auf der Einkaufsliste durch Hafermilch, bitte."),
+    {
+      action: "update",
+      currentItem: "Milch",
+      replacement: "Hafermilch",
+      listNamed: true
+    }
+  );
+  assert.deepEqual(
+    parse("Lösche Milch von der Einkaufsliste."),
+    { action: "delete", item: "Milch", listNamed: true }
+  );
+  assert.deepEqual(
+    parse("Kannst du bitte Milch von meiner Einkaufsliste löschen?"),
+    { action: "delete", item: "Milch", listNamed: true }
+  );
+  assert.deepEqual(
+    parse("Brot aus dem Einkaufszettel entfernen"),
+    { action: "delete", item: "Brot", listNamed: true }
+  );
+  assert.equal(
+    parse("Ändere die Farbe in Blau"),
+    null,
+    "Eine allgemeine Änderung ohne vorhandenen Einkaufsartikel bleibt außerhalb der Liste"
+  );
+  assert.equal(
+    parse("Lösche die Einkaufsliste"),
+    null,
+    "Die ganze Einkaufsliste darf nicht durch einen Sprachbefehl gelöscht werden"
+  );
+});
+
+test("Ändern und Löschen speichern genau einen Einkaufsartikel lokal", () => {
+  const source = [
+    "let personalNotes = structuredClone(initialNotes);",
+    "const activePersonalOwner = () => 'pam-sol';",
+    "const explicitSaveRequestFromMessage = () => null;",
+    "const noteSecurityWarning = () => '';",
+    "const normalizeStoredNote = (note) => note;",
+    "const renderPersonalNotes = () => {};",
+    "const showToast = () => {};",
+    "const storePersonalNotes = (nextNotes) => { personalNotes = nextNotes.filter(Boolean); return true; };",
+    functionSource("normalizeNoteSearchText", "stripHoloInvocation"),
+    functionSource("cleanExplicitSaveContent", "explicitListTitle"),
+    functionSource("isShoppingListNote", "shoppingItemsFromNote"),
+    functionSource("shoppingItemsFromNote", "isShoppingListReadRequest"),
+    functionSource("currentShoppingListItems", "shoppingListAnswerFromItems"),
+    functionSource("shoppingListItemFromValue", "saveShoppingListItem"),
+    functionSource("shoppingListEntries", "resolveShoppingListEntry"),
+    functionSource("resolveShoppingListEntry", "shoppingListResolutionFailure"),
+    functionSource("shoppingListResolutionFailure", "updateShoppingListItem"),
+    functionSource("updateShoppingListItem", "deleteShoppingListItem"),
+    functionSource("deleteShoppingListItem", "executeShoppingListTool"),
+    "return { updateShoppingListItem, deleteShoppingListItem, notes: () => structuredClone(personalNotes) };"
+  ].join("\n");
+  const createHarness = new Function("initialNotes", source);
+  const harness = createHarness([
+    {
+      id: "shopping",
+      title: "Einkaufsliste",
+      text: "• Milch\n• Brot",
+      source: "Auf Zuruf gespeichert",
+      createdAt: 1,
+      updatedAt: 1
+    },
+    {
+      id: "other",
+      title: "Andere Notiz",
+      text: "Bleibt erhalten",
+      createdAt: 1,
+      updatedAt: 1
+    }
+  ]);
+
+  const changed = harness.updateShoppingListItem("Milch", "Hafermilch");
+  assert.equal(changed.success, true);
+  assert.match(harness.notes()[0].text, /• Hafermilch\n• Brot/u);
+  assert.equal(harness.notes()[1].text, "Bleibt erhalten");
+
+  const duplicate = harness.updateShoppingListItem("Brot", "Hafermilch");
+  assert.equal(duplicate.success, false);
+  assert.equal(duplicate.duplicate, true);
+  assert.match(harness.notes()[0].text, /• Hafermilch\n• Brot/u);
+
+  const deleted = harness.deleteShoppingListItem("Brot");
+  assert.equal(deleted.success, true);
+  assert.equal(harness.notes()[0].text, "• Hafermilch");
+
+  const emptied = harness.deleteShoppingListItem("Hafermilch");
+  assert.equal(emptied.success, true);
+  assert.equal(emptied.empty, true);
+  assert.deepEqual(
+    harness.notes().map((note) => note.id),
+    ["other"],
+    "Nur die nun leere Einkaufsliste wird entfernt; andere Notizen bleiben erhalten"
+  );
+
+  const ambiguousHarness = createHarness([
+    { id: "one", title: "Einkaufsliste", text: "• Milch" },
+    { id: "two", title: "Einkaufsliste", text: "• Milch" }
+  ]);
+  const ambiguous = ambiguousHarness.deleteShoppingListItem("Milch");
+  assert.equal(ambiguous.success, false);
+  assert.equal(ambiguous.ambiguous, true);
+  assert.equal(ambiguousHarness.notes().length, 2);
+});
+
+test("Pam kann jeden Einkaufsartikel direkt ändern oder löschen", () => {
+  const cardSource = functionSource(
+    "buildPersonalNoteCard",
+    "renderPersonalNotes"
+  );
+  const uiHandler = ui.slice(
+    ui.indexOf("const handleShoppingItemAction"),
+    ui.indexOf("const handlePersonalNoteAction")
+  );
+
+  assert.match(cardSource, /itemEditButton\.dataset\.shoppingAction = "edit"/u);
+  assert.match(cardSource, /itemDeleteButton\.dataset\.shoppingAction = "delete"/u);
+  assert.match(cardSource, /dataset\.itemIndex = String\(itemIndex\)/u);
+  assert.match(cardSource, /textContent = "Ändern"/u);
+  assert.match(cardSource, /textContent = "Löschen"/u);
+  assert.match(uiHandler, /window\.prompt/u);
+  assert.match(uiHandler, /window\.confirm/u);
+  assert.match(uiHandler, /updateShoppingListItem/u);
+  assert.match(uiHandler, /deleteShoppingListItem/u);
+  assert.match(ui, /Gesamte Einkaufsliste wirklich leeren/u);
+});
+
+test("Wichtiges-Überschrift und leerer Kalenderkasten verwenden das freigegebene Holo-Glas", () => {
+  assert.match(ui, /<h3>Alles Wichtige auf einen Blick<\/h3>/u);
+  assert.match(ui, /<p>Kalender, Einkaufsliste und Notizen\.<\/p>/u);
+  assert.doesNotMatch(ui, /Pams Wichtiges in Pam’s Holo/u);
+
+  const calendarGlass = css.match(/#calendarEmpty\{[\s\S]*?\n\}/u)?.[0] || "";
+  assert.match(calendarGlass, /border:1px solid/u);
+  assert.match(calendarGlass, /linear-gradient/u);
+  assert.match(calendarGlass, /rgba\(151,81,244,\.22\)/u);
+  assert.match(calendarGlass, /rgba\(37,166,225,\.16\)/u);
+  assert.match(calendarGlass, /backdrop-filter:blur\(18px\) saturate\(145%\)/u);
+  assert.match(calendarGlass, /inset 0 1px 0 rgba\(255,255,255,\.22\)/u);
 });
 
 test("Google Maps versteht natürliche Text- und Sprachziele", () => {

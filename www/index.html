@@ -1942,7 +1942,7 @@ MOBIL
 }
 
 </style>
-<link rel="stylesheet" href="./sol-holo-ui.css?v=54">
+<link rel="stylesheet" href="./sol-holo-ui.css?v=55">
 <link rel="stylesheet" href="./sol-holo-wow.css?v=5">
 <link rel="stylesheet" href="./sol-holo-chat-115.css?v=3">
 <link rel="stylesheet" href="./sol-holo-backup.css?v=2">
@@ -15487,6 +15487,8 @@ const REALTIME_LOCAL_TOOL_NAMES = new Set([
   "prepare_whatsapp",
   "save_animal_holo_observation",
   "append_shopping_list_item",
+  "update_shopping_list_item",
+  "delete_shopping_list_item",
   "read_shopping_list",
   ...REALTIME_NOTE_TOOL_NAMES
 ]);
@@ -15569,6 +15571,8 @@ async function handleRealtimeMemoryToolCall(
         "Gmail-Posteingang sicher und nur lesend geprüft.";
     }else if(
       toolCall?.name === "append_shopping_list_item" ||
+      toolCall?.name === "update_shopping_list_item" ||
+      toolCall?.name === "delete_shopping_list_item" ||
       toolCall?.name === "read_shopping_list"
     ){
       if(typeof window.executeSolHoloShoppingListTool === "function"){
@@ -15576,7 +15580,11 @@ async function handleRealtimeMemoryToolCall(
           toolCall?.name,
           {
             item:
-              String(parsedArguments?.item || "").trim()
+              String(parsedArguments?.item || "").trim(),
+            current_item:
+              String(parsedArguments?.current_item || "").trim(),
+            replacement:
+              String(parsedArguments?.replacement || "").trim()
           }
         );
         output = String(
@@ -15590,6 +15598,14 @@ async function handleRealtimeMemoryToolCall(
                 ? "Einkaufsliste gelesen · leer."
                 : "Einkaufsliste sicher gelesen."
               : "Einkaufsliste konnte nicht gelesen werden."
+            : toolCall?.name === "update_shopping_list_item"
+              ? result?.success
+                ? "Einkaufsartikel direkt geändert."
+                : "Einkaufsartikel wurde nicht geändert."
+              : toolCall?.name === "delete_shopping_list_item"
+                ? result?.success
+                  ? "Einkaufsartikel direkt gelöscht."
+                  : "Einkaufsartikel wurde nicht gelöscht."
             : result?.success
               ? "Einkaufsartikel direkt gespeichert."
               : "Einkaufsartikel wurde nicht gespeichert.";
@@ -15597,7 +15613,11 @@ async function handleRealtimeMemoryToolCall(
         output =
           toolCall?.name === "read_shopping_list"
             ? "Die lokale Einkaufsliste ist gerade nicht verfügbar. Erfinde keine Einträge."
-            : "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
+            : toolCall?.name === "update_shopping_list_item"
+              ? "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte keine Änderung."
+              : toolCall?.name === "delete_shopping_list_item"
+                ? "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte keine Löschung."
+                : "Die lokale Einkaufsliste ist gerade nicht verfügbar. Behaupte nicht, dass gespeichert wurde.";
       }
     }else if(toolCall?.name === "save_animal_holo_observation"){
       if(typeof window.HumanHoloAnimalHolos?.saveObservation === "function"){
@@ -15658,6 +15678,10 @@ async function handleRealtimeMemoryToolCall(
         ? "Der persönliche Gmail-Posteingang konnte gerade nicht sicher geprüft werden. Erfinde keine Mail."
       : toolCall?.name === "append_shopping_list_item"
         ? "Der Einkaufsartikel konnte gerade nicht sicher gespeichert werden. Behaupte keine Speicherung."
+      : toolCall?.name === "update_shopping_list_item"
+        ? "Der Einkaufsartikel konnte gerade nicht sicher geändert werden. Behaupte keine Änderung."
+      : toolCall?.name === "delete_shopping_list_item"
+        ? "Der Einkaufsartikel konnte gerade nicht sicher gelöscht werden. Behaupte keine Löschung."
       : toolCall?.name === "read_shopping_list"
         ? "Die Einkaufsliste konnte gerade nicht sicher gelesen werden. Erfinde keine Einträge."
       : toolCall?.name === "save_animal_holo_observation"
@@ -16808,7 +16832,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=300",
+          "./service-worker.js?v=301",
           {
             updateViaCache:"none"
           }
@@ -16844,7 +16868,7 @@ if(
 
 </script>
 
-<script src="./sol-holo-ui.js?v=88"></script>
+<script src="./sol-holo-ui.js?v=89"></script>
   <script type="module" src="./app-lock-bootstrap.mjs?v=14"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=8"></script>

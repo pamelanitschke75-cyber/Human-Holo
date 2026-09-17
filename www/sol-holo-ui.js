@@ -664,8 +664,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     <div class="notesIntro glassCard">
       <span class="notesIntroIcon" aria-hidden="true">★</span>
       <div>
-        <h3>Pams Wichtiges in Pam’s Holo</h3>
-        <p>Drei klare Bereiche – Kalender, Einkaufsliste und Notizen.</p>
+        <h3>Alles Wichtige auf einen Blick</h3>
+        <p>Kalender, Einkaufsliste und Notizen.</p>
       </div>
     </div>
 
@@ -4109,9 +4109,41 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (shopping) {
       body = document.createElement("ul");
       body.className = "shoppingItems";
-      shoppingItemsFromNote(note).forEach((item) => {
+      shoppingItemsFromNote(note).forEach((item, itemIndex) => {
         const entry = document.createElement("li");
-        entry.textContent = item;
+        entry.className = "shoppingItemRow";
+
+        const itemText = document.createElement("span");
+        itemText.className = "shoppingItemText";
+        itemText.textContent = item;
+
+        const itemActions = document.createElement("span");
+        itemActions.className = "shoppingItemActions";
+
+        const itemEditButton = document.createElement("button");
+        itemEditButton.type = "button";
+        itemEditButton.dataset.shoppingAction = "edit";
+        itemEditButton.dataset.noteId = note.id;
+        itemEditButton.dataset.itemIndex = String(itemIndex);
+        itemEditButton.textContent = "Ändern";
+        itemEditButton.setAttribute(
+          "aria-label",
+          `„${item}“ auf der Einkaufsliste ändern`
+        );
+
+        const itemDeleteButton = document.createElement("button");
+        itemDeleteButton.type = "button";
+        itemDeleteButton.dataset.shoppingAction = "delete";
+        itemDeleteButton.dataset.noteId = note.id;
+        itemDeleteButton.dataset.itemIndex = String(itemIndex);
+        itemDeleteButton.textContent = "Löschen";
+        itemDeleteButton.setAttribute(
+          "aria-label",
+          `„${item}“ von der Einkaufsliste löschen`
+        );
+
+        itemActions.append(itemEditButton, itemDeleteButton);
+        entry.append(itemText, itemActions);
         body.appendChild(entry);
       });
     } else {
@@ -4132,7 +4164,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     editButton.type = "button";
     editButton.dataset.noteAction = "edit";
     editButton.dataset.noteId = note.id;
-    editButton.textContent = "Bearbeiten";
+    editButton.textContent = shopping ? "Liste bearbeiten" : "Bearbeiten";
     editButton.setAttribute(
       "aria-label",
       shopping ? "Einkaufsliste bearbeiten" : `Notiz „${note.title}“ bearbeiten`
@@ -4142,7 +4174,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     deleteButton.type = "button";
     deleteButton.dataset.noteAction = "delete";
     deleteButton.dataset.noteId = note.id;
-    deleteButton.textContent = "Löschen";
+    deleteButton.textContent = shopping ? "Liste leeren" : "Löschen";
     deleteButton.setAttribute(
       "aria-label",
       shopping ? "Einkaufsliste löschen" : `Notiz „${note.title}“ löschen`
@@ -4392,12 +4424,244 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return appendPersonalListItem("Einkaufsliste", cleanItem);
   }
 
+  function shoppingListEntries() {
+    return personalNotes
+      .filter(isShoppingListNote)
+      .flatMap((note) =>
+        shoppingItemsFromNote(note).map((item, itemIndex) => ({
+          note,
+          item,
+          itemIndex,
+          normalizedItem: normalizeNoteSearchText(item)
+        }))
+      );
+  }
+
+  function resolveShoppingListEntry(item, locator = {}) {
+    const entries = shoppingListEntries();
+    const noteId = String(locator?.noteId || "").trim();
+    const itemIndex = Number(locator?.itemIndex);
+
+    if (noteId && Number.isInteger(itemIndex) && itemIndex >= 0) {
+      const located = entries.find(
+        (entry) =>
+          entry.note.id === noteId &&
+          entry.itemIndex === itemIndex
+      );
+      return {
+        cleanItem: located?.item || cleanExplicitSaveContent(item),
+        entries,
+        matches: located ? [located] : [],
+        entry: located || null,
+        ambiguous: false
+      };
+    }
+
+    const cleanItem = cleanExplicitSaveContent(item);
+    const normalizedItem = normalizeNoteSearchText(cleanItem);
+    const matches = normalizedItem
+      ? entries.filter((entry) => entry.normalizedItem === normalizedItem)
+      : [];
+    return {
+      cleanItem,
+      entries,
+      matches,
+      entry: matches.length === 1 ? matches[0] : null,
+      ambiguous: matches.length > 1
+    };
+  }
+
+  function shoppingListResolutionFailure(resolution, actionText) {
+    if (!resolution.cleanItem) {
+      return {
+        success: false,
+        missingItem: true,
+        answer: `Mir fehlt der Einkaufsartikel. Die Einkaufsliste wurde nicht ${actionText}.`
+      };
+    }
+    if (resolution.ambiguous) {
+      return {
+        success: false,
+        ambiguous: true,
+        answer:
+          `„${resolution.cleanItem}“ steht mehrfach auf deiner Einkaufsliste. ` +
+          `Bitte wähle den Artikel direkt in der Liste. Es wurde nichts ${actionText}.`
+      };
+    }
+    return {
+      success: false,
+      notFound: true,
+      answer:
+        `„${resolution.cleanItem}“ steht nicht auf deiner Einkaufsliste. ` +
+        `Es wurde nichts ${actionText}.`
+    };
+  }
+
+  function updateShoppingListItem(currentItem, replacement, locator = {}) {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer: "Die feste Holo-ID ist nicht verfügbar. Die Einkaufsliste wurde nicht geändert."
+      };
+    }
+
+    const resolution = resolveShoppingListEntry(currentItem, locator);
+    if (!resolution.entry) {
+      return shoppingListResolutionFailure(resolution, "geändert");
+    }
+
+    const cleanReplacement = shoppingListItemFromValue(replacement);
+    if (!cleanReplacement) {
+      return {
+        success: false,
+        missingReplacement: true,
+        answer: "Mir fehlt der neue Einkaufsartikel. Die Einkaufsliste wurde nicht geändert."
+      };
+    }
+
+    const securityWarning = noteSecurityWarning(cleanReplacement);
+    if (securityWarning) {
+      return { success: false, securityBlocked: true, answer: securityWarning };
+    }
+
+    const normalizedReplacement = normalizeNoteSearchText(cleanReplacement);
+    if (normalizedReplacement === resolution.entry.normalizedItem) {
+      return {
+        success: true,
+        unchanged: true,
+        item: resolution.entry.item,
+        answer: `„${resolution.entry.item}“ bleibt unverändert auf deiner Einkaufsliste.`
+      };
+    }
+
+    const duplicate = resolution.entries.some(
+      (entry) =>
+        !(
+          entry.note.id === resolution.entry.note.id &&
+          entry.itemIndex === resolution.entry.itemIndex
+        ) &&
+        entry.normalizedItem === normalizedReplacement
+    );
+    if (duplicate) {
+      return {
+        success: false,
+        duplicate: true,
+        answer:
+          `„${cleanReplacement}“ steht bereits auf deiner Einkaufsliste. ` +
+          `„${resolution.entry.item}“ blieb unverändert.`
+      };
+    }
+
+    const nextItems = shoppingItemsFromNote(resolution.entry.note);
+    nextItems[resolution.entry.itemIndex] = cleanReplacement;
+    const updated = normalizeStoredNote({
+      ...resolution.entry.note,
+      text: nextItems.map((item) => `• ${item}`).join("\n"),
+      updatedAt: Date.now()
+    });
+    const nextNotes = personalNotes.map((note) =>
+      note.id === resolution.entry.note.id ? updated : note
+    );
+
+    if (!storePersonalNotes(nextNotes)) {
+      return {
+        success: false,
+        answer: "Der Einkaufsartikel konnte auf diesem Handy gerade nicht geändert werden."
+      };
+    }
+
+    renderPersonalNotes();
+    showToast("Einkaufsartikel geändert ✅️");
+    return {
+      success: true,
+      changed: true,
+      previousItem: resolution.entry.item,
+      item: cleanReplacement,
+      note: updated,
+      answer:
+        `„${resolution.entry.item}“ wurde auf deiner Einkaufsliste in ` +
+        `„${cleanReplacement}“ geändert ✅️`
+    };
+  }
+
+  function deleteShoppingListItem(item, locator = {}) {
+    if (!activePersonalOwner()) {
+      return {
+        success: false,
+        identityRequired: true,
+        answer: "Die feste Holo-ID ist nicht verfügbar. Die Einkaufsliste wurde nicht geändert."
+      };
+    }
+
+    const resolution = resolveShoppingListEntry(item, locator);
+    if (!resolution.entry) {
+      return shoppingListResolutionFailure(resolution, "gelöscht");
+    }
+
+    const nextItems = shoppingItemsFromNote(resolution.entry.note)
+      .filter((_entry, index) => index !== resolution.entry.itemIndex);
+    const nextNotes = personalNotes.flatMap((note) => {
+      if (note.id !== resolution.entry.note.id) {
+        return [note];
+      }
+      if (!nextItems.length) {
+        return [];
+      }
+      return [
+        normalizeStoredNote({
+          ...note,
+          text: nextItems.map((nextItem) => `• ${nextItem}`).join("\n"),
+          updatedAt: Date.now()
+        })
+      ];
+    });
+
+    if (!storePersonalNotes(nextNotes)) {
+      return {
+        success: false,
+        answer: "Der Einkaufsartikel konnte auf diesem Handy gerade nicht gelöscht werden."
+      };
+    }
+
+    renderPersonalNotes();
+    showToast("Einkaufsartikel gelöscht");
+    return {
+      success: true,
+      deleted: true,
+      item: resolution.entry.item,
+      empty: currentShoppingListItems().length === 0,
+      answer: `„${resolution.entry.item}“ wurde von deiner Einkaufsliste gelöscht.`
+    };
+  }
+
   function executeShoppingListTool(name, args = {}) {
     if (name === "read_shopping_list") {
       const result = readShoppingList();
       return {
         ...result,
         localRead: Boolean(result?.success),
+        destination: "Einkaufsliste"
+      };
+    }
+
+    if (name === "update_shopping_list_item") {
+      const result = updateShoppingListItem(
+        args?.current_item,
+        args?.replacement
+      );
+      return {
+        ...result,
+        localChanged: Boolean(result?.success),
+        destination: "Einkaufsliste"
+      };
+    }
+
+    if (name === "delete_shopping_list_item") {
+      const result = deleteShoppingListItem(args?.item);
+      return {
+        ...result,
+        localDeleted: Boolean(result?.success),
         destination: "Einkaufsliste"
       };
     }
@@ -7741,6 +8005,149 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     return null;
   }
 
+  function shoppingListMutationFromMessage(value) {
+    const cleanMessage = stripHoloInvocation(value);
+    if (!cleanMessage) return null;
+    const commandMessage = cleanMessage
+      .replace(
+        /^(?:kannst|könntest|koenntest|würdest|wuerdest)\s+du\s+(?:mir\s+)?(?:bitte\s+)?/iu,
+        ""
+      )
+      .trim();
+
+    const listNamePattern =
+      "(?:einkaufs?liste|einkaufsliste|einkaufslischt(?:e)?|" +
+      "einkaufszettel|einkaufzettel|einkaufliste|eikaufsliste|" +
+      "ichaufslischte|shoppinglist)";
+    const politeTail =
+      "(?:\\s*[,;:]?\\s*(?:auch\\s+)?(?:bitte\\w*|bittsch\\S*|danke))?[\\s,;:.!?]*$";
+    const listNamed = new RegExp(listNamePattern, "iu").test(commandMessage);
+
+    const deletePatterns = [
+      new RegExp(
+        "^(?:bitte\\s+)?(?:l(?:ö|oe)sch(?:e)?|entfern(?:e)?|streich(?:e)?|nimm)\\s+" +
+          "(?:mir\\s+)?(?:bitte\\s+)?(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+" +
+          "(?:von|aus)\\s+(?:(?:der|dem|den|meiner|meinem|meinen|die|meine)\\s+)?" +
+          listNamePattern +
+          "(?:\\s+(?:raus|herunter))?" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?(?:auf|von|aus)\\s+(?:(?:der|dem|den|meiner|meinem|meinen|die|meine)\\s+)?" +
+          listNamePattern +
+          "\\s+(?:mir\\s+)?(?:bitte\\s+)?(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+" +
+          "(?:l(?:ö|oe)sch(?:e|en)?|entfern(?:e|en)?|streich(?:e|en)?|rausnehm(?:e|en)?)" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(.+?)\\s+(?:von|aus)\\s+(?:(?:der|dem|den|meiner|meinem|meinen|die|meine)\\s+)?" +
+          listNamePattern +
+          "\\s+(?:l(?:ö|oe)schen|entfernen|streichen|rausnehmen)" +
+          politeTail,
+        "iu"
+      )
+    ];
+
+    for (const pattern of deletePatterns) {
+      const item = cleanExplicitSaveContent(
+        commandMessage.match(pattern)?.[1] || ""
+      );
+      if (item) {
+        return { action: "delete", item, listNamed: true };
+      }
+    }
+
+    const updatePatterns = [
+      new RegExp(
+        "^(?:bitte\\s+)?(?:änder(?:e)?|aender(?:e)?|korrigier(?:e)?)\\s+" +
+          "(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+" +
+          "(?:auf|in)\\s+(?:(?:der|dem|den|meiner|meinem|meinen|die|meine)\\s+)?" +
+          listNamePattern +
+          "\\s+(?:in|zu|auf)\\s+(.+?)" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?(?:ersetz(?:e)?)\\s+" +
+          "(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+" +
+          "(?:auf|in)\\s+(?:(?:der|dem|den|meiner|meinem|meinen|die|meine)\\s+)?" +
+          listNamePattern +
+          "\\s+durch\\s+(.+?)" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?(?:änder(?:e)?|aender(?:e)?|korrigier(?:e)?)\\s+" +
+          "(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+(?:in|zu|auf)\\s+(.+?)" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?ersetz(?:e)?\\s+" +
+          "(?:den\\s+(?:eintrag|artikel)\\s+)?(.+?)\\s+durch\\s+(.+?)" +
+          politeTail,
+        "iu"
+      ),
+      new RegExp(
+        "^(?:bitte\\s+)?mach(?:e)?\\s+aus\\s+(.+?)\\s+(.+?)" +
+          politeTail,
+        "iu"
+      )
+    ];
+
+    for (const pattern of updatePatterns) {
+      const match = commandMessage.match(pattern);
+      const currentItem = cleanExplicitSaveContent(match?.[1] || "");
+      const replacement = cleanExplicitSaveContent(match?.[2] || "");
+      if (!currentItem || !replacement) continue;
+
+      const exactItemExists = shoppingListEntries().some(
+        (entry) =>
+          entry.normalizedItem === normalizeNoteSearchText(currentItem)
+      );
+      if (!listNamed && !exactItemExists) {
+        return null;
+      }
+      return {
+        action: "update",
+        currentItem,
+        replacement,
+        listNamed
+      };
+    }
+
+    return null;
+  }
+
+  function handleShoppingListMutationCommand(message) {
+    const mutation = shoppingListMutationFromMessage(message);
+    if (!mutation) return null;
+
+    const result = mutation.action === "delete"
+      ? deleteShoppingListItem(mutation.item)
+      : updateShoppingListItem(
+          mutation.currentItem,
+          mutation.replacement
+        );
+    const successfulAction = mutation.action === "delete"
+      ? "Einkaufsartikel gelöscht."
+      : "Einkaufsartikel geändert.";
+    const failedAction = mutation.action === "delete"
+      ? "Einkaufsartikel wurde nicht gelöscht."
+      : "Einkaufsartikel wurde nicht geändert.";
+    return {
+      handled: true,
+      success: Boolean(result?.success),
+      shoppingList: true,
+      shoppingListMutation: mutation.action,
+      marker: "[LOKALES_EINKAUFSLISTENERGEBNIS]",
+      status: result?.success ? successfulAction : failedAction,
+      answer: result.answer
+    };
+  }
+
   function handleShoppingListCommand(message) {
     const explicitRequest = explicitSaveRequestFromMessage(message);
     const shorthandRequest =
@@ -7809,6 +8216,14 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           : "Einkaufsliste konnte nicht gelesen werden.",
         answer: result.answer
       };
+    }
+
+    // Einzelne Artikel dürfen nur durch einen eindeutigen Änderungs- oder
+    // Löschauftrag angefasst werden. Unklare Treffer verändern die Liste nie.
+    const shoppingListMutation =
+      handleShoppingListMutationCommand(noteMessage);
+    if (shoppingListMutation) {
+      return shoppingListMutation;
     }
 
     // Ein ausdrücklicher Einkaufslistenauftrag hat Vorrang vor Tierdialog,
@@ -8760,6 +9175,68 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     renderPersonalNotes(notesSearchInput.value);
   });
 
+  const handleShoppingItemAction = (event) => {
+    const actionButton = event.target.closest("[data-shopping-action]");
+    if (!actionButton) {
+      return;
+    }
+
+    const note = personalNotes.find(
+      (entry) => entry.id === actionButton.dataset.noteId
+    );
+    const itemIndex = Number(actionButton.dataset.itemIndex);
+    const currentItem = Number.isInteger(itemIndex)
+      ? shoppingItemsFromNote(note)[itemIndex]
+      : "";
+    if (!note || !currentItem) {
+      showToast("Dieser Einkaufsartikel wurde nicht mehr gefunden.");
+      renderPersonalNotes();
+      return;
+    }
+
+    const locator = {
+      noteId: note.id,
+      itemIndex
+    };
+    if (actionButton.dataset.shoppingAction === "delete") {
+      const confirmed = window.confirm(
+        `„${currentItem}“ wirklich von der Einkaufsliste löschen?`
+      );
+      if (!confirmed) {
+        return;
+      }
+      const result = deleteShoppingListItem(currentItem, locator);
+      if (!result.success) {
+        showToast(result.answer);
+      }
+      return;
+    }
+
+    if (actionButton.dataset.shoppingAction === "edit") {
+      const replacement = window.prompt(
+        `„${currentItem}“ auf der Einkaufsliste ändern:`,
+        currentItem
+      );
+      if (
+        replacement === null ||
+        normalizeNoteSearchText(replacement) ===
+          normalizeNoteSearchText(currentItem)
+      ) {
+        return;
+      }
+      const result = updateShoppingListItem(
+        currentItem,
+        replacement,
+        locator
+      );
+      if (result.securityBlocked) {
+        window.alert(result.answer);
+      } else if (!result.success) {
+        showToast(result.answer);
+      }
+    }
+  };
+
   const handlePersonalNoteAction = async (event) => {
     const actionButton = event.target.closest("[data-note-action]");
     if (!actionButton) {
@@ -8777,7 +9254,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     if (actionButton.dataset.noteAction === "delete") {
       const confirmed = window.confirm(
-        `„${note.title}“ wirklich löschen?`
+        isShoppingListNote(note)
+          ? "Gesamte Einkaufsliste wirklich leeren?"
+          : `„${note.title}“ wirklich löschen?`
       );
       if (!confirmed) {
         return;
@@ -8805,6 +9284,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   };
 
   notesList.addEventListener("click", handlePersonalNoteAction);
+  shoppingList.addEventListener("click", handleShoppingItemAction);
   shoppingList.addEventListener("click", handlePersonalNoteAction);
 
   memorialPersonName.addEventListener("input", () => {

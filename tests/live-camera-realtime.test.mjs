@@ -503,8 +503,28 @@ test(
     );
 
     assert.match(
+      server,
+      /name:\s*"update_shopping_list_item"[\s\S]*?eindeutig vorhandenen Artikel/u
+    );
+
+    assert.match(
+      server,
+      /name:\s*"delete_shopping_list_item"[\s\S]*?niemals die ganze Liste löschen/u
+    );
+
+    assert.match(
+      server,
+      /Gebärdensprachfolge[\s\S]*?update_shopping_list_item[\s\S]*?delete_shopping_list_item[\s\S]*?Einkaufsliste unverändert/u
+    );
+
+    assert.match(
       html,
       /REALTIME_LOCAL_TOOL_NAMES[\s\S]*?"append_shopping_list_item"[\s\S]*?"read_shopping_list"/u
+    );
+
+    assert.match(
+      html,
+      /REALTIME_LOCAL_TOOL_NAMES[\s\S]*?"update_shopping_list_item"[\s\S]*?"delete_shopping_list_item"/u
     );
 
     assert.match(
@@ -515,6 +535,16 @@ test(
     assert.match(
       html,
       /toolCall\?\.name === "read_shopping_list"[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
+      html,
+      /toolCall\?\.name === "update_shopping_list_item"[\s\S]*?toolCall\?\.name === "delete_shopping_list_item"[\s\S]*?window\.executeSolHoloShoppingListTool/u
+    );
+
+    assert.match(
+      html,
+      /current_item:[\s\S]*?parsedArguments\?\.current_item[\s\S]*?replacement:[\s\S]*?parsedArguments\?\.replacement/u
     );
 
     assert.match(
@@ -529,8 +559,36 @@ test(
 
     assert.match(
       ui,
+      /function updateShoppingListItem\([\s\S]*?function deleteShoppingListItem\([\s\S]*?function executeShoppingListTool\([\s\S]*?name === "update_shopping_list_item"[\s\S]*?updateShoppingListItem/u
+    );
+
+    assert.match(
+      ui,
+      /name === "delete_shopping_list_item"[\s\S]*?deleteShoppingListItem\(args\?\.item\)/u
+    );
+
+    assert.match(
+      ui,
       /Mir fehlt der Einkaufsartikel[\s\S]*?Es wurde nichts gespeichert/u
     );
+  }
+);
+
+test(
+  "Ändern und Löschen der Einkaufsliste bleiben ausschließlich bei Pam-Holo aktiv",
+  () => {
+    const filterStart = server.indexOf(
+      'if (\n      identity.ownerId !==\n      "pam-sol"'
+    );
+    const filterEnd = server.indexOf("const response = await fetch", filterStart);
+    assert.notEqual(filterStart, -1);
+    assert.ok(filterEnd > filterStart);
+    const nonPamFilter = server.slice(filterStart, filterEnd);
+
+    assert.doesNotMatch(nonPamFilter, /update_shopping_list_item/u);
+    assert.doesNotMatch(nonPamFilter, /delete_shopping_list_item/u);
+    assert.match(nonPamFilter, /append_shopping_list_item/u);
+    assert.match(nonPamFilter, /read_shopping_list/u);
   }
 );
 

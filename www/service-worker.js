@@ -1,5 +1,5 @@
 const CACHE_VERSION =
-  "human-holo-297-pam-holo-restored-entry-network-v9";
+  "human-holo-297-pam-holo-restored-entry-network-v10";
 
 const APP_SHELL = Object.freeze([
   "./",

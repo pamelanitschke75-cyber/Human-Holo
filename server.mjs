@@ -11231,8 +11231,17 @@ sehen oder vorgelesen bekommen möchte, verwende read_shopping_list. Dieses
 Werkzeug liest ausschließlich den aktuellen ownergebundenen lokalen Stand und
 verändert nichts. Gib nur die gelieferten Einträge wieder und erfinde keine.
 Beginnt eine Nutzernachricht mit [LOKALES_EINKAUFSLISTENERGEBNIS], wurde die
-Liste bereits lokal gelesen. Sprich das gelieferte Ergebnis dann kurz und
-unverändert aus und rufe weder read_shopping_list noch ein Speicherwerkzeug auf.
+Listenaktion bereits lokal ausgeführt. Sprich das gelieferte Ergebnis dann kurz
+und unverändert aus und rufe weder read_shopping_list noch ein Speicher- oder
+Änderungswerkzeug erneut auf.
+
+Wenn ${identity.displayName} einen einzelnen vorhandenen Einkaufsartikel
+eindeutig ändern oder korrigieren möchte, verwende update_shopping_list_item
+mit dem bisherigen und dem neuen Artikel. Wenn sie einen einzelnen Artikel
+eindeutig löschen oder entfernen möchte, verwende delete_shopping_list_item.
+Lösche niemals aufgrund einer Frage oder eines unklaren Bezugs die ganze Liste.
+Bei keinem oder mehreren passenden Treffern muss das Werkzeug die Liste
+unverändert lassen und die Unklarheit wahrheitsgemäß melden.
 
 Wenn erst die sichere gemeinsame Auswertung einer ausdrücklich gewählten
 Gebärdensprachfolge den eindeutigen Auftrag ergibt, einen konkret erkennbaren
@@ -11242,6 +11251,10 @@ allgemeiner Gestik, einer Frage über die Liste oder einer Verneinung darfst du
 das Werkzeug nicht aufrufen und keine Speicherung behaupten.
 Ergibt eine sicher erkannte Gebärdensprachfolge stattdessen eindeutig die Frage
 nach dem Inhalt der Einkaufsliste, verwende read_shopping_list.
+Ergibt sie eindeutig die Änderung eines vorhandenen Artikels, verwende
+update_shopping_list_item; ergibt sie eindeutig das Löschen eines einzelnen
+Artikels, verwende delete_shopping_list_item. Bei unklarem altem oder neuem
+Artikel bleibt die Einkaufsliste unverändert.
 
 Wenn ${identity.displayName} „Notiere …“, „Schreib auf …“, „Mach eine Notiz …“
 oder sinngleich sagt, verwende create_personal_note mit genau dem genannten
@@ -11519,6 +11532,78 @@ der anderen Holo-Instanz. Pam und Steffi besitzen kein gemeinsames Profil.
 
                   description:
                     "Nur der konkrete Einkaufsartikel ohne Befehlswörter, Listenname oder erfundene Ergänzungen."
+                }
+              },
+
+              required: [
+                "item"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "update_shopping_list_item",
+
+            description:
+              `Ändert genau einen eindeutig vorhandenen Artikel in der ownergebundenen Einkaufsliste unter „Wichtiges“ von ${instanceName}. Verwende dieses Werkzeug für klare Änderungs-, Korrektur- oder Ersetzungsaufträge über Sprache oder sicher erkannte Gebärdensprache. Bei keinem oder mehreren Treffern muss die Liste unverändert bleiben.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                current_item: {
+                  type:
+                    "string",
+
+                  description:
+                    "Der bisherige Einkaufsartikel genau so, wie die Nutzerin ihn bezeichnet."
+                },
+                replacement: {
+                  type:
+                    "string",
+
+                  description:
+                    "Der gewünschte neue Einkaufsartikel ohne Befehlswörter oder erfundene Ergänzungen."
+                }
+              },
+
+              required: [
+                "current_item",
+                "replacement"
+              ],
+
+              additionalProperties:
+                false
+            }
+          },
+          {
+            type:
+              "function",
+
+            name:
+              "delete_shopping_list_item",
+
+            description:
+              `Löscht genau einen eindeutig vorhandenen Artikel aus der ownergebundenen Einkaufsliste unter „Wichtiges“ von ${instanceName}. Verwende dieses Werkzeug nur bei einem ausdrücklichen Lösch- oder Entfernungsauftrag über Sprache oder sicher erkannte Gebärdensprache. Es darf niemals die ganze Liste löschen; bei keinem oder mehreren Treffern bleibt alles unverändert.`,
+
+            parameters: {
+              type:
+                "object",
+
+              properties: {
+                item: {
+                  type:
+                    "string",
+
+                  description:
+                    "Der ausdrücklich zu löschende einzelne Einkaufsartikel."
                 }
               },
 
