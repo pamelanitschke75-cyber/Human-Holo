@@ -4857,7 +4857,6 @@ function looksLikeCalendarWriteRequest(
     "eintragen",
     "termin",
     "erinnere mich",
-    "erinnerung",
     "plane ",
     "plan ",
     "setze ",
@@ -4868,7 +4867,7 @@ function looksLikeCalendarWriteRequest(
   if (patterns.some(
     (pattern) =>
       text.includes(pattern)
-  )) {
+  ) || /\berinnerung\b/u.test(text)) {
     return true;
   }
 
