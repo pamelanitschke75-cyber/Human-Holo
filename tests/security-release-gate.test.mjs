@@ -122,7 +122,7 @@ test("CodeQL und Dependabot bewachen Code und Abhängigkeiten fortlaufend", () =
   assert.match(dependabotConfig, /interval: weekly/u);
 });
 
-test("Sicherheitsrichtlinie trennt aktiven Innenwächter vom noch offenen Außenwächter", () => {
+test("Sicherheitsrichtlinie trennt Pam- und Human-Außenwächter dauerhaft", () => {
   assert.deepEqual(securityContract.scope, ["Pam’s Holo", "Human Holo"]);
   assert.equal(
     securityContract.security_claim.absolute_invulnerability_claimed,
@@ -132,48 +132,48 @@ test("Sicherheitsrichtlinie trennt aktiven Innenwächter vom noch offenen Außen
     securityContract.application_guard.protections.wildcard_cors_allowed,
     false
   );
-  assert.equal(securityContract.external_edge_guard.provider, "Cloudflare");
-  assert.equal(securityContract.external_edge_guard.active, false);
-  assert.equal(
-    securityContract.external_edge_guard.status,
-    "separate-staging-source-prepared-pending-deployment"
-  );
-  assert.equal(
-    securityContract.external_edge_guard.planned_worker_name,
-    "human-holo-edge-guard"
-  );
+
+  const edgeGuards = securityContract.external_edge_guards;
+  assert.equal(edgeGuards.provider, "Cloudflare");
+  assert.equal(edgeGuards.shared_worker_allowed, false);
+  assert.equal(edgeGuards.shared_origin_secret_allowed, false);
+  assert.equal(edgeGuards.shared_server_or_database_allowed, false);
   assert.deepEqual(
-    securityContract.external_edge_guard.existing_workers_preserved,
+    edgeGuards.existing_workers_preserved,
     ["sol-holo-api", "dark-wind-6dd8"]
   );
+
+  assert.equal(edgeGuards.account_access.owner_only, true);
+  assert.equal(edgeGuards.account_access.ai_account_access_allowed, false);
+  assert.equal(edgeGuards.account_access.ai_dashboard_control_allowed, false);
+  assert.equal(edgeGuards.account_access.oauth_connector_allowed, false);
+  assert.equal(edgeGuards.account_access.api_token_sharing_allowed, false);
   assert.equal(
-    securityContract.external_edge_guard.account_access.owner_only,
+    edgeGuards.account_access.dashboard_changes_confirmed_only_by_owner,
     true
   );
+
+  assert.equal(edgeGuards.pam_holo.corrected_source_deployed, true);
+  assert.equal(edgeGuards.pam_holo.origin_protection_active, true);
+  assert.equal(edgeGuards.pam_holo.origin_protection_verified, true);
+  assert.equal(edgeGuards.pam_holo.render_origin_locked, true);
   assert.equal(
-    securityContract.external_edge_guard.account_access.ai_account_access_allowed,
+    edgeGuards.pam_holo.production_traffic_protected,
     false
   );
-  assert.equal(
-    securityContract.external_edge_guard.account_access.ai_dashboard_control_allowed,
-    false
-  );
-  assert.equal(
-    securityContract.external_edge_guard.account_access.oauth_connector_allowed,
-    false
-  );
-  assert.equal(
-    securityContract.external_edge_guard.account_access.api_token_sharing_allowed,
-    false
-  );
-  assert.equal(
-    securityContract.external_edge_guard.account_access
-      .dashboard_changes_confirmed_only_by_owner,
-    true
-  );
+  assert.equal(edgeGuards.human_holo.pam_holo_origin_forbidden, true);
+  assert.equal(edgeGuards.human_holo.fail_closed, true);
+  assert.equal(edgeGuards.production_active, false);
+
   assert.match(securityPolicy, /Pam’s Holo und Human Holo/u);
-  assert.match(securityPolicy, /[Ii]nnerer Anwendungswächter/u);
-  assert.match(securityPolicy, /KI erhält weder Konto- noch Dashboardzugriff/u);
-  assert.match(securityPolicy, /Cloudflare[\s\S]*noch nicht aktiv/u);
+  assert.match(securityPolicy, /Innerer Anwendungswächter/u);
+  assert.match(
+    securityPolicy,
+    /Cloudflare[\s\S]*für Pam’s Holo aktiv und live verifiziert/u
+  );
+  assert.match(
+    securityPolicy,
+    /Cloudflare-Kontozugang bleibt ausschließlich bei Pamela Christina Nitschke/u
+  );
   assert.match(securityPolicy, /keine absolute Unangreifbarkeit/u);
 });

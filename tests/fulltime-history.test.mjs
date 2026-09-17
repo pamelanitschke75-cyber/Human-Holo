@@ -91,7 +91,7 @@ test("Text und Sol-Antwort werden Wort für Wort ownergebunden gespeichert", () 
     "const PORT ="
   );
 
-  assert.match(solRoute, /resolveRequestIdentity\(/u);
+  assert.match(solRoute, /requireTrustedOwnerIdentity\(/u);
   assert.match(
     solRoute,
     /saveFulltimeMemory\(\s*"user",\s*userMemoryMessage/u
@@ -113,7 +113,7 @@ test("Sprachtranskripte beider Rollen landen im Vollzeitgedächtnis", () => {
     "LANGZEITGEDÄCHTNIS"
   );
 
-  assert.match(liveRoute, /resolveRequestIdentity\(/u);
+  assert.match(liveRoute, /requireTrustedOwnerIdentity\(/u);
   assert.match(
     liveRoute,
     /saveFulltimeMemory\(\s*role,\s*transcript/u
