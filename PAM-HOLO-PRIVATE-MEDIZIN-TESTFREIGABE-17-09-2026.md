@@ -1,10 +1,10 @@
 # Pam‑Holo · private medizinische Testfreigabe
 
-**Stand:** 17.09.2026
-**Entscheidung:** Pamela Christina Nitschke
-**Geltungsbereich:** ausschließlich Pams eigene private Pam‑Holo‑Instanz
-**Technische Bindung:** `ownerId=pam-sol`, `speakerId=pam` und eine aktuelle
-persönlich bestätigte Trusted-App-Sitzung
+**Stand:** 17.09.2026  
+**Entscheidung:** Pamela Christina Nitschke  
+**Geltungsbereich:** ausschließlich Pams eigene private Pam‑Holo‑Instanz  
+**Technische Bindung:** `ownerId=pam-sol`, `speakerId=pam`, registriertes
+Android-Gerät und aktuelle starke Android-Biometrie
 
 ## Verbindliche Entscheidung
 
@@ -35,20 +35,26 @@ Gesundheitsdatenimporte.
 ## Ausschließlich persönlicher Zugang
 
 Zu Pams Lebzeiten erhält keine andere Person Zugriff auf Pam’s Holo. Das gilt
-ausdrücklich auch für Steffi. Ein Fingerabdruck oder eine Geräte-PIN darf zwar
-das Telefon im vorgesehenen Notfall entsperren, aber niemals allein Pam’s Holo
-oder eine private medizinische Sitzung öffnen.
+ausdrücklich auch für Steffi. Eine Geräte-PIN, ein Muster oder ein Passwort
+darf zwar das Telefon im vorgesehenen Notfall entsperren, aber niemals allein
+Pam’s Holo oder eine private medizinische Sitzung öffnen.
 
-Der aktuelle App-Pfad öffnet die normale private Nutzung auf dem für `pam-sol`
-registrierten Android-Gerät nach der lokalen Geräteprüfung direkt. „Hey Pam“
-ist ausschließlich der Weckruf und keine Entsperrung. Die kurzlebige,
-kryptografisch signierte Online-Sitzung wird getrennt aufgebaut; ein
-vorübergehender Netz- oder Serverausfall sperrt die lokale App-Oberfläche
-nicht. Ein Fingerprint wird für ein allgemeines medizinisches Gespräch
-innerhalb des privaten Testumfangs nicht verlangt.
+Vor jeder App-Sichtbarkeit verlangt Pam’s Holo auf dem für `pam-sol`
+registrierten Android-Gerät eine frische starke Android-Biometrie ohne
+Geräte-PIN-Fallback. Die einmalige lokale Freigabe wird vor dem Sichtbarmachen
+verbraucht. „Hey Pam“ ist ausschließlich der Weckruf und niemals Entsperrung
+oder Ersatz für den Fingerprint.
 
-Medikamentenbilder, der tatsächliche Abruf von Health-Connect-Daten sowie
-medizinische Berechtigungs- und Systemeinstellungen verlangen zusätzlich Pams
+Die Fingerprint-Eingangssperre funktioniert lokal und unabhängig von Render,
+Cloudflare oder einer Online-Sitzung. Ein Netz- oder Serverausfall darf die
+Prüfung nicht umgehen und darf die nach erfolgreichem Fingerprint lokal
+sichtbare Oberfläche nicht erneut sperren. Die kurzlebige kryptografisch
+signierte Online-Sitzung wird erst danach getrennt aufgebaut.
+
+Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs
+verlangt nach dem App-Eingang keinen zweiten Fingerprint. Medikamentenbilder,
+der tatsächliche Abruf von Health-Connect-Daten sowie medizinische
+Berechtigungs- und Systemeinstellungen verlangen zusätzlich einen neuen
 starken Android-Fingerprint ohne Geräte-PIN-Fallback. Diese geschützte Sitzung
 hebt weder die Einzelfreigabe für das konkrete Medikamentenbild noch eine
 medizinische Grenze auf.
@@ -56,14 +62,13 @@ medizinische Grenze auf.
 Die App sperrt sich beim Verlassen wieder und verwirft die Sitzung. Die
 Browseransicht bleibt für den privaten Zugang geschlossen.
 
-Stimmprüfung ist ein zusätzlicher technischer Schutz, aber keine Behauptung
-absoluter Unangreifbarkeit. Einrichtung und Endgerät müssen weiterhin geprüft
-werden; bis dahin darf kein Schutz als unabhängig zertifiziert bezeichnet
-werden.
+Stimmprüfung ist ein zusätzlicher technischer Schutz für Weckruf und
+Sprecherzuordnung, aber keine Entsperrung und keine Behauptung absoluter
+Unangreifbarkeit. Einrichtung und Endgerät müssen weiterhin geprüft werden.
 
 ## NFC-Uhr
 
-Pams Uhr kann später als alternativer persönlicher Faktor eingebunden werden,
+Pams Uhr kann später als zusätzlicher persönlicher Faktor eingebunden werden,
 aber nur über einen echten kryptografischen Challenge‑Response‑Nachweis mit
 registriertem Schlüssel, bewusster Bestätigung an der Uhr und Replay-Schutz.
 Der vorhandene Quellstand hält diesen Weg geschlossen, solange Companion,
@@ -78,8 +83,8 @@ gespeichert. ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto.
 
 Der geheime Wert darf weder in dieses Dokument noch in Quellcode, Issues,
 Protokolle oder Screenshots aufgenommen werden. Cloudflare ist ein äußerer
-Ursprungsschutz und ersetzt nicht die personenbezogene App- und
-Sitzungsfreigabe.
+Ursprungsschutz und ersetzt weder die lokale Fingerprint-Eingangssperre noch
+die personenbezogene App- und Sitzungsfreigabe.
 
 ## Technische Auslieferungsgrenze
 
@@ -93,8 +98,10 @@ medizinische Freigabemarkierung.
 
 - Policy: `modules/pam-holo-private-medical.mjs`
 - persönliche Sitzung: `modules/trusted-app-session.mjs`
-- lokaler Personenfaktor: `android-native/SolSpeakerIdentityPlugin.java`
-- App- und Gerätebindung: `android-native/SolAccessSecurityPlugin.java`
+- Weckruf und Sprecherzuordnung: `android-native/SolSpeakerIdentityPlugin.java`
+- App-, Fingerprint- und Gerätebindung:
+  `android-native/SolAccessSecurityPlugin.java`
+- sichtbare Eingangssperre: `www/app-lock-bootstrap.mjs`
 - privater Build-Schritt: `scripts/install-private-pam-medical.mjs`
 - Build-Grenze: `.github/workflows/android-build.yml`
 

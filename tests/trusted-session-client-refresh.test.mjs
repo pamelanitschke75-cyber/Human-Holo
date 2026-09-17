@@ -192,7 +192,7 @@ async function openEveryday(client) {
   });
 }
 
-test("registriertes Gerät öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fingerprint", async () => {
+test("nach lokalem Fingerprint-Appzugang baut das registrierte Gerät die Alltagssitzung ohne zweiten Fingerprint auf; Schutzstufe fragt erneut", async () => {
   const { client, events, requestedUrls } = await fixture();
   const everyday = await openEveryday(client);
 
@@ -222,6 +222,55 @@ test("registriertes Gerät öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fi
     )
   ));
   assert.ok(requestedUrls.every(url => !url.includes(".onrender.com")));
+});
+
+test("der Fingerprint-Appzugang baut die Alltagssitzung ohne zweiten Prompt auf", async () => {
+  const { client, events } = await fixture();
+  const result = await client.ensureTrustedAppSession({
+    interactive: false,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false,
+    authorizationId: "fingerprint-everyday-grant",
+    authorizationExpiresAtMillis: Date.now() + 60_000
+  });
+
+  assert.equal(result.trusted, true);
+  assert.deepEqual(
+    events.map(event => event.type),
+    ["device", "challenge", "sign", "complete"]
+  );
+  assert.equal(events[2].authorizationId, "fingerprint-everyday-grant");
+});
+
+test("interaktive Sprache oder Schrift wiederholt nach gescheitertem Hintergrundaufbau", async () => {
+  const { client, events } = await fixture({ deviceBound: false });
+  const background = client.ensureTrustedAppSession({
+    interactive: false,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false,
+    authorizationId: "background-grant",
+    authorizationExpiresAtMillis: Date.now() + 60_000
+  });
+  const interactive = client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false
+  });
+  const [backgroundResult, interactiveResult] =
+    await Promise.all([background, interactive]);
+
+  assert.equal(backgroundResult.trusted, false);
+  assert.equal(backgroundResult.needsBootstrap, true);
+  assert.equal(interactiveResult.trusted, false);
+  assert.equal(interactiveResult.needsBootstrap, true);
+  assert.equal(
+    events.filter(event => event.type === "device_authorize").length,
+    1
+  );
+  assert.equal(
+    events.filter(event => event.type === "challenge_rejected").length,
+    2
+  );
 });
 
 test("App-Start erzwingt bei fehlender Serverbindung kein Online-Bootstrap", async () => {

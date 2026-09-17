@@ -29,8 +29,6 @@ const sessions = {
 };
 let ensurePromise = null;
 let ensurePromiseAccessLevel = "";
-let offeredAuthorizationId = "";
-let offeredAuthorizationExpiresAtMillis = 0;
 let sessionGeneration = 0;
 
 class TrustedSessionClientError extends Error {
@@ -86,39 +84,6 @@ function selectedSession(minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY) {
     return sessions[ACCESS_LEVEL.OWNER_EVERYDAY];
   }
   return null;
-}
-
-function offerAuthorization(authorizationId, expiresAtMillis = 0) {
-  const cleanId = String(authorizationId || "").trim();
-  const expiresAt = Number(expiresAtMillis) || Date.now() + 60_000;
-  if (!cleanId || expiresAt <= Date.now()) return;
-  offeredAuthorizationId = cleanId;
-  offeredAuthorizationExpiresAtMillis = expiresAt;
-}
-
-function takeOfferedAuthorization() {
-  if (
-    !offeredAuthorizationId ||
-    offeredAuthorizationExpiresAtMillis <= Date.now()
-  ) {
-    offeredAuthorizationId = "";
-    offeredAuthorizationExpiresAtMillis = 0;
-    return "";
-  }
-  const authorizationId = offeredAuthorizationId;
-  offeredAuthorizationId = "";
-  offeredAuthorizationExpiresAtMillis = 0;
-  return authorizationId;
-}
-
-async function waitForOfferedAuthorization(maximumWaitMillis = 45_000) {
-  const deadline = Date.now() + maximumWaitMillis;
-  while (Date.now() < deadline) {
-    const authorizationId = takeOfferedAuthorization();
-    if (authorizationId) return authorizationId;
-    await wait(250);
-  }
-  return "";
 }
 
 export function trustedAppSessionHeaders({
@@ -497,18 +462,16 @@ async function establishTrustedAppSession({
         !bootstrapPerformed
       ) {
         if (!interactive || !allowBootstrap) {
-          if (!interactive) {
-            offerAuthorization(
-              authorizationId,
-              authorizationExpiresAtMillis
-            );
-          }
           return { trusted: false, needsBootstrap: true };
         }
         bootstrapPerformed = true;
         await bootstrapDevice(identity, device);
-        // Returning from the Google owner proof locks the app. Its normal
-        // Android unlock supplies a separate, still-fresh one-time grant.
+        // The bootstrap may outlive the short one-time grant. Issue a new
+        // owner-everyday capability after the confirmed binding instead of
+        // replaying or trusting the earlier grant.
+        authorizationId = await freshAuthorization(plugin, {
+          accessLevel: normalized
+        });
         continue;
       }
 
@@ -542,20 +505,24 @@ export async function ensureTrustedAppSession(options = {}) {
     };
   }
   if (ensurePromise) {
-    offerAuthorization(
-      options?.authorizationId,
-      options?.authorizationExpiresAtMillis
-    );
+    const waitingForAccessLevel = ensurePromiseAccessLevel;
     const existingResult = await ensurePromise;
-    if (
-      sessionIsFresh(accessLevel) ||
-      ensurePromiseAccessLevel === accessLevel
-    ) {
-      return sessionIsFresh(accessLevel)
-        ? ensureTrustedAppSession({ ...options, interactive: false })
-        : existingResult;
+    if (sessionIsFresh(accessLevel)) {
+      return ensureTrustedAppSession({ ...options, interactive: false });
     }
-    return ensureTrustedAppSession(options);
+    if (
+      waitingForAccessLevel === accessLevel &&
+      options?.interactive !== true
+    ) {
+      return existingResult;
+    }
+    // A user-initiated write or voice request must retry after a noninteractive
+    // background refresh failed; it must never inherit that silent failure.
+    return ensureTrustedAppSession({
+      ...options,
+      authorizationId: "",
+      authorizationExpiresAtMillis: 0
+    });
   }
   ensurePromiseAccessLevel = accessLevel;
   ensurePromise = establishTrustedAppSession({
@@ -583,8 +550,6 @@ export function clearTrustedAppSession() {
     session.token = "";
     session.expiresAtMillis = 0;
   }
-  offeredAuthorizationId = "";
-  offeredAuthorizationExpiresAtMillis = 0;
 }
 
 window.SolHoloTrustedSession = Object.freeze({
