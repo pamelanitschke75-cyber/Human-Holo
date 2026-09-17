@@ -183,6 +183,12 @@ test("offline bleibt der Entwurf sicher und die Zustellung gilt nicht als erfolg
 test("die Chatoberfläche erhält Entwürfe und entfernt sicher blockierte Inhalte aus der Warteschlange", () => {
   assert.match(html, /error\?\.persisted ===\s*\n\s*false[\s\S]*?discardPendingFulltimeDialog/u);
   assert.match(html, /!messageInput\.value &&\s*\n\s*message[\s\S]*?messageInput\.value =\s*\n\s*message/u);
+  assert.match(
+    html,
+    /pamHoloFetch\(\s*`\$\{BACKEND_URL\}\/sol`[\s\S]*?timeoutMilliseconds:\s*\n\s*90_000/u
+  );
+  assert.match(html, /PAM_HOLO_NETWORK_TIMEOUT/u);
+  assert.match(html, /Pam’s Holo braucht gerade länger als 90 Sekunden/u);
   assert.match(html, /Die Nachricht wird nicht automatisch erneut gesendet/u);
   assert.match(html, /data\?\.message \|\|\s*\n\s*data\?\.error/u);
   assert.doesNotMatch(html, /"Text-\/Medienchat Fehler:",\s*\n\s*error\s*\n/u);

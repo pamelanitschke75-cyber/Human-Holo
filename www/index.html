@@ -11048,6 +11048,10 @@ async function sendMessage(
               source:
                 "text"
             })
+        },
+        {
+          timeoutMilliseconds:
+            90_000
         }
       );
 
@@ -11472,7 +11476,10 @@ async function sendMessage(
 
 
     const safeErrorMessage =
-      error?.deliveryUncertain
+      error?.code ===
+        "PAM_HOLO_NETWORK_TIMEOUT"
+        ? "Pam’s Holo braucht gerade länger als 90 Sekunden. Der Entwurf bleibt erhalten. Die Nachricht wird nicht automatisch erneut gesendet, damit keine Handlung doppelt ausgeführt wird."
+        : error?.deliveryUncertain
         ? "Die Verbindung wurde unterbrochen. Der Entwurf bleibt erhalten. Die Nachricht wird nicht automatisch erneut gesendet, damit keine Handlung doppelt ausgeführt wird."
         : error?.message ||
           "Verbindung zu Pam’s Holo fehlgeschlagen.";
