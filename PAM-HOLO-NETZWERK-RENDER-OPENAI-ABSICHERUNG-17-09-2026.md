@@ -42,6 +42,11 @@ OpenAI oder einen anderen externen Anbieter übertragen.
   wiederholt werden. Unsichere schreibende Anfragen werden nicht automatisch
   erneut gesendet, damit Nachrichten oder Handlungen nicht doppelt ausgeführt
   werden. Der Entwurf bleibt sichtbar erhalten.
+- Für den normalen Textchat wartet die App bis zu 90 Sekunden auf die ersten
+  Antwortdaten. Damit wird eine nachweislich noch laufende Holo-Antwort nicht
+  bereits nach 45 Sekunden fälschlich als Verbindungsabbruch angezeigt. Erst
+  nach dem längeren Zeitfenster bleibt der Entwurf mit einer eindeutigen
+  Langzeitmeldung erhalten; automatisch erneut gesendet wird weiterhin nichts.
 - Die bestehende Dauergedächtnis-Warteschlange ist eine eng begrenzte Ausnahme:
   Sie arbeitet mit stabiler Ereignis-ID, Revision und exakter Bestätigung und
   ist dadurch wiederholbar, ohne denselben Eintrag doppelt anzulegen. Ein vom

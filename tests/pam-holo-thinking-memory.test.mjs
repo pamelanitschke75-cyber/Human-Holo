@@ -293,5 +293,5 @@ test("App zeigt den Bereich Mitdenkendes Gedächtnis mit klaren Grenzen", async 
   assert.match(ui, /emotionale Bedeutung von Erlebnissen/u);
   assert.match(ui, /Gefühle, Wahrnehmungen und Empfindungen vorsichtig an/u);
   assert.match(ui, /fragt Holo nach,[\s\S]*handelt niemals eigenmächtig/u);
-  assert.match(serviceWorker, /restored-entry-network-v11/u);
+  assert.match(serviceWorker, /restored-entry-network-v12/u);
 });
