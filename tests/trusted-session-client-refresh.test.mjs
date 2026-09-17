@@ -198,7 +198,7 @@ async function openEveryday(client) {
   });
 }
 
-test("das registrierte Gerät baut die Alltagssitzung ohne Fingerprint auf; die Schutzstufe fragt getrennt", async () => {
+test("der Sitzungsclient kann den vorhandenen Gerätebeweis nutzen; die Schutzstufe fragt getrennt", async () => {
   const { client, events, requestedUrls } = await fixture();
   const everyday = await openEveryday(client);
 
@@ -230,13 +230,13 @@ test("das registrierte Gerät baut die Alltagssitzung ohne Fingerprint auf; die 
   assert.ok(requestedUrls.every(url => !url.includes(".onrender.com")));
 });
 
-test("eine bereits erteilte Alltagserlaubnis wird ohne zusätzlichen Prompt verwendet", async () => {
+test("die beim Eingangs-Fingerprint erteilte Alltagserlaubnis wird ohne zweiten Prompt verwendet", async () => {
   const { client, events } = await fixture();
   const result = await client.ensureTrustedAppSession({
     interactive: false,
     accessLevel: EVERYDAY_ACCESS,
     allowBootstrap: false,
-    authorizationId: "preauthorized-everyday-grant",
+    authorizationId: "fingerprint-everyday-grant",
     authorizationExpiresAtMillis: Date.now() + 60_000
   });
 
@@ -245,7 +245,7 @@ test("eine bereits erteilte Alltagserlaubnis wird ohne zusätzlichen Prompt verw
     events.map(event => event.type),
     ["device", "challenge", "sign", "complete"]
   );
-  assert.equal(events[2].authorizationId, "preauthorized-everyday-grant");
+  assert.equal(events[2].authorizationId, "fingerprint-everyday-grant");
 });
 
 test("eine einmalige Alltagserlaubnis geht bei einer parallelen Startprüfung nicht verloren", async () => {
@@ -261,7 +261,7 @@ test("eine einmalige Alltagserlaubnis geht bei einer parallelen Startprüfung ni
     interactive: false,
     accessLevel: EVERYDAY_ACCESS,
     allowBootstrap: false,
-    authorizationId: "preauthorized-everyday-grant",
+    authorizationId: "fingerprint-everyday-grant",
     authorizationExpiresAtMillis: Date.now() + 60_000
   });
 
@@ -278,7 +278,7 @@ test("eine einmalige Alltagserlaubnis geht bei einer parallelen Startprüfung ni
   );
   assert.equal(
     events.find(event => event.type === "sign")?.authorizationId,
-    "preauthorized-everyday-grant"
+    "fingerprint-everyday-grant"
   );
 });
 

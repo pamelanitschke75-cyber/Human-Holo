@@ -13,7 +13,7 @@ import {
   pamHoloSessionAction
 } from "../modules/pam-holo-access-policy.mjs";
 
-test("Pams registriertes Gerät öffnet den Alltag einschließlich Wetter, Einkaufsliste und WhatsApp", () => {
+test("nach Pams Fingerprint umfasst der Alltag Wetter, Einkaufsliste und WhatsApp", () => {
   for (const capability of [
     "conversation",
     "weather",
@@ -101,8 +101,11 @@ test("Sitzungsaktionen und Personenbeweise sind zwischen Alltag und System getre
 test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als nicht abschließend", () => {
   const instructions = pamHoloAccessBoundaryInstructions();
   assert.match(instructions, /„Hey Pam“ ist ausschließlich der Weckruf/u);
-  assert.match(instructions, /registriertem Gerät automatisch/u);
-  assert.match(instructions, /ohne[\s\S]*Fingerprint/u);
+  assert.match(instructions, /Bevor irgendein Teil[\s\S]*sichtbar wird/u);
+  assert.match(instructions, /starke Android-Biometrie/u);
+  assert.match(instructions, /ohne Geräte-PIN-Fallback/u);
+  assert.match(instructions, /Alltagssitzung vollständig steht/u);
+  assert.match(instructions, /sichtbare, aber funktionslose Oberfläche/u);
   assert.match(instructions, /Wetter/u);
   assert.match(instructions, /Einkaufsliste/u);
   assert.match(instructions, /WhatsApp/u);
@@ -116,7 +119,7 @@ test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als
   assert.match(instructions, /Sicherung,[\s\S]*Export,[\s\S]*Import/u);
 });
 
-test("Client und Server erzwingen Fingerprint für geschützte Daten", async () => {
+test("Client erzwingt Fingerprint vor Sichtbarkeit und erneut für geschützte Daten", async () => {
   const { readFile } = await import("node:fs/promises");
   const [
     html,
@@ -141,21 +144,21 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
 
   assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
-  assert.doesNotMatch(appLock, /plugin\.authorizeAppAccess/u);
-  assert.doesNotMatch(appLock, /authenticationType !== "system_strong_biometric"/u);
-  assert.doesNotMatch(appLock, /plugin\.consumeCriticalAuthorization/u);
+  assert.match(appLock, /plugin\.authorizeAppAccess/u);
+  assert.match(appLock, /authenticationType !== "system_strong_biometric"/u);
+  assert.match(appLock, /plugin\.consumeCriticalAuthorization/u);
+  assert.match(appLock, /ownerEverydayAuthorizationId/u);
+  assert.match(appLock, /authorizationId: hasFingerprintGrant/u);
   assert.match(
     appLock,
-    /status\?\.device\?\.registered !== true[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
+    /plugin\.authorizeAppAccess[\s\S]*plugin\.consumeCriticalAuthorization[\s\S]*await establishEverydaySessionAfterFingerprint[\s\S]*revealApp\(\);/u
   );
-  assert.doesNotMatch(appLock, /ownerEverydayAuthorizationId/u);
-  assert.doesNotMatch(appLock, /authorizationId: hasFingerprintGrant/u);
-  assert.match(appLock, /trusted-app-session\.mjs\?v=12/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=12/u);
-  assert.match(html, /service-worker\.js\?v=298/u);
+  assert.match(appLock, /trusted-app-session\.mjs\?v=13/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=13/u);
+  assert.match(html, /service-worker\.js\?v=299/u);
   assert.match(
     serviceWorker,
-    /human-holo-296-pam-registered-device-protected-fingerprint-v7/u
+    /human-holo-296-pam-fingerprint-entry-session-ready-v8/u
   );
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /"medical_data"/u);

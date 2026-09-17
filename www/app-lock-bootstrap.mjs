@@ -1,6 +1,6 @@
 import {
   ensureTrustedAppSession
-} from "./trusted-app-session.mjs?v=12";
+} from "./trusted-app-session.mjs?v=13";
 
 const APP_OWNER_ID = "pam-sol";
 const OWNER_EVERYDAY_ACCESS = "owner_everyday";
@@ -12,7 +12,7 @@ const app = document.getElementById("app");
 let authenticationInProgress = false;
 let unlocked = false;
 let hiddenAtMillis = 0;
-let everydaySessionRefreshPromise = null;
+let everydaySessionUnlockPromise = null;
 
 function securityPlugin() {
   return window.Capacitor?.Plugins?.SolAccessSecurity || null;
@@ -38,11 +38,11 @@ function lockMarkup({
 } = {}) {
   const buttonLabel = needsRegistration
     ? "Gerät einmal sicher registrieren"
-    : "Sichere Verbindung erneut aufbauen";
+    : "Mit Fingerprint öffnen";
   const status = message || (
     needsRegistration
       ? "Vor dem ersten Öffnen wird dieses Gerät fest mit pam-sol verbunden."
-      : "Pam’s Holo öffnet auf Pams registriertem Gerät automatisch."
+      : "Pam’s Holo bleibt verdeckt, bis Pams starker Android-Fingerprint bestätigt wurde."
   );
 
   bootScreen.innerHTML = "";
@@ -74,7 +74,7 @@ function lockMarkup({
   const hint = document.createElement("span");
   hint.className = "solHoloLockHint";
   hint.textContent =
-    "„Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Bilder, Unterlagen, Geschäftliches, medizinische Daten und Systemeinstellungen benötigen Pams Fingerprint. Rohstimme und Fingerabdruckdaten werden nicht gespeichert.";
+    "„Hey Pam“ ist ausschließlich der Weckruf und niemals eine Entsperrung. Vor jeder App-Sichtbarkeit ist Pams starker Android-Fingerprint nötig; Bilder, Unterlagen, Geschäftliches, medizinische Daten und Systemeinstellungen verlangen danach eine eigene neue Freigabe. Rohstimme und Fingerabdruckdaten werden nicht gespeichert.";
 
   bootScreen.append(logo, mission, statusNode, unlockButton, hint);
 }
@@ -97,20 +97,38 @@ function revealApp() {
   app?.removeAttribute("aria-hidden");
 }
 
-function refreshEverydaySessionInBackground() {
-  if (everydaySessionRefreshPromise) {
-    return everydaySessionRefreshPromise;
+function establishEverydaySessionAfterFingerprint({
+  authorizationId = "",
+  authorizationExpiresAtMillis = 0
+} = {}) {
+  if (everydaySessionUnlockPromise) {
+    return everydaySessionUnlockPromise;
   }
-  everydaySessionRefreshPromise = ensureTrustedAppSession({
+  const hasFingerprintGrant =
+    typeof authorizationId === "string" &&
+    authorizationId.length > 0 &&
+    Number(authorizationExpiresAtMillis) > Date.now();
+  everydaySessionUnlockPromise = ensureTrustedAppSession({
     interactive: true,
     accessLevel: OWNER_EVERYDAY_ACCESS,
-    allowBootstrap: false
+    allowBootstrap: false,
+    authorizationId: hasFingerprintGrant ? authorizationId : "",
+    authorizationExpiresAtMillis: hasFingerprintGrant
+      ? Number(authorizationExpiresAtMillis)
+      : 0
   })
-    .catch(() => ({ trusted: false }))
+    .then((session) => {
+      if (session?.trusted !== true) {
+        throw Object.assign(new Error("OWNER_EVERYDAY_SESSION_REQUIRED"), {
+          code: "OWNER_EVERYDAY_SESSION_REQUIRED"
+        });
+      }
+      return session;
+    })
     .finally(() => {
-      everydaySessionRefreshPromise = null;
+      everydaySessionUnlockPromise = null;
     });
-  return everydaySessionRefreshPromise;
+  return everydaySessionUnlockPromise;
 }
 
 function lockAfterBackground() {
@@ -143,11 +161,12 @@ async function authenticateAndReveal({ needsRegistration = false } = {}) {
   }
 
   authenticationInProgress = true;
+  let fingerprintConfirmed = false;
   if (unlockButton) unlockButton.disabled = true;
   if (statusNode) {
     statusNode.textContent = needsRegistration
       ? "Android registriert dieses Gerät jetzt sicher für pam-sol …"
-      : "Pams registriertes Gerät wird lokal geprüft …";
+      : "Pams starker Android-Fingerprint wird lokal geprüft …";
   }
 
   try {
@@ -164,9 +183,52 @@ async function authenticateAndReveal({ needsRegistration = false } = {}) {
       });
     }
 
+    const authorization = await plugin.authorizeAppAccess({
+      ownerId: APP_OWNER_ID,
+      useRegisteredWatch: false
+    });
+    if (
+      authorization?.allowed !== true ||
+      authorization?.ownerId !== APP_OWNER_ID ||
+      authorization?.action !== "unlock_app" ||
+      authorization?.authenticationType !== "system_strong_biometric" ||
+      !authorization?.authorizationId
+    ) {
+      throw Object.assign(new Error("STRONG_BIOMETRIC_REQUIRED"), {
+        code: "STRONG_BIOMETRIC_REQUIRED"
+      });
+    }
+
+    const consumed = await plugin.consumeCriticalAuthorization({
+      ownerId: APP_OWNER_ID,
+      authorizationId: authorization.authorizationId,
+      action: "unlock_app"
+    });
+    if (
+      consumed?.allowed !== true ||
+      consumed?.consumed !== true ||
+      consumed?.ownerId !== APP_OWNER_ID ||
+      consumed?.action !== "unlock_app"
+    ) {
+      throw Object.assign(new Error("APP_ACCESS_GRANT_INVALID"), {
+        code: "APP_ACCESS_GRANT_INVALID"
+      });
+    }
+
+    fingerprintConfirmed = true;
+    if (statusNode) {
+      statusNode.textContent =
+        "Fingerprint bestätigt. Pam’s Holo wird vollständig verbunden …";
+    }
+    await establishEverydaySessionAfterFingerprint({
+      authorizationId:
+        authorization.ownerEverydayAuthorizationId || "",
+      authorizationExpiresAtMillis:
+        authorization.ownerEverydayAuthorizationExpiresAtMillis || 0
+    });
     revealApp();
-    void refreshEverydaySessionInBackground();
   } catch (error) {
+    window.SolHoloTrustedSession?.clear?.();
     const registrationRequired =
       needsRegistration ||
       error?.code === "REGISTERED_DEVICE_REQUIRED";
@@ -174,9 +236,11 @@ async function authenticateAndReveal({ needsRegistration = false } = {}) {
       needsRegistration: registrationRequired,
       message: registrationRequired
         ? error?.code === "BIOMETRIC_PROMPT_START_FAILED"
-          ? "Das Android-Sicherheitsfenster konnte nicht geöffnet werden. Bitte Pam’s Holo vollständig im Vordergrund öffnen und erneut registrieren."
+          ? "Das Android-Fingerprintfenster konnte nicht geöffnet werden. Bitte Pam’s Holo vollständig im Vordergrund öffnen und erneut versuchen."
           : "Dieses Gerät muss zuerst einmal sicher für pam-sol registriert werden."
-        : "Die sichere Verbindung konnte noch nicht aufgebaut werden. Deine persönlichen Inhalte bleiben bis zum erneuten Versuch verdeckt."
+        : fingerprintConfirmed
+          ? "Dein Fingerprint wurde bestätigt, aber die sichere Alltagssitzung ist noch nicht vollständig verbunden. Pam’s Holo bleibt verdeckt; bitte erneut versuchen."
+          : "Nicht entsperrt. Pam’s Holo bleibt bis zu Pams bestätigtem Fingerprint vollständig verdeckt."
     });
   } finally {
     authenticationInProgress = false;
@@ -297,8 +361,7 @@ async function initializeAppLock() {
       showLocked({ needsRegistration: true });
       return;
     }
-    revealApp();
-    void refreshEverydaySessionInBackground();
+    await authenticateAndReveal();
   } catch {
     showLocked({
       message:
@@ -321,7 +384,7 @@ document.addEventListener("visibilitychange", () => {
   ) {
     showLocked({
       message:
-        "Pam’s Holo stellt die sichere Verbindung automatisch wieder her …"
+        "Pam’s Holo ist wieder gesperrt. Pams Fingerprint wird erneut benötigt …"
     });
     void initializeAppLock();
   }

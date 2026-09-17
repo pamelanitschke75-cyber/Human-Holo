@@ -39,16 +39,18 @@ ausdrücklich auch für Steffi. Ein Fingerabdruck oder eine Geräte-PIN darf zwa
 das Telefon im vorgesehenen Notfall entsperren, aber niemals allein Pam’s Holo
 oder eine private medizinische Sitzung öffnen.
 
-Der aktuelle App-Pfad öffnet die normale private Nutzung auf dem für `pam-sol`
-registrierten Android-Gerät nach der lokalen Geräteprüfung direkt. „Hey Pam“
-ist ausschließlich der Weckruf und keine Entsperrung. Die kurzlebige,
-kryptografisch signierte Online-Sitzung wird getrennt aufgebaut; ein
-vorübergehender Netz- oder Serverausfall sperrt die lokale App-Oberfläche
-nicht. Ein Fingerprint wird für ein allgemeines medizinisches Gespräch
-innerhalb des privaten Testumfangs nicht verlangt.
+Vor jeder App-Sichtbarkeit verlangt Pam’s Holo auf dem für `pam-sol`
+registrierten Android-Gerät eine frische starke Android-Biometrie ohne
+Geräte-PIN-Fallback. „Hey Pam“ ist ausschließlich der Weckruf und niemals
+Entsperrung oder Ersatz für den Fingerprint. Erst wenn nach dem Fingerprint auch
+die kurzlebige kryptografisch signierte Alltagssitzung vollständig bereitsteht,
+wird die App sichtbar; eine sichtbare, aber funktionslose Oberfläche ist kein
+zulässiger Zustand.
 
-Medikamentenbilder, der tatsächliche Abruf von Health-Connect-Daten sowie
-medizinische Berechtigungs- und Systemeinstellungen verlangen zusätzlich Pams
+Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs
+verlangt nach dem App-Eingang keinen zweiten Fingerprint. Medikamentenbilder,
+der tatsächliche Abruf von Health-Connect-Daten sowie medizinische
+Berechtigungs- und Systemeinstellungen verlangen zusätzlich einen neuen
 starken Android-Fingerprint ohne Geräte-PIN-Fallback. Diese geschützte Sitzung
 hebt weder die Einzelfreigabe für das konkrete Medikamentenbild noch eine
 medizinische Grenze auf.
@@ -77,8 +79,8 @@ gespeichert. ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto.
 
 Der geheime Wert darf weder in dieses Dokument noch in Quellcode, Issues,
 Protokolle oder Screenshots aufgenommen werden. Cloudflare ist ein äußerer
-Ursprungsschutz und ersetzt nicht die personenbezogene App- und
-Sitzungsfreigabe.
+Ursprungsschutz und ersetzt weder die lokale Fingerprint-Eingangssperre noch
+die personenbezogene App- und Sitzungsfreigabe.
 
 ## Technische Auslieferungsgrenze
 
@@ -95,7 +97,7 @@ medizinische Freigabemarkierung.
 - Weckruf und Sprecherzuordnung: `android-native/SolSpeakerIdentityPlugin.java`
 - App-, Fingerprint- und Gerätebindung:
   `android-native/SolAccessSecurityPlugin.java`
-- sichtbare App-Grenze: `www/app-lock-bootstrap.mjs`
+- sichtbare Eingangssperre: `www/app-lock-bootstrap.mjs`
 - privater Build-Schritt: `scripts/install-private-pam-medical.mjs`
 - Build-Grenze: `.github/workflows/android-build.yml`
 

@@ -15,21 +15,28 @@ begründen weder Mitinhaberschaft noch persönlichen Zugang.
 
 „Hey Pam“ ist ausschließlich der Weckruf: Er kann Pam Holo wecken und das
 Zuhören starten, ist aber weder Passwort noch Entsperrung. Das lokale
-Stimmprofil schützt den Weckruf und die Sprecherzuordnung; es sperrt Pam nicht
-aus ihrer App aus.
+Stimmprofil schützt Weckruf und Sprecherzuordnung; es kann die
+Fingerprint-Eingangssperre niemals ersetzen.
 
-Auf Pams für `pam-sol` registriertem Android-Gerät wird die normale
-App-Oberfläche nach der lokalen Geräteprüfung direkt geöffnet. Dafür werden
-**weder ein Prüfsatz noch ein Fingerprint** verlangt. Auch eine vorübergehend
-nicht erreichbare Online-Sitzung darf die lokale Oberfläche nicht sperren.
-Eine kurzlebige, gerätegebundene Online-Sitzung wird getrennt im Hintergrund
-aufgebaut, sobald der geschützte Serverweg erreichbar ist.
+Bevor irgendein Teil der App-Oberfläche sichtbar wird, müssen drei Bedingungen
+erfüllt sein:
 
-Ein Fingerprint wird erst verlangt, wenn Pam einen besonders geschützten
-Bereich verwendet. Alltagssitzung und geschützte Sitzung sind technisch
-getrennt. Beim Verlassen der App werden beide wieder verworfen.
+1. Die App-Installation ist mit dem hardwaregeschützten Geräteschlüssel fest an
+   `pam-sol` gebunden.
+2. Android bestätigt frisch eine starke Biometrie. Für diesen App-Eingang ist
+   kein Geräte-PIN-, Muster- oder Passwort-Fallback zugelassen.
+3. Die gerätegebundene Alltagssitzung wurde vollständig bestätigt, damit Chat,
+   Sprache, Erinnerungen und Dienste beim Öffnen wirklich funktionieren.
 
-## Auf Pams registriertem Gerät offen
+Die lokale Fingerprintfreigabe wird als kurzlebige Einmalberechtigung vor dem
+Sichtbarmachen verbraucht. Aus derselben erfolgreichen Prüfung entsteht eine
+getrennte Einmalberechtigung für die Online-Alltagssitzung. Schlägt deren Aufbau
+fehl, bleibt Pam’s Holo verdeckt und bietet einen neuen Versuch an; eine
+sichtbare, aber funktionslose Oberfläche ist ausdrücklich unzulässig. Beim
+Verlassen der App werden beide Sitzungen verworfen, und beim Zurückkehren ist
+Pams Fingerprint erneut erforderlich.
+
+## Nach erfolgreichem Fingerprint im Alltag
 
 Zur normalen Alltagsnutzung gehören insbesondere:
 
@@ -54,10 +61,11 @@ Eine WhatsApp-Nachricht behält ihre vorhandene sichtbare Bestätigung von
 Empfänger und Inhalt. Diese inhaltliche Bestätigung ist kein Fingerprint und
 wird durch die Zugriffsregel weder entfernt noch ersetzt.
 
-## Nur nach Fingerprint
+## Zusätzlich neuer Fingerprint für geschützte Inhalte
 
-Vor dem Öffnen, Übertragen, Auswerten, Speichern oder Verändern der folgenden
-Inhalte ist Pams gesonderte Fingerprintfreigabe erforderlich:
+Nach dem App-Eingang ist vor dem Öffnen, Übertragen, Auswerten, Speichern oder
+Verändern der folgenden Inhalte eine eigene neue Fingerprintfreigabe
+erforderlich:
 
 - Bilder und Fotos,
 - Videos,
@@ -75,17 +83,17 @@ Beispiele für geschäftliche Angelegenheiten sind geschäftliche Nachrichten un
 E-Mails, Verträge, Rechnungen, Angebote, Arbeitsdateien oder Handlungen mit
 geschäftlicher Außenwirkung. Auch diese Beispiele sind nicht abschließend.
 
-Eine reine Text-WhatsApp gehört zur normalen Alltagsnutzung. Sobald ein Bild,
-Video, Dokument oder anderer geschützter Anhang verwendet wird, gilt die
-Fingerprint-Stufe. Für den Fotoversand lautet die Reihenfolge verbindlich:
-Foto auswählen, Fingerprint bestätigen, ausschließlich über den geschützten
-Cloudflare-Weg senden.
+Eine reine Text-WhatsApp gehört nach dem App-Eingang zur normalen
+Alltagsnutzung. Sobald ein Bild, Video, Dokument oder anderer geschützter
+Anhang verwendet wird, gilt die zusätzliche Fingerprint-Stufe. Für den
+Fotoversand lautet die Reihenfolge verbindlich: Foto auswählen, Fingerprint
+bestätigen, ausschließlich über den geschützten Cloudflare-Weg senden.
 
 Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs kann
-auf Pams registriertem Gerät stattfinden. Ein Medikamentenfoto, der tatsächliche
-Health-Connect-Datenabruf und jede Änderung medizinischer Berechtigungen bleiben
-zusätzlich fingerprintgeschützt. Die Einzelfreigabe für das konkrete
-Medikamentenbild bleibt daneben bestehen.
+nach dem Fingerprint-App-Eingang stattfinden. Ein Medikamentenfoto, der
+tatsächliche Health-Connect-Datenabruf und jede Änderung medizinischer
+Berechtigungen bleiben zusätzlich fingerprintgeschützt. Die Einzelfreigabe für
+das konkrete Medikamentenbild bleibt daneben bestehen.
 
 ## Fortgeltende Sicherheitsgrenzen
 
@@ -94,11 +102,8 @@ Medikamentenbild bleibt daneben bestehen.
   Zugangsvoraussetzung und keine fachliche Freigabe.
 - Sicherheitskritische Außenhandlungen behalten ihre eigenen sichtbaren
   Bestätigungen.
-- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten Gerät
-  direkt. Ein Fingerprint ist keine Identitätsumschaltung und bleibt nur die
-  zusätzliche Freigabe für die ausdrücklich geschützten Bereiche.
-- Android liefert der App keine Fingerabdruckdaten. Für den geschützten Bereich
-  fordert die App starke Android-Biometrie ohne Geräte-PIN-Fallback an.
+- Android liefert der App keine Fingerabdruckdaten. App-Eingang und geschützte
+  Bereiche fordern starke Android-Biometrie ohne Geräte-PIN-Fallback an.
 - Eine spätere NFC-Uhr darf den persönlichen Faktor nur nach echter
   kryptografischer Registrierung, bewusster Bestätigung und bestandenem
   Endgerätetest ergänzen. Ein einfacher NFC-Tag genügt niemals.
@@ -121,10 +126,9 @@ Freigaben bleiben bis zur dokumentierten anwaltlichen Prüfung geschlossen.
 - Fingerprint- und Geräteschutz: `android-native/SolAccessSecurityPlugin.java`
 - App-Sitzungen: `modules/trusted-app-session.mjs` und
   `www/trusted-app-session.mjs`
-- App-Grenze: `www/app-lock-bootstrap.mjs` – Pams registriertes Gerät öffnet
-  den Alltag lokal; „Hey Pam“ bleibt ausschließlich der Weckruf. Eine
-  vorübergehend nicht erreichbare Online-Sitzung sperrt die App-Oberfläche
-  nicht erneut.
+- App-Grenze: `www/app-lock-bootstrap.mjs` – erst registriertes Gerät plus
+  frische starke Android-Biometrie und vollständig bestätigte Alltagssitzung,
+  dann Sichtbarkeit; „Hey Pam“ bleibt ausschließlich der Weckruf.
 - automatisierte Nachweise: `tests/pam-holo-access-policy.test.mjs` und
   `tests/identity-ui-separation.test.mjs`
 
