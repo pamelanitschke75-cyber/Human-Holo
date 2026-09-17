@@ -32,7 +32,7 @@ test("sichtbare Pflichtangaben und Schutzgrenzen sind vollständig", () => {
 
 test("neue UI-Assets erhalten eigene Cache-Versionen", () => {
   assert.match(html, /sol-holo-ui\.css\?v=55/u);
-  assert.match(html, /sol-holo-ui\.js\?v=89/u);
+  assert.match(html, /sol-holo-ui\.js\?v=90/u);
 });
 
 test("derselbe dauerhafte Build liefert APK und signiertes Google-Play-Bundle", () => {

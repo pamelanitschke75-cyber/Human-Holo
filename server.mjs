@@ -142,6 +142,10 @@ import {
   pamHoloPracticalJudgmentInstructions
 } from "./modules/pam-holo-practical-judgment.mjs";
 import {
+  isPamHoloThinkingMemoryEnabled,
+  pamHoloThinkingMemoryInstructions
+} from "./modules/pam-holo-thinking-memory.mjs";
+import {
   createAnimalProfilePhotoStore
 } from "./modules/animal-profile-photo-store.mjs";
 import {
@@ -8347,6 +8351,16 @@ const MEMORY_SEARCH_TERM_ALIASES =
       ]
     ],
     [
+      "offen",
+      [
+        "später",
+        "noch klären",
+        "weiter",
+        "unerledigt",
+        "ausstehend"
+      ]
+    ],
+    [
       "saugroboter",
       [
         "staubsaugerroboter",
@@ -8890,7 +8904,10 @@ async function searchPersonalMemory(
 
 function formatPersonalMemoryRows(
   rows,
-  displayName = "Pam"
+  displayName = "Pam",
+  {
+    includeTimestamp = false
+  } = {}
 ) {
   return rows
     .map((memory) => {
@@ -8901,7 +8918,26 @@ function formatPersonalMemoryRows(
             ? "Pam’s Holo"
             : "Dauerhafte Erinnerung";
 
-      return `${speaker}: ${memory.content}`;
+      const createdAt =
+        new Date(
+          memory?.created_at ||
+          memory?.confirmed_at ||
+          ""
+        );
+      const timestamp =
+        includeTimestamp &&
+        !Number.isNaN(createdAt.getTime())
+          ? ` · ${new Intl.DateTimeFormat(
+              "de-DE",
+              {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Europe/Berlin"
+              }
+            ).format(createdAt)}`
+          : "";
+
+      return `${speaker}${timestamp}: ${memory.content}`;
     })
     .join("\n");
 }
@@ -9251,7 +9287,13 @@ async function buildPersonalRecallResult(
               ...legacyMemories,
               ...legacyLongTermMemories
             ],
-            identity.displayName
+            identity.displayName,
+            {
+              includeTimestamp:
+                isPamHoloThinkingMemoryEnabled(
+                  identity
+                )
+            }
           ),
           assistantHistory.length > 0
             ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
@@ -10016,7 +10058,13 @@ app.post(
                   ...legacyMemories,
                   ...legacyLongTermMemories
                 ],
-                tokenIdentity.displayName
+                tokenIdentity.displayName,
+                {
+                  includeTimestamp:
+                    isPamHoloThinkingMemoryEnabled(
+                      tokenIdentity
+                    )
+                }
               ),
               assistantHistory.length > 0
                 ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
@@ -10993,6 +11041,8 @@ ${childSafetyPriorityInstructions()}
 ${personalCloneIdentityInstructions(identity)}
 
 ${pamHoloPracticalJudgmentInstructions(identity)}
+
+${pamHoloThinkingMemoryInstructions(identity)}
 
 ${pamHoloAccessBoundaryInstructions()}
 
@@ -13989,7 +14039,13 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
                   ...legacyMemories,
                   ...legacyLongTermMemories
                 ],
-                identity.displayName
+                identity.displayName,
+                {
+                  includeTimestamp:
+                    isPamHoloThinkingMemoryEnabled(
+                      identity
+                    )
+                }
               ),
               assistantHistory.length > 0
                 ? `Frühere Holo-Antworten (nur als Gesprächsverlauf, nicht als bestätigte persönliche Fakten):\n${formatAssistantConversationRows(
@@ -14137,6 +14193,8 @@ ${identity.displayName} spricht mit dir.
 ${personalCloneIdentityInstructions(identity)}
 
 ${pamHoloPracticalJudgmentInstructions(identity)}
+
+${pamHoloThinkingMemoryInstructions(identity)}
 
 ${pamHoloAccessBoundaryInstructions()}
 
