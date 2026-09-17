@@ -160,6 +160,19 @@ test("persönliche Sprachfragen laden das Vollzeitgedächtnis verbindlich", () =
       "staubsauger"
     ]
   );
+  assert.deepEqual(
+    termExtractor("Was haben wir zuletzt noch offen gelassen?"),
+    [
+      "zuletzt",
+      "offen",
+      "gelassen",
+      "später",
+      "noch klären",
+      "weiter",
+      "unerledigt",
+      "ausstehend"
+    ]
+  );
   assert.equal(clientDetector("Wie ist das Wetter in München?"), "");
   assert.equal(
     serverDetector("Was hast du uns gestern zum Essen empfohlen?"),

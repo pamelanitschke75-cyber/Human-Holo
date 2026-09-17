@@ -238,6 +238,16 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         </span>
         <span class="rowChevron">›</span>
       </button>
+      <button id="thinkingMemoryRow" class="actionRow thinkingMemoryRow"
+        type="button"
+        data-sol-prompt="Was haben wir zuletzt noch offen gelassen? Nutze nur meine belegten Erinnerungen und frage nach, wenn der Bezug nicht eindeutig ist.">
+        <span class="rowIcon memoryRowIcon" aria-hidden="true">✧</span>
+        <span class="rowText">
+          <span class="rowTitle">Mitdenkendes Gedächtnis</span>
+          <span class="rowMeta">Zusammenhänge, Wahrnehmungen, Gefühle und Empfindungen</span>
+        </span>
+        <span class="rowChevron">›</span>
+      </button>
     `
   );
 
@@ -1798,7 +1808,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
     if (memoryCopy) {
       memoryCopy.textContent = identity
-        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Foto, Video, Live-Bild, Gebärdensprache, gesprochene Sprache und Text können dabei als ein zusammengehöriges Ereignis erinnert werden. Die Bild-, Video- und Audiodateien selbst werden nicht in diesem Gedächtnis gespeichert, sondern nur die jeweilige Medienart, der Gesprächszusammenhang und Holos klar gekennzeichnete Beschreibung. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
+        ? `${instanceName}s Vollzeitgedächtnis ist immer aktiv: Deine Nachrichten und Holos Antworten werden bei Text und Sprache Wort für Wort ownergebunden gespeichert. Das mitdenkende Gedächtnis verbindet im Gespräch belegte Zusammenhänge, erkennt Korrekturen, passende offene Themen und die naheliegende emotionale Bedeutung von Erlebnissen. Es spricht Gefühle, Wahrnehmungen und Empfindungen vorsichtig an. Bei unsicheren Anzeichen fragt Holo nach, statt einen inneren Zustand zu behaupten; es handelt niemals eigenmächtig. Foto, Video, Live-Bild, Gebärdensprache, gesprochene Sprache und Text können dabei als ein zusammengehöriges Ereignis erinnert werden. Die Bild-, Video- und Audiodateien selbst werden nicht in diesem Gedächtnis gespeichert, sondern nur die jeweilige Medienart, der Gesprächszusammenhang und Holos klar gekennzeichnete Beschreibung. Bestätigte Erinnerungen bleiben bei allen künftigen App-, Design-, Namens-, Funktions- und Datenbankänderungen erhalten; eine andere Person kann sie niemals laden.`
         : "Die feste Holo-ID ist nicht verfügbar. Das Gedächtnis bleibt gesperrt.";
     }
 
