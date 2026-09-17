@@ -252,4 +252,10 @@ test("Pam-Holo-Clients und OAuth-Callbacks verwenden ausschließlich den Türste
     server,
     /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev\/auth\/smartthings\/callback/u
   );
+  assert.match(server, /function protectedOAuthRedirectUri/u);
+  assert.match(server, /PAM_HOLO_ORIGIN_SECRET_REQUIRED/u);
+  assert.match(
+    server,
+    /originGuardRequired[\s\S]*?PAM_HOLO_RENDER_ORIGIN[\s\S]*?return edgeRedirect/u
+  );
 });
