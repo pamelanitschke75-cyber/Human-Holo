@@ -12,6 +12,9 @@ const network = readText("www/pam-holo-network-resilience.js");
 const serviceWorker = readText("www/service-worker.js");
 const ui = readText("www/sol-holo-ui.js");
 const webUi = readText("sol-holo-ui.js");
+const trustedSession = readText("www/trusted-app-session.mjs");
+const animalHolos = readText("www/human-holo-animal-holos.mjs");
+const backup = readText("www/sol-holo-backup.mjs");
 const server = readText("server.mjs");
 const documentation = readText(
   "PAM-HOLO-NETZWERK-RENDER-OPENAI-ABSICHERUNG-17-09-2026.md"
@@ -41,7 +44,7 @@ function installNetworkHelper(fetchImplementation, online = true) {
 
 test("die echte Pam-Holo-App nutzt Cloudflare statt eines direkten Render-Ursprungs", () => {
   const helperScriptIndex = html.indexOf(
-    '<script src="./pam-holo-network-resilience.js?v=1"></script>'
+    '<script src="./pam-holo-network-resilience.js?v=2"></script>'
   );
   const backendSelectionIndex = html.indexOf("const BACKEND_URL =");
 
@@ -55,7 +58,13 @@ test("die echte Pam-Holo-App nutzt Cloudflare statt eines direkten Render-Urspru
   assert.doesNotMatch(html, /https:\/\/sol-holo\.onrender\.com/u);
   assert.doesNotMatch(ui, /https:\/\/sol-holo\.onrender\.com/u);
   assert.doesNotMatch(webUi, /https:\/\/sol-holo\.onrender\.com/u);
+  assert.doesNotMatch(trustedSession, /https:\/\/sol-holo\.onrender\.com/u);
+  assert.doesNotMatch(animalHolos, /https:\/\/sol-holo\.onrender\.com/u);
+  assert.doesNotMatch(backup, /https:\/\/sol-holo\.onrender\.com/u);
   assert.match(html, /pamHoloFetch\(\s*`\$\{BACKEND_URL\}\/sol`/u);
+  assert.match(trustedSession, /PamHoloNetwork\?\.apiRequest/u);
+  assert.match(animalHolos, /PamHoloNetwork\?\.apiRequest/u);
+  assert.match(backup, /PamHoloNetwork\?\.apiRequest/u);
   assert.match(webHtml, /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev/u);
   assert.match(webHtml, /data\?\.message \|\|\s*\n\s*data\?\.error/u);
 });
@@ -81,6 +90,33 @@ test("schreibende Anfragen werden bei Verbindungsfehlern niemals automatisch wie
   assert.equal(attempts, 1);
   assert.match(network, /method === "GET" \|\| method === "HEAD"/u);
   assert.match(network, /: 1;/u);
+});
+
+test("geschützte Sitzungs- und Medienpfade bleiben am Cloudflare-Türsteher", () => {
+  const helper = installNetworkHelper(async () =>
+    new Response("{}", { status: 200 })
+  );
+
+  assert.equal(
+    helper.apiEndpoint("/app-session/challenge"),
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/app-session/challenge"
+  );
+  assert.equal(
+    helper.apiEndpoint("/animal-holos/profile-photo/save"),
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/animal-holos/profile-photo/save"
+  );
+  assert.throws(
+    () => helper.apiEndpoint("//example.invalid/steal"),
+    error => error?.code === "PAM_HOLO_API_PATH_INVALID"
+  );
+  assert.throws(
+    () => helper.apiEndpoint("/app-session/../steal"),
+    error => error?.code === "PAM_HOLO_API_PATH_INVALID"
+  );
+  assert.throws(
+    () => helper.apiEndpoint("/app-session/%2e%2e/steal"),
+    error => error?.code === "PAM_HOLO_API_PATH_INVALID"
+  );
 });
 
 test("offline bleibt der Entwurf sicher und die Zustellung gilt nicht als erfolgt", async () => {

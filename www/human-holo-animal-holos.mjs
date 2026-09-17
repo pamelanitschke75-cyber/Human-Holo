@@ -20,7 +20,6 @@ import {
   serializeAnimalHoloState
 } from "./human-holo-animal-core.mjs";
 
-const BACKEND_URL = "https://sol-holo.onrender.com";
 const PENDING_CONVERSATION_TTL_MS = 30 * 60 * 1000;
 const PENDING_CONVERSATION_STORAGE_PREFIX =
   "human-holo-animal-conversation-pending-v1";
@@ -92,6 +91,16 @@ let restoringObservations = false;
 let photoInputProfileId = "";
 let photoRenderRevision = 0;
 let moreProfilesOpen = false;
+
+async function pamHoloApiRequest(path, init) {
+  const request = window.PamHoloNetwork?.apiRequest;
+  if (typeof request !== "function") {
+    throw new Error(
+      "Der geschützte Pam-Holo-Türsteher ist nicht verfügbar."
+    );
+  }
+  return request(path, init);
+}
 
 function currentIdentity() {
   return window.SolHoloIdentity?.selected?.() || null;
@@ -674,7 +683,7 @@ async function savePhotoRemotely(record) {
   if (!(await ensureTrustedSession("protected_media_documents_settings"))) {
     return false;
   }
-  const response = await fetch(BACKEND_URL + "/animal-holos/profile-photo/save", {
+  const response = await pamHoloApiRequest("/animal-holos/profile-photo/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -760,7 +769,7 @@ async function fetchRemotePhoto(profileId) {
   ) {
     return null;
   }
-  const response = await fetch(BACKEND_URL + "/animal-holos/profile-photo/get", {
+  const response = await pamHoloApiRequest("/animal-holos/profile-photo/get", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -837,7 +846,7 @@ async function restoreRemoteObservations() {
     loadState();
     const identity = currentIdentity();
     if (!identity || !(await ensureTrustedSession())) return 0;
-    const response = await fetch(BACKEND_URL + "/animal-holos/observations", {
+    const response = await pamHoloApiRequest("/animal-holos/observations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1321,7 +1330,7 @@ async function syncObservation(profile, observation) {
   }
   if (!trusted?.trusted) return false;
 
-  const response = await fetch(BACKEND_URL + "/fulltime/history/append", {
+  const response = await pamHoloApiRequest("/fulltime/history/append", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

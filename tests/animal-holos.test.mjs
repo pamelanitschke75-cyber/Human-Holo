@@ -429,8 +429,8 @@ test("Tier-Holos sind in App, Vollzeitgedächtnis und Android-Build verdrahtet",
     readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
   ]);
 
-  assert.match(html, /human-holo-animal-holos\.mjs\?v=7/u);
-  assert.match(html, /sol-holo-backup\.mjs\?v=5/u);
+  assert.match(html, /human-holo-animal-holos\.mjs\?v=8/u);
+  assert.match(html, /sol-holo-backup\.mjs\?v=6/u);
   assert.match(html, /captureConversationProposal/u);
   assert.match(ui, /LOKALES_TIER_HOLO_ERGEBNIS/u);
   assert.match(ui, /Erinnerungen.*Tier-Holos|Tier-Holos 🐾💚/su);

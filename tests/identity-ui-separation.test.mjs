@@ -90,7 +90,7 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=7/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=8/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /OWNER_EVERYDAY_ACCESS/u);

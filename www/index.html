@@ -2517,7 +2517,7 @@ Schreiben bereit.
 <script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=3"></script>
 <script src="./media-tools.js"></script>
-<script src="./pam-holo-network-resilience.js?v=1"></script>
+<script src="./pam-holo-network-resilience.js?v=2"></script>
 <script>
 
 const BACKEND_URL =
@@ -2681,6 +2681,9 @@ const liveCameraPreview =
 
 const liveCameraStatus =
   document.getElementById("liveCameraStatus");
+
+const liveCameraBadge =
+  document.getElementById("liveCameraBadge");
 
 const switchLiveCameraButton =
   document.getElementById(
@@ -3689,6 +3692,12 @@ let liveCameraGeneration =
 
 let liveCameraSignCaptureActive =
   false;
+
+let liveCameraFacePrivacy =
+  null;
+
+let liveCameraFacePrivacyPromise =
+  null;
 
 let pendingSignLanguageSelection =
   false;
@@ -13175,6 +13184,193 @@ function liveCameraFacingLabel(){
 }
 
 
+function liveCameraEnvironmentPrivacyRequired(){
+
+  const actualFacingMode =
+    String(
+      liveCameraStream
+        ?.getVideoTracks?.()[0]
+        ?.getSettings?.()
+        ?.facingMode ||
+      ""
+    ).toLowerCase();
+
+
+  return actualFacingMode ===
+      "environment" ||
+    liveCameraFacingMode ===
+      "environment";
+}
+
+
+function liveCameraFacePrivacyError(
+  cause
+){
+
+  const error =
+    new Error(
+      "Die Umgebungskamera wurde gestoppt, weil Gesichter nicht sicher lokal verpixelt werden konnten. Es wurde kein ungeschütztes Live-Bild übertragen.",
+      cause
+        ? { cause }
+        : undefined
+    );
+
+
+  error.code =
+    "PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED";
+
+
+  return error;
+}
+
+
+async function requireLiveCameraFacePrivacy(){
+
+  if(
+    liveCameraFacePrivacy
+  ){
+
+    return liveCameraFacePrivacy;
+  }
+
+
+  if(
+    liveCameraFacePrivacyPromise
+  ){
+
+    return liveCameraFacePrivacyPromise;
+  }
+
+
+  liveCameraFacePrivacyPromise =
+    (async () => {
+
+      try{
+
+        const {
+          createPamHoloLiveCameraFacePrivacy
+        } =
+          await import(
+            "./live-camera-face-privacy.mjs?v=1"
+          );
+
+
+        const privacy =
+          createPamHoloLiveCameraFacePrivacy({
+            maximumFaces:12
+          });
+
+
+        await privacy.initialize();
+
+
+        liveCameraFacePrivacy =
+          privacy;
+
+
+        return privacy;
+
+      }catch(
+        error
+      ){
+
+        throw liveCameraFacePrivacyError(
+          error
+        );
+
+      }finally{
+
+        liveCameraFacePrivacyPromise =
+          null;
+      }
+    })();
+
+
+  return liveCameraFacePrivacyPromise;
+}
+
+
+async function protectLiveCameraCanvas(
+  canvas
+){
+
+  if(
+    !liveCameraEnvironmentPrivacyRequired()
+  ){
+
+    return {
+      protected:false,
+      faceCount:0
+    };
+  }
+
+
+  try{
+
+    const privacy =
+      await requireLiveCameraFacePrivacy();
+
+
+    const result =
+      await privacy.protectCanvas(
+        canvas
+      );
+
+
+    return result;
+
+  }catch(
+    error
+  ){
+
+    if(
+      error?.code ===
+        "PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED"
+    ){
+
+      throw error;
+    }
+
+
+    throw liveCameraFacePrivacyError(
+      error
+    );
+  }
+}
+
+
+function stopLiveCameraForFacePrivacy(
+  error
+){
+
+  console.error(
+    "Live-Kamera-Gesichtsschutz:",
+    error?.code ||
+    error?.name ||
+    "Fehler"
+  );
+
+
+  stopLiveCamera({
+    notifyModel:true
+  });
+
+
+  const safeMessage =
+    error?.message ||
+    "Die Umgebungskamera wurde zum Schutz anderer Personen gestoppt.";
+
+
+  liveCameraStatus.textContent =
+    safeMessage;
+
+
+  setLiveStatus(
+    safeMessage
+  );
+}
+
+
 function renderLiveCameraUi(
   active,
   status = ""
@@ -13194,6 +13390,17 @@ function renderLiveCameraUi(
     liveCameraFacingMode ===
       "user"
   );
+
+
+  if(
+    liveCameraBadge
+  ){
+
+    liveCameraBadge.textContent =
+      liveCameraEnvironmentPrivacyRequired()
+        ? "LIVE · GESICHTER LOKAL VERPIXELT"
+        : "LIVE AN HOLO";
+  }
 
 
   liveCameraButton.classList.toggle(
@@ -13238,7 +13445,9 @@ function renderLiveCameraUi(
   ){
 
     liveCameraStatus.textContent =
-      `${liveCameraFacingLabel()} · Bilder werden nur während dieses Live-Modus gesendet.`;
+      liveCameraEnvironmentPrivacyRequired()
+        ? `${liveCameraFacingLabel()} · erkannte Gesichter werden vor jeder Übertragung lokal verpixelt.`
+        : `${liveCameraFacingLabel()} · Bilder werden nur während dieses Live-Modus gesendet.`;
   }
 }
 
@@ -13317,7 +13526,7 @@ function announceLiveCameraToRealtime(
   const announced =
     sendLiveCameraMarker(
       channel,
-      "[LIVE_KAMERA_START] Pam hat die Live-Kamera jetzt ausdrücklich eingeschaltet. Die folgenden Bilder sind zeitlich geordnete aktuelle Kamerablicke. Nutze jeweils das neueste Bild als visuellen Kontext für Pams nächsten gesprochenen Beitrag. Antworte nicht allein wegen eines Kamerabildes und behandle die Einzelbilder nicht als lückenloses Video."
+      `[LIVE_KAMERA_START] Pam hat die Live-Kamera jetzt ausdrücklich eingeschaltet. Die folgenden Bilder sind zeitlich geordnete aktuelle Kamerablicke. Nutze jeweils das neueste Bild als visuellen Kontext für Pams nächsten gesprochenen Beitrag. Antworte nicht allein wegen eines Kamerabildes und behandle die Einzelbilder nicht als lückenloses Video.${liveCameraEnvironmentPrivacyRequired() ? " Erkannte Gesichter in der Umgebung werden bereits lokal auf Pams Gerät verpixelt; versuche niemals, Personen daraus zu identifizieren oder die Verpixelung zu umgehen." : ""}`
     );
 
 
@@ -13334,7 +13543,7 @@ function announceLiveCameraToRealtime(
 }
 
 
-function captureCurrentLiveCameraImage(
+async function captureCurrentLiveCameraImage(
   maximumDataUrlLength =
     LIVE_CAMERA_MAX_DATA_URL_CHARS
 ){
@@ -13432,6 +13641,11 @@ function captureCurrentLiveCameraImage(
       0,
       targetWidth,
       targetHeight
+    );
+
+
+    await protectLiveCameraCanvas(
+      canvas
     );
 
 
@@ -13572,7 +13786,7 @@ async function captureSignLanguageSequenceImages(
 
 
     const imageDataUrl =
-      captureCurrentLiveCameraImage(
+      await captureCurrentLiveCameraImage(
         liveCameraDataUrlLimit(
           SIGN_LANGUAGE_MAX_DATA_URL_CHARS
         )
@@ -13807,6 +14021,19 @@ async function sendSignLanguageSequence(
     error
   ){
 
+    if(
+      error?.code ===
+        "PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED"
+    ){
+
+      stopLiveCameraForFacePrivacy(
+        error
+      );
+
+
+      return false;
+    }
+
     console.error(
       "Gebärdensprachsequenz:",
       error
@@ -13882,10 +14109,37 @@ async function sendCurrentLiveCameraFrame({
   const maximumDataUrlLength =
     liveCameraDataUrlLimit();
 
-  const imageDataUrl =
-    captureCurrentLiveCameraImage(
-      maximumDataUrlLength
-    );
+  let imageDataUrl =
+    "";
+
+
+  try{
+
+    imageDataUrl =
+      await captureCurrentLiveCameraImage(
+        maximumDataUrlLength
+      );
+
+  }catch(
+    error
+  ){
+
+    if(
+      error?.code ===
+        "PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED"
+    ){
+
+      stopLiveCameraForFacePrivacy(
+        error
+      );
+
+
+      return false;
+    }
+
+
+    throw error;
+  }
 
 
   if(
@@ -13908,8 +14162,8 @@ async function sendCurrentLiveCameraFrame({
   const frameText =
     reason ===
       "voice_turn"
-      ? `[LIVE_KAMERABILD ${sequence}] Dieses aktuelle Bild gehört als visueller Kontext zu Pams unmittelbar vorausgehendem gesprochenen Beitrag. Beantworte den Sprachbeitrag mithilfe dieses Bildes. Das Bild allein verlangt keine zusätzliche Antwort.`
-      : `[LIVE_KAMERABILD ${sequence}] Aktueller Kamerablick aus dem von Pam ausdrücklich gestarteten Live-Modus. Nutze ihn als visuellen Kontext für den nächsten gesprochenen Beitrag. Antworte jetzt nicht allein auf dieses Bild.`;
+      ? `[LIVE_KAMERABILD ${sequence}] Dieses aktuelle Bild gehört als visueller Kontext zu Pams unmittelbar vorausgehendem gesprochenen Beitrag. Beantworte den Sprachbeitrag mithilfe dieses Bildes. Das Bild allein verlangt keine zusätzliche Antwort.${liveCameraEnvironmentPrivacyRequired() ? " Erkannte Umgebungsgesichter wurden vor der Übertragung lokal verpixelt." : ""}`
+      : `[LIVE_KAMERABILD ${sequence}] Aktueller Kamerablick aus dem von Pam ausdrücklich gestarteten Live-Modus. Nutze ihn als visuellen Kontext für den nächsten gesprochenen Beitrag. Antworte jetzt nicht allein auf dieses Bild.${liveCameraEnvironmentPrivacyRequired() ? " Erkannte Umgebungsgesichter wurden vor der Übertragung lokal verpixelt." : ""}`;
 
 
   try{
@@ -13950,7 +14204,9 @@ async function sendCurrentLiveCameraFrame({
 
 
     liveCameraStatus.textContent =
-      `${liveCameraFacingLabel()} · aktuelles Bild ${sequence} an Pam’s Holo gesendet.`;
+      liveCameraEnvironmentPrivacyRequired()
+        ? `${liveCameraFacingLabel()} · Bild ${sequence} mit lokalem Gesichtsschutz gesendet.`
+        : `${liveCameraFacingLabel()} · aktuelles Bild ${sequence} an Pam’s Holo gesendet.`;
 
 
     return true;
@@ -14315,6 +14571,20 @@ async function startLiveCamera(){
     }
 
 
+    if(
+      liveCameraEnvironmentPrivacyRequired()
+    ){
+
+      renderLiveCameraUi(
+        false,
+        "Rückkamera · lokaler Gesichtsschutz wird geladen …"
+      );
+
+
+      await requireLiveCameraFacePrivacy();
+    }
+
+
     liveCameraStarting =
       false;
 
@@ -14340,6 +14610,14 @@ async function startLiveCamera(){
       force:true,
       reason:"start"
     });
+
+
+    if(
+      !liveCameraIsActive()
+    ){
+
+      return;
+    }
 
 
     liveCameraTimer =
@@ -14376,7 +14654,10 @@ async function startLiveCamera(){
 
 
     setLiveStatus(
-      errorName ===
+      error?.code ===
+        "PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED"
+        ? error.message
+        : errorName ===
         "NotAllowedError"
         ? "Kamerazugriff wurde nicht freigegeben. Das Gespräch läuft ohne Live-Bild weiter."
         : "Die Live-Kamera konnte nicht gestartet werden. Das Gespräch läuft weiter."
@@ -14476,7 +14757,6 @@ function stopLiveCamera({
 
   liveCameraAnnouncedChannel =
     null;
-
 
   renderLiveCameraUi(
     false
@@ -16565,10 +16845,10 @@ if(
 </script>
 
 <script src="./sol-holo-ui.js?v=88"></script>
-  <script type="module" src="./app-lock-bootstrap.mjs?v=7"></script>
+  <script type="module" src="./app-lock-bootstrap.mjs?v=8"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
-<script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
-<script type="module" src="./sol-holo-backup.mjs?v=5"></script>
+<script type="module" src="./human-holo-animal-holos.mjs?v=8"></script>
+<script type="module" src="./sol-holo-backup.mjs?v=6"></script>
 <script type="module" src="./human-holo-chatgpt-memory-bridge.mjs?v=1"></script>
 </body>
 </html>

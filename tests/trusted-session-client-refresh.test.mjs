@@ -25,6 +25,7 @@ function jsonResponse(data, status = 200) {
 
 async function fixture({ protectedSignatureFailures = 0 } = {}) {
   const events = [];
+  const requestedUrls = [];
   const challengeAccess = new Map();
   let authorizationCount = 0;
   let challengeCount = 0;
@@ -106,6 +107,14 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
   };
   globalThis.window = {
     Capacitor: { Plugins: { SolAccessSecurity: plugin } },
+    PamHoloNetwork: {
+      apiRequest: (path, options) => {
+        const url =
+          `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev${path}`;
+        requestedUrls.push(url);
+        return globalThis.fetch(url, options);
+      }
+    },
     SolHoloIdentity: {
       selected: () => ({ ownerId: OWNER_ID, speakerId: "pam" })
     },
@@ -159,7 +168,7 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
   const client = await import(
     `../www/trusted-app-session.mjs?refresh-test=${moduleSequence}`
   );
-  return { client, events };
+  return { client, events, requestedUrls };
 }
 
 async function openEveryday(client) {
@@ -171,7 +180,7 @@ async function openEveryday(client) {
 }
 
 test("Hey-Pam-Nachweis öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fingerprint", async () => {
-  const { client, events } = await fixture();
+  const { client, events, requestedUrls } = await fixture();
   const everyday = await openEveryday(client);
 
   assert.equal(everyday.trusted, true);
@@ -193,6 +202,13 @@ test("Hey-Pam-Nachweis öffnet Alltag ohne Fingerprint; Schutzstufe fragt Finger
     events.map(event => event.type),
     ["device", "fingerprint_authorize", "challenge", "sign", "complete"]
   );
+  assert.ok(requestedUrls.length >= 4);
+  assert.ok(requestedUrls.every(url =>
+    url.startsWith(
+      "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/"
+    )
+  ));
+  assert.ok(requestedUrls.every(url => !url.includes(".onrender.com")));
 });
 
 test("verwirft eine ungültige geschützte Challenge und fragt genau einmal neu", async () => {

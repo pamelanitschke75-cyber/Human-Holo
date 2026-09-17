@@ -157,6 +157,37 @@
     );
   }
 
+  function apiEndpoint(pathValue) {
+    const path = String(pathValue || "").trim();
+    if (
+      !path.startsWith("/") ||
+      path.startsWith("//") ||
+      path.includes("\\") ||
+      path.includes("#") ||
+      /%(?:00|2e|2f|5c|25)/iu.test(path) ||
+      path.split("?")[0].split("/").includes("..")
+    ) {
+      throw networkError(
+        "Der geschützte Pam-Holo-Endpunkt ist ungültig.",
+        "PAM_HOLO_API_PATH_INVALID",
+        false
+      );
+    }
+    const endpoint = new URL(path, `${backendUrl}/`);
+    if (endpoint.origin !== new URL(backendUrl).origin) {
+      throw networkError(
+        "Der geschützte Pam-Holo-Endpunkt ist ungültig.",
+        "PAM_HOLO_API_ORIGIN_INVALID",
+        false
+      );
+    }
+    return endpoint.href;
+  }
+
+  function apiRequest(path, init = {}, options = {}) {
+    return request(apiEndpoint(path), init, options);
+  }
+
   async function checkHealth() {
     if (global.navigator?.onLine === false) {
       setState("offline");
@@ -198,6 +229,8 @@
   }
 
   global.PamHoloNetwork = Object.freeze({
+    apiEndpoint,
+    apiRequest,
     backendUrl,
     checkHealth,
     edgeUrl: PAM_HOLO_EDGE_URL,

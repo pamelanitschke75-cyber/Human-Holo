@@ -1,5 +1,5 @@
 const CACHE_VERSION =
-  "human-holo-296-calendar-click-restored-network-safe-shell-v2";
+  "human-holo-296-calendar-click-restored-network-safe-shell-face-privacy-v3";
 
 const APP_SHELL = Object.freeze([
   "./",
@@ -20,6 +20,7 @@ const APP_SHELL = Object.freeze([
   "./original-full-sync.js",
   "./media-tools.js",
   "./pam-holo-network-resilience.js",
+  "./live-camera-face-privacy.mjs",
   "./sol-holo-ui.js",
   "./app-lock-bootstrap.mjs",
   "./trusted-app-session.mjs",
