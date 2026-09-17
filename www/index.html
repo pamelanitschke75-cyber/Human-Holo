@@ -250,6 +250,22 @@ header{
   color:#20e09a;
 }
 
+#onlineState.degraded{
+  color:#ffd166;
+}
+
+#onlineState.degraded #onlineDot{
+  color:#ffd166;
+}
+
+#onlineState.offline{
+  color:#ff8f9d;
+}
+
+#onlineState.offline #onlineDot{
+  color:#ff6578;
+}
+
 h1{
   margin:0;
 
@@ -1982,7 +1998,9 @@ MOBIL
 ●
 </span>
 
+<span id="onlineLabel">
 Online
+</span>
 
 </div>
 
@@ -2499,10 +2517,19 @@ Schreiben bereit.
 <script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=3"></script>
 <script src="./media-tools.js"></script>
+<script src="./pam-holo-network-resilience.js?v=1"></script>
 <script>
 
 const BACKEND_URL =
-  "https://sol-holo.onrender.com";
+  window.PamHoloNetwork
+    .backendUrl;
+
+const pamHoloFetch =
+  window.PamHoloNetwork
+    .request;
+
+window.PamHoloNetwork
+  .startMonitoring();
 
 const HOLO_CHAT_SPEAKER =
   "Du";
@@ -2535,7 +2562,8 @@ function createFulltimeEventId(){
 
 
 async function ensureFulltimeHistorySession(
-  interactive = false
+  interactive = false,
+  accessLevel = "owner_everyday"
 ){
 
   const ensure =
@@ -2555,7 +2583,8 @@ async function ensureFulltimeHistorySession(
 
   const current =
     await ensure({
-      interactive:false
+      interactive:false,
+      accessLevel
     });
 
   if(
@@ -2567,8 +2596,31 @@ async function ensureFulltimeHistorySession(
   }
 
   return ensure({
-    interactive:true
+    interactive:true,
+    accessLevel
   });
+}
+
+
+function pamHoloRequestNeedsFingerprint({
+  message = "",
+  hasImage = false,
+  hasVideo = false,
+  hasDocument = false,
+  hasFileAttachment = false
+} = {}){
+
+  const businessMatter =
+    /\b(?:geschäftlich(?:e[nsr]?)?|beruflich(?:e[nsr]?)?|firma|firmen|arbeitgeber|arbeitsvertrag|vertrag(?:s|e|en)?|rechnung(?:en)?|angebot(?:e|en)?|kund(?:e|en|in|innen)|steuer(?:n|erklärung)?|buchhaltung|gewerbe|geschäftskonto|business)\b/iu
+      .test(String(message || ""));
+
+  return Boolean(
+    hasImage ||
+    hasVideo ||
+    hasDocument ||
+    hasFileAttachment ||
+    businessMatter
+  );
 }
 
 
@@ -5452,7 +5504,7 @@ async function ensureHeadAudioVisemes(){
 
 
         const modelResponse =
-          await fetch(
+          await pamHoloFetch(
             "./model-en-mixed.b64",
             {
               cache:"force-cache"
@@ -9855,6 +9907,59 @@ async function queueFulltimeDialog(
 }
 
 
+async function discardPendingFulltimeDialog(
+  sourceEventId
+){
+
+  try{
+
+    const outbox =
+      await getDurableMemoryOutbox();
+
+
+    const pending =
+      await outbox.list();
+
+
+    const matchingDialog =
+      pending.find(
+        dialog =>
+          dialog.sourceEventId ===
+          sourceEventId
+      );
+
+
+    if(
+      matchingDialog
+    ){
+
+      await outbox.acknowledge(
+        matchingDialog.sourceEventId,
+        matchingDialog.revision
+      );
+    }
+
+
+    return Boolean(
+      matchingDialog
+    );
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Nicht gespeicherten Dialog aus lokaler Warteschlange entfernen:",
+      error?.name ||
+      "Fehler"
+    );
+
+
+    return false;
+  }
+}
+
+
 async function flushPendingFulltimeDialogs(){
 
   if(
@@ -9910,7 +10015,7 @@ async function flushPendingFulltimeDialogs(){
           pending[0];
 
         const response =
-          await fetch(
+          await pamHoloFetch(
             `${BACKEND_URL}/fulltime/history/append`,
             {
               method:"POST",
@@ -10076,7 +10181,7 @@ async function loadFulltimeHistory(){
       while(true){
 
         const response =
-          await fetch(
+          await pamHoloFetch(
             `${BACKEND_URL}/fulltime/history`,
             {
               method:"POST",
@@ -10478,7 +10583,9 @@ async function sendMessage(
 
       trustedSession =
         await ensureTrustedSession({
-          interactive:true
+          interactive:true,
+          accessLevel:
+            "protected_media_documents_settings"
         });
 
     }catch(
@@ -10511,6 +10618,58 @@ async function sendMessage(
 
       return;
     }
+  }
+
+
+  const protectedAccessRequired =
+    pamHoloRequestNeedsFingerprint({
+      message,
+      hasImage:Boolean(imageToSend),
+      hasVideo:videoFramesToSend.length > 0
+    });
+
+
+  chatStatus.textContent =
+    protectedAccessRequired
+      ? "Fingerprint für geschützte Inhalte wird geprüft …"
+      : "Pams stimmgebundene Alltagssitzung wird bestätigt …";
+
+
+  let privateSession = null;
+
+
+  try{
+
+    privateSession =
+      await ensureFulltimeHistorySession(
+        true,
+        protectedAccessRequired
+          ? "protected_media_documents_settings"
+          : "owner_everyday"
+      );
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Pam-Holo-Zugriffsstufe:",
+      error?.code || error?.name || "Fehler"
+    );
+  }
+
+
+  if(
+    !privateSession?.trusted
+  ){
+
+    chatStatus.textContent =
+      protectedAccessRequired
+        ? "Geschützter Inhalt blieb geschlossen · Pams Fingerprint wurde nicht bestätigt."
+        : "Pams persönliche Alltagssitzung wurde nicht bestätigt.";
+
+
+    return;
   }
 
 
@@ -10688,6 +10847,10 @@ async function sendMessage(
             file:
               videoFileToSend,
 
+            headers:
+              window.SolHoloTrustedSession
+                ?.headers?.() || {},
+
             signal:
               activeVideoUploadController.signal,
 
@@ -10823,7 +10986,7 @@ async function sendMessage(
       );
 
     const response =
-      await fetch(
+      await pamHoloFetch(
         `${BACKEND_URL}/sol`,
         {
 
@@ -10931,10 +11094,29 @@ async function sendMessage(
       !response.ok
     ){
 
-      throw new Error(
+      const responseError =
+        new Error(
+          data?.message ||
+          data?.error ||
+          "Verbindung zu Pam’s Holo fehlgeschlagen."
+        );
+
+
+      responseError.code =
+        data?.code ||
         data?.error ||
-        "Verbindung zu Pam’s Holo fehlgeschlagen."
-      );
+        "PAM_HOLO_REQUEST_REJECTED";
+
+
+      responseError.persisted =
+        data?.persisted;
+
+
+      responseError.deliveryUncertain =
+        false;
+
+
+      throw responseError;
     }
 
 
@@ -10959,7 +11141,13 @@ async function sendMessage(
       const trustedSession =
         await window.SolHoloTrustedSession
           .ensure({
-            interactive:true
+            interactive:true,
+            accessLevel:
+              pamHoloRequestNeedsFingerprint({
+                message
+              })
+                ? "protected_media_documents_settings"
+                : "owner_everyday"
           });
 
 
@@ -10975,7 +11163,7 @@ async function sendMessage(
 
 
         const retryResponse =
-          await fetch(
+          await pamHoloFetch(
             `${BACKEND_URL}${retryPath}`,
             {
               method:"POST",
@@ -11226,7 +11414,33 @@ async function sendMessage(
     error
   ){
 
-    void flushPendingFulltimeDialogs();
+    if(
+      error?.persisted ===
+      false
+    ){
+
+      await discardPendingFulltimeDialog(
+        fulltimeEventId
+      );
+
+    }else{
+
+      void flushPendingFulltimeDialogs();
+    }
+
+
+    if(
+      !isForcedMessage &&
+      !messageInput.value &&
+      message
+    ){
+
+      messageInput.value =
+        message;
+
+
+      resizeMessageInput();
+    }
 
     if(
       error?.name ===
@@ -11242,23 +11456,30 @@ async function sendMessage(
 
     console.error(
       "Text-/Medienchat Fehler:",
-      error
+      error?.code ||
+      error?.name ||
+      "Fehler"
     );
+
+
+    const safeErrorMessage =
+      error?.deliveryUncertain
+        ? "Die Verbindung wurde unterbrochen. Der Entwurf bleibt erhalten. Die Nachricht wird nicht automatisch erneut gesendet, damit keine Handlung doppelt ausgeführt wird."
+        : error?.message ||
+          "Verbindung zu Pam’s Holo fehlgeschlagen.";
 
 
     addMessage(
       "System",
 
-      error?.message ||
-      "Verbindung zu Pam’s Holo fehlgeschlagen.",
+      safeErrorMessage,
 
       "system-message"
     );
 
 
     chatStatus.textContent =
-      error?.message ||
-      "Chat-Fehler.";
+      safeErrorMessage;
 
 
     if(
@@ -11940,7 +12161,7 @@ async function sendLiveTranscriptToMemory(
   try{
 
     const response =
-      await fetch(
+      await pamHoloFetch(
         `${BACKEND_URL}/live/memory`,
         {
 
@@ -12056,7 +12277,13 @@ async function sendLiveTranscriptToMemory(
         const trustedSession =
           await window.SolHoloTrustedSession
             .ensure({
-              interactive:true
+              interactive:true,
+              accessLevel:
+                pamHoloRequestNeedsFingerprint({
+                  message:cleanTranscript
+                })
+                  ? "protected_media_documents_settings"
+                  : "owner_everyday"
             });
 
 
@@ -12065,7 +12292,7 @@ async function sendLiveTranscriptToMemory(
         ){
 
           const retryResponse =
-            await fetch(
+            await pamHoloFetch(
               `${BACKEND_URL}/calendar/action`,
               {
                 method:"POST",
@@ -12385,6 +12612,83 @@ async function handleRealtimeUserTranscript(
   fulltimeEventId = "",
   sourceModalities = ["voice"]
 ){
+
+  const requestedSourceModalities =
+    Array.isArray(sourceModalities)
+      ? sourceModalities
+      : ["voice"];
+
+
+  const protectedAccessRequired =
+    pamHoloRequestNeedsFingerprint({
+      message:transcript,
+      hasImage:
+        requestedSourceModalities.includes("image") ||
+        requestedSourceModalities.includes("live_image") ||
+        signLanguageSequenceRequest(transcript).requested ||
+        isVoiceCameraDescriptionRequest(transcript),
+      hasVideo:
+        requestedSourceModalities.includes("video")
+    });
+
+
+  if(
+    protectedAccessRequired
+  ){
+
+    let protectedSession = null;
+
+
+    try{
+
+      protectedSession =
+        await ensureFulltimeHistorySession(
+          true,
+          "protected_media_documents_settings"
+        );
+
+    }catch(
+      error
+    ){
+
+      console.error(
+        "Geschützte Realtime-Anfrage:",
+        error?.code || error?.name || "Fehler"
+      );
+    }
+
+
+    if(
+      !protectedSession?.trusted
+    ){
+
+      cancelRealtimeResponse();
+
+
+      const protectedAnswer =
+        "Bilder, Unterlagen und geschäftliche Angelegenheiten bleiben ohne Pams Fingerprint geschlossen.";
+
+
+      addMessage(
+        HOLO_CHAT_SPEAKER,
+        protectedAnswer,
+        "sol-message"
+      );
+
+
+      chatStatus.textContent =
+        "Geschützter Bereich blieb geschlossen.";
+
+
+      speakExecutedRealtimeResult(
+        "[PAM_HOLO_FINGERPRINT_ERFORDERLICH]",
+        protectedAnswer
+      );
+
+
+      return;
+    }
+  }
 
   const screenDescriptionRequested =
     isCurrentHoloScreenDescriptionRequest(
@@ -13857,6 +14161,34 @@ async function startLiveCamera(){
   }
 
 
+  try{
+
+    const protectedSession =
+      await window.SolHoloProtectedAccess
+        ?.ensure?.();
+
+
+    if(!protectedSession?.trusted){
+
+      setLiveStatus(
+        "Für Live-Bilder ist Pams Fingerprint erforderlich."
+      );
+
+
+      return;
+    }
+
+  }catch{
+
+    setLiveStatus(
+      "Live-Bilder blieben geschlossen, weil der Fingerprint nicht bestätigt wurde."
+    );
+
+
+    return;
+  }
+
+
   if(
     !document.body.classList.contains(
       "voice-open"
@@ -14619,7 +14951,7 @@ async function searchRealtimePersonalMemory(
   }
 
   const response =
-    await fetch(
+    await pamHoloFetch(
       `${BACKEND_URL}/memory/search`,
       {
         method:"POST",
@@ -14702,7 +15034,7 @@ async function searchRealtimeLiveWeb(
 
 
   const response =
-    await fetch(
+    await pamHoloFetch(
       `${BACKEND_URL}/realtime/web-search`,
       {
         method:"POST",
@@ -14788,7 +15120,13 @@ async function searchRealtimeGmail(
 
   const trustedSession =
     await ensure({
-      interactive:true
+      interactive:true,
+      accessLevel:
+        pamHoloRequestNeedsFingerprint({
+          message:cleanRequest
+        })
+          ? "protected_media_documents_settings"
+          : "owner_everyday"
     });
 
 
@@ -14798,7 +15136,7 @@ async function searchRealtimeGmail(
 
 
   const response =
-    await fetch(
+    await pamHoloFetch(
       `${BACKEND_URL}/gmail/action`,
       {
         method:"POST",
@@ -15294,6 +15632,25 @@ async function startLiveConversation(){
   }
 
 
+  const privateRealtimeSession =
+    await ensureFulltimeHistorySession(
+      true
+    );
+
+
+  if(
+    !connectionIsCurrent() ||
+    !privateRealtimeSession?.trusted
+  ){
+
+    setLiveStatus(
+      "Pams persönliche App-Sitzung wurde nicht bestätigt."
+    );
+
+    return;
+  }
+
+
   setLiveStatus(
     "Pam’s Holo verbindet sich ..."
   );
@@ -15302,7 +15659,7 @@ async function startLiveConversation(){
   try{
 
     const tokenResponse =
-      await fetch(
+      await pamHoloFetch(
         `${BACKEND_URL}/realtime/token`,
         {
 
@@ -15996,7 +16353,7 @@ async function startLiveConversation(){
 
 
     const sdpResponse =
-      await fetch(
+      await pamHoloFetch(
         "https://api.openai.com/v1/realtime/calls",
         {
 
@@ -16208,7 +16565,7 @@ if(
 </script>
 
 <script src="./sol-holo-ui.js?v=88"></script>
-<script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
+  <script type="module" src="./app-lock-bootstrap.mjs?v=7"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=5"></script>

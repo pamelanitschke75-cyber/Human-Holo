@@ -51,7 +51,7 @@ test("der ChatGPT-Import bleibt ownergebunden, privat und bestätigungspflichtig
   assert.match(backup, /transfer\?\.source_delete !== false/u);
   assert.match(backup, /transfer\?\.public_repository_allowed !== false/u);
   assert.match(backup, /batchConfirmation:\s*true/u);
-  assert.match(route, /requireTrustedOwnerIdentity/u);
+  assert.match(route, /requireProtectedOwnerIdentity/u);
   assert.match(route, /identity\.ownerId !== "pam-sol"/u);
   assert.match(route, /identity\.speakerId !== "pam"/u);
   assert.match(route, /batchConfirmation !== true/u);

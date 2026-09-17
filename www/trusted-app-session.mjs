@@ -1,15 +1,35 @@
 const BACKEND_URL = "https://sol-holo.onrender.com";
 const OWNER_ID = "pam-sol";
 const SESSION_HEADER = "x-sol-holo-trusted-session";
-const SESSION_ACTION = "bind_trusted_app_session";
+const ACCESS_LEVEL = Object.freeze({
+  OWNER_EVERYDAY: "owner_everyday",
+  PROTECTED: "protected_media_documents_settings"
+});
+const SESSION_ACTION = Object.freeze({
+  [ACCESS_LEVEL.OWNER_EVERYDAY]: "bind_owner_everyday_session",
+  [ACCESS_LEVEL.PROTECTED]: "bind_trusted_app_session"
+});
+const OWNER_PERSON_PROOF = Object.freeze({
+  [ACCESS_LEVEL.OWNER_EVERYDAY]: "pam_verified_voice_everyday_v1",
+  [ACCESS_LEVEL.PROTECTED]: "pam_voice_or_registered_watch_v1"
+});
 const RETRYABLE_CHALLENGE_ERRORS = new Set([
   "TRUSTED_SESSION_CHALLENGE_INVALID",
   "TRUSTED_SESSION_CHALLENGE_EXPIRED"
 ]);
 
-let sessionToken = "";
-let sessionExpiresAtMillis = 0;
+const sessions = {
+  [ACCESS_LEVEL.OWNER_EVERYDAY]: {
+    token: "",
+    expiresAtMillis: 0
+  },
+  [ACCESS_LEVEL.PROTECTED]: {
+    token: "",
+    expiresAtMillis: 0
+  }
+};
 let ensurePromise = null;
+let ensurePromiseAccessLevel = "";
 let offeredAuthorizationId = "";
 let offeredAuthorizationExpiresAtMillis = 0;
 let sessionGeneration = 0;
@@ -32,11 +52,41 @@ function securityPlugin() {
   return window.Capacitor?.Plugins?.SolAccessSecurity || null;
 }
 
-function sessionIsFresh() {
+function normalizedAccessLevel(value, fallback = ACCESS_LEVEL.PROTECTED) {
+  return Object.values(ACCESS_LEVEL).includes(value) ? value : fallback;
+}
+
+function exactSessionIsFresh(accessLevel) {
+  const state = sessions[normalizedAccessLevel(accessLevel)];
   return Boolean(
-    sessionToken &&
-    sessionExpiresAtMillis > Date.now() + 15_000
+    state?.token &&
+    state.expiresAtMillis > Date.now() + 15_000
   );
+}
+
+function sessionIsFresh(minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY) {
+  const required = normalizedAccessLevel(
+    minimumAccess,
+    ACCESS_LEVEL.OWNER_EVERYDAY
+  );
+  if (required === ACCESS_LEVEL.PROTECTED) {
+    return exactSessionIsFresh(ACCESS_LEVEL.PROTECTED);
+  }
+  return exactSessionIsFresh(ACCESS_LEVEL.PROTECTED) ||
+    exactSessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY);
+}
+
+function selectedSession(minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY) {
+  if (exactSessionIsFresh(ACCESS_LEVEL.PROTECTED)) {
+    return sessions[ACCESS_LEVEL.PROTECTED];
+  }
+  if (
+    minimumAccess !== ACCESS_LEVEL.PROTECTED &&
+    exactSessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY)
+  ) {
+    return sessions[ACCESS_LEVEL.OWNER_EVERYDAY];
+  }
+  return null;
 }
 
 function offerAuthorization(authorizationId, expiresAtMillis = 0) {
@@ -72,18 +122,30 @@ async function waitForOfferedAuthorization(maximumWaitMillis = 45_000) {
   return "";
 }
 
-export function trustedAppSessionHeaders() {
-  return sessionIsFresh()
-    ? { [SESSION_HEADER]: sessionToken }
+export function trustedAppSessionHeaders({
+  minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY
+} = {}) {
+  const session = selectedSession(minimumAccess);
+  return session
+    ? { [SESSION_HEADER]: session.token }
     : {};
 }
 
-async function postJson(path, body, { includeSession = false } = {}) {
+async function postJson(
+  path,
+  body,
+  {
+    includeSession = false,
+    minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY
+  } = {}
+) {
   const response = await fetch(`${BACKEND_URL}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(includeSession ? trustedAppSessionHeaders() : {})
+      ...(includeSession
+        ? trustedAppSessionHeaders({ minimumAccess })
+        : {})
     },
     body: JSON.stringify(body),
     cache: "no-store"
@@ -133,23 +195,56 @@ async function registeredDevice(plugin) {
   return device;
 }
 
-async function requestChallenge(identity, device) {
-  return postJson("/app-session/challenge", {
-    ...identityBody(identity),
-    registrationId: device.registrationId
-  });
+async function requestChallenge(identity, device, accessLevel) {
+  const normalized = normalizedAccessLevel(accessLevel);
+  return postJson(
+    "/app-session/challenge",
+    {
+      ...identityBody(identity),
+      registrationId: device.registrationId,
+      accessLevel: normalized
+    },
+    {
+      includeSession: normalized === ACCESS_LEVEL.PROTECTED,
+      minimumAccess: ACCESS_LEVEL.OWNER_EVERYDAY
+    }
+  );
 }
 
-async function freshAuthorization(plugin) {
-  const grant = await plugin.authorizeCriticalAction({
-    ownerId: OWNER_ID,
-    action: SESSION_ACTION,
-    requireRegisteredWatch: false
-  });
+async function freshAuthorization(
+  plugin,
+  { accessLevel, ownerPersonProofId = "" }
+) {
+  const normalized = normalizedAccessLevel(accessLevel);
+  let grant;
+  if (normalized === ACCESS_LEVEL.OWNER_EVERYDAY) {
+    if (!ownerPersonProofId) {
+      throw new TrustedSessionClientError(
+        "OWNER_WAKE_PROOF_REQUIRED",
+        "Bitte sage „Hey Pam“. Sol öffnet den Alltag nur nach deiner erkannten Stimme."
+      );
+    }
+    grant = await plugin.authorizeOwnerEverydayAccess({
+      ownerId: OWNER_ID,
+      ownerPersonProofId
+    });
+  } else {
+    if (!sessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY)) {
+      throw new TrustedSessionClientError(
+        "OWNER_EVERYDAY_SESSION_REQUIRED",
+        "Vor dem Fingerprint muss Pams stimmgebundene Alltagssitzung geöffnet sein."
+      );
+    }
+    grant = await plugin.authorizeCriticalAction({
+      ownerId: OWNER_ID,
+      action: SESSION_ACTION[ACCESS_LEVEL.PROTECTED],
+      requireRegisteredWatch: false
+    });
+  }
   if (
     grant?.allowed !== true ||
     grant?.ownerId !== OWNER_ID ||
-    grant?.action !== SESSION_ACTION ||
+    grant?.action !== SESSION_ACTION[normalized] ||
     !grant?.authorizationId
   ) {
     throw new TrustedSessionClientError(
@@ -160,7 +255,8 @@ async function freshAuthorization(plugin) {
   return grant.authorizationId;
 }
 
-function challengeForNative(challenge) {
+function challengeForNative(challenge, accessLevel) {
+  const normalized = normalizedAccessLevel(accessLevel);
   const issuedAtMillis = Number(challenge?.issuedAtMillis);
   const expiresAtMillis = Number(challenge?.expiresAtMillis);
   if (
@@ -172,6 +268,16 @@ function challengeForNative(challenge) {
     throw new TrustedSessionClientError(
       "TRUSTED_SESSION_CHALLENGE_INVALID",
       "Die neue Server-Challenge für die sichere App-Sitzung ist ungültig."
+    );
+  }
+  if (
+    challenge?.accessLevel !== normalized ||
+    challenge?.action !== SESSION_ACTION[normalized] ||
+    challenge?.ownerPersonProof !== OWNER_PERSON_PROOF[normalized]
+  ) {
+    throw new TrustedSessionClientError(
+      "TRUSTED_SESSION_PERSON_PROOF_INVALID",
+      "Die persönliche Schutzanforderung der Server-Challenge ist ungültig."
     );
   }
 
@@ -196,11 +302,13 @@ async function completeChallenge({
   device,
   challenge,
   authorizationId,
-  plugin
+  plugin,
+  accessLevel
 }) {
+  const normalized = normalizedAccessLevel(accessLevel);
   const expectedGeneration = sessionGeneration;
   const signed = await plugin.signTrustedSessionChallenge({
-    ...challengeForNative(challenge),
+    ...challengeForNative(challenge, normalized),
     ownerId: identity.ownerId,
     registrationId: device.registrationId,
     authorizationId
@@ -227,6 +335,8 @@ async function completeChallenge({
   if (
     session?.trusted !== true ||
     session?.ownerId !== identity.ownerId ||
+    session?.accessLevel !== normalized ||
+    session?.ownerPersonProof !== OWNER_PERSON_PROOF[normalized] ||
     !session?.sessionToken ||
     !Number.isFinite(Number(session?.expiresAtMillis))
   ) {
@@ -241,14 +351,19 @@ async function completeChallenge({
   ) {
     return { trusted: false, discardedAfterLock: true };
   }
-  sessionToken = String(session.sessionToken);
-  sessionExpiresAtMillis = Number(session.expiresAtMillis);
+  sessions[normalized].token = String(session.sessionToken);
+  sessions[normalized].expiresAtMillis = Number(session.expiresAtMillis);
   window.dispatchEvent(new CustomEvent("solholo:trusted-session", {
-    detail: { trusted: true, expiresAtMillis: sessionExpiresAtMillis }
+    detail: {
+      trusted: true,
+      accessLevel: normalized,
+      expiresAtMillis: sessions[normalized].expiresAtMillis
+    }
   }));
   return {
     trusted: true,
-    expiresAtMillis: sessionExpiresAtMillis
+    accessLevel: normalized,
+    expiresAtMillis: sessions[normalized].expiresAtMillis
   };
 }
 
@@ -314,11 +429,19 @@ async function bootstrapDevice(identity, device) {
 
 async function establishTrustedAppSession({
   interactive = false,
+  accessLevel = ACCESS_LEVEL.PROTECTED,
+  ownerPersonProofId = "",
   authorizationId = "",
   authorizationExpiresAtMillis = 0
 } = {}) {
-  if (sessionIsFresh()) {
-    return { trusted: true, expiresAtMillis: sessionExpiresAtMillis };
+  const normalized = normalizedAccessLevel(accessLevel);
+  if (sessionIsFresh(normalized)) {
+    const session = selectedSession(normalized);
+    return {
+      trusted: true,
+      accessLevel: normalized,
+      expiresAtMillis: session.expiresAtMillis
+    };
   }
   const identity = selectedIdentity();
   const plugin = securityPlugin();
@@ -326,11 +449,28 @@ async function establishTrustedAppSession({
     return { trusted: false, unavailable: true };
   }
   const device = await registeredDevice(plugin);
+  if (
+    normalized === ACCESS_LEVEL.PROTECTED &&
+    !sessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY)
+  ) {
+    return {
+      trusted: false,
+      needsOwnerEverydaySession: true,
+      accessLevel: normalized
+    };
+  }
   if (!authorizationId) {
     if (!interactive) {
-      return { trusted: false, needsAuthorization: true };
+      return {
+        trusted: false,
+        needsAuthorization: true,
+        accessLevel: normalized
+      };
     }
-    authorizationId = await freshAuthorization(plugin);
+    authorizationId = await freshAuthorization(plugin, {
+      accessLevel: normalized,
+      ownerPersonProofId
+    });
   }
 
   let bootstrapPerformed = false;
@@ -340,13 +480,18 @@ async function establishTrustedAppSession({
       // A challenge is deliberately requested only after a usable Android
       // authorization exists. It is kept inside this single attempt and can
       // therefore never be replayed from an earlier click or app unlock.
-      const challenge = await requestChallenge(identity, device);
+      const challenge = await requestChallenge(
+        identity,
+        device,
+        normalized
+      );
       return await completeChallenge({
         identity,
         device,
         challenge,
         authorizationId,
-        plugin
+        plugin,
+        accessLevel: normalized
       });
     } catch (error) {
       if (
@@ -364,15 +509,11 @@ async function establishTrustedAppSession({
         await bootstrapDevice(identity, device);
         // Returning from the Google owner proof locks the app. Its normal
         // Android unlock supplies a separate, still-fresh one-time grant.
-        authorizationId = takeOfferedAuthorization() ||
-          await waitForOfferedAuthorization();
-        if (!authorizationId) {
-          authorizationId = await freshAuthorization(plugin);
-        }
         continue;
       }
 
       if (
+        normalized === ACCESS_LEVEL.PROTECTED &&
         interactive &&
         challengeRetryCount === 0 &&
         isRetryableChallengeError(error)
@@ -380,7 +521,9 @@ async function establishTrustedAppSession({
         challengeRetryCount += 1;
         // The failed attempt and its one-time grant are never reused. Android
         // confirms a new grant first; only then is a new challenge requested.
-        authorizationId = await freshAuthorization(plugin);
+        authorizationId = await freshAuthorization(plugin, {
+          accessLevel: normalized
+        });
         continue;
       }
       throw error;
@@ -389,8 +532,14 @@ async function establishTrustedAppSession({
 }
 
 export async function ensureTrustedAppSession(options = {}) {
-  if (sessionIsFresh()) {
-    return { trusted: true, expiresAtMillis: sessionExpiresAtMillis };
+  const accessLevel = normalizedAccessLevel(options?.accessLevel);
+  if (sessionIsFresh(accessLevel)) {
+    const session = selectedSession(accessLevel);
+    return {
+      trusted: true,
+      accessLevel,
+      expiresAtMillis: session.expiresAtMillis
+    };
   }
   if (ensurePromise) {
     offerAuthorization(
@@ -398,12 +547,21 @@ export async function ensureTrustedAppSession(options = {}) {
       options?.authorizationExpiresAtMillis
     );
     const existingResult = await ensurePromise;
-    if (options?.interactive && !existingResult?.trusted) {
-      return ensureTrustedAppSession(options);
+    if (
+      sessionIsFresh(accessLevel) ||
+      ensurePromiseAccessLevel === accessLevel
+    ) {
+      return sessionIsFresh(accessLevel)
+        ? ensureTrustedAppSession({ ...options, interactive: false })
+        : existingResult;
     }
-    return existingResult;
+    return ensureTrustedAppSession(options);
   }
-  ensurePromise = establishTrustedAppSession(options)
+  ensurePromiseAccessLevel = accessLevel;
+  ensurePromise = establishTrustedAppSession({
+    ...options,
+    accessLevel
+  })
     .catch((error) => {
       if (options?.interactive) throw error;
       console.info(
@@ -414,25 +572,40 @@ export async function ensureTrustedAppSession(options = {}) {
     })
     .finally(() => {
       ensurePromise = null;
+      ensurePromiseAccessLevel = "";
     });
   return ensurePromise;
 }
 
 export function clearTrustedAppSession() {
   sessionGeneration += 1;
-  sessionToken = "";
-  sessionExpiresAtMillis = 0;
+  for (const session of Object.values(sessions)) {
+    session.token = "";
+    session.expiresAtMillis = 0;
+  }
   offeredAuthorizationId = "";
   offeredAuthorizationExpiresAtMillis = 0;
 }
 
 window.SolHoloTrustedSession = Object.freeze({
   ensure: ensureTrustedAppSession,
+  ensureProtected: (options = {}) => ensureTrustedAppSession({
+    ...options,
+    accessLevel: ACCESS_LEVEL.PROTECTED,
+    interactive: options?.interactive !== false
+  }),
   headers: trustedAppSessionHeaders,
   clear: clearTrustedAppSession,
+  accessLevels: ACCESS_LEVEL,
+  hasAccess: (accessLevel) => sessionIsFresh(accessLevel),
   status: () => ({
-    trusted: sessionIsFresh(),
-    expiresAtMillis: sessionExpiresAtMillis
+    trusted: sessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY),
+    ownerEveryday: exactSessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY),
+    protected: exactSessionIsFresh(ACCESS_LEVEL.PROTECTED),
+    ownerEverydayExpiresAtMillis:
+      sessions[ACCESS_LEVEL.OWNER_EVERYDAY].expiresAtMillis,
+    protectedExpiresAtMillis:
+      sessions[ACCESS_LEVEL.PROTECTED].expiresAtMillis
   })
 });
 

@@ -1,8 +1,11 @@
 # Human Holo – verbindlicher rechtlicher Testumfang
 
-**Stand: 15.09.2026**  
+**Stand: 15.09.2026 · Fortschreibung 17.09.2026**
 **Gilt für:** das allgemeine Human Holo, Vorführungen, Anwalt und externe Tester  
-**Medizinische Ausnahme:** Auf Pams ausdrückliche Entscheidung sind die medizinischen Funktionen auch in Pam’s Holo vollständig pausiert und technisch gesperrt
+**Medizinische Grenze:** Im allgemeinen Human Holo bleiben die medizinischen
+Funktionen vollständig pausiert und technisch gesperrt. Die private,
+ownergebundene Pam-Holo-Testausnahme vom 17.09.2026 gehört nicht zum
+allgemeinen Testumfang dieses Dokuments.
 
 ## Aktuell zugelassener Umfang
 
@@ -74,18 +77,20 @@ erfordert:
 ## Trennung von Pam’s Holo
 
 Pam’s Holo bleibt als private, ownergebundene Instanz mit persönlichen Daten,
-Bildern, Erinnerungen und Einstellungen erhalten. Auf ausdrückliche Entscheidung
-von Pamela Christina Nitschke vom 15.09.2026 gilt für Medizin jedoch keine
-Ausnahme: Gesundheitskachel, Medikamentenerkennung, Health Connect,
-Gesundheitsdaten-Berechtigungen und medizinische Beratung sind auch in Pam’s
-Holo vollständig pausiert, technisch gesperrt und derzeit nicht verfügbar.
-Sie bleiben für eine mögliche spätere Aktivierung nach dokumentierter
-rechtlicher Prüfung, technischer Freigabe und ausdrücklicher Zustimmung von
-Pamela Christina Nitschke erhalten.
+Bildern, Erinnerungen und Einstellungen erhalten. Die am 15.09.2026
+dokumentierte vollständige Medizinpause wurde am 17.09.2026 ausschließlich für
+Pams eigenen, persönlich bestätigten Test eng begrenzt fortgeschrieben.
 
-**Für Pam’s Holo gilt aus diesem Dokument ausschließlich diese medizinische
-Sperre. Alle anderen persönlichen Funktionen, Daten, Bilder, Erinnerungen und
-Einstellungen von Pam’s Holo bleiben davon unberührt.**
+Die private Ausnahme erlaubt nur vorsichtige allgemeine Begleitung bei leichten
+Beschwerden, das Ablesen bedruckter Medikamentenverpackungen nach sichtbarer
+Einzelfreigabe und einen ausdrücklich ausgelösten, nur lesenden
+Health-Connect-Abruf. Diagnosen, persönliche Dosierungen, Änderungen einer
+Medikation und Therapieentscheidungen bleiben verboten. Maßgeblich ist
+`PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md`.
+
+**Diese Fortschreibung ändert den allgemeinen Human-Holo-Testumfang nicht. Für
+alle allgemeinen Builds, Vorführungen und externen Tests bleibt die
+medizinische Sperre dieses Dokuments vollständig bestehen.**
 
 ## Vorrangregel
 

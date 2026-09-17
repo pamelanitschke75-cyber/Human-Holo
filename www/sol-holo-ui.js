@@ -3,6 +3,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 (() => {
   "use strict";
 
+  const pamHoloFetch =
+    window.PamHoloNetwork?.request ||
+    window.fetch.bind(window);
+
   const HUMAN_HOLO_YOUTUBE_CHANNEL = Object.freeze({
     id: "UCcqR_Mt4OKFlA1sAYneZTcg",
     name: "Human Holo – Pamela Nitschke & Stefanie Hörath",
@@ -2006,7 +2010,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     try {
       const session = await window.SolHoloTrustedSession?.ensure?.({
-        interactive: true
+        interactive: true,
+        accessLevel: "owner_everyday"
       });
       if (session?.trusted !== true) {
         throw new Error(
@@ -2017,7 +2022,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       setOpenClawAlltagPreviewStatus("worker-alltag liest …", "setup");
       document.getElementById("openClawAlltagPreviewResult").hidden = true;
 
-      const response = await fetch(
+      const response = await pamHoloFetch(
         `${BACKEND_URL}/openclaw/alltag-preview`,
         {
           method: "POST",
@@ -4996,7 +5001,33 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     window.SolHoloClone?.setMouthGeometry(customCloneMouth);
   }
 
+  let protectedViewOpening = false;
+
+  async function unlockAndShowProtectedView(viewName) {
+    if (protectedViewOpening) return;
+    protectedViewOpening = true;
+    try {
+      const session = await window.SolHoloProtectedAccess?.ensure?.();
+      if (session?.trusted !== true) {
+        showToast("Dieser geschützte Bereich benötigt Pams Fingerprint.");
+        return;
+      }
+      showView(viewName);
+    } catch {
+      showToast("Geschützter Bereich blieb geschlossen.");
+    } finally {
+      protectedViewOpening = false;
+    }
+  }
+
   function showView(viewName) {
+    if (
+      (viewName === "settings" || viewName === "services") &&
+      !window.SolHoloProtectedAccess?.status?.().protected
+    ) {
+      void unlockAndShowProtectedView(viewName);
+      return;
+    }
     const nextView = views[viewName] || views.home;
     const activeViewName = views[viewName] ? viewName : "home";
 
@@ -5305,8 +5336,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
 
     try {
-      const response = await fetch(
-        "https://sol-holo.onrender.com/google/status?" + identityQuery,
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/google/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5414,8 +5445,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     serviceState.classList.remove("connected", "setup");
 
     try {
-      const response = await fetch(
-        `https://sol-holo.onrender.com/smartthings/status?${identityQuery}`,
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/smartthings/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5854,7 +5885,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     statusElement.classList.remove("connected", "setup");
 
     try {
-      const response = await fetch(
+      const response = await pamHoloFetch(
         `${BACKEND_URL}/weather/status`,
         { cache: "no-store" }
       );
@@ -6598,6 +6629,31 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const actionName = String(name || "");
     const contactName = String(args?.contact_name || args?.query || "").trim();
 
+    const businessContext = [
+      contactName,
+      String(args?.message || ""),
+      String(args?.subject || ""),
+      String(args?.purpose || "")
+    ].join(" ");
+    if (
+      /\b(?:geschäftlich(?:e[nsr]?)?|beruflich(?:e[nsr]?)?|firma|firmen|arbeitgeber|arbeitsvertrag|vertrag(?:s|e|en)?|rechnung(?:en)?|angebot(?:e|en)?|kund(?:e|en|in|innen)|steuer(?:n|erklärung)?|buchhaltung|gewerbe|geschäftskonto|business)\b/iu
+        .test(businessContext)
+    ) {
+      let protectedSession = null;
+      try {
+        protectedSession =
+          await window.SolHoloProtectedAccess?.ensure?.();
+      } catch {}
+      if (protectedSession?.trusted !== true) {
+        return {
+          success: false,
+          fingerprintRequired: true,
+          answer:
+            "Geschäftliche Nachrichten und Anrufe bleiben ohne Pams Fingerprint geschlossen."
+        };
+      }
+    }
+
     try {
       if (actionName === "start_help_service_call") {
         const serviceId = String(args?.service_id || "").trim();
@@ -6722,7 +6778,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
         // Das normale Entsperren der App erzeugt diese hardwaregebundene
         // Sitzung bereits. Hier wird absichtlich kein zweiter Dialog geöffnet.
         const trustedSession = await ensureTrustedSession({
-          interactive: false
+          interactive: false,
+          accessLevel: "owner_everyday"
         });
         if (!trustedSession?.trusted) {
           return {
@@ -6733,7 +6790,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           };
         }
 
-        const response = await fetch(
+        const response = await pamHoloFetch(
           `${BACKEND_URL}/personal-clone/calls/start`,
           {
             method: "POST",
@@ -7477,6 +7534,19 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       };
     }
 
+    let protectedSession = null;
+    try {
+      protectedSession = await window.SolHoloProtectedAccess?.ensure?.();
+    } catch {}
+    if (protectedSession?.trusted !== true) {
+      return {
+        success: false,
+        fingerprintRequired: true,
+        answer:
+          "Persönliche Gesundheitsdaten bleiben ohne Pams Fingerprint geschlossen."
+      };
+    }
+
     const plugin = getHealthConnectPlugin();
     if (!plugin) {
       return {
@@ -7516,8 +7586,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
       const confirmed = window.confirm(
         `Health-Connect-Daten der letzten ${days} Tage jetzt lesend abrufen?\n\n` +
-        "Die freigegebenen Werte werden nur für diese bestätigte Holo-Antwort " +
-        "verarbeitet, nicht verändert und nicht automatisch als Erinnerung gespeichert."
+        "Der rohe Android-Datensatz wird nicht automatisch importiert oder als " +
+        "Erinnerung gespeichert. Deine Frage und die angezeigte Antwort bleiben " +
+        "ownergebunden in Pams Vollzeitgedächtnis."
       );
       if (!confirmed) {
         return {
@@ -8929,7 +9000,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       showToast("Dein registriertes S23 wird jetzt einmal sicher bestätigt …");
       try {
         const session = await window.SolHoloTrustedSession?.ensure?.({
-          interactive: true
+          interactive: true,
+          accessLevel: "protected_media_documents_settings"
         });
         if (!session?.trusted) {
           throw new Error("TRUSTED_APP_SESSION_NOT_CONFIRMED");
@@ -8955,8 +9027,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     let authUrl = "";
     try {
-      const response = await fetch(
-        "https://sol-holo.onrender.com/auth/google/start",
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/auth/google/start`,
         {
           method: "POST",
           headers: {
@@ -9095,7 +9167,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       selectedSpeakerId: identity.speakerId
     });
     const authUrl =
-      `https://sol-holo.onrender.com/auth/smartthings?${identityQuery}`;
+      `${BACKEND_URL}/auth/smartthings?${identityQuery}`;
 
     const authWindow = window.open(
       authUrl,

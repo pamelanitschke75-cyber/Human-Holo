@@ -648,11 +648,14 @@ async function prepareAnimalPhoto(file, { profileId = "" } = {}) {
   return dataUrlFromBlob(blob);
 }
 
-async function ensureTrustedSession() {
+async function ensureTrustedSession(accessLevel = "owner_everyday") {
   const ensure = window.SolHoloTrustedSession?.ensure;
   if (typeof ensure !== "function") return null;
   try {
-    const trusted = await ensure({ interactive: false });
+    const trusted = await ensure({
+      interactive: false,
+      accessLevel
+    });
     return trusted?.trusted ? trusted : null;
   } catch {
     return null;
@@ -668,12 +671,16 @@ async function savePhotoRemotely(record) {
   ) {
     return false;
   }
-  if (!(await ensureTrustedSession())) return false;
+  if (!(await ensureTrustedSession("protected_media_documents_settings"))) {
+    return false;
+  }
   const response = await fetch(BACKEND_URL + "/animal-holos/profile-photo/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(window.SolHoloTrustedSession?.headers?.() || {})
+      ...(window.SolHoloTrustedSession?.headers?.({
+        minimumAccess: "protected_media_documents_settings"
+      }) || {})
     },
     cache: "no-store",
     body: JSON.stringify({
@@ -747,12 +754,19 @@ async function flushPendingPhotos() {
 
 async function fetchRemotePhoto(profileId) {
   const identity = currentIdentity();
-  if (!identity || !(await ensureTrustedSession())) return null;
+  if (
+    !identity ||
+    !(await ensureTrustedSession("protected_media_documents_settings"))
+  ) {
+    return null;
+  }
   const response = await fetch(BACKEND_URL + "/animal-holos/profile-photo/get", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(window.SolHoloTrustedSession?.headers?.() || {})
+      ...(window.SolHoloTrustedSession?.headers?.({
+        minimumAccess: "protected_media_documents_settings"
+      }) || {})
     },
     cache: "no-store",
     body: JSON.stringify({
@@ -1298,7 +1312,10 @@ async function syncObservation(profile, observation) {
 
   let trusted;
   try {
-    trusted = await ensure({ interactive: false });
+    trusted = await ensure({
+      interactive: false,
+      accessLevel: "owner_everyday"
+    });
   } catch {
     return false;
   }

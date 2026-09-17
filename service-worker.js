@@ -1,4 +1,4 @@
-const CACHE_NAME = "human-holo-v1-brand-hey-pam-voice";
+const CACHE_NAME = "pam-holo-v2-network-safe-shell";
 
 const APP_FILES = [
   "/",
@@ -16,7 +16,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(APP_FILES);
-    })
+    }).then(() => self.skipWaiting())
   );
 });
 
@@ -28,7 +28,7 @@ self.addEventListener("activate", (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -37,9 +37,32 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+  const sameOrigin = requestUrl.origin === self.location.origin;
+  const appShellRequest =
+    sameOrigin &&
+    APP_FILES.includes(requestUrl.pathname);
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        return (await caches.match("/index.html")) ||
+          (await caches.match("/")) ||
+          Response.error();
+      })
+    );
+    return;
+  }
+
+  if (!appShellRequest) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+    fetch(event.request).catch(async () => {
+      return (await caches.match(event.request)) ||
+        (await caches.match(requestUrl.pathname)) ||
+        Response.error();
     })
   );
 });

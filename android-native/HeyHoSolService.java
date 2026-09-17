@@ -794,6 +794,9 @@ public class HeyHoSolService extends Service {
                 processingAudio = false;
                 if (ownerAccepted) {
                     saveError("");
+                    SolSpeakerIdentityPlugin.publishVerifiedWakeOwnerProof(
+                        getApplicationContext()
+                    );
                     HeyHoSolPlugin.publishWakeDiagnostic(
                         "owner_accepted",
                         measuredCampplusScore,

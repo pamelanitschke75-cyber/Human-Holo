@@ -196,8 +196,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     }
 
     try {
-      const response = await fetch(
-        "https://sol-holo.onrender.com/calendar/status",
+      const response = await holoFetch(
+        `${BACKEND_URL}/calendar/status`,
         { cache: "no-store" }
       );
       const data = await response.json();
@@ -647,14 +647,17 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       return;
     }
 
+    const googleAuthUrl =
+      `${BACKEND_URL}/auth/google`;
+
     const authWindow = window.open(
-      "https://sol-holo.onrender.com/auth/google",
+      googleAuthUrl,
       "_blank",
       "noopener"
     );
 
     if (!authWindow) {
-      window.location.href = "https://sol-holo.onrender.com/auth/google";
+      window.location.href = googleAuthUrl;
     }
   });
 

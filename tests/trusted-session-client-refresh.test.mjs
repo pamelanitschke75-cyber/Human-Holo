@@ -3,6 +3,16 @@ import test from "node:test";
 
 const OWNER_ID = "pam-sol";
 const REGISTRATION_ID = "11111111-1111-4111-8111-111111111111";
+const EVERYDAY_ACCESS = "owner_everyday";
+const PROTECTED_ACCESS = "protected_media_documents_settings";
+const ACTION = Object.freeze({
+  [EVERYDAY_ACCESS]: "bind_owner_everyday_session",
+  [PROTECTED_ACCESS]: "bind_trusted_app_session"
+});
+const PERSON_PROOF = Object.freeze({
+  [EVERYDAY_ACCESS]: "pam_verified_voice_everyday_v1",
+  [PROTECTED_ACCESS]: "pam_voice_or_registered_watch_v1"
+});
 
 let moduleSequence = 0;
 
@@ -13,11 +23,12 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-async function fixture({ signatureFailures = 0 } = {}) {
+async function fixture({ protectedSignatureFailures = 0 } = {}) {
   const events = [];
+  const challengeAccess = new Map();
   let authorizationCount = 0;
   let challengeCount = 0;
-  let remainingSignatureFailures = signatureFailures;
+  let remainingProtectedFailures = protectedSignatureFailures;
 
   const plugin = {
     async getTrustedSessionDevice() {
@@ -29,26 +40,46 @@ async function fixture({ signatureFailures = 0 } = {}) {
         hardwareBacked: true
       };
     },
-    async authorizeCriticalAction() {
+    async authorizeOwnerEverydayAccess({ ownerPersonProofId }) {
       authorizationCount += 1;
-      events.push({ type: "authorize", number: authorizationCount });
+      events.push({
+        type: "voice_authorize",
+        ownerPersonProofId,
+        number: authorizationCount
+      });
       return {
         allowed: true,
         ownerId: OWNER_ID,
-        action: "bind_trusted_app_session",
+        action: ACTION[EVERYDAY_ACCESS],
+        authorizationId: `authorization-${authorizationCount}`
+      };
+    },
+    async authorizeCriticalAction() {
+      authorizationCount += 1;
+      events.push({
+        type: "fingerprint_authorize",
+        number: authorizationCount
+      });
+      return {
+        allowed: true,
+        ownerId: OWNER_ID,
+        action: ACTION[PROTECTED_ACCESS],
         authorizationId: `authorization-${authorizationCount}`
       };
     },
     async signTrustedSessionChallenge(challenge) {
       events.push({
         type: "sign",
-        number: challengeCount,
+        accessLevel: challenge.accessLevel,
         authorizationId: challenge.authorizationId,
         issuedAtType: typeof challenge.issuedAtMillis,
         expiresAtType: typeof challenge.expiresAtMillis
       });
-      if (remainingSignatureFailures > 0) {
-        remainingSignatureFailures -= 1;
+      if (
+        challenge.accessLevel === PROTECTED_ACCESS &&
+        remainingProtectedFailures > 0
+      ) {
+        remainingProtectedFailures -= 1;
         const error = new Error("Challenge ungültig");
         error.code = "TRUSTED_SESSION_CHALLENGE_INVALID";
         throw error;
@@ -76,10 +107,7 @@ async function fixture({ signatureFailures = 0 } = {}) {
   globalThis.window = {
     Capacitor: { Plugins: { SolAccessSecurity: plugin } },
     SolHoloIdentity: {
-      selected: () => ({
-        ownerId: OWNER_ID,
-        speakerId: "pam"
-      })
+      selected: () => ({ ownerId: OWNER_ID, speakerId: "pam" })
     },
     addEventListener() {},
     dispatchEvent() {},
@@ -90,31 +118,36 @@ async function fixture({ signatureFailures = 0 } = {}) {
     const path = new URL(url).pathname;
     if (path === "/app-session/challenge") {
       challengeCount += 1;
+      const body = JSON.parse(options.body);
+      const accessLevel = body.accessLevel;
+      const challengeId =
+        `00000000-0000-4000-8000-${String(challengeCount).padStart(12, "0")}`;
+      challengeAccess.set(challengeId, accessLevel);
       const now = Date.now();
-      events.push({ type: "challenge", number: challengeCount });
+      events.push({ type: "challenge", accessLevel });
       return jsonResponse({
         ownerId: OWNER_ID,
         registrationId: REGISTRATION_ID,
         packageName: "com.solholo.app",
-        challengeId:
-          `00000000-0000-4000-8000-${String(challengeCount).padStart(12, "0")}`,
+        challengeId,
         nonceBase64Url: "A".repeat(43),
         issuedAtMillis: now,
         expiresAtMillis: now + 120_000,
         purpose: "owner_personal_services",
-        action: "bind_trusted_app_session"
+        accessLevel,
+        action: ACTION[accessLevel],
+        ownerPersonProof: PERSON_PROOF[accessLevel]
       });
     }
     if (path === "/app-session/complete") {
       const body = JSON.parse(options.body);
-      events.push({
-        type: "complete",
-        number: challengeCount,
-        challengeId: body.challengeId
-      });
+      const accessLevel = challengeAccess.get(body.challengeId);
+      events.push({ type: "complete", accessLevel });
       return jsonResponse({
         trusted: true,
         ownerId: OWNER_ID,
+        accessLevel,
+        ownerPersonProof: PERSON_PROOF[accessLevel],
         sessionToken: `session-${challengeCount}`,
         expiresAtMillis: Date.now() + 30 * 60_000
       });
@@ -129,52 +162,80 @@ async function fixture({ signatureFailures = 0 } = {}) {
   return { client, events };
 }
 
-test("fordert die Challenge erst nach der frischen Android-Freigabe an", async () => {
-  const { client, events } = await fixture();
-  const result = await client.ensureTrustedAppSession({ interactive: true });
+async function openEveryday(client) {
+  return client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: EVERYDAY_ACCESS,
+    ownerPersonProofId: "verified-wake-proof"
+  });
+}
 
-  assert.equal(result.trusted, true);
+test("Hey-Pam-Nachweis öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fingerprint", async () => {
+  const { client, events } = await fixture();
+  const everyday = await openEveryday(client);
+
+  assert.equal(everyday.trusted, true);
   assert.deepEqual(
     events.map(event => event.type),
-    ["device", "authorize", "challenge", "sign", "complete"]
+    ["device", "voice_authorize", "challenge", "sign", "complete"]
   );
-  assert.equal(events[3].authorizationId, "authorization-1");
+  assert.equal(events[1].ownerPersonProofId, "verified-wake-proof");
   assert.equal(events[3].issuedAtType, "string");
   assert.equal(events[3].expiresAtType, "string");
+
+  events.length = 0;
+  const protectedSession = await client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: PROTECTED_ACCESS
+  });
+  assert.equal(protectedSession.trusted, true);
+  assert.deepEqual(
+    events.map(event => event.type),
+    ["device", "fingerprint_authorize", "challenge", "sign", "complete"]
+  );
 });
 
-test("verwirft eine ungültige Challenge und versucht genau einmal frisch", async () => {
-  const { client, events } = await fixture({ signatureFailures: 1 });
-  const result = await client.ensureTrustedAppSession({ interactive: true });
+test("verwirft eine ungültige geschützte Challenge und fragt genau einmal neu", async () => {
+  const { client, events } = await fixture({ protectedSignatureFailures: 1 });
+  await openEveryday(client);
+  events.length = 0;
+
+  const result = await client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: PROTECTED_ACCESS
+  });
 
   assert.equal(result.trusted, true);
   assert.deepEqual(
     events.map(event => event.type),
     [
       "device",
-      "authorize",
+      "fingerprint_authorize",
       "challenge",
       "sign",
-      "authorize",
+      "fingerprint_authorize",
       "challenge",
       "sign",
       "complete"
     ]
   );
-  assert.equal(events[3].authorizationId, "authorization-1");
-  assert.equal(events[6].authorizationId, "authorization-2");
-  assert.notEqual(events[3].number, events[6].number);
+  assert.notEqual(events[3].authorizationId, events[6].authorizationId);
 });
 
-test("wiederholt eine weiterhin ungültige Challenge kein drittes Mal", async () => {
-  const { client, events } = await fixture({ signatureFailures: 2 });
+test("wiederholt eine weiterhin ungültige geschützte Challenge kein drittes Mal", async () => {
+  const { client, events } = await fixture({ protectedSignatureFailures: 2 });
+  await openEveryday(client);
+  events.length = 0;
 
   await assert.rejects(
-    client.ensureTrustedAppSession({ interactive: true }),
+    client.ensureTrustedAppSession({
+      interactive: true,
+      accessLevel: PROTECTED_ACCESS
+    }),
     error => error?.code === "TRUSTED_SESSION_CHALLENGE_INVALID"
   );
   assert.equal(
-    events.filter(event => event.type === "authorize").length,
+    events.filter(event => event.type === "fingerprint_authorize").length,
     2
   );
   assert.equal(

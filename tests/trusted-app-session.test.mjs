@@ -6,6 +6,7 @@ import {
 import test from "node:test";
 
 import {
+  TRUSTED_APP_OWNER_PERSON_PROOF,
   TrustedAppSessionError,
   createTrustedAppSessionManager,
   trustedSessionCanonicalPayload
@@ -90,6 +91,17 @@ test("only an owner-verified device can create a signed trusted session", async 
   assert.equal(typeof challenge.expiresAtMillis, "string");
   assert.equal(Number(challenge.issuedAtMillis), currentTime);
   assert.equal(Number(challenge.expiresAtMillis), currentTime + 120_000);
+  assert.equal(
+    challenge.ownerPersonProof,
+    TRUSTED_APP_OWNER_PERSON_PROOF
+  );
+  assert.throws(
+    () => trustedSessionCanonicalPayload({
+      ...challenge,
+      ownerPersonProof: "fingerprint_or_pin_only"
+    }),
+    assertSessionError("TRUSTED_SESSION_PERSON_PROOF_INVALID")
+  );
   const canonical = trustedSessionCanonicalPayload(challenge);
   const signatureBase64Url = sign(
     "sha256",
@@ -104,12 +116,21 @@ test("only an owner-verified device can create a signed trusted session", async 
 
   assert.equal(session.trusted, true);
   assert.equal(
-    manager.validateRequest({
-      headers: {
-        "x-sol-holo-trusted-session": session.sessionToken
-      },
-      body: { ownerId: "pam-sol" }
-    })?.ownerId,
+    session.ownerPersonProof,
+    TRUSTED_APP_OWNER_PERSON_PROOF
+  );
+  const validated = manager.validateRequest({
+    headers: {
+      "x-sol-holo-trusted-session": session.sessionToken
+    },
+    body: { ownerId: "pam-sol" }
+  });
+  assert.equal(
+    validated?.ownerPersonProof,
+    TRUSTED_APP_OWNER_PERSON_PROOF
+  );
+  assert.equal(
+    validated?.ownerId,
     "pam-sol"
   );
   assert.equal(

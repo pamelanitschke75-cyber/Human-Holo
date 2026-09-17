@@ -28,6 +28,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,6 +61,12 @@ public class SolSpeakerIdentityPlugin extends Plugin {
     private static final int SPEECH_PADDING_FRAMES = 6;
     private static final float MIN_SPEECH_RMS = 0.008f;
     private static final int REQUIRED_SAMPLES = 3;
+    private static final long OWNER_PERSON_PROOF_TTL_MS = 90_000L;
+    private static final ConcurrentHashMap<String, OwnerPersonProof>
+        OWNER_PERSON_PROOFS = new ConcurrentHashMap<>();
+    private static final Object RECENT_WAKE_PROOF_LOCK = new Object();
+    private static String recentWakeOwnerProofId = "";
+    private static long recentWakeOwnerProofExpiresAtMillis = 0L;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -95,6 +103,16 @@ public class SolSpeakerIdentityPlugin extends Plugin {
         ProfileScore(float score, float minimum) {
             this.score = score;
             this.minimum = minimum;
+        }
+    }
+
+    private static final class OwnerPersonProof {
+        final String ownerId;
+        final long expiresAtMillis;
+
+        OwnerPersonProof(String ownerId, long expiresAtMillis) {
+            this.ownerId = ownerId;
+            this.expiresAtMillis = expiresAtMillis;
         }
     }
 
@@ -237,6 +255,77 @@ public class SolSpeakerIdentityPlugin extends Plugin {
         return true;
     }
 
+    static boolean consumeOwnerPersonProof(
+        Context context,
+        String ownerId,
+        String proofId
+    ) {
+        long now = System.currentTimeMillis();
+        OWNER_PERSON_PROOFS.entrySet().removeIf(
+            entry -> now >= entry.getValue().expiresAtMillis
+        );
+        if (
+            !WakePhraseMatcher.OWNER_ID.equals(ownerId)
+                || proofId == null
+                || proofId.isEmpty()
+                || !isProfileReady(context)
+        ) {
+            return false;
+        }
+        OwnerPersonProof proof = OWNER_PERSON_PROOFS.remove(proofId);
+        return proof != null
+            && WakePhraseMatcher.OWNER_ID.equals(proof.ownerId)
+            && now < proof.expiresAtMillis;
+    }
+
+    private static String issueOwnerPersonProof(long expiresAtMillis) {
+        long now = System.currentTimeMillis();
+        OWNER_PERSON_PROOFS.entrySet().removeIf(
+            entry -> now >= entry.getValue().expiresAtMillis
+        );
+        String proofId = UUID.randomUUID().toString();
+        OWNER_PERSON_PROOFS.put(
+            proofId,
+            new OwnerPersonProof(
+                WakePhraseMatcher.OWNER_ID,
+                expiresAtMillis
+            )
+        );
+        return proofId;
+    }
+
+    /**
+     * Called only after the native wake service has accepted both the fixed
+     * "Hey Pam" phrase and Pam's enrolled local speaker profile. The proof is
+     * kept in process memory, expires quickly and can be claimed only once by
+     * the app. No second spoken sentence is needed.
+     */
+    static void publishVerifiedWakeOwnerProof(Context context) {
+        if (!isProfileReady(context)) {
+            return;
+        }
+        long expiresAtMillis =
+            System.currentTimeMillis() + OWNER_PERSON_PROOF_TTL_MS;
+        String proofId = issueOwnerPersonProof(expiresAtMillis);
+        synchronized (RECENT_WAKE_PROOF_LOCK) {
+            if (!recentWakeOwnerProofId.isEmpty()) {
+                OWNER_PERSON_PROOFS.remove(recentWakeOwnerProofId);
+            }
+            recentWakeOwnerProofId = proofId;
+            recentWakeOwnerProofExpiresAtMillis = expiresAtMillis;
+        }
+    }
+
+    private static void clearRecentWakeOwnerProof() {
+        synchronized (RECENT_WAKE_PROOF_LOCK) {
+            if (!recentWakeOwnerProofId.isEmpty()) {
+                OWNER_PERSON_PROOFS.remove(recentWakeOwnerProofId);
+            }
+            recentWakeOwnerProofId = "";
+            recentWakeOwnerProofExpiresAtMillis = 0L;
+        }
+    }
+
     static boolean isWakeVoiceReady(Context context) {
         SharedPreferences preferences = profilePrefs(context);
         String campplus = preferences.getString(
@@ -266,6 +355,8 @@ public class SolSpeakerIdentityPlugin extends Plugin {
 
     @PluginMethod
     public void clearProfile(PluginCall call) {
+        clearRecentWakeOwnerProof();
+        OWNER_PERSON_PROOFS.clear();
         prefs().edit()
             .clear()
             .putInt(PROFILE_VERSION_KEY, PROFILE_VERSION)
@@ -281,6 +372,45 @@ public class SolSpeakerIdentityPlugin extends Plugin {
         ));
         HeyHoSolPlugin.publishStatusEvent();
         call.resolve(status());
+    }
+
+    @PluginMethod
+    public void claimVerifiedWakeOwnerProof(PluginCall call) {
+        String ownerId = call.getString("ownerId", "");
+        long now = System.currentTimeMillis();
+        String proofId = "";
+        long expiresAtMillis = 0L;
+        synchronized (RECENT_WAKE_PROOF_LOCK) {
+            boolean available =
+                WakePhraseMatcher.OWNER_ID.equals(ownerId)
+                    && isProfileReady(getContext())
+                    && !recentWakeOwnerProofId.isEmpty()
+                    && now < recentWakeOwnerProofExpiresAtMillis;
+            if (available) {
+                proofId = recentWakeOwnerProofId;
+                expiresAtMillis = recentWakeOwnerProofExpiresAtMillis;
+            } else if (!recentWakeOwnerProofId.isEmpty()) {
+                OWNER_PERSON_PROOFS.remove(recentWakeOwnerProofId);
+            }
+            recentWakeOwnerProofId = "";
+            recentWakeOwnerProofExpiresAtMillis = 0L;
+        }
+
+        JSObject out = new JSObject();
+        out.put("accepted", !proofId.isEmpty());
+        out.put("decision", proofId.isEmpty() ? "unavailable" : "owner");
+        out.put("ownerId", WakePhraseMatcher.OWNER_ID);
+        out.put("source", "verified_hey_pam_wake");
+        if (!proofId.isEmpty()) {
+            out.put("ownerPersonProofId", proofId);
+            out.put(
+                "ownerPersonProofMethod",
+                "verified_wake_speaker_profile_v3"
+            );
+            out.put("ownerPersonProofExpiresAtMillis", expiresAtMillis);
+            out.put("ownerPersonProofOneTime", true);
+        }
+        call.resolve(out);
     }
 
     @PluginMethod
@@ -406,6 +536,17 @@ public class SolSpeakerIdentityPlugin extends Plugin {
                 out.put("score", eres2net.score);
                 out.put("accepted", accepted);
                 out.put("decision", accepted ? "owner" : "rejected");
+                if (accepted) {
+                    long expiresAtMillis =
+                        System.currentTimeMillis() + OWNER_PERSON_PROOF_TTL_MS;
+                    out.put(
+                        "ownerPersonProofId",
+                        issueOwnerPersonProof(expiresAtMillis)
+                    );
+                    out.put("ownerPersonProofMethod", "local_speaker_profile_v3");
+                    out.put("ownerPersonProofExpiresAtMillis", expiresAtMillis);
+                    out.put("ownerPersonProofOneTime", true);
+                }
                 resolveOnMain(call, out);
             } catch (Exception error) {
                 rejectOnMain(call, "Stimmtest konnte nicht verarbeitet werden: " + error.getMessage(), error);

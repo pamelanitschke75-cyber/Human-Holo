@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   MEDICATION_RECOGNITION_LEGAL_HOLD_ACTIVE,
+  PAM_HOLO_PRIVATE_MEDICATION_TEST_ACTIVE,
   formatMedicationRecognitionAnswer,
   isMedicationRecognitionRequest,
   medicationRecognitionInstructions,
@@ -10,25 +11,77 @@ import {
   sanitizeMedicationRecognitionResult
 } from "../modules/medication-recognition.mjs";
 
-test("feature remains disabled while legal hold is active", () => {
+test("allgemeines Human Holo bleibt trotz privater Pam-Ausnahme geschlossen", () => {
   assert.equal(MEDICATION_RECOGNITION_LEGAL_HOLD_ACTIVE, true);
-  assert.equal(isMedicationRecognitionRequest("test", { hasImage: true }), false);
-  assert.equal(isMedicationRecognitionRequest("test", { hasImage: false }), false);
+  assert.equal(PAM_HOLO_PRIVATE_MEDICATION_TEST_ACTIVE, true);
+  assert.equal(
+    isMedicationRecognitionRequest("Lies dieses Medikament", {
+      hasImage: true
+    }),
+    false
+  );
+  assert.match(
+    medicationRecognitionInstructions(),
+    /allgemeinen Human Holo[\s\S]*deaktiviert/u
+  );
+  assert.match(
+    formatMedicationRecognitionAnswer(),
+    /allgemeinen Human Holo[\s\S]*anwaltlichen Freigabe deaktiviert/u
+  );
 });
 
-test("only reminder and organization functions remain available", () => {
-  const instructions = medicationRecognitionInstructions();
-  const answer = formatMedicationRecognitionAnswer();
-
-  assert.match(instructions, /Only reminder and organization functions remain available/u);
-  assert.match(answer, /Only reminder and organization functions remain available/u);
+test("privater Pam-Test erkennt nur einen Bildauftrag zur Verpackung", () => {
+  assert.equal(
+    isMedicationRecognitionRequest("Lies dieses Medikament", {
+      hasImage: true,
+      privatePamMedical: true
+    }),
+    true
+  );
+  assert.equal(
+    isMedicationRecognitionRequest("Lies dieses Medikament", {
+      hasImage: false,
+      privatePamMedical: true
+    }),
+    false
+  );
+  assert.match(
+    medicationRecognitionInstructions("Pam", {
+      authorized: true,
+      privatePamMedical: true
+    }),
+    /nur ein ausdrücklich ausgewähltes Foto[\s\S]*niemals eine persönliche Dosierung/u
+  );
 });
 
-test("disabled parser returns no recognized content", () => {
+test("Parser bleibt standardmäßig geschlossen und filtert Dosierungsangaben", () => {
   assert.deepEqual(sanitizeMedicationRecognitionResult({ any: "value" }), {
     status: "disabled"
   });
   assert.deepEqual(parseMedicationRecognitionResult("anything"), {
     status: "disabled"
   });
+
+  const parsed = parseMedicationRecognitionResult(
+    JSON.stringify({
+      status: "package",
+      medicine_name: "Beispiel",
+      active_ingredient: "Wirkstoff",
+      strength: "500 mg",
+      dosage_form: "Tablette",
+      package_size: "20 Stück",
+      manufacturer: "Hersteller",
+      expiry_date: "12/2028",
+      uncertainty: "Nimm täglich zwei Tabletten"
+    }),
+    { privatePamMedical: true }
+  );
+  assert.equal(parsed.status, "package");
+  assert.equal(parsed.uncertainty, "");
+  assert.match(
+    formatMedicationRecognitionAnswer(parsed, {
+      privatePamMedical: true
+    }),
+    /keine Diagnose, Behandlung oder persönliche Einnahmeempfehlung/u
+  );
 });

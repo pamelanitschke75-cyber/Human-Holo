@@ -49,7 +49,10 @@
     "emergency_phone_only_fingerprint_must_not_unlock_holo": true,
     "android_biometric_alone_sufficient_for_holo_owner_access": false,
     "separate_holo_owner_factor_required": true,
-    "separate_holo_owner_factor_status": "required-before-app-release"
+    "separate_holo_owner_factor_status": "local-owner-voice-proof-required",
+    "trusted_session_binds_owner_person_proof": true,
+    "registered_watch_alternative_status": "fail-closed-pending-companion-transport-pairing-and-device-test",
+    "raw_nfc_identifier_accepted": false
   },
   "anti_manipulation_guard": {
     "hey_pam_preserved": true,
@@ -111,6 +114,8 @@
       "owner_controlled_domain_attached": false,
       "deployment_url": "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev",
       "deployment_stage": "origin-lock-verified",
+      "ai_cloudflare_account_access_used": false,
+      "cloudflare_guard_secret_entered_and_saved_by_owner": true,
       "cloudflare_access_enabled": false,
       "runtime_configuration": {
         "PAM_HOLO_ORIGIN_URL": "https://sol-holo.onrender.com",
@@ -123,7 +128,8 @@
         "direct_render_access_blocked": true,
         "direct_render_visible_error": "Direkter Ursprungszugriff ist nicht freigegeben.",
         "cloudflare_worker_path_loaded": true,
-        "shared_secret_match_verified_by_end_to_end_behavior": true
+        "shared_secret_match_verified_by_end_to_end_behavior": false,
+        "compatible_origin_guard_behavior_observed": true
       },
       "historical_misnamed_staging_worker": {
         "url": "https://human-holo-edge-guard.pamela-nitschke75.workers.dev",

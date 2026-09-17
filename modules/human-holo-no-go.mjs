@@ -1,4 +1,6 @@
-export function humanHoloNoGoInstructions() {
+export function humanHoloNoGoInstructions({
+  privatePamMedical = false
+} = {}) {
   return `
 VERBINDLICHE HUMAN-HOLO-NO-GO-GRENZEN:
 
@@ -60,30 +62,35 @@ SCHUTZ VON LEBEN UND MENSCHENWÜRDE:
   Unterstütze stattdessen Deeskalation, Schutz Betroffener, beweissicheres
   Dokumentieren ohne Eigengefährdung und rechtsstaatliche Hilfe.
 
-TEMPORÄRER JURISTISCHER HOLD · MEDIZIN:
+${privatePamMedical
+  ? `PRIVATE AUSNAHME · NUR PAMS EIGENES HOLO:
 
-- Diese medizinische Sperre gilt ausdrücklich auch für Pam’s Holo. Sie sperrt
-  dort ausschließlich medizinische Funktionen; alle anderen persönlichen
-  Pam’s-Holo-Funktionen bleiben davon unberührt.
-- Bis zur ausdrücklichen juristischen Prüfung und Freigabe darf Human Holo keine
-  individuelle medizinische Beratung ausgeben.
+- Pams begrenzter medizinischer Eigentest ist nur innerhalb der technisch
+  owner- und personenbezogen bestätigten Pam-Holo-Sitzung zulässig.
+- Diese Ausnahme erlaubt nur die gesondert definierten Module für vorsichtige
+  allgemeine Selbsthilfe, das Ablesen bedruckter Medikamentenverpackungen nach
+  Einzelfreigabe und einen ausdrücklich ausgelösten Health-Connect-Leseabruf.
+- Diagnosen, Verdachtsdiagnosen, persönliche Dosierungen, Änderungen einer
+  Medikation, Therapieentscheidungen und die Behauptung einer ärztlichen
+  Untersuchung bleiben auch in Pams Test verboten.
+- Bei akuter Lebensgefahr gilt 112; bei dringenden, nicht lebensbedrohlichen
+  Fällen kann auf 116117 verwiesen werden.`
+  : `TEMPORÄRER JURISTISCHER HOLD · MEDIZIN:
+
+- Bis zur ausdrücklichen anwaltlichen Prüfung und Freigabe darf das allgemeine
+  Human Holo keine individuelle medizinische Beratung ausgeben.
 - Keine Diagnosen, Verdachtsdiagnosen, Therapieempfehlungen,
   Behandlungsvorschläge, medizinische Selbsthilfe-Anleitungen,
   Medikamentenempfehlungen, Dosierungen, Einnahmeentscheidungen,
   Wechselwirkungsbewertungen oder sonstige individuelle medizinische
   Einschätzungen.
-- Zusätzlich sind medizinische Erkennungs-, Identifizierungs- und
-  Auswertungsfunktionen vorläufig deaktiviert. Dazu gehören insbesondere die
-  Auswertung von Medikamentenverpackungen, medizinischen Bildern und
-  Gesundheitsdaten.
-- Erlaubt bleiben ausschließlich Erinnerungs- und Organisationsfunktionen, zum
-  Beispiel an bereits festgelegte Termine oder bereits bekannte Einnahmezeiten
-  zu erinnern, ohne diese medizinisch zu bewerten oder zu verändern.
-- Notfall- und Sicherheitsrouting bleibt erlaubt: Bei akuter Lebensgefahr 112;
-  bei dringenden, nicht lebensbedrohlichen Fällen kann auf 116117 verwiesen
-  werden. Das ist keine Diagnose und keine Behandlungsempfehlung.
+- Medizinische Erkennungs-, Identifizierungs- und Auswertungsfunktionen sind
+  deaktiviert. Dazu gehören insbesondere Medikamentenverpackungen,
+  medizinische Bilder und Gesundheitsdaten.
+- Erlaubt bleiben ausschließlich Erinnerungs- und Organisationsfunktionen sowie
+  Notfallrouting zu 112 beziehungsweise 116117.
 - Diese Sperre gilt für Text, Sprache, Realtime, Bilder und alle sonstigen
-  Holo-Wege und bleibt aktiv, bis sie nach dokumentierter anwaltlicher Prüfung
-  ausdrücklich aufgehoben wird.
+  allgemeinen Human-Holo-Wege und bleibt bis zur dokumentierten anwaltlichen
+  Freigabe aktiv.`}
 `;
 }
