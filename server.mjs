@@ -142,7 +142,9 @@ import {
   pamHoloPracticalJudgmentInstructions
 } from "./modules/pam-holo-practical-judgment.mjs";
 import {
+  PAM_HOLO_PERSONALITY_MEMORY_QUERY,
   isPamHoloThinkingMemoryEnabled,
+  pamHoloPersonalityMemoryInstructions,
   pamHoloThinkingMemoryInstructions
 } from "./modules/pam-holo-thinking-memory.mjs";
 import {
@@ -11012,8 +11014,11 @@ app.post("/realtime/token", async (req, res) => {
         identity.displayName
       );
 
-    const longTermMemories =
-      await identityMemoryStore
+    const [
+      longTermMemories,
+      personalityMemories
+    ] = await Promise.all([
+      identityMemoryStore
         .listConfirmed({
           ownerId:
             identity.ownerId,
@@ -11021,7 +11026,20 @@ app.post("/realtime/token", async (req, res) => {
             identity.speakerId,
           limit:
             20
-        });
+        }),
+      isPamHoloThinkingMemoryEnabled(identity)
+        ? identityMemoryStore.searchConfirmed({
+            ownerId:
+              identity.ownerId,
+            speakerId:
+              identity.speakerId,
+            searchText:
+              PAM_HOLO_PERSONALITY_MEMORY_QUERY,
+            limit:
+              20
+          })
+        : Promise.resolve([])
+    ]);
 
     const longTermMemoryText =
       longTermMemories
@@ -11042,6 +11060,8 @@ ${personalCloneIdentityInstructions(identity)}
 ${pamHoloPracticalJudgmentInstructions(identity)}
 
 ${pamHoloThinkingMemoryInstructions(identity)}
+
+${pamHoloPersonalityMemoryInstructions(identity, personalityMemories)}
 
 ${pamHoloAccessBoundaryInstructions()}
 
@@ -13951,12 +13971,14 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
 
     const [
       longTermMemories,
+      personalityMemories,
       fulltimeHistory,
       legacyMemories,
       legacyLongTermMemories
     ] =
       medicationRecognitionRequested
         ? [
+            [],
             [],
             {
               groundedRows: [],
@@ -13979,6 +14001,18 @@ Prüfung, Kontaktdaten, Wirkung oder Rendite.
                     limit:
                       PERSONAL_MEMORY_MODALITY_PARITY_LIMITS.confirmed
                   }),
+            isPamHoloThinkingMemoryEnabled(identity)
+              ? identityMemoryStore.searchConfirmed({
+                  ownerId:
+                    identity.ownerId,
+                  speakerId:
+                    identity.speakerId,
+                  searchText:
+                    PAM_HOLO_PERSONALITY_MEMORY_QUERY,
+                  limit:
+                    20
+                })
+              : Promise.resolve([]),
             loadRelevantOwnerRecallHistory(
               identity,
               memorySearchText,
@@ -14194,6 +14228,8 @@ ${personalCloneIdentityInstructions(identity)}
 ${pamHoloPracticalJudgmentInstructions(identity)}
 
 ${pamHoloThinkingMemoryInstructions(identity)}
+
+${pamHoloPersonalityMemoryInstructions(identity, personalityMemories)}
 
 ${pamHoloAccessBoundaryInstructions()}
 

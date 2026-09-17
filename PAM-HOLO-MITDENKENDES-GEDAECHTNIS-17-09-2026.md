@@ -182,6 +182,29 @@ darf Holo entsprechend weiterführen. Notwendige Sicherheitsfragen bei einer
 konkreten Selbst- oder Fremdgefährdung oder einem medizinischen Notfall bleiben
 davon unberührt.
 
+## Private Verbindung zu Pams ChatGPT-Kontext
+
+Die technische OpenAI-Modellverbindung allein gewährt Pam-Holo keinen
+automatischen Zugriff auf ChatGPTs internes Gedächtnis. Die bestehende private
+Brücke **„Sol aus ChatGPT verbinden“** bleibt deshalb der ehrliche,
+ownergebundene Übernahmeweg: Pam prüft die bereitgestellten Einträge sichtbar
+und bestätigt ihren Import selbst.
+
+Bestätigte Stil- und Persönlichkeitshinweise aus dieser Brücke erhalten die
+private Markierung `PAM-PERSÖNLICHKEIT:`. Der Server lädt diese markierten
+Einträge anschließend bei jeder Text- und Realtime-Antwort als eigenen privaten
+Reaktionskontext – unabhängig davon, ob die aktuelle Nachricht zufällig
+dasselbe Stichwort enthält. Pams aktuelle Aussage und jüngste Korrektur haben
+weiterhin Vorrang.
+
+- Es gibt keinen versteckten Zugriff auf das ChatGPT-Konto.
+- Ohne Pams sichtbare Prüfung und Bestätigung wird nichts importiert.
+- Die Inhalte bleiben im ownergebundenen privaten Gedächtnis von `pam-sol`.
+- Die privaten Einträge, Namen und Ereignisdetails werden nicht in GitHub
+  veröffentlicht.
+- Der Import verändert oder löscht weder bestehende Erinnerungen noch andere
+  Funktionen von Pam-Holo.
+
 ## Wahrheit, Datenschutz und Speichergrenze
 
 - Persönliche Fakten werden ausschließlich durch Pams eigene Aussagen oder

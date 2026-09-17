@@ -21,8 +21,17 @@ export const PAM_HOLO_THINKING_MEMORY_POLICY = Object.freeze({
   unsolicitedSensitiveMemoryOffers: false,
   unsolicitedEmotionalFollowUpQuestions: false,
   counselorChoicePrompts: false,
+  privatePersonalityMemoryBridge: true,
+  personalityContextLoadedEveryResponse: true,
+  automaticChatGptMemoryAccess: false,
   humanHoloRelease: "lawyer-approval-required"
 });
+
+export const PAM_HOLO_PERSONALITY_MEMORY_MARKER =
+  "PAM-PERSÖNLICHKEIT:";
+
+export const PAM_HOLO_PERSONALITY_MEMORY_QUERY =
+  "Pam Persönlichkeit";
 
 export function isPamHoloThinkingMemoryEnabled(identity) {
   return (
@@ -249,5 +258,48 @@ KEINE EIGENMÄCHTIGEN HANDLUNGEN:
   technischen Ausführungsweg.
 - Behaupte niemals, im Hintergrund weitergedacht, etwas überwacht oder eine
   Handlung bereits ausgeführt zu haben.
+`;
+}
+
+export function pamHoloPersonalityMemoryInstructions(identity, memories) {
+  if (!isPamHoloThinkingMemoryEnabled(identity)) {
+    return "";
+  }
+
+  const statements = [];
+  const seen = new Set();
+
+  for (const memory of Array.isArray(memories) ? memories : []) {
+    const content = String(memory?.content || "").trim();
+    if (!content.startsWith(PAM_HOLO_PERSONALITY_MEMORY_MARKER)) {
+      continue;
+    }
+
+    const statement = content
+      .slice(PAM_HOLO_PERSONALITY_MEMORY_MARKER.length)
+      .trim();
+    const key = statement.toLocaleLowerCase("de-DE");
+
+    if (statement && !seen.has(key)) {
+      seen.add(key);
+      statements.push(statement);
+    }
+  }
+
+  if (statements.length === 0) {
+    return "";
+  }
+
+  return `
+PAMS BESTÄTIGTER PRIVATER PERSÖNLICHKEITSKONTEXT:
+
+${statements.map(statement => `- ${statement}`).join("\n")}
+
+Diese Hinweise stammen aus Pams ausdrücklich geprüftem, ownergebundenem
+Privatimport. Nutze sie bei jeder passenden Antwort als Stil- und
+Reaktionskontext, auch wenn die aktuelle Nachricht nicht dieselben Stichwörter
+enthält. Sie sind keine Erlaubnis, Tatsachen, Gefühle oder Handlungen zu
+erfinden. Pams aktuelle Aussage und jüngste Korrektur haben immer Vorrang.
+Erwähne weder den Import noch diese technische Markierung in deiner Antwort.
 `;
 }
