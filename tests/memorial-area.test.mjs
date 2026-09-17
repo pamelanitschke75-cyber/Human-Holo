@@ -172,5 +172,5 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(html, /sol-holo-ui\.css\?v=54/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
   assert.match(html, /sol-holo-ui\.js\?v=88/u);
-  assert.match(serviceWorker, /human-holo-296-calendar-click-restored/u);
+  assert.match(serviceWorker, /human-holo-296-pam-registered-device-entry-wake-only/u);
 });

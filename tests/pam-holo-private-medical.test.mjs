@@ -87,9 +87,12 @@ test("Server, App-Sperre und NFC-Uhr bleiben fail-closed", async () => {
   assert.match(server, /isPamHoloPrivateMedicalAuthorized/u);
   assert.match(server, /app\.post\("\/sol"[\s\S]*requirePrivatePamHoloAccess/u);
   assert.match(server, /app\.post\("\/realtime\/token"[\s\S]*requirePrivatePamHoloAccess/u);
-  assert.match(appLock, /freshOwnerVoiceProof/u);
-  assert.match(appLock, /claimVerifiedWakeOwnerProof/u);
+  assert.doesNotMatch(appLock, /freshOwnerVoiceProof/u);
+  assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
+  assert.match(appLock, /„Hey Pam“ ist ausschließlich der Weckruf/u);
+  assert.match(appLock, /allowBootstrap: false/u);
+  assert.match(appLock, /ensureProtectedPamHoloAccess/u);
   assert.match(appLock, /Browseransicht bleibt geschlossen/u);
   assert.match(nativeSpeaker, /consumeOwnerPersonProof/u);
   assert.match(nativeAccess, /SIMPLE_NFC_TAG_NEVER_ACCEPTED/u);

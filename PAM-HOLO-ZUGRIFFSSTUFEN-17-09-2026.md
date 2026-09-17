@@ -13,19 +13,23 @@ nehmen!“** Pam bleibt zu Lebzeiten alleinige Ownerin ihres persönlichen Pam
 Holo. Betreiber-, Verwaltungs-, Entwicklungs- oder sonstige Zugriffsrechte
 begründen weder Mitinhaberschaft noch persönlichen Zugang.
 
-Sol kennt in Pams persönlicher Instanz ausschließlich Pams eingerichtetes
-Stimmprofil. Wenn Sol „Hey Pam“ hört und dieses lokale Stimmprofil erfolgreich
-als Pam bestätigt, ist Pams normaler Alltag mit Sol geöffnet.
+„Hey Pam“ ist ausschließlich der Weckruf: Er kann Pam Holo wecken und das
+Zuhören starten, ist aber weder Passwort noch Entsperrung. Das lokale
+Stimmprofil schützt den Weckruf und die Sprecherzuordnung; es sperrt Pam nicht
+aus ihrer App aus.
 
-Danach wird **kein zweiter Prüfsatz** und **kein Fingerprint für die normale
-Alltagsnutzung** verlangt. Der bereits bestätigte Weckruf ist der persönliche
-Stimmnachweis für diese kurzlebige Alltagssitzung.
+Auf Pams für `pam-sol` registriertem Android-Gerät wird die normale
+App-Oberfläche nach der lokalen Geräteprüfung direkt geöffnet. Dafür werden
+**weder ein Prüfsatz noch ein Fingerprint** verlangt. Auch eine vorübergehend
+nicht erreichbare Online-Sitzung darf die lokale Oberfläche nicht sperren.
+Eine kurzlebige, gerätegebundene Online-Sitzung wird getrennt im Hintergrund
+aufgebaut, sobald der geschützte Serverweg erreichbar ist.
 
 Ein Fingerprint wird erst verlangt, wenn Pam einen besonders geschützten
 Bereich verwendet. Alltagssitzung und geschützte Sitzung sind technisch
 getrennt. Beim Verlassen der App werden beide wieder verworfen.
 
-## Nach erkannter Stimme offen
+## Auf Pams registriertem Gerät offen
 
 Zur normalen Alltagsnutzung gehören insbesondere:
 
@@ -76,7 +80,7 @@ Video, Dokument oder anderer geschützter Anhang verwendet wird, gilt die
 Fingerprint-Stufe.
 
 Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs kann
-nach der erkannten Stimme stattfinden. Ein Medikamentenfoto, der tatsächliche
+auf Pams registriertem Gerät stattfinden. Ein Medikamentenfoto, der tatsächliche
 Health-Connect-Datenabruf und jede Änderung medizinischer Berechtigungen bleiben
 zusätzlich fingerprintgeschützt. Die Einzelfreigabe für das konkrete
 Medikamentenbild bleibt daneben bestehen.
@@ -88,8 +92,9 @@ Medikamentenbild bleibt daneben bestehen.
   Zugangsvoraussetzung und keine fachliche Freigabe.
 - Sicherheitskritische Außenhandlungen behalten ihre eigenen sichtbaren
   Bestätigungen.
-- Ein auf dem Telefon gespeicherter Fingerabdruck allein öffnet Pam’s Holo
-  nicht. Zuerst muss Pams lokales Stimmprofil bestätigt worden sein.
+- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten Gerät
+  direkt. Ein Fingerprint ist keine Identitätsumschaltung und bleibt nur die
+  zusätzliche Freigabe für die ausdrücklich geschützten Bereiche.
 - Android liefert der App keine Fingerabdruckdaten. Für den geschützten Bereich
   fordert die App starke Android-Biometrie ohne Geräte-PIN-Fallback an.
 - Eine spätere NFC-Uhr darf den persönlichen Faktor nur nach echter
@@ -108,12 +113,16 @@ Freigaben bleiben bis zur dokumentierten anwaltlichen Prüfung geschlossen.
 ## Technischer Nachweis im Repository
 
 - Zugriffsregel: `modules/pam-holo-access-policy.mjs`
-- lokaler Stimmnachweis: `android-native/SolSpeakerIdentityPlugin.java`
+- lokale Weckruf- und Sprecherprüfung ohne Entsperrfunktion:
+  `android-native/SolSpeakerIdentityPlugin.java`
 - Weckrufübergabe: `android-native/HeyHoSolService.java`
 - Fingerprint- und Geräteschutz: `android-native/SolAccessSecurityPlugin.java`
 - App-Sitzungen: `modules/trusted-app-session.mjs` und
   `www/trusted-app-session.mjs`
-- App-Grenze: `www/app-lock-bootstrap.mjs`
+- App-Grenze: `www/app-lock-bootstrap.mjs` – Pams registriertes Gerät öffnet
+  den Alltag lokal; „Hey Pam“ bleibt ausschließlich der Weckruf. Eine
+  vorübergehend nicht erreichbare Online-Sitzung sperrt die App-Oberfläche
+  nicht erneut.
 - automatisierte Nachweise: `tests/pam-holo-access-policy.test.mjs`
 
 © 2026 Pamela Nitschke

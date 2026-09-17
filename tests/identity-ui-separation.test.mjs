@@ -90,19 +90,26 @@ test("die signierte Pam-Instanz ist fest an pam-sol gebunden und lädt keine Sit
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=8/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=9/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /OWNER_EVERYDAY_ACCESS/u);
   assert.match(appLock, /PROTECTED_ACCESS/u);
-  assert.match(appLock, /claimVerifiedWakeOwnerProof/u);
-  assert.match(appLock, /freshOwnerVoiceProof/u);
-  assert.match(appLock, /ownerPersonProofId/u);
+  assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
+  assert.doesNotMatch(appLock, /freshOwnerVoiceProof/u);
+  assert.doesNotMatch(appLock, /ownerPersonProofId/u);
+  assert.match(appLock, /„Hey Pam“ ist ausschließlich der Weckruf/u);
+  assert.match(
+    appLock,
+    /status\?\.device\?\.registered !== true[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
+  );
+  assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /Browseransicht bleibt geschlossen/u);
   assert.match(appLock, /ensureProtectedPamHoloAccess/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
   assert.doesNotMatch(appLock, /authorizeAppAccess/u);
   assert.match(nativeSecurity, /authorizeOwnerEverydayAccess/u);
+  assert.match(nativeSecurity, /registered_owner_device/u);
   assert.match(nativeSecurity, /biometricPromptUsed", false/u);
   assert.match(nativeSecurity, /PROTECTED_AUTHENTICATORS\s*=\s*\n\s*BiometricManager\.Authenticators\.BIOMETRIC_STRONG/u);
   assert.match(appLock, /document\.addEventListener\("visibilitychange"/u);

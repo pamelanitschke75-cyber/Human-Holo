@@ -12,17 +12,10 @@ const app = document.getElementById("app");
 let authenticationInProgress = false;
 let unlocked = false;
 let hiddenAtMillis = 0;
+let everydaySessionRefreshPromise = null;
 
 function securityPlugin() {
   return window.Capacitor?.Plugins?.SolAccessSecurity || null;
-}
-
-function speakerIdentityPlugin() {
-  return window.Capacitor?.Plugins?.SolSpeakerIdentity || null;
-}
-
-function wakePlugin() {
-  return window.Capacitor?.Plugins?.HeyHoSol || null;
 }
 
 function isNativeAndroidApp() {
@@ -41,22 +34,15 @@ function boundIdentity() {
 
 function lockMarkup({
   needsRegistration = false,
-  needsVoiceEnrollment = false,
-  voiceSampleCount = 0,
-  voiceRequiredSamples = 3,
   message = ""
 } = {}) {
   const buttonLabel = needsRegistration
     ? "Gerät einmal sicher registrieren"
-    : needsVoiceEnrollment
-      ? `Pams Stimmprobe ${voiceSampleCount + 1}/${voiceRequiredSamples} aufnehmen`
-      : "Nach „Hey Pam“ erneut öffnen";
+    : "Sichere Verbindung erneut aufbauen";
   const status = message || (
     needsRegistration
-      ? "Vor dem ersten Entsperren wird dieses Gerät fest mit pam-sol verbunden."
-      : needsVoiceEnrollment
-        ? "Vor dem ersten Holo-Zugang werden drei lokale Stimmproben von Pam eingerichtet."
-        : "Sag „Hey Pam“. Sol öffnet deinen normalen Alltag nach deiner erkannten Stimme."
+      ? "Vor dem ersten Öffnen wird dieses Gerät fest mit pam-sol verbunden."
+      : "Pam’s Holo öffnet auf Pams registriertem Gerät automatisch."
   );
 
   bootScreen.innerHTML = "";
@@ -82,119 +68,15 @@ function lockMarkup({
   unlockButton.type = "button";
   unlockButton.textContent = buttonLabel;
   unlockButton.addEventListener("click", () => {
-    if (needsVoiceEnrollment) {
-      void enrollOwnerVoice();
-      return;
-    }
     void authenticateAndReveal({ needsRegistration });
   });
 
   const hint = document.createElement("span");
   hint.className = "solHoloLockHint";
   hint.textContent =
-    "Gespräch, Wetter, Einkaufsliste und reine Text-WhatsApp sind danach offen. Bilder, Unterlagen, Geschäftliches und Systemeinstellungen benötigen zusätzlich Pams Fingerprint. Rohstimme und Fingerabdruckdaten werden nicht gespeichert.";
+    "„Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Bilder, Unterlagen, Geschäftliches, medizinische Daten und Systemeinstellungen benötigen Pams Fingerprint. Rohstimme und Fingerabdruckdaten werden nicht gespeichert.";
 
   bootScreen.append(logo, mission, statusNode, unlockButton, hint);
-}
-
-async function showVoiceEnrollment(message = "") {
-  const plugin = speakerIdentityPlugin();
-  if (!plugin) {
-    showLocked({
-      message:
-        "Die lokale Pam-Stimmprüfung fehlt. Pam’s Holo bleibt geschlossen."
-    });
-    return;
-  }
-  try {
-    const status = await plugin.getStatus();
-    const sampleCount = Number(status?.sampleCount || 0);
-    const requiredSamples = Number(status?.requiredSamples || 3);
-    if (status?.profileReady === true) {
-      showLocked({
-        message:
-          message || "Pams lokales Stimmprofil ist bereit. Sag einfach „Hey Pam“, um den Alltag zu öffnen."
-      });
-      return;
-    }
-    showLocked({
-      needsVoiceEnrollment: true,
-      voiceSampleCount: sampleCount,
-      voiceRequiredSamples: requiredSamples,
-      message:
-        message ||
-        `Lokale Stimmproben: ${sampleCount}/${requiredSamples}. Bitte den eingeblendeten Prüfsatz vollständig sprechen.`
-    });
-  } catch {
-    showLocked({
-      message:
-        "Der lokale Stimmprofil-Status ist nicht verfügbar. Pam’s Holo bleibt geschlossen."
-    });
-  }
-}
-
-async function enrollOwnerVoice() {
-  if (authenticationInProgress) return;
-  const plugin = speakerIdentityPlugin();
-  const statusNode = document.getElementById("solHoloAppLockStatus");
-  const unlockButton = document.getElementById("solHoloAppUnlockButton");
-  if (!plugin) {
-    await showVoiceEnrollment();
-    return;
-  }
-  authenticationInProgress = true;
-  if (unlockButton) unlockButton.disabled = true;
-  if (statusNode) {
-    statusNode.textContent =
-      "Mikrofon wird lokal vorbereitet. Bitte gleich sagen: „Hey Pam. Bitte prüfe jetzt genau meine Stimme.“";
-  }
-  try {
-    await plugin.enrollSample();
-    await showVoiceEnrollment();
-  } catch (error) {
-    await showVoiceEnrollment(
-      String(error?.message || "Die Stimmprobe wurde nicht gespeichert.")
-    );
-  } finally {
-    authenticationInProgress = false;
-  }
-}
-
-async function freshOwnerVoiceProof(statusNode) {
-  const plugin = speakerIdentityPlugin();
-  if (!plugin) {
-    throw Object.assign(new Error("OWNER_VOICE_PLUGIN_MISSING"), {
-      code: "OWNER_VOICE_PLUGIN_MISSING"
-    });
-  }
-  const status = await plugin.getStatus();
-  if (status?.profileReady !== true) {
-    throw Object.assign(new Error("OWNER_VOICE_PROFILE_REQUIRED"), {
-      code: "OWNER_VOICE_PROFILE_REQUIRED"
-    });
-  }
-  if (statusNode) {
-    statusNode.textContent =
-      "Der bereits erkannte „Hey Pam“-Stimmnachweis wird übernommen …";
-  }
-  if (typeof plugin.claimVerifiedWakeOwnerProof !== "function") {
-    throw Object.assign(new Error("OWNER_WAKE_PROOF_UNAVAILABLE"), {
-      code: "OWNER_WAKE_PROOF_UNAVAILABLE"
-    });
-  }
-  const proof = await plugin.claimVerifiedWakeOwnerProof({
-    ownerId: APP_OWNER_ID
-  });
-  if (
-    proof?.accepted !== true ||
-    proof?.decision !== "owner" ||
-    !proof?.ownerPersonProofId
-  ) {
-    throw Object.assign(new Error("OWNER_WAKE_PROOF_REQUIRED"), {
-      code: "OWNER_WAKE_PROOF_REQUIRED"
-    });
-  }
-  return proof;
 }
 
 function showLocked(options = {}) {
@@ -213,6 +95,22 @@ function revealApp() {
   bootScreen.hidden = true;
   bootScreen.setAttribute("aria-hidden", "true");
   app?.removeAttribute("aria-hidden");
+}
+
+function refreshEverydaySessionInBackground() {
+  if (everydaySessionRefreshPromise) {
+    return everydaySessionRefreshPromise;
+  }
+  everydaySessionRefreshPromise = ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: OWNER_EVERYDAY_ACCESS,
+    allowBootstrap: false
+  })
+    .catch(() => ({ trusted: false }))
+    .finally(() => {
+      everydaySessionRefreshPromise = null;
+    });
+  return everydaySessionRefreshPromise;
 }
 
 function lockAfterBackground() {
@@ -249,51 +147,35 @@ async function authenticateAndReveal({ needsRegistration = false } = {}) {
   if (statusNode) {
     statusNode.textContent = needsRegistration
       ? "Android registriert dieses Gerät jetzt sicher für pam-sol …"
-      : "Sols erkannter Hey-Pam-Stimmnachweis wird sicher übernommen …";
+      : "Pams registriertes Gerät wird lokal geprüft …";
   }
 
   try {
     if (needsRegistration) {
       await plugin.registerCurrentDevice({ ownerId: APP_OWNER_ID });
-      await showVoiceEnrollment(
-        "Das Gerät ist registriert. Jetzt wird Pams persönliches Stimmprofil lokal eingerichtet."
-      );
-      return;
     }
-
-    const voiceProof = await freshOwnerVoiceProof(statusNode);
-    if (statusNode) {
-      statusNode.textContent =
-        "Pam wurde an ihrer Stimme erkannt. Der normale Alltag mit Sol wird geöffnet …";
-    }
-
-    const secureSession = await ensureTrustedAppSession({
-      interactive: true,
-      accessLevel: OWNER_EVERYDAY_ACCESS,
-      ownerPersonProofId: voiceProof.ownerPersonProofId
-    });
-    if (secureSession?.trusted !== true) {
-      throw new Error("TRUSTED_SESSION_NOT_ESTABLISHED");
+    const status = await plugin.getStatus({ ownerId: APP_OWNER_ID });
+    if (
+      status?.ownerId !== APP_OWNER_ID ||
+      status?.device?.registered !== true
+    ) {
+      throw Object.assign(new Error("REGISTERED_DEVICE_REQUIRED"), {
+        code: "REGISTERED_DEVICE_REQUIRED"
+      });
     }
     revealApp();
+    void refreshEverydaySessionInBackground();
   } catch (error) {
     const registrationRequired =
       needsRegistration ||
       error?.code === "REGISTERED_DEVICE_REQUIRED";
-    if (error?.code === "OWNER_VOICE_PROFILE_REQUIRED") {
-      await showVoiceEnrollment();
-      return;
-    }
     showLocked({
       needsRegistration: registrationRequired,
       message: registrationRequired
         ? error?.code === "BIOMETRIC_PROMPT_START_FAILED"
           ? "Das Android-Sicherheitsfenster konnte nicht geöffnet werden. Bitte Pam’s Holo vollständig im Vordergrund öffnen und erneut registrieren."
           : "Dieses Gerät muss zuerst einmal sicher für pam-sol registriert werden."
-        : error?.code === "OWNER_WAKE_PROOF_REQUIRED" ||
-            error?.code === "OWNER_WAKE_PROOF_UNAVAILABLE"
-          ? "Bitte sage „Hey Pam“. Nach deiner erkannten Stimme öffnet Sol den normalen Alltag ohne Fingerprint."
-          : "Nicht entsperrt. Deine persönlichen Inhalte bleiben vollständig verdeckt."
+        : "Die sichere Verbindung konnte noch nicht aufgebaut werden. Deine persönlichen Inhalte bleiben bis zum erneuten Versuch verdeckt."
     });
   } finally {
     authenticationInProgress = false;
@@ -305,6 +187,20 @@ async function ensureProtectedPamHoloAccess() {
     throw Object.assign(new Error("OWNER_EVERYDAY_SESSION_REQUIRED"), {
       code: "OWNER_EVERYDAY_SESSION_REQUIRED"
     });
+  }
+  if (
+    !window.SolHoloTrustedSession?.hasAccess?.(OWNER_EVERYDAY_ACCESS)
+  ) {
+    const everydaySession = await ensureTrustedAppSession({
+      interactive: true,
+      accessLevel: OWNER_EVERYDAY_ACCESS,
+      allowBootstrap: true
+    });
+    if (everydaySession?.trusted !== true) {
+      throw Object.assign(new Error("OWNER_EVERYDAY_SESSION_REQUIRED"), {
+        code: "OWNER_EVERYDAY_SESSION_REQUIRED"
+      });
+    }
   }
   const session = await ensureTrustedAppSession({
     interactive: true,
@@ -341,18 +237,6 @@ window.SolHoloProtectedAccess = Object.freeze({
     )
   })
 });
-
-async function registerOwnerWakeUnlockListener() {
-  const plugin = wakePlugin();
-  if (!plugin?.addListener) return;
-  try {
-    await plugin.addListener("wakeDiagnostic", (event) => {
-      if (event?.stage === "owner_accepted" && !unlocked) {
-        void authenticateAndReveal();
-      }
-    });
-  } catch {}
-}
 
 let protectedControlReplay = false;
 document.addEventListener("click", (event) => {
@@ -412,7 +296,8 @@ async function initializeAppLock() {
       showLocked({ needsRegistration: true });
       return;
     }
-    await authenticateAndReveal();
+    revealApp();
+    void refreshEverydaySessionInBackground();
   } catch {
     showLocked({
       message:
@@ -435,10 +320,10 @@ document.addEventListener("visibilitychange", () => {
   ) {
     showLocked({
       message:
-        "Pam’s Holo ist wieder gesperrt. Bitte sage „Hey Pam“, um den Alltag erneut zu öffnen."
+        "Pam’s Holo stellt die sichere Verbindung automatisch wieder her …"
     });
+    void initializeAppLock();
   }
 });
 
-void registerOwnerWakeUnlockListener();
 void initializeAppLock();

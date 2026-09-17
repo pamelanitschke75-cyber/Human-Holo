@@ -13,7 +13,7 @@ import {
   pamHoloSessionAction
 } from "../modules/pam-holo-access-policy.mjs";
 
-test("Pams Stimme öffnet Alltag einschließlich Wetter, Einkaufsliste und WhatsApp", () => {
+test("Pams registriertes Gerät öffnet Alltag einschließlich Wetter, Einkaufsliste und WhatsApp", () => {
   for (const capability of [
     "conversation",
     "weather",
@@ -100,7 +100,9 @@ test("Sitzungsaktionen und Personenbeweise sind zwischen Alltag und System getre
 
 test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als nicht abschließend", () => {
   const instructions = pamHoloAccessBoundaryInstructions();
-  assert.match(instructions, /keine zweite Stimmprobe und kein Fingerprint/u);
+  assert.match(instructions, /„Hey Pam“ ist ausschließlich der Weckruf/u);
+  assert.match(instructions, /registriertem Gerät automatisch/u);
+  assert.match(instructions, /ohne[\s\S]*Fingerprint/u);
   assert.match(instructions, /Wetter/u);
   assert.match(instructions, /Einkaufsliste/u);
   assert.match(instructions, /WhatsApp/u);
@@ -127,8 +129,13 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
       readFile(new URL("../android-native/SolAccessSecurityPlugin.java", import.meta.url), "utf8")
     ]);
 
-  assert.match(appLock, /claimVerifiedWakeOwnerProof/u);
+  assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
+  assert.match(
+    appLock,
+    /status\?\.device\?\.registered !== true[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
+  );
+  assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /"medical_data"/u);
   assert.match(appLock, /"backup_and_restore"/u);
   assert.match(html, /pamHoloRequestNeedsFingerprint/u);

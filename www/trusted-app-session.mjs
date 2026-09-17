@@ -9,7 +9,7 @@ const SESSION_ACTION = Object.freeze({
   [ACCESS_LEVEL.PROTECTED]: "bind_trusted_app_session"
 });
 const OWNER_PERSON_PROOF = Object.freeze({
-  [ACCESS_LEVEL.OWNER_EVERYDAY]: "pam_verified_voice_everyday_v1",
+  [ACCESS_LEVEL.OWNER_EVERYDAY]: "pam_registered_owner_device_everyday_v1",
   [ACCESS_LEVEL.PROTECTED]: "pam_voice_or_registered_watch_v1"
 });
 const RETRYABLE_CHALLENGE_ERRORS = new Set([
@@ -219,26 +219,19 @@ async function requestChallenge(identity, device, accessLevel) {
 
 async function freshAuthorization(
   plugin,
-  { accessLevel, ownerPersonProofId = "" }
+  { accessLevel }
 ) {
   const normalized = normalizedAccessLevel(accessLevel);
   let grant;
   if (normalized === ACCESS_LEVEL.OWNER_EVERYDAY) {
-    if (!ownerPersonProofId) {
-      throw new TrustedSessionClientError(
-        "OWNER_WAKE_PROOF_REQUIRED",
-        "Bitte sage „Hey Pam“. Sol öffnet den Alltag nur nach deiner erkannten Stimme."
-      );
-    }
     grant = await plugin.authorizeOwnerEverydayAccess({
-      ownerId: OWNER_ID,
-      ownerPersonProofId
+      ownerId: OWNER_ID
     });
   } else {
     if (!sessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY)) {
       throw new TrustedSessionClientError(
         "OWNER_EVERYDAY_SESSION_REQUIRED",
-        "Vor dem Fingerprint muss Pams stimmgebundene Alltagssitzung geöffnet sein."
+        "Vor dem Fingerprint muss Pams gerätegebundene Alltagssitzung bereit sein."
       );
     }
     grant = await plugin.authorizeCriticalAction({
@@ -436,7 +429,7 @@ async function bootstrapDevice(identity, device) {
 async function establishTrustedAppSession({
   interactive = false,
   accessLevel = ACCESS_LEVEL.PROTECTED,
-  ownerPersonProofId = "",
+  allowBootstrap = true,
   authorizationId = "",
   authorizationExpiresAtMillis = 0
 } = {}) {
@@ -474,8 +467,7 @@ async function establishTrustedAppSession({
       };
     }
     authorizationId = await freshAuthorization(plugin, {
-      accessLevel: normalized,
-      ownerPersonProofId
+      accessLevel: normalized
     });
   }
 
@@ -504,11 +496,13 @@ async function establishTrustedAppSession({
         error?.code === "TRUSTED_SESSION_DEVICE_NOT_BOUND" &&
         !bootstrapPerformed
       ) {
-        if (!interactive) {
-          offerAuthorization(
-            authorizationId,
-            authorizationExpiresAtMillis
-          );
+        if (!interactive || !allowBootstrap) {
+          if (!interactive) {
+            offerAuthorization(
+              authorizationId,
+              authorizationExpiresAtMillis
+            );
+          }
           return { trusted: false, needsBootstrap: true };
         }
         bootstrapPerformed = true;
