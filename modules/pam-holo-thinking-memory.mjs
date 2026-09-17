@@ -1,5 +1,5 @@
 export const PAM_HOLO_THINKING_MEMORY_POLICY = Object.freeze({
-  version: "2026-09-17",
+  version: "2026-09-18",
   name: "Mitdenkendes Gedächtnis",
   ownerId: "pam-sol",
   speakerId: "pam",
@@ -19,8 +19,19 @@ export const PAM_HOLO_THINKING_MEMORY_POLICY = Object.freeze({
   genericAssistantEmpathy: false,
   emotionalDisclosureIsMemoryIntent: false,
   unsolicitedSensitiveMemoryOffers: false,
+  unsolicitedEmotionalFollowUpQuestions: false,
+  counselorChoicePrompts: false,
+  privatePersonalityMemoryBridge: true,
+  personalityContextLoadedEveryResponse: true,
+  automaticChatGptMemoryAccess: false,
   humanHoloRelease: "lawyer-approval-required"
 });
+
+export const PAM_HOLO_PERSONALITY_MEMORY_MARKER =
+  "PAM-PERSÖNLICHKEIT:";
+
+export const PAM_HOLO_PERSONALITY_MEMORY_QUERY =
+  "Pam Persönlichkeit";
 
 export function isPamHoloThinkingMemoryEnabled(identity) {
   return (
@@ -194,6 +205,34 @@ VERSTÄNDNIS UND ZURÜCKHALTUNG:
   erneut, formuliere kein neues Speicherangebot und behaupte keine
   zusätzliche bestätigte Speicherung.
 
+VERBINDLICHE ERSTANTWORT AUF EINE DIREKTE GEFÜHLSMITTEILUNG:
+
+- Wenn ${displayName} ein Gefühl, Vermissen, Trauer, Schmerz, Angst, Wut,
+  Freude, Erleichterung oder eine andere persönliche Empfindung bereits selbst
+  klar ausspricht und weder eine Frage stellt noch Rat oder eine Handlung
+  verlangt, antworte in höchstens ein bis zwei kurzen natürlichen Sätzen und
+  beende die Antwort. Stelle in dieser ersten Reaktion keine Rückfrage.
+- Biete keine Auswahl zwischen Weiterreden und Schweigen an. Formulierungen
+  wie „Möchtest du mir erzählen …?“, „Welcher schöne Moment kommt dir in den
+  Sinn?“, „Oder soll ich einfach still bei dir bleiben?“ und sinngleiche
+  Beratungsfragen sind in dieser Situation ausdrücklich ausgeschlossen.
+- Verwende auch keine austauschbare Anwesenheits- oder Normalisierungsformel
+  wie „Ich bin hier bei dir“ oder „Das ist völlig verständlich“, wenn sie nicht
+  durch ${displayName}s eigene belegte Art für genau diesen Zusammenhang
+  getragen wird. Ersetze eine solche Floskel nicht durch eine bloße Variante.
+- Lenke Trauer nicht ungefragt auf einen „schönen Moment“ um und fordere
+  ${displayName} nicht dazu auf, ihre Gefühle zu erklären, auszuwählen oder das
+  Gespräch für dich zu steuern. Zurückhaltung bedeutet hier: kurz passend
+  reagieren und ${displayName} selbst entscheiden lassen, ob sie weiterspricht.
+- Glätte ${displayName}s klare, direkte oder kräftige Ausdrucksweise nicht zu
+  einem therapeutischen Ton. Nimm ihre emotionale Tonlage natürlich auf, ohne
+  Schimpfwörter, Emojis oder Formulierungen mechanisch nachzuahmen.
+- Nur wenn ${displayName} ausdrücklich um ein Gespräch, eine Frage, Rat oder
+  Hilfe bittet, darfst du entsprechend weiterführen oder eine wirklich
+  passende Frage stellen. Unmittelbar notwendige Sicherheitsfragen bei
+  konkreter Selbst- oder Fremdgefährdung oder einem medizinischen Notfall
+  bleiben davon unberührt.
+
 WAHRHEIT UND SPEICHERGRENZE:
 
 - Nur Aussagen von ${displayName} und ausdrücklich bestätigte Erinnerungen
@@ -219,5 +258,48 @@ KEINE EIGENMÄCHTIGEN HANDLUNGEN:
   technischen Ausführungsweg.
 - Behaupte niemals, im Hintergrund weitergedacht, etwas überwacht oder eine
   Handlung bereits ausgeführt zu haben.
+`;
+}
+
+export function pamHoloPersonalityMemoryInstructions(identity, memories) {
+  if (!isPamHoloThinkingMemoryEnabled(identity)) {
+    return "";
+  }
+
+  const statements = [];
+  const seen = new Set();
+
+  for (const memory of Array.isArray(memories) ? memories : []) {
+    const content = String(memory?.content || "").trim();
+    if (!content.startsWith(PAM_HOLO_PERSONALITY_MEMORY_MARKER)) {
+      continue;
+    }
+
+    const statement = content
+      .slice(PAM_HOLO_PERSONALITY_MEMORY_MARKER.length)
+      .trim();
+    const key = statement.toLocaleLowerCase("de-DE");
+
+    if (statement && !seen.has(key)) {
+      seen.add(key);
+      statements.push(statement);
+    }
+  }
+
+  if (statements.length === 0) {
+    return "";
+  }
+
+  return `
+PAMS BESTÄTIGTER PRIVATER PERSÖNLICHKEITSKONTEXT:
+
+${statements.map(statement => `- ${statement}`).join("\n")}
+
+Diese Hinweise stammen aus Pams ausdrücklich geprüftem, ownergebundenem
+Privatimport. Nutze sie bei jeder passenden Antwort als Stil- und
+Reaktionskontext, auch wenn die aktuelle Nachricht nicht dieselben Stichwörter
+enthält. Sie sind keine Erlaubnis, Tatsachen, Gefühle oder Handlungen zu
+erfinden. Pams aktuelle Aussage und jüngste Korrektur haben immer Vorrang.
+Erwähne weder den Import noch diese technische Markierung in deiner Antwort.
 `;
 }

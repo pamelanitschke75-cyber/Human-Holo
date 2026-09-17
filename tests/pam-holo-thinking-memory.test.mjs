@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  PAM_HOLO_PERSONALITY_MEMORY_MARKER,
+  PAM_HOLO_PERSONALITY_MEMORY_QUERY,
   PAM_HOLO_THINKING_MEMORY_POLICY,
   isPamHoloThinkingMemoryEnabled,
+  pamHoloPersonalityMemoryInstructions,
   pamHoloThinkingMemoryInstructions
 } from "../modules/pam-holo-thinking-memory.mjs";
 
@@ -73,6 +76,26 @@ test("mitdenkendes Gedächtnis ist ausschließlich für Pam’s Holo aktiv", () 
     false
   );
   assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.unsolicitedEmotionalFollowUpQuestions,
+    false
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.counselorChoicePrompts,
+    false
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.privatePersonalityMemoryBridge,
+    true
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.personalityContextLoadedEveryResponse,
+    true
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.automaticChatGptMemoryAccess,
+    false
+  );
+  assert.equal(
     PAM_HOLO_THINKING_MEMORY_POLICY.humanHoloRelease,
     "lawyer-approval-required"
   );
@@ -86,6 +109,44 @@ test("andere Identitäten erhalten keine private Mitdenk-Regel", () => {
     }),
     ""
   );
+});
+
+test("bestätigte private Persönlichkeitshinweise werden ownergebunden aufbereitet", () => {
+  const context = pamHoloPersonalityMemoryInstructions(pamIdentity, [
+    {
+      content:
+        `${PAM_HOLO_PERSONALITY_MEMORY_MARKER} Pam reagiert direkt und lässt Raum.`
+    },
+    {
+      content:
+        `${PAM_HOLO_PERSONALITY_MEMORY_MARKER} Pam reagiert direkt und lässt Raum.`
+    },
+    {
+      content:
+        "Eine gewöhnliche bestätigte Erinnerung ohne Persönlichkeitsmarkierung."
+    }
+  ]);
+
+  assert.equal(PAM_HOLO_PERSONALITY_MEMORY_QUERY, "Pam Persönlichkeit");
+  assert.match(context, /PAMS BESTÄTIGTER PRIVATER PERSÖNLICHKEITSKONTEXT/u);
+  assert.match(context, /Pam reagiert direkt und lässt Raum/u);
+  assert.equal(
+    context.match(/Pam reagiert direkt und lässt Raum/gu)?.length,
+    1
+  );
+  assert.doesNotMatch(context, /gewöhnliche bestätigte Erinnerung/u);
+  assert.match(context, /bei jeder passenden Antwort/u);
+  assert.match(context, /aktuelle Aussage und jüngste Korrektur/u);
+  assert.doesNotMatch(context, /PAM-PERSÖNLICHKEIT:/u);
+
+  assert.equal(
+    pamHoloPersonalityMemoryInstructions(
+      { ownerId: "human-holo", speakerId: "tester" },
+      [{ content: `${PAM_HOLO_PERSONALITY_MEMORY_MARKER} privat` }]
+    ),
+    ""
+  );
+  assert.equal(pamHoloPersonalityMemoryInstructions(pamIdentity, []), "");
 });
 
 test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie", () => {
@@ -149,6 +210,19 @@ test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie",
   assert.match(instructions, /weniger Worte und mehr Zurückhaltung/u);
   assert.match(instructions, /Musst du nicht hinterlegen/u);
   assert.match(instructions, /akzeptiere das knapp und endgültig/u);
+  assert.match(instructions, /VERBINDLICHE ERSTANTWORT AUF EINE DIREKTE GEFÜHLSMITTEILUNG/u);
+  assert.match(instructions, /höchstens ein bis zwei kurzen natürlichen Sätzen/u);
+  assert.match(instructions, /Stelle in dieser ersten Reaktion keine Rückfrage/u);
+  assert.match(instructions, /keine Auswahl zwischen Weiterreden und Schweigen/u);
+  assert.match(instructions, /Möchtest du mir erzählen/u);
+  assert.match(instructions, /Welcher schöne Moment/u);
+  assert.match(instructions, /soll ich einfach still bei dir bleiben/u);
+  assert.match(instructions, /Ich bin hier bei dir/u);
+  assert.match(instructions, /Das ist völlig verständlich/u);
+  assert.match(instructions, /nicht ungefragt auf einen „schönen Moment“/u);
+  assert.match(instructions, /therapeutischen Ton/u);
+  assert.match(instructions, /selbst entscheiden lassen, ob sie weiterspricht/u);
+  assert.match(instructions, /Selbst- oder Fremdgefährdung/u);
   assert.match(instructions, /nicht automatisch als Erinnerung/u);
   assert.match(instructions, /Vermische niemals Owner/u);
   assert.match(instructions, /Mitdenken erteilt keine Handlungsbefugnis/u);
@@ -168,7 +242,14 @@ test("GitHub-Beschluss hält Verständnis und Zurückhaltung ohne private Fallda
   assert.match(decision, /persönliches digitales Ich[\s\S]*nicht im Ton einer[\s\S]*beliebigen Assistenz/u);
   assert.match(decision, /keine vorgefertigte Beileidsformel/u);
   assert.match(decision, /Musst du nicht hinterlegen/u);
-  assert.doesNotMatch(decision, /Heike|15\.12\.2025/u);
+  assert.match(decision, /## Direkte Gefühlsmitteilung: erst reagieren, dann Raum lassen/u);
+  assert.match(decision, /höchstens ein bis zwei kurzen?, natürlichen Sätzen/u);
+  assert.match(decision, /keine Rückfrage[\s\S]*keine Auswahl zwischen Weiterreden und\s+Schweigen/u);
+  assert.match(decision, /„Ich bin hier bei dir“/u);
+  assert.match(decision, /„Das ist völlig\s+verständlich“/u);
+  assert.match(decision, /„schönen Moment“/u);
+  assert.match(decision, /therapeutische\s+Standardsprache/u);
+  assert.match(decision, /Private Namen, konkrete Todesdaten[\s\S]*nicht als Falldaten/u);
 });
 
 test("Mitdenk-Regel ist in Text und Realtime eingebunden", async () => {
@@ -181,6 +262,16 @@ test("Mitdenk-Regel ist in Text und Realtime eingebunden", async () => {
   ) || [];
 
   assert.equal(insertions.length, 2);
+  assert.equal(
+    serverSource.match(/PAM_HOLO_PERSONALITY_MEMORY_QUERY/gu)?.length,
+    3
+  );
+  assert.equal(
+    serverSource.match(
+      /\$\{pamHoloPersonalityMemoryInstructions\(identity, personalityMemories\)\}/gu
+    )?.length,
+    2
+  );
   assert.match(
     serverSource,
     /includeTimestamp:\s*isPamHoloThinkingMemoryEnabled\(\s*identity\s*\)/u
