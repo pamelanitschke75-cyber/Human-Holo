@@ -113,6 +113,8 @@ test("Sicherheitsheader schützen beide Holo-Oberflächen ohne Funktionsroute zu
       "Authorization",
       "Content-Type",
       "X-Sol-Holo-Trusted-Session",
+      "X-Sol-Child-Safety-Context",
+      "X-Sol-Child-Safety-Risk",
       "X-Sol-Video-Confirmation",
       "X-Sol-Video-Duration",
       "X-Voice-Setup-Secret"
@@ -195,6 +197,43 @@ test("Pam-Holo-Ursprungsschutz sperrt direkte Zugriffe konstant und fail-closed"
   assert.equal(edge.nextCalled, true);
   assert.equal(guard.originSecretRequired, true);
   assert.equal(guard.originSecretConfigured, true);
+});
+
+test("nur die beiden Render-Gesundheitsprüfungen bleiben ohne Ursprungsschlüssel lesbar", () => {
+  const guard = createExternalAttackGuard({
+    environment: {
+      PAM_HOLO_ORIGIN_SECRET_REQUIRED: "true",
+      PAM_HOLO_ORIGIN_SECRET: "server-only-pam-secret"
+    }
+  });
+
+  for (const path of ["/health/live", "/health/ready"]) {
+    const getCheck = run(
+      guard,
+      request({ method: "GET", url: path, origin: undefined })
+    );
+    assert.equal(getCheck.nextCalled, true, path);
+
+    const headCheck = run(
+      guard,
+      request({ method: "HEAD", url: path, origin: undefined })
+    );
+    assert.equal(headCheck.nextCalled, true, path);
+  }
+
+  const protectedSol = run(
+    guard,
+    request({ method: "GET", url: "/sol", origin: undefined })
+  );
+  assert.equal(protectedSol.nextCalled, false);
+  assert.equal(protectedSol.res.statusCode, 403);
+
+  const writeToHealth = run(
+    guard,
+    request({ method: "POST", url: "/health/live", origin: undefined })
+  );
+  assert.equal(writeToHealth.nextCalled, false);
+  assert.equal(writeToHealth.res.statusCode, 403);
 });
 
 test("Methoden und komprimierte Anfragekörper werden eng begrenzt", () => {

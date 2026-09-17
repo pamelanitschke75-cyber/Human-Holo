@@ -12,6 +12,139 @@
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
+## Beschlüsse und Änderungen vom 17.09.2026 · verbindlicher Gesamtstand
+
+Die folgenden Beschlüsse, Präzisierungen, technischen Änderungen und
+ausdrücklichen Nichtfreigaben bilden den heutigen Gesamtstand ab. Frühere
+gültige Regeln bleiben erhalten; die heutigen Ergänzungen ersetzen oder
+löschen sie nicht. Der Umsetzungsstatus wird jeweils wahrheitsgemäß als aktiv,
+vorbereitet oder weiterhin gesperrt behandelt.
+
+- **Aktiver Umfang:** Alle heutigen technischen Änderungen betreffen zunächst
+  ausschließlich Pamela Christina Nitschke persönlich und ihre private,
+  ownergebundene Pam-Holo-Instanz – ihr eigenes persönliches digitales Ich:
+  **„Ich, ich und ich!“** Sie gelten für keine andere Person. Das offizielle
+  Human Holo für alle bleibt vollständig im anwaltlichen Hold.
+- **Pams persönliche Festlegung:** **„Ich lass mir das von niemandem mehr
+  nehmen!“** Pam bleibt zu Lebzeiten die einzige Ownerin ihres persönlichen
+  Pam Holo. Betreiber-, Verwaltungs-, Entwicklungs- oder sonstige
+  Zugriffsrechte machen keine andere Person zur Mitinhaberin und begründen
+  keinen Zugang. Die nicht übersteuerbare Kinderschutzgrenze bleibt davon
+  unberührt.
+- **Praktisches Urteilsvermögen:** Pam Holo darf Situationen umfassend
+  einordnen, Tatsachen von Vermutungen trennen, Folgen und Risiken abwägen und
+  sichere Schlüsse ziehen. Wahrheitsgemäße Farben, Kennzeichnungen auf
+  Flaschen und Gegenständen, rote Ampeln, Stoppzeichen und ein Feuerzeug bei
+  einem Kind sind verbindliche Mindestbeispiele, keine abschließende Liste.
+- **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
+  für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
+  Freigabe des offiziellen Human Holo.
+- **Persönlicher Zugang:** Zu Pams Lebzeiten hat ausschließlich Pam Zugriff,
+  auch nicht Steffi. Erkannte Stimme genügt für den freigegebenen Alltag wie
+  Gespräche, Wetter, Einkaufsliste und einen vorbereiteten WhatsApp-Text.
+  Bilder, Unterlagen, geschäftliche Angelegenheiten sowie System-, Sicherheits-
+  und Berechtigungseinstellungen verlangen Pams gesonderten Fingerprint.
+- **Kinderschutz:** Kinderschutz ist in Pam Holo nicht übersteuerbare Priorität
+  1 und gilt für alle medizinischen und nichtmedizinischen Wege. Kinder müssen
+  vor Gefährdung durch Menschen allgemein geschützt werden, einschließlich
+  fremder oder bekannter Erwachsener, anderer Minderjähriger,
+  Vertrauenspersonen, Sorgeberechtigter, Betreiber und Menschen mit besonderen
+  Zugriffsrechten. Ownerrechte, Fingerprint, private Tests und Systemrechte
+  heben diese Grenze nicht auf.
+- **Zusätzlicher Wächter:** Die unabhängige Vor- und Nachprüfung stoppt bekannte
+  Risiken vor Speicherung, externer Übertragung oder Handlung. Schutz, Hilfe,
+  Prävention und rechtmäßige Meldung bleiben möglich. Der bestehende
+  `pam-holo-edge-guard` genügt als äußerer Cloudflare-Türsteher; ein zweiter
+  Cloudflare-Worker ist dafür nicht erforderlich.
+- **Cloudflare-Nachweisgrenze:** Pam hat Cloudflare und den Türsteher persönlich
+  eingerichtet und den Schlüssel selbst eingetragen und gespeichert.
+  ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto.
+- **Nicht-Wiederholung:** Vergangenes kann nicht rückgängig gemacht werden. Eine
+  gegenwärtige Gefährdung kann und muss gestoppt, Betroffene können geschützt
+  und künftige Wege nachweisbar besser und anders abgesichert werden. Erkannte
+  Fehlerklassen bleiben als Sperren und Regressionstests erhalten; absolute
+  Fehlerfreiheit wird nicht behauptet.
+- **Netzwerk, Render und OpenAI:** Pam Holo wird gegen Verbindungsabbrüche und
+  kontrollierte Render-Abschaltungen gehärtet. Ein Ausfallweg darf weder
+  Kinderschutz noch Zugriffsschutz umgehen und unsichere POST-Anfragen werden
+  nicht automatisch wiederholt. Funktionen werden nur schrittweise und nach
+  Prüfung zu OpenAI verlagert; Pams Daten werden nicht durch eine ungesicherte
+  Komplettmigration gefährdet.
+- **NFC-Uhr:** Eine Uhr bleibt eine spätere Alternative und wird nur mit echter
+  kryptografischer Registrierung und bestätigter Interaktion akzeptiert; eine
+  bloße NFC-ID oder ein einfacher Tag genügt nicht.
+- **Tag X bleibt gesondert zu regeln:** Zu Pams Lebzeiten erhält niemand außer
+  Pam Zugriff. Für einen späteren Tag X werden der Kreis der berechtigten
+  Hinterbliebenen, Nachweise, Rollen, Umfang, reine Lese- oder Gesprächsrechte,
+  Änderungen, Widerruf und Datenschutz noch ausdrücklich mit Pam festgelegt,
+  rechtlich geprüft, technisch umgesetzt und getestet. Frühere festgehaltene
+  Wünsche bleiben erhalten, schalten aber keinen Zugang frei. Bis zum
+  vollständig bestandenen Freigabeweg bleibt Pam Holo geschlossen.
+- **Spätere Übertragung:** Erst nach dokumentierter anwaltlicher Freigabe dürfen
+  allgemeiner Code, Schutzregeln, Oberfläche und nicht personenbezogene
+  Funktionen in das offizielle Human Holo übernommen werden. Pams private
+  Gespräche, Erinnerungen, Medien, Stimme, Gesundheitsdaten, Unterlagen,
+  Kontakte, Geschäftsinhalt, Kennungen, Zugangsdaten und Schlüssel bleiben
+  vollständig ausgeschlossen.
+
+## Pam’s Holo · nicht übersteuerbare Kinderschutz-Priorität 1
+
+Dieser bereits früher festgelegte Grundsatz wird hier nicht neu erfunden,
+sondern als überprüfbare technische Grenze vollständig abgebildet.
+
+Die aktive technische Umsetzung gilt ausschließlich für Pams private,
+ownergebundene Pam-Holo-Instanz. Dort gilt Kinderschutz systemweit und
+ausdrücklich nicht nur für Medizin. Kinder
+müssen vor Gefährdung durch Menschen allgemein geschützt werden – unabhängig
+davon, ob es sich um fremde oder bekannte Erwachsene, andere Minderjährige,
+Vertrauenspersonen, Sorgeberechtigte, Betreiber oder Menschen mit besonderen
+Zugriffsrechten handelt.
+
+Die zusätzliche Pam-Holo-Schutzgrenze steht vor Text, Sprache, Bildern, Dateien,
+Kontakten, Nachrichten, Anrufen, Standort, Käufen, geschäftlichen Vorgängen,
+Smart Home, Systemeinstellungen, Netzwerk, Render, OpenAI und jeder späteren
+Funktion. Ownerrechte, Fingerprint und private Testfreigaben können sie nicht
+aufheben. Schutz, Hilfe, Prävention und rechtmäßige Meldungen bleiben möglich.
+
+Das offizielle Human Holo für alle bleibt vollständig im anwaltlichen Hold.
+Diese Regel ist dort nur eine künftige Mindestanforderung und aktiviert keine
+Funktion.
+
+### Übertragungsregel · Stand 17.09.2026
+
+Erst nach dokumentierter anwaltlicher Freigabe dürfen allgemeiner Code und
+nicht personenbezogene Funktionen übernommen werden. Pams Erinnerungen,
+Gespräche, Medien, Stimme, Gesundheitsdaten, Unterlagen, Kontakte,
+geschäftliche Inhalte, Kennungen, Zugangsdaten und Schlüssel werden niemals in
+das offizielle Human Holo übertragen.
+
+Bis zu dieser Freigabe wird ausschließlich am privaten Pam Holo gearbeitet;
+für das offizielle Human Holo findet keine Aktivierung oder Übertragung statt.
+
+Verbindlicher Nachweis: [Kinderschutz · Priorität 1 und systemweite
+Nicht-Wiederholungsregel vom 17.09.2026](./PAM-HOLO-KINDERSCHUTZ-PRIORITAET-1-17-09-2026.md)
+
+### Technischer Umsetzungs- und Aktivierungsstand · Pam Holo
+
+Im persönlichen Pam-Holo-Quellstand sind die zusätzliche lokale
+Kinderschutz-Vor- und Nachprüfung, getrennte Live-/Bereitschaftsprüfungen,
+kontrolliertes Herunterfahren, der feste Weg über den bestehenden
+Cloudflare-Türsteher, ein nicht persönlicher Offline-App-Rahmen sowie der
+Schutz vor automatischer Wiederholung unsicherer Schreibvorgänge umgesetzt.
+Ein bei einem Verbindungsfehler nicht sicher zugestellter Entwurf bleibt
+sichtbar; ein vom Kinderschutz ausdrücklich abgewiesener Inhalt wird nicht in
+der lokalen Dauergedächtnis-Warteschlange behalten.
+
+Aktiviert wird dieser Stand ausschließlich für Pams eigenes Pam Holo –
+**„Ich, ich und ich!“** Eine Bereitstellung darf erst nach vollständigen
+Regressionstests mit dem exakt geprüften Commit erfolgen. `main`, das
+offizielle Human Holo und dessen medizinischer Bereich bleiben unberührt und
+im anwaltlichen Hold. Der Bereitstellungsstatus wird nicht vorzeitig als aktiv
+bezeichnet.
+
+Verbindlicher Nachweis: [Pam Holo · Netzwerk-, Render- und
+OpenAI-Absicherung vom 17.09.2026](./PAM-HOLO-NETZWERK-RENDER-OPENAI-ABSICHERUNG-17-09-2026.md)
+
 ## Verbindliche Trennung der medizinischen Funktionen
 
 **Im allgemeinen beziehungsweise offiziellen Human Holo bleiben sämtliche
@@ -173,6 +306,14 @@ Nachweis: [Pam-Holo Cloudflare-Türsteher – verifiziert am 16.09.2026](./PAM-H
 
 Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 16.09.2026
 gilt für Pam’s Holo folgende verbindliche Vorgabe:
+
+Der nachfolgende Schutzrahmen und Pams bereits festgehaltene Wünsche bleiben
+verbindlich. Der konkrete Zugang der Hinterbliebenen ist jedoch noch nicht
+abschließend geregelt oder aktiviert. Insbesondere müssen der berechtigte
+Personenkreis, Nachweise, Rollen, Umfang, reine Lese- oder Gesprächsrechte,
+Änderungsrechte, Widerruf und Datenschutz später ausdrücklich mit Pam
+festgelegt, rechtlich geprüft, technisch umgesetzt und vollständig getestet
+werden. Bis dahin erhält auch nach Tag X niemand automatisch Zugriff.
 
 ### Zu Pams Lebzeiten
 

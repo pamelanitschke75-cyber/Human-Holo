@@ -13,6 +13,8 @@ const ALLOWED_REQUEST_HEADERS = Object.freeze([
   "Authorization",
   "Content-Type",
   "X-Sol-Holo-Trusted-Session",
+  "X-Sol-Child-Safety-Context",
+  "X-Sol-Child-Safety-Risk",
   "X-Sol-Video-Confirmation",
   "X-Sol-Video-Duration",
   "X-Voice-Setup-Secret"
@@ -83,6 +85,10 @@ const SENSITIVE_API_PREFIXES = Object.freeze([
   "/voice/"
 ]);
 const SESSION_API_PREFIX = "/app-session/";
+const PUBLIC_HEALTH_PATHS = new Set([
+  "/health/live",
+  "/health/ready"
+]);
 const MAX_REQUEST_TARGET_LENGTH = 8 * 1024;
 const MAX_BUCKETS = 10_000;
 
@@ -357,7 +363,13 @@ export function createExternalAttackGuard({
       return;
     }
 
-    if (requireOriginSecret) {
+    const publicHealthCheck =
+      (method === "GET" || method === "HEAD") &&
+      PUBLIC_HEALTH_PATHS.has(
+        pathResult.pathname
+      );
+
+    if (requireOriginSecret && !publicHealthCheck) {
       if (!expectedOriginSecret) {
         endJson(res, 503, "Ursprungsschutz ist nicht vollständig konfiguriert.");
         return;

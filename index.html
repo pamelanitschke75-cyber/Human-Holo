@@ -186,6 +186,22 @@ header{
   color:#20e09a;
 }
 
+#onlineState.degraded{
+  color:#ffd166;
+}
+
+#onlineState.degraded #onlineDot{
+  color:#ffd166;
+}
+
+#onlineState.offline{
+  color:#ff8f9d;
+}
+
+#onlineState.offline #onlineDot{
+  color:#ff6578;
+}
+
 h1{
   margin:0;
 
@@ -1445,7 +1461,9 @@ Me, Myself &amp; I. 💜
 ●
 </span>
 
+<span id="onlineLabel">
 Online
+</span>
 
 </div>
 
@@ -1797,8 +1815,319 @@ Schreiben bereit.
 <script src="/media-tools.js"></script>
 <script>
 
+const PAM_HOLO_EDGE_URL =
+  "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev";
+
+
 const BACKEND_URL =
-  "https://sol-holo.onrender.com";
+  window.location.protocol === "https:" &&
+  !window.location.hostname.endsWith(
+    ".onrender.com"
+  )
+    ? window.location.origin
+    : PAM_HOLO_EDGE_URL;
+
+
+function setNetworkState(
+  state
+){
+
+  const normalizedState =
+    state === "offline"
+      ? "offline"
+      : state === "degraded"
+        ? "degraded"
+        : "online";
+
+
+  const onlineStateElement =
+    document.getElementById(
+      "onlineState"
+    );
+
+
+  const label =
+    normalizedState === "offline"
+      ? "Offline"
+      : normalizedState === "degraded"
+        ? "Verbindung gestört"
+        : "Online";
+
+
+  onlineStateElement?.classList.toggle(
+    "offline",
+    normalizedState === "offline"
+  );
+
+
+  onlineStateElement?.classList.toggle(
+    "degraded",
+    normalizedState === "degraded"
+  );
+
+
+  const onlineLabel =
+    document.getElementById(
+      "onlineLabel"
+    );
+
+
+  if(
+    onlineLabel
+  ){
+
+    onlineLabel.textContent =
+      label;
+  }
+
+
+  document
+    .querySelectorAll(
+      ".statusPill"
+    )
+    .forEach(
+      element => {
+
+        element.textContent =
+          label;
+
+
+        element.classList.toggle(
+          "offline",
+          normalizedState === "offline"
+        );
+
+
+        element.classList.toggle(
+          "degraded",
+          normalizedState === "degraded"
+        );
+      }
+    );
+}
+
+
+function networkDelay(
+  milliseconds
+){
+
+  return new Promise(
+    resolve => window.setTimeout(
+      resolve,
+      milliseconds
+    )
+  );
+}
+
+
+async function holoFetch(
+  input,
+  init = {},
+  {
+    timeoutMilliseconds = 45_000,
+    safeRetries = 2
+  } = {}
+){
+
+  const method =
+    String(
+      init.method || "GET"
+    ).toUpperCase();
+
+
+  const safeToRetry =
+    method === "GET" ||
+    method === "HEAD";
+
+
+  const maximumAttempts =
+    safeToRetry
+      ? Math.max(
+          1,
+          Math.min(
+            3,
+            Number(safeRetries) + 1
+          )
+        )
+      : 1;
+
+
+  let lastError =
+    null;
+
+
+  for(
+    let attempt = 0;
+    attempt < maximumAttempts;
+    attempt += 1
+  ){
+
+    if(
+      navigator.onLine === false
+    ){
+
+      const offlineError =
+        new Error(
+          "Pam Holo ist offline. Der Entwurf bleibt erhalten."
+        );
+
+
+      offlineError.code =
+        "PAM_HOLO_OFFLINE";
+
+
+      offlineError.deliveryUncertain =
+        false;
+
+
+      setNetworkState(
+        "offline"
+      );
+
+
+      throw offlineError;
+    }
+
+
+    const controller =
+      new AbortController();
+
+
+    const abortFromCaller =
+      () => controller.abort(
+        init.signal?.reason
+      );
+
+
+    init.signal?.addEventListener(
+      "abort",
+      abortFromCaller,
+      { once:true }
+    );
+
+
+    const timeoutId =
+      window.setTimeout(
+        () => controller.abort(
+          "pam-holo-network-timeout"
+        ),
+        Math.max(
+          1_000,
+          Number(timeoutMilliseconds) ||
+          45_000
+        )
+      );
+
+
+    try{
+
+      const response =
+        await fetch(
+          input,
+          {
+            ...init,
+            signal:
+              controller.signal
+          }
+        );
+
+
+      if(
+        safeToRetry &&
+        response.status >= 500 &&
+        attempt + 1 < maximumAttempts
+      ){
+
+        await networkDelay(
+          250 * (2 ** attempt)
+        );
+
+
+        continue;
+      }
+
+
+      setNetworkState(
+        response.ok
+          ? "online"
+          : response.status >= 500
+            ? "degraded"
+            : "online"
+      );
+
+
+      return response;
+
+    }catch(
+      error
+    ){
+
+      const networkError =
+        new Error(
+          controller.signal.aborted
+            ? "Die Verbindung hat zu lange gedauert. Der Entwurf bleibt erhalten."
+            : "Die Verbindung wurde unterbrochen. Der Entwurf bleibt erhalten."
+        );
+
+
+      networkError.code =
+        controller.signal.aborted
+          ? "PAM_HOLO_NETWORK_TIMEOUT"
+          : "PAM_HOLO_NETWORK_INTERRUPTED";
+
+
+      networkError.deliveryUncertain =
+        !safeToRetry;
+
+
+      networkError.cause =
+        error;
+
+
+      lastError =
+        networkError;
+
+
+      setNetworkState(
+        navigator.onLine === false
+          ? "offline"
+          : "degraded"
+      );
+
+
+      if(
+        !safeToRetry ||
+        attempt + 1 >= maximumAttempts
+      ){
+
+        throw networkError;
+      }
+
+
+      await networkDelay(
+        250 * (2 ** attempt)
+      );
+
+    }finally{
+
+      window.clearTimeout(
+        timeoutId
+      );
+
+
+      init.signal?.removeEventListener(
+        "abort",
+        abortFromCaller
+      );
+    }
+  }
+
+
+  throw lastError ||
+    new Error(
+      "Pam Holo ist vorübergehend nicht erreichbar."
+    );
+}
 
 
 const app =
@@ -3734,7 +4063,7 @@ async function sendMessage(
   try{
 
     const response =
-      await fetch(
+      await holoFetch(
         `${BACKEND_URL}/sol`,
         {
 
@@ -3794,10 +4123,29 @@ async function sendMessage(
       !response.ok
     ){
 
-      throw new Error(
+      const responseError =
+        new Error(
+          data?.message ||
+          data?.error ||
+          "Verbindung zu Pam Holo fehlgeschlagen."
+        );
+
+
+      responseError.code =
+        data?.code ||
         data?.error ||
-        "Verbindung zu Sol fehlgeschlagen."
-      );
+        "PAM_HOLO_REQUEST_REJECTED";
+
+
+      responseError.persisted =
+        data?.persisted;
+
+
+      responseError.deliveryUncertain =
+        false;
+
+
+      throw responseError;
     }
 
 
@@ -3845,24 +4193,45 @@ async function sendMessage(
     error
   ){
 
+    if(
+      !isForcedMessage &&
+      message &&
+      !String(
+        messageInput.value || ""
+      ).trim()
+    ){
+
+      messageInput.value =
+        message;
+    }
+
+
+    const safeErrorMessage =
+      error?.deliveryUncertain
+        ? `${error.message} Die Nachricht wird nicht automatisch erneut gesendet, damit keine Handlung doppelt ausgeführt wird.`
+        : error?.message ||
+          "Verbindung zu Pam Holo fehlgeschlagen.";
+
     console.error(
       "Text-/Medienchat Fehler:",
-      error
+      error?.code ||
+      "PAM_HOLO_CHAT_ERROR"
     );
 
 
     addMessage(
       "System",
 
-      error?.message ||
-      "Verbindung zu Sol fehlgeschlagen.",
+      safeErrorMessage,
 
       "system-message"
     );
 
 
     chatStatus.textContent =
-      "Chat-Fehler.";
+      error?.persisted === false
+        ? safeErrorMessage
+        : "Verbindung unterbrochen · Entwurf erhalten.";
 
   }finally{
 
@@ -3946,7 +4315,7 @@ async function sendLiveTranscriptToMemory(
   try{
 
     const response =
-      await fetch(
+      await holoFetch(
         `${BACKEND_URL}/live/memory`,
         {
 
@@ -4404,7 +4773,7 @@ async function searchRealtimePersonalMemory(
   }
 
   const response =
-    await fetch(
+    await holoFetch(
       `${BACKEND_URL}/memory/search`,
       {
         method:"POST",
@@ -4570,7 +4939,7 @@ async function startLiveConversation(){
   try{
 
     const tokenResponse =
-      await fetch(
+      await holoFetch(
         `${BACKEND_URL}/realtime/token`,
         {
 
@@ -4950,7 +5319,7 @@ async function startLiveConversation(){
 
 
     const sdpResponse =
-      await fetch(
+      await holoFetch(
         "https://api.openai.com/v1/realtime/calls",
         {
 
@@ -5059,6 +5428,94 @@ voiceExitButton.addEventListener(
 
 realtimeAudio.volume =
   solVolume;
+
+
+async function verifyPamHoloReachability(){
+
+  if(
+    navigator.onLine === false
+  ){
+
+    setNetworkState(
+      "offline"
+    );
+
+
+    return;
+  }
+
+
+  try{
+
+    const response =
+      await holoFetch(
+        `${BACKEND_URL}/health/live`,
+        {
+          method:"GET",
+          cache:"no-store"
+        },
+        {
+          timeoutMilliseconds:
+            8_000,
+          safeRetries:
+            1
+        }
+      );
+
+
+    setNetworkState(
+      response.ok
+        ? "online"
+        : "degraded"
+    );
+
+  }catch{
+
+    setNetworkState(
+      navigator.onLine === false
+        ? "offline"
+        : "degraded"
+    );
+  }
+}
+
+
+window.addEventListener(
+  "offline",
+  () => setNetworkState(
+    "offline"
+  )
+);
+
+
+window.addEventListener(
+  "online",
+  () => {
+
+    setNetworkState(
+      "degraded"
+    );
+
+
+    void verifyPamHoloReachability();
+  }
+);
+
+
+window.addEventListener(
+  "load",
+  () => {
+
+    setNetworkState(
+      navigator.onLine === false
+        ? "offline"
+        : "degraded"
+    );
+
+
+    void verifyPamHoloReachability();
+  }
+);
 
 
 if(

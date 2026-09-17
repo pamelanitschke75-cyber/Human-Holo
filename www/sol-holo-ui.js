@@ -3,6 +3,10 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 (() => {
   "use strict";
 
+  const pamHoloFetch =
+    window.PamHoloNetwork?.request ||
+    window.fetch.bind(window);
+
   const HUMAN_HOLO_YOUTUBE_CHANNEL = Object.freeze({
     id: "UCcqR_Mt4OKFlA1sAYneZTcg",
     name: "Human Holo – Pamela Nitschke & Stefanie Hörath",
@@ -2018,7 +2022,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       setOpenClawAlltagPreviewStatus("worker-alltag liest …", "setup");
       document.getElementById("openClawAlltagPreviewResult").hidden = true;
 
-      const response = await fetch(
+      const response = await pamHoloFetch(
         `${BACKEND_URL}/openclaw/alltag-preview`,
         {
           method: "POST",
@@ -5332,8 +5336,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     );
 
     try {
-      const response = await fetch(
-        "https://sol-holo.onrender.com/google/status?" + identityQuery,
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/google/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5441,8 +5445,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     serviceState.classList.remove("connected", "setup");
 
     try {
-      const response = await fetch(
-        `https://sol-holo.onrender.com/smartthings/status?${identityQuery}`,
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/smartthings/status?${identityQuery}`,
         {
           cache: "no-store",
           headers: window.SolHoloTrustedSession?.headers?.() || {}
@@ -5881,7 +5885,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     statusElement.classList.remove("connected", "setup");
 
     try {
-      const response = await fetch(
+      const response = await pamHoloFetch(
         `${BACKEND_URL}/weather/status`,
         { cache: "no-store" }
       );
@@ -6786,7 +6790,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           };
         }
 
-        const response = await fetch(
+        const response = await pamHoloFetch(
           `${BACKEND_URL}/personal-clone/calls/start`,
           {
             method: "POST",
@@ -9023,8 +9027,8 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
 
     let authUrl = "";
     try {
-      const response = await fetch(
-        "https://sol-holo.onrender.com/auth/google/start",
+      const response = await pamHoloFetch(
+        `${BACKEND_URL}/auth/google/start`,
         {
           method: "POST",
           headers: {
@@ -9163,7 +9167,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
       selectedSpeakerId: identity.speakerId
     });
     const authUrl =
-      `https://sol-holo.onrender.com/auth/smartthings?${identityQuery}`;
+      `${BACKEND_URL}/auth/smartthings?${identityQuery}`;
 
     const authWindow = window.open(
       authUrl,

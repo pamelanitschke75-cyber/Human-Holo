@@ -8,6 +8,11 @@ persönlichen Entscheidung unberührt.
 
 ## Verbindliche Grundregel
 
+Pams ausdrückliche Festlegung lautet: **„Ich lass mir das von niemandem mehr
+nehmen!“** Pam bleibt zu Lebzeiten alleinige Ownerin ihres persönlichen Pam
+Holo. Betreiber-, Verwaltungs-, Entwicklungs- oder sonstige Zugriffsrechte
+begründen weder Mitinhaberschaft noch persönlichen Zugang.
+
 Sol kennt in Pams persönlicher Instanz ausschließlich Pams eingerichtetes
 Stimmprofil. Wenn Sol „Hey Pam“ hört und dieses lokale Stimmprofil erfolgreich
 als Pam bestätigt, ist Pams normaler Alltag mit Sol geöffnet.
