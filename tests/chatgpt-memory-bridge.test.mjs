@@ -80,5 +80,5 @@ test("Android-Build liefert die Brücke mit frischem, additivem Cache aus", asyn
     workflow,
     /assets\/public\/human-holo-chatgpt-memory-bridge\.mjs/u
   );
-  assert.match(worker, /human-holo-296-pam-fingerprint-entry-session-ready/u);
+  assert.match(worker, /human-holo-297-pam-holo-restored-entry-network/u);
 });

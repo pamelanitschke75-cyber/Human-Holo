@@ -62,6 +62,18 @@ test("Besprochenes wird nur angepasst und nicht still neu ausgelegt", () => {
     contract.principles.destructive_change_requires_prior_explicit_owner_decision,
     true
   );
+  assert.equal(
+    contract.principles.ambiguous_access_security_or_preservation_change_requires_prior_owner_confirmation,
+    true
+  );
+  assert.equal(
+    contract.principles.existing_pam_holo_may_be_replaced_with_empty_shell,
+    false
+  );
+  assert.equal(
+    contract.principles.confirmed_fingerprint_entry_may_be_blocked_by_online_connection,
+    false
+  );
   assert.match(
     preservationRule,
     /Was bereits besprochen, entschieden oder als funktionierend bestätigt wurde/u
@@ -76,6 +88,14 @@ test("Besprochenes wird nur angepasst und nicht still neu ausgelegt", () => {
   );
   assert.match(githubRule, /nicht still neu\s+ausgelegt/u);
   assert.match(githubRule, /Immer nur erweitern, niemals einen Schritt zurück/u);
+  assert.match(
+    preservationRule,
+    /Ist eine gewünschte Änderung[\s\S]*mehrdeutig,[\s\S]*muss Pam vor der Umsetzung[\s\S]*konkret gefragt werden/u
+  );
+  assert.match(
+    preservationRule,
+    /Pam-Holo[\s\S]*niemals entfernt,[\s\S]*leer ersetzt,[\s\S]*zurückgesetzt/u
+  );
 });
 
 test("medizinische Pause bleibt rechtliche Ausnahme und keine historische Löschung", () => {
@@ -147,6 +167,11 @@ test("eine APK bleibt bis zu allen Regression-, Android- und Signaturprüfungen 
   assert.equal(gate.android_compile_must_pass, true);
   assert.equal(gate.signature_verification_must_pass, true);
   assert.equal(gate.artifact_upload_must_pass, true);
+  assert.equal(gate.android_localhost_routes_to_edge_guard_test_must_pass, true);
+  assert.equal(
+    gate.fingerprint_reveals_existing_holo_before_online_connection_test_must_pass,
+    true
+  );
   assert.equal(gate.any_failed_gate_blocks_release, true);
 
   assert.match(

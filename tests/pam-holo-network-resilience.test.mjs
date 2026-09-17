@@ -20,19 +20,25 @@ const documentation = readText(
   "PAM-HOLO-NETZWERK-RENDER-OPENAI-ABSICHERUNG-17-09-2026.md"
 );
 
-function installNetworkHelper(fetchImplementation, online = true) {
+function installNetworkHelper(
+  fetchImplementation,
+  online = true,
+  location = {
+    hostname: "localhost",
+    origin: "capacitor://localhost",
+    protocol: "capacitor:"
+  },
+  capacitor = undefined
+) {
   const window = {
     AbortController,
+    Capacitor: capacitor,
     document: {
       getElementById: () => null,
       querySelectorAll: () => []
     },
     fetch: fetchImplementation,
-    location: {
-      hostname: "localhost",
-      origin: "capacitor://localhost",
-      protocol: "capacitor:"
-    },
+    location,
     navigator: { onLine: online },
     addEventListener: () => {},
     clearTimeout,
@@ -42,9 +48,48 @@ function installNetworkHelper(fetchImplementation, online = true) {
   return window.PamHoloNetwork;
 }
 
+test("Capacitors Android-Ursprung https://localhost geht zwingend zum Cloudflare-Türsteher", () => {
+  const helper = installNetworkHelper(
+    async () => new Response("{}", { status: 200 }),
+    true,
+    {
+      hostname: "localhost",
+      origin: "https://localhost",
+      protocol: "https:"
+    },
+    {
+      isNativePlatform: () => true,
+      getPlatform: () => "android"
+    }
+  );
+
+  assert.equal(
+    helper.backendUrl,
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev"
+  );
+  assert.equal(
+    helper.apiEndpoint("/app-session/challenge"),
+    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/app-session/challenge"
+  );
+});
+
+test("eine veröffentlichte HTTPS-Weboberfläche darf ihren eigenen Ursprung verwenden", () => {
+  const helper = installNetworkHelper(
+    async () => new Response("{}", { status: 200 }),
+    true,
+    {
+      hostname: "pam-holo.example",
+      origin: "https://pam-holo.example",
+      protocol: "https:"
+    }
+  );
+
+  assert.equal(helper.backendUrl, "https://pam-holo.example");
+});
+
 test("die echte Pam-Holo-App nutzt Cloudflare statt eines direkten Render-Ursprungs", () => {
   const helperScriptIndex = html.indexOf(
-    '<script src="./pam-holo-network-resilience.js?v=2"></script>'
+    '<script src="./pam-holo-network-resilience.js?v=3"></script>'
   );
   const backendSelectionIndex = html.indexOf("const BACKEND_URL =");
 

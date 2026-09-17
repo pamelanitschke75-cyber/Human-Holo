@@ -28,6 +28,7 @@ on:
       - "README.md"
       - "SECURITY.md"
       - "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md"
+      - "PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md"
       - "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md"
   push:
     branches:
@@ -49,6 +50,7 @@ on:
       - "www/consent-ui-bootstrap.mjs"
       - "www/model-en-mixed.b64"
       - "www/media-tools.js"
+      - "www/pam-holo-network-resilience.js"
       - "www/sol-holo-logo.png"
       - "www/human-holo-logo.png"
       - "www/human-holo-ai-policy.js"
@@ -91,6 +93,7 @@ on:
       - "README.md"
       - "SECURITY.md"
       - "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md"
+      - "PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md"
       - "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md"
 
 permissions:
@@ -561,6 +564,34 @@ jobs:
             ! grep -q 'https://sol-holo.onrender.com' \
               "$public_assets/$protected_client"
           done
+          network_helper="$public_assets/pam-holo-network-resilience.js"
+          app_lock="$public_assets/app-lock-bootstrap.mjs"
+          grep -q 'LOCAL_APP_HOSTNAMES' "$network_helper"
+          grep -q 'nativeApp || localAppOrigin' "$network_helper"
+          grep -q 'pam-holo-edge-guard.pamela-nitschke75.workers.dev' \
+            "$network_helper"
+          APP_LOCK_PATH="$app_lock" node - <<'NODE'
+          const fs = require("node:fs");
+          const source = fs.readFileSync(process.env.APP_LOCK_PATH, "utf8");
+          const start = source.indexOf("async function authenticateAndReveal");
+          const end = source.indexOf(
+            "async function ensureProtectedPamHoloAccess",
+            start
+          );
+          const authenticate = source.slice(start, end);
+          const consume = authenticate.indexOf(
+            "plugin.consumeCriticalAuthorization"
+          );
+          const reveal = authenticate.indexOf("revealApp();");
+          const connect = authenticate.indexOf(
+            "void connectOwnerServicesAfterFingerprint"
+          );
+          if (!(start >= 0 && end > start && consume >= 0 && reveal > consume && connect > reveal)) {
+            throw new Error(
+              "Pam-Holo-Freigabesperre: Fingerprint muss das bestehende Holo vor der Online-Verbindung sichtbar machen."
+            );
+          }
+          NODE
 
       - name: Verschlüsselte Sicherung und Ausschlüsse prüfen
         run: |

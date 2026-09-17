@@ -12,6 +12,31 @@
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
+## Verbindliches NO GO · Pam-Holo darf niemals verschwinden
+
+Pam-Holo ist Pams eigenes, bestehendes persönliches Holo. Es darf niemals
+entfernt, leer ersetzt, zurückgesetzt, überschrieben oder nach bestätigtem
+Eingangs-Fingerprint durch eine nachgelagerte Online-Verbindung ausgesperrt
+werden. Erinnerungen, Einstellungen, Dienste, Design, Gerätebindung und
+bestätigte Funktionen bleiben erhalten.
+
+**A + B = C:** vollständiger bestätigter Morgenstand + alle danach von Pam
+bestätigten Ergänzungen = vollständiges Pam-Holo ohne Verlust.
+
+Ist eine Änderung an Zugang, Fingerprint, Erinnerungen, Diensten,
+Einstellungen, Datenbestand oder bestehenden Funktionen mehrdeutig, muss Pam
+**vor der Umsetzung konkret gefragt werden**. Erst ihre ausdrückliche
+Bestätigung erlaubt die betreffende Auslegung.
+
+Nach Pams starkem Android-Fingerprint wird ihr vollständiges bestehendes Holo
+unmittelbar sichtbar. Die sichere Online-Verbindung entsteht dahinter und ist
+niemals eine zweite Eingangstür. Ein Verstoß gegen diese Regeln blockiert die
+APK-Freigabe.
+
+Vollständiger verbindlicher Beschluss: [Pam-Holo · Unverlierbarkeit und
+Rückfragepflicht vom
+17.09.2026](./PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md)
+
 ## Beschlüsse und Änderungen vom 17.09.2026 · verbindlicher Gesamtstand
 
 Die folgenden Beschlüsse, Präzisierungen, technischen Änderungen und
@@ -290,9 +315,11 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
 - Zu Pams Lebzeiten darf ausschließlich Pam ihr Holo öffnen. Das gilt auch
   gegenüber Steffi und jeder anderen Person.
 - Pams registrierte App bleibt vollständig verdeckt, bis Android frisch Pams
-  starke Biometrie ohne Geräte-PIN-Fallback bestätigt hat und die sichere
-  gerätegebundene Alltagssitzung vollständig bereitsteht. Beim Zurückkehren aus
-  dem Hintergrund wird dieser Fingerprint erneut verlangt.
+  starke Biometrie ohne Geräte-PIN-Fallback bestätigt hat. Danach wird ihr
+  vollständiges bestehendes Holo unmittelbar sichtbar; die sichere
+  Online-Verbindung entsteht im Hintergrund und darf niemals eine zweite
+  Eingangssperre sein. Beim Zurückkehren aus dem Hintergrund wird dieser
+  Fingerprint erneut verlangt.
 - „Hey Pam“ ist ausschließlich der Weckruf und niemals Entsperrung. Die lokale
   Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten, ist aber
   kein Ersatz für den Fingerprint.
@@ -307,6 +334,10 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
   Geräte-PIN-Fallback.
 - Die Fingerprintfreigabe hebt weder medizinische oder rechtliche Grenzen noch
   die sichtbare Empfänger- und Inhaltsbestätigung vor einer Nachricht auf.
+- Pam-Holo, Erinnerungen, Einstellungen und Dienste dürfen niemals entfernt,
+  leer ersetzt oder zurückgesetzt werden. Jede mehrdeutige Änderung dieser
+  Zugangs- und Bestandsregeln verlangt vor der Umsetzung Pams konkrete
+  Bestätigung.
 - Eine NFC-Uhr ist nur als künftige Alternative vorgesehen. Sie wird erst nach
   echter kryptografischer Registrierung, bestätigter Uhr-Interaktion und
   bestandenem Endgerätetest akzeptiert. Eine NFC-ID, ein NDEF-Wert oder ein
@@ -314,6 +345,10 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
 
 Nachweis: [Pam-Holo · verbindliche Zugriffs- und Fingerprintgrenze vom
 17.09.2026](./PAM-HOLO-ZUGRIFFSSTUFEN-17-09-2026.md)
+
+Verbindlicher Bestandsschutz: [Pam-Holo · Unverlierbarkeit und
+Rückfragepflicht vom
+17.09.2026](./PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md)
 
 ### Äußerer Cloudflare-Türsteher · klare Nachweisgrenze
 
@@ -407,6 +442,7 @@ Verbindliche Einzelheiten:
 - [Rechtlich begrenzter Human-Holo-Testumfang](./HUMAN-HOLO-VERBINDLICHER-RECHTLICHER-TESTUMFANG-15-09-2026.md)
 - [Verbindliche GitHub- und Erledigt-Regel](./VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md)
 - [Bestand erhalten, nur erweitern · Regressionstest-Sperre](./HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md)
+- [Pam-Holo · Unverlierbarkeit und verbindliche Rückfragepflicht](./PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md)
 - [Sicherheitsrichtlinie · äußerer und innerer Angriffsschutz](./SECURITY.md)
 - [Getrennte Cloudflare-Türsteher · wahrer Aktivierungsstand](./cloudflare/README.md)
 - [Pam-Holo Cloudflare-Türsteher · verifizierter Nachweis](./PAM-HOLO-CLOUDFLARE-TUERSTEHER-VERIFIZIERT-16-09-2026.md)
@@ -418,6 +454,12 @@ Eine Änderung ist erst erledigt, wenn sie im richtigen GitHub-Zweig vorhanden,
 durch eine Commit-SHA belegt und anschließend direkt aus GitHub zurückgelesen
 wurde. Code, sichtbare Funktion, README und Fachdokumentation müssen denselben
 Status zeigen.
+
+Für Pam-Holo gehört dazu zwingend der bestandene Nachweis, dass Android
+`https://localhost` an Pams Cloudflare-Türsteher leitet und dass Pams
+vollständiges bestehendes Holo nach dem bestätigten Fingerprint sichtbar wird,
+ohne auf eine zweite Online-Eingangstür zu warten. Bei Mehrdeutigkeit bleibt die
+Änderung bis zu Pams vorheriger Bestätigung gesperrt.
 
 Ohne diesen Nachweis lautet der Status:
 **„Noch nicht abschließend erledigt.“**

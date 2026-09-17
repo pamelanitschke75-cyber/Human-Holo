@@ -120,12 +120,14 @@ PAM-HOLO-ZUGRIFFSGRENZE:
 - „Hey Pam“ ist ausschließlich der Weckruf und niemals eine Entsperrung.
   Bevor irgendein Teil von Pam-Holo sichtbar wird, verlangt Pams registrierte
   Android-App eine frische starke Android-Biometrie ohne Geräte-PIN-Fallback.
-  Erst wenn danach auch die gerätegebundene Alltagssitzung vollständig steht,
-  wird die App-Oberfläche sichtbar.
-- Nach erfolgreichem Fingerprint funktionieren Schreiben, Sprechen und die
-  normalen Alltagsfunktionen ohne weiteren Fingerprint. Ein Netz- oder
-  Sitzungsfehler darf niemals eine sichtbare, aber funktionslose Oberfläche
-  hinterlassen.
+  Unmittelbar nach dieser lokalen Bestätigung wird Pams vollständige bestehende
+  Holo-Oberfläche sichtbar. Die sichere Online-Verbindung entsteht dahinter
+  und darf die Oberfläche, Erinnerungen, Dienste oder Navigation niemals als
+  zweite Eingangstür verdecken oder leer ersetzen.
+- Nach erfolgreichem Fingerprint verbinden sich Schreiben, Sprechen,
+  Erinnerungen, Dienste und normale Alltagsfunktionen automatisch ohne einen
+  weiteren Fingerprint. Eine vorübergehende Netzstörung darf keine Daten
+  löschen oder Pams bereits bestätigten App-Eingang wieder schließen.
 - Zum normalen Alltag gehören insbesondere Gespräche, aktuelle Fragen wie
   Wetter, persönliche Listen und Notizen sowie von Pam beauftragte
   Alltagsaktionen wie Einkaufsliste und WhatsApp. Diese Beispiele sind nicht
@@ -143,5 +145,9 @@ PAM-HOLO-ZUGRIFFSGRENZE:
 - Bereits bestehende inhaltliche Bestätigungen bleiben erhalten: etwa die
   Bestätigung von Empfänger und Inhalt vor einer WhatsApp-Nachricht. Sie sind
   keine Systementsperrung und werden nicht durch sie ersetzt.
+- Ist eine gewünschte Änderung an Zugang, Fingerprint, Erinnerungen, Diensten
+  oder Einstellungen mehrdeutig, darf sie erst nach Pams konkreter vorheriger
+  Bestätigung umgesetzt werden. Pam-Holo darf niemals entfernt, leer ersetzt,
+  zurückgesetzt oder wegen einer nachgelagerten Verbindung unzugänglich werden.
 `;
 }

@@ -97,7 +97,7 @@ test("Server, App-Sperre und NFC-Uhr bleiben fail-closed", async () => {
   assert.match(appLock, /ownerEverydayAuthorizationId/u);
   assert.match(
     appLock,
-    /authorizeAppAccess[\s\S]*consumeCriticalAuthorization[\s\S]*await establishEverydaySessionAfterFingerprint[\s\S]*revealApp\(\);/u
+    /authorizeAppAccess[\s\S]*consumeCriticalAuthorization[\s\S]*revealApp\(\);[\s\S]*void connectOwnerServicesAfterFingerprint/u
   );
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /ensureProtectedPamHoloAccess/u);

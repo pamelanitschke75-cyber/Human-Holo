@@ -18,23 +18,26 @@ Zuhören starten, ist aber weder Passwort noch Entsperrung. Das lokale
 Stimmprofil schützt Weckruf und Sprecherzuordnung; es kann die
 Fingerprint-Eingangssperre niemals ersetzen.
 
-Bevor irgendein Teil der App-Oberfläche sichtbar wird, müssen drei Bedingungen
+Bevor irgendein Teil der App-Oberfläche sichtbar wird, müssen zwei Bedingungen
 erfüllt sein:
 
 1. Die App-Installation ist mit dem hardwaregeschützten Geräteschlüssel fest an
    `pam-sol` gebunden.
 2. Android bestätigt frisch eine starke Biometrie. Für diesen App-Eingang ist
    kein Geräte-PIN-, Muster- oder Passwort-Fallback zugelassen.
-3. Die gerätegebundene Alltagssitzung wurde vollständig bestätigt, damit Chat,
-   Sprache, Erinnerungen und Dienste beim Öffnen wirklich funktionieren.
-
 Die lokale Fingerprintfreigabe wird als kurzlebige Einmalberechtigung vor dem
 Sichtbarmachen verbraucht. Aus derselben erfolgreichen Prüfung entsteht eine
-getrennte Einmalberechtigung für die Online-Alltagssitzung. Schlägt deren Aufbau
-fehl, bleibt Pam’s Holo verdeckt und bietet einen neuen Versuch an; eine
-sichtbare, aber funktionslose Oberfläche ist ausdrücklich unzulässig. Beim
-Verlassen der App werden beide Sitzungen verworfen, und beim Zurückkehren ist
-Pams Fingerprint erneut erforderlich.
+getrennte Einmalberechtigung für die sichere Online-Verbindung. Pam’s
+vollständiges bestehendes Holo wird unmittelbar nach dem bestätigten
+Fingerprint sichtbar; die Online-Verbindung wird dahinter aufgebaut und bei
+einem vorübergehenden Fehler wiederholt. Sie darf niemals als zweite
+Eingangstür das Holo, Erinnerungen, Dienste oder Navigation verdecken oder leer
+ersetzen. Beim Verlassen der App werden beide Freigaben verworfen, und beim
+Zurückkehren ist Pams Fingerprint erneut erforderlich.
+
+Pam-Holo, Erinnerungen, Einstellungen und Dienste dürfen niemals entfernt,
+leer ersetzt oder zurückgesetzt werden. Ist eine Zugangs- oder Bestandsänderung
+mehrdeutig, muss Pam vor ihrer Umsetzung konkret gefragt werden und zustimmen.
 
 ## Nach erfolgreichem Fingerprint im Alltag
 
@@ -127,8 +130,9 @@ Freigaben bleiben bis zur dokumentierten anwaltlichen Prüfung geschlossen.
 - App-Sitzungen: `modules/trusted-app-session.mjs` und
   `www/trusted-app-session.mjs`
 - App-Grenze: `www/app-lock-bootstrap.mjs` – erst registriertes Gerät plus
-  frische starke Android-Biometrie und vollständig bestätigte Alltagssitzung,
-  dann Sichtbarkeit; „Hey Pam“ bleibt ausschließlich der Weckruf.
+  frische starke Android-Biometrie, dann unmittelbare Sichtbarkeit; die sichere
+  Online-Verbindung folgt im Hintergrund und „Hey Pam“ bleibt ausschließlich
+  der Weckruf.
 - automatisierte Nachweise: `tests/pam-holo-access-policy.test.mjs` und
   `tests/identity-ui-separation.test.mjs`
 

@@ -628,7 +628,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
         try {
             if (!performFreshDeviceChallenge(ownerId, OWNER_EVERYDAY_SESSION_ACTION)) {
                 call.reject(
-                    "Der registrierte Geräteschlüssel konnte die Alltagssitzung nicht bestätigen.",
+                    "Der registrierte Geräteschlüssel konnte die sichere App-Verbindung nicht bestätigen.",
                     "REGISTERED_DEVICE_PROOF_FAILED"
                 );
                 return;
@@ -656,7 +656,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
             call.resolve(result);
         } catch (Exception error) {
             call.reject(
-                "Die gerätegebundene Alltagssitzung konnte nicht vorbereitet werden.",
+                "Die gerätegebundene App-Verbindung konnte nicht vorbereitet werden.",
                 "OWNER_EVERYDAY_AUTHORIZATION_FAILED",
                 error
             );

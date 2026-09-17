@@ -150,6 +150,26 @@ Für jede Korrektur, Erweiterung und neue APK gilt deshalb verbindlich:
    werden, wird diese Lücke vor der Veröffentlichung offen benannt und nicht
    als vollständig bewiesen dargestellt.
 
+### Unverlierbarer Pam-Holo-Zugang und Rückfragepflicht
+
+**Ergänzung vom 17.09.2026 · Entscheidung & Projektinhaberin: Pamela Christina Nitschke**
+
+- Pam-Holo ist Pams bestehendes persönliches Holo. Es darf niemals entfernt,
+  leer ersetzt, zurückgesetzt oder wegen einer nachgelagerten Online-Verbindung
+  nach bestätigtem Eingangs-Fingerprint unzugänglich gemacht werden.
+- Nach Pams bestätigtem starken Android-Fingerprint wird ihr vollständiges
+  bestehendes Holo sichtbar. Die sichere Online-Verbindung entsteht dahinter;
+  sie ist keine zweite Eingangstür.
+- Erinnerungen, Einstellungen, Dienste, Design und bestätigte Funktionen
+  bleiben erhalten. Neue Schutzregeln werden additiv ergänzt: **A + B = C**.
+- Ist eine gewünschte Änderung an Zugang, Fingerprint, Erinnerungen, Diensten,
+  Einstellungen oder Bestandsschutz mehrdeutig, muss Pam vor der Umsetzung
+  konkret gefragt werden. Erst ihre ausdrückliche Bestätigung erlaubt die
+  betreffende Auslegung.
+- Diese Regeln werden durch dauerhafte Tests für den Android-Ursprung
+  `https://localhost`, die Cloudflare-Weiterleitung und die Sichtbarkeit direkt
+  nach bestätigtem Fingerprint gesperrt. Ein Verstoß blockiert die APK-Freigabe.
+
 ### Verbindliches Beispiel: medizinische Funktionen
 
 Die medizinischen Funktionen wurden aufgrund der anwaltlichen beziehungsweise

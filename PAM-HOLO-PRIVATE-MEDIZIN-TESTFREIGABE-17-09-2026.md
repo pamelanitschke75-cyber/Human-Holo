@@ -43,9 +43,10 @@ Vor jeder App-Sichtbarkeit verlangt Pam’s Holo auf dem für `pam-sol`
 registrierten Android-Gerät eine frische starke Android-Biometrie ohne
 Geräte-PIN-Fallback. „Hey Pam“ ist ausschließlich der Weckruf und niemals
 Entsperrung oder Ersatz für den Fingerprint. Erst wenn nach dem Fingerprint auch
-die kurzlebige kryptografisch signierte Alltagssitzung vollständig bereitsteht,
-wird die App sichtbar; eine sichtbare, aber funktionslose Oberfläche ist kein
-zulässiger Zustand.
+die lokale Freigabe bestätigt wurde, wird Pams vollständiges bestehendes Holo
+sichtbar. Die kurzlebige kryptografisch signierte Online-Verbindung entsteht
+danach im Hintergrund und darf das Holo weder als zweite Eingangstür verdecken
+noch Erinnerungen, Dienste oder Navigation leer ersetzen.
 
 Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs
 verlangt nach dem App-Eingang keinen zweiten Fingerprint. Medikamentenbilder,

@@ -62,7 +62,7 @@ test("Pams ausgelieferte Holo-Instanz enthält ausschließlich Pams lokale ID un
   assert.match(ui, /quarantineUnverifiedPamCloneAppearance\(keys\)/u);
 });
 
-test("die signierte Pam-Instanz bleibt bis zu Fingerprint und fertiger Sitzung verdeckt", async () => {
+test("die signierte Pam-Instanz bleibt bis zum Fingerprint verdeckt und verbindet Dienste dahinter", async () => {
   const html = await source("www/index.html");
   const appLock = await source("www/app-lock-bootstrap.mjs");
   const nativeSecurity = await source(
@@ -90,7 +90,7 @@ test("die signierte Pam-Instanz bleibt bis zu Fingerprint und fertiger Sitzung v
   );
   assert.match(html, /Eine andere Identität wird niemals geladen/u);
   assert.doesNotMatch(html, /localStorage\.getItem\(\s*SOL_VOICE_STORAGE_KEY/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=13/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=14/u);
   assert.doesNotMatch(html, /solHoloBootScreen"\)\?\.remove/u);
   assert.match(appLock, /const APP_OWNER_ID = "pam-sol"/u);
   assert.match(appLock, /OWNER_EVERYDAY_ACCESS/u);
@@ -124,18 +124,24 @@ test("die signierte Pam-Instanz bleibt bis zu Fingerprint und fertiger Sitzung v
     "plugin.consumeCriticalAuthorization"
   );
   const sessionIndex = authenticate.indexOf(
-    "await establishEverydaySessionAfterFingerprint"
+    "void connectOwnerServicesAfterFingerprint"
   );
   const revealIndex = authenticate.indexOf("revealApp();");
   assert.ok(authorizeIndex >= 0);
   assert.ok(consumeIndex > authorizeIndex);
-  assert.ok(sessionIndex > consumeIndex);
-  assert.ok(revealIndex > sessionIndex);
+  assert.ok(revealIndex > consumeIndex);
+  assert.ok(sessionIndex > revealIndex);
+  assert.doesNotMatch(
+    authenticate,
+    /await connectOwnerServicesAfterFingerprint/u
+  );
   assert.equal(authenticate.match(/revealApp\(\);/gu)?.length, 1);
+  assert.doesNotMatch(appLock, /Alltagssitzung/u);
 
   const initializeStart = appLock.indexOf("async function initializeAppLock");
   const initializeEnd = appLock.indexOf(
-    'document.addEventListener("visibilitychange"'
+    "void initializeAppLock();",
+    initializeStart
   );
   const initialize = appLock.slice(initializeStart, initializeEnd);
   assert.match(initialize, /await authenticateAndReveal\(\);/u);
