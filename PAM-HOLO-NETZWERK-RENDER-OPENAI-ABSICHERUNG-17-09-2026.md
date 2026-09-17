@@ -28,6 +28,12 @@ OpenAI oder einen anderen externen Anbieter übertragen.
   nicht erforderlich.
 - Pam hat Cloudflare selbst eingerichtet und den Schlüssel selbst eingetragen
   und gespeichert. ChatGPT/Codex hat keinen Zugriff auf ihr Cloudflare-Konto.
+- Der Aufbau einer geschützten Sitzung nach Pams lokalem Fingerprint und die
+  anschließende Übertragung eines von Pam freigegebenen Fotos verwenden
+  denselben Cloudflare-Türsteher. Das gilt ebenfalls für Tier-Holo-Fotos und
+  -Beobachtungen sowie private Sicherung, Wiederherstellung und bestätigten
+  Erinnerungsimport. Kein solcher App-Weg darf direkt auf den Render-Ursprung
+  zurückfallen.
 - Die Oberfläche unterscheidet `Online`, `Verbindung gestört` und `Offline`.
 - Die feste, nicht persönliche App-Hülle kann offline angezeigt werden.
   API-Antworten, Erinnerungen, Kontakte, Dokumente und Gesundheitsdaten werden

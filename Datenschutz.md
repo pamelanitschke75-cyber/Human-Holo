@@ -1,7 +1,7 @@
 SOL HOLO – DATENSCHUTZ
 
-Version: 1.5
-Stand: 13.09.2026
+Version: 1.6
+Stand: 17.09.2026
 Status: Technisches Datenschutzkonzept
 
 1. Grundidee
@@ -375,6 +375,21 @@ komprimierte Einzelbilder und übergibt sie als visuellen Kontext an die laufend
 OpenAI-Realtime-Unterhaltung. Es handelt sich nicht um eine ununterbrochene
 Videoübertragung. Unmittelbar vor einer gesprochenen Antwort wird ein aktuelles
 Bild ergänzt, damit Pam nicht jedes Foto einzeln auswählen muss.
+
+Für Pams private, ownergebundene Pam-Holo-Instanz gilt bei der Rück- und
+Umgebungskamera zusätzlich: Erkannte Gesichter werden mit einem lokal in der
+App enthaltenen Modell verpixelt, bevor ein Einzelbild übertragen wird. Die
+unveränderte Vorschau bleibt auf Pams Gerät. Es werden dabei keine Personen
+identifiziert, keine Gesichtskennungen oder biometrischen Vorlagen gebildet und
+keine Rohbilder oder Gesichtslandmarken durch diese Schutzfunktion gespeichert.
+Ist die lokale Bearbeitung technisch nicht verfügbar, stoppt der Bildweg ohne
+ungeschützte Übertragung. Automatische Erkennung kann insbesondere kleine,
+verdeckte, unscharfe oder schlecht beleuchtete Gesichter übersehen und ist
+deshalb keine Garantie vollständiger Anonymisierung.
+
+Diese persönliche Aktivierung gibt die Live-Kamera des offiziellen Human Holo
+nicht frei. Das offizielle Human Holo bleibt vollständig im anwaltlichen Hold
+und benötigt vor jeder Freigabe die dokumentierte anwaltliche Prüfung.
 
 Ein ausdrücklich gestarteter Gebärdensprachtest ist ein eigener Sonderfall:
 Vor der Aufnahme muss eine konkrete Gebärdensprache wie DGS gewählt sein. Die

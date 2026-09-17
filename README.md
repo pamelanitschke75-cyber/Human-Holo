@@ -44,6 +44,13 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Gespräche, Wetter, Einkaufsliste und einen vorbereiteten WhatsApp-Text.
   Bilder, Unterlagen, geschäftliche Angelegenheiten sowie System-, Sicherheits-
   und Berechtigungseinstellungen verlangen Pams gesonderten Fingerprint.
+- **Live-Kamera und Gesichter:** Bei Pams ausdrücklich gestarteter
+  Rück- beziehungsweise Umgebungskamera werden erkannte Gesichter lokal auf
+  ihrem Gerät verpixelt, bevor ein Einzelbild übertragen wird. Es findet keine
+  Identifizierung statt. Fällt die lokale Schutzfunktion technisch aus, wird
+  die Kamera ohne ungeschütztes Senden gestoppt. Automatische Erkennung kann
+  insbesondere kleine, verdeckte oder unscharfe Gesichter übersehen und wird
+  deshalb nicht als hundertprozentige Anonymisierung dargestellt.
 - **Kinderschutz:** Kinderschutz ist in Pam Holo nicht übersteuerbare Priorität
   1 und gilt für alle medizinischen und nichtmedizinischen Wege. Kinder müssen
   vor Gefährdung durch Menschen allgemein geschützt werden, einschließlich
@@ -59,6 +66,10 @@ vorbereitet oder weiterhin gesperrt behandelt.
 - **Cloudflare-Nachweisgrenze:** Pam hat Cloudflare und den Türsteher persönlich
   eingerichtet und den Schlüssel selbst eingetragen und gespeichert.
   ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto.
+  Auch der geschützte Sitzungsaufbau nach Pams Fingerprint, das anschließende
+  Senden eines freigegebenen Fotos, Tier-Holo-Daten sowie private Sicherungs-
+  und Wiederherstellungswege laufen über diesen Türsteher. Ein direkter
+  Render-Weg bleibt geschlossen.
 - **Nicht-Wiederholung:** Vergangenes kann nicht rückgängig gemacht werden. Eine
   gegenwärtige Gefährdung kann und muss gestoppt, Betroffene können geschützt
   und künftige Wege nachweisbar besser und anders abgesichert werden. Erkannte
@@ -131,6 +142,10 @@ Kinderschutz-Vor- und Nachprüfung, getrennte Live-/Bereitschaftsprüfungen,
 kontrolliertes Herunterfahren, der feste Weg über den bestehenden
 Cloudflare-Türsteher, ein nicht persönlicher Offline-App-Rahmen sowie der
 Schutz vor automatischer Wiederholung unsicherer Schreibvorgänge umgesetzt.
+Für die Live-Umgebungskamera kommt eine ausschließlich lokale Gesichtssuche
+hinzu: Erkannte Gesichter werden vor jeder Bildübertragung verpixelt; bei einem
+technischen Fehler stoppt dieser Bildweg fail-closed. Rohbilder und
+Gesichtslandmarken werden von dieser Schutzfunktion nicht gespeichert.
 Ein bei einem Verbindungsfehler nicht sicher zugestellter Entwurf bleibt
 sichtbar; ein vom Kinderschutz ausdrücklich abgewiesener Inhalt wird nicht in
 der lokalen Dauergedächtnis-Warteschlange behalten.
@@ -144,6 +159,9 @@ bezeichnet.
 
 Verbindlicher Nachweis: [Pam Holo · Netzwerk-, Render- und
 OpenAI-Absicherung vom 17.09.2026](./PAM-HOLO-NETZWERK-RENDER-OPENAI-ABSICHERUNG-17-09-2026.md)
+
+Verbindlicher Nachweis: [Pam Holo · Gesichtsschutz bei der
+Live-Umgebungskamera vom 17.09.2026](./PAM-HOLO-LIVE-KAMERA-GESICHTSSCHUTZ-17-09-2026.md)
 
 ## Verbindliche Trennung der medizinischen Funktionen
 
@@ -383,6 +401,7 @@ Verbindliche Einzelheiten:
 - [Sicherheitsrichtlinie · äußerer und innerer Angriffsschutz](./SECURITY.md)
 - [Getrennte Cloudflare-Türsteher · wahrer Aktivierungsstand](./cloudflare/README.md)
 - [Pam-Holo Cloudflare-Türsteher · verifizierter Nachweis](./PAM-HOLO-CLOUDFLARE-TUERSTEHER-VERIFIZIERT-16-09-2026.md)
+- [Pam Holo · Gesichtsschutz bei der Live-Umgebungskamera](./PAM-HOLO-LIVE-KAMERA-GESICHTSSCHUTZ-17-09-2026.md)
 
 ## Verbindliche Erledigt-Regel
 

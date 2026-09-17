@@ -19,10 +19,19 @@ const state = {
   memoryImport: null
 };
 
-const HUMAN_HOLO_BACKEND_URL = "https://sol-holo.onrender.com";
 const MEMORY_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
 const OWNER_MEMORY_RESTORE_CHUNK_ITEMS = 200;
 const OWNER_MEMORY_RESTORE_CHUNK_BYTES = 1_500_000;
+
+async function pamHoloApiRequest(path, init) {
+  const request = window.PamHoloNetwork?.apiRequest;
+  if (typeof request !== "function") {
+    throw new Error(
+      "Der geschützte Pam-Holo-Türsteher ist nicht verfügbar."
+    );
+  }
+  return request(path, init);
+}
 
 function currentIdentity() {
   const identity = window.SolHoloIdentity?.selected?.();
@@ -145,8 +154,8 @@ async function trustedMemorySession() {
 
 async function fetchCompleteOwnerMemoryBackup(identity) {
   await trustedMemorySession();
-  const response = await fetch(
-    `${HUMAN_HOLO_BACKEND_URL}/memory/backup/export`,
+  const response = await pamHoloApiRequest(
+    "/memory/backup/export",
     {
       method: "POST",
       headers: {
@@ -247,8 +256,8 @@ async function restoreCompleteOwnerMemory(identity, ownerMemory) {
   ]) {
     const entries = ownerMemory.data?.[category] || [];
     for (const chunk of ownerMemoryChunks(entries)) {
-      const response = await fetch(
-        `${HUMAN_HOLO_BACKEND_URL}/memory/backup/restore-chunk`,
+      const response = await pamHoloApiRequest(
+        "/memory/backup/restore-chunk",
         {
           method: "POST",
           headers: {
@@ -636,8 +645,8 @@ async function importConfirmedMemoryBatch() {
       throw new Error("Die sichere App-Sitzung wurde nicht bestätigt.");
     }
 
-    const response = await fetch(
-      `${HUMAN_HOLO_BACKEND_URL}/memory/import-confirmed`,
+    const response = await pamHoloApiRequest(
+      "/memory/import-confirmed",
       {
         method: "POST",
         headers: {

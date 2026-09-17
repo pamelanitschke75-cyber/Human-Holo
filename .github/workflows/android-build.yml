@@ -39,6 +39,7 @@ on:
       - "www/icon-512.png"
       - "www/manifest.json"
       - "www/index.html"
+      - "www/live-camera-face-privacy.mjs"
       - "www/app-lock-bootstrap.mjs"
       - "www/trusted-app-session.mjs"
       - "www/headaudio.min.mjs"
@@ -487,12 +488,19 @@ jobs:
           set -Eeuo pipefail
           app_manifest="android/app/src/main/AndroidManifest.xml"
           app_html="android/app/src/main/assets/public/index.html"
+          face_privacy="android/app/src/main/assets/public/live-camera-face-privacy.mjs"
           grep -q 'android.permission.CAMERA' "$app_manifest"
           grep -q 'android.hardware.camera.any' "$app_manifest"
           grep -q 'android:required="false"' "$app_manifest"
           grep -q 'id="liveCameraButton"' "$app_html"
           grep -q '"input_image"' "$app_html"
           grep -q 'LIVE_KAMERA_START' "$app_html"
+          grep -q 'await protectLiveCameraCanvas' "$app_html"
+          grep -q 'PAM_HOLO_LIVE_FACE_PRIVACY_FAIL_CLOSED' "$app_html"
+          test -s "$face_privacy"
+          grep -q './mediapipe/vision_bundle.mjs' "$face_privacy"
+          grep -q './mediapipe/face_landmarker.task' "$face_privacy"
+          ! grep -Eq 'https?://' "$face_privacy"
 
       - name: WhatsApp-Einmalversand in Android prüfen
         run: |
@@ -525,6 +533,7 @@ jobs:
           network_rules="android/app/src/main/res/xml/human_holo_network_security_config.xml"
           legacy_backup_rules="android/app/src/main/res/xml/sol_holo_backup_rules.xml"
           modern_backup_rules="android/app/src/main/res/xml/sol_holo_data_extraction_rules.xml"
+          public_assets="android/app/src/main/assets/public"
           test -s "$network_rules"
           test -s "$legacy_backup_rules"
           test -s "$modern_backup_rules"
@@ -539,6 +548,19 @@ jobs:
           grep -q '<cloud-backup>' "$modern_backup_rules"
           grep -q '<device-transfer>' "$modern_backup_rules"
           grep -q '<exclude domain="device_sharedpref" path="." />' "$modern_backup_rules"
+          grep -q 'PamHoloNetwork?.apiRequest' \
+            "$public_assets/trusted-app-session.mjs"
+          grep -q 'PamHoloNetwork?.apiRequest' \
+            "$public_assets/human-holo-animal-holos.mjs"
+          grep -q 'PamHoloNetwork?.apiRequest' \
+            "$public_assets/sol-holo-backup.mjs"
+          for protected_client in \
+            trusted-app-session.mjs \
+            human-holo-animal-holos.mjs \
+            sol-holo-backup.mjs; do
+            ! grep -q 'https://sol-holo.onrender.com' \
+              "$public_assets/$protected_client"
+          done
 
       - name: Verschlüsselte Sicherung und Ausschlüsse prüfen
         run: |
@@ -825,6 +847,7 @@ jobs:
           unzip -l "$apk" | grep -F "assets/public/human-holo-animal-holos.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-chatgpt-memory-bridge.mjs"
           unzip -l "$apk" | grep -F "assets/public/human-holo-durable-memory.mjs"
+          unzip -l "$apk" | grep -F "assets/public/live-camera-face-privacy.mjs"
           unzip -p "$apk" assets/public/human-holo-animal-core.mjs \
             | grep -q "SPDX-License-Identifier: MIT"
           unzip -l "$apk" | grep -F "assets/public/third-party/HeadAudio-LICENSE.txt"

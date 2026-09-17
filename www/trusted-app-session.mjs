@@ -1,4 +1,3 @@
-const BACKEND_URL = "https://sol-holo.onrender.com";
 const OWNER_ID = "pam-sol";
 const SESSION_HEADER = "x-sol-holo-trusted-session";
 const ACCESS_LEVEL = Object.freeze({
@@ -139,7 +138,14 @@ async function postJson(
     minimumAccess = ACCESS_LEVEL.OWNER_EVERYDAY
   } = {}
 ) {
-  const response = await fetch(`${BACKEND_URL}${path}`, {
+  const apiRequest = window.PamHoloNetwork?.apiRequest;
+  if (typeof apiRequest !== "function") {
+    throw new TrustedSessionClientError(
+      "PAM_HOLO_EDGE_GUARD_UNAVAILABLE",
+      "Der geschützte Pam-Holo-Türsteher ist nicht verfügbar. Es wurden keine persönlichen Daten übertragen."
+    );
+  }
+  const response = await apiRequest(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

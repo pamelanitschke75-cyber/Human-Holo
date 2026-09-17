@@ -263,3 +263,63 @@ test(
     );
   }
 );
+
+
+test(
+  "ein vorgemerktes Foto läuft nach Pams Fingerprint über den geschützten Sendeweg weiter",
+  () => {
+
+    const sendStart =
+      html.indexOf(
+        "async function sendMessage("
+      );
+
+    const sendEnd =
+      html.indexOf(
+        "sendButton.addEventListener(",
+        sendStart
+      );
+
+    const sendSource =
+      html.slice(
+        sendStart,
+        sendEnd
+      );
+
+    const accessIndex =
+      sendSource.indexOf(
+        "await ensureFulltimeHistorySession("
+      );
+
+    const requestIndex =
+      sendSource.indexOf(
+        "await pamHoloFetch("
+      );
+
+    const clearIndex =
+      sendSource.lastIndexOf(
+        "clearSelectedImage();"
+      );
+
+    assert.ok(sendStart >= 0);
+    assert.match(
+      sendSource,
+      /hasImage:Boolean\(imageToSend\)/u
+    );
+    assert.match(
+      sendSource,
+      /protectedAccessRequired[\s\S]*?"protected_media_documents_settings"/u
+    );
+    assert.match(
+      sendSource,
+      /privateSession\?\.trusted/u
+    );
+    assert.ok(accessIndex >= 0);
+    assert.ok(requestIndex > accessIndex);
+    assert.match(
+      sendSource,
+      /image:\s*\n\s*imageToSend/u
+    );
+    assert.ok(clearIndex > requestIndex);
+  }
+);
