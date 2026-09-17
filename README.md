@@ -40,13 +40,15 @@ vorbereitet oder weiterhin gesperrt behandelt.
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.
 - **Persönlicher Zugang:** Zu Pams Lebzeiten hat ausschließlich Pam Zugriff,
-  auch nicht Steffi. Auf Pams sicher registriertem Handy öffnet Pam Holo den
-  freigegebenen Alltag direkt und unabhängig vom Aufbau einer Online-Sitzung.
-  „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Gespräche,
-  Wetter, Einkaufsliste und ein vorbereiteter WhatsApp-Text gehören zum
-  freigegebenen Alltag.
+  auch nicht Steffi. Auf Pams sicher registriertem Handy bleibt Pam Holo
+  vollständig verdeckt, bis Android Pams starken Fingerprint ohne
+  Geräte-PIN-Fallback bestätigt. Diese Eingangssperre funktioniert lokal und
+  unabhängig vom Aufbau einer Online-Sitzung. „Hey Pam“ ist ausschließlich der
+  Weckruf und niemals Entsperrung. Gespräche, Wetter, Einkaufsliste und ein
+  vorbereiteter WhatsApp-Text gehören danach zum freigegebenen Alltag.
   Bilder, Unterlagen, geschäftliche Angelegenheiten sowie System-, Sicherheits-
-  und Berechtigungseinstellungen verlangen Pams gesonderten Fingerprint.
+  und Berechtigungseinstellungen verlangen eine eigene neue
+  Fingerprintfreigabe.
 - **Live-Kamera und Gesichter:** Bei Pams ausdrücklich gestarteter
   Rück- beziehungsweise Umgebungskamera werden erkannte Gesichter lokal auf
   ihrem Gerät verpixelt, bevor ein Einzelbild übertragen wird. Es findet keine
@@ -274,11 +276,11 @@ Die Freigabe gilt nur für `ownerId=pam-sol`, `speakerId=pam` und eine aktuelle
 persönlich bestätigte, signierte App-Sitzung. Für das allgemeine Human Holo und
 für jede andere Identität bleibt der medizinische Bereich geschlossen.
 
-Auf Pams registriertem Gerät ist ein allgemeines medizinisches Gespräch nur
-innerhalb dieses begrenzten privaten Testumfangs möglich. Medikamentenbilder,
-der tatsächliche
-Abruf von Health-Connect-Daten und medizinische Berechtigungseinstellungen
-verlangen zusätzlich Pams Fingerprint. Diese zweite Stufe erweitert keine der
+Nach dem lokalen Fingerprint-App-Eingang ist auf Pams registriertem Gerät ein
+allgemeines medizinisches Gespräch nur innerhalb dieses begrenzten privaten
+Testumfangs möglich. Medikamentenbilder, der tatsächliche Abruf von
+Health-Connect-Daten und medizinische Berechtigungseinstellungen verlangen
+zusätzlich einen neuen Fingerprint. Diese zweite Stufe erweitert keine der
 medizinischen Freigabegrenzen.
 
 Nachweis: [Pam‑Holo · private medizinische Testfreigabe und Sicherheitsgrenzen
@@ -288,18 +290,26 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
 
 - Zu Pams Lebzeiten darf ausschließlich Pam ihr Holo öffnen. Das gilt auch
   gegenüber Steffi und jeder anderen Person.
-- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten
-  Android-Gerät nach der lokalen Geräteprüfung direkt. Dafür werden weder eine
-  Stimmprobe noch ein Fingerprint verlangt; ein Netz- oder Render-Ausfall darf
-  die lokale Oberfläche nicht sperren.
-- „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Die lokale
-  Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten.
+- Pams registrierte App bleibt vollständig verdeckt, bis Android frisch starke
+  Biometrie ohne Geräte-PIN-Fallback bestätigt und die lokale
+  Einmalberechtigung verbraucht wurde. Beim Zurückkehren aus dem Hintergrund
+  wird dieser Fingerprint erneut verlangt.
+- „Hey Pam“ ist ausschließlich der Weckruf und niemals Entsperrung. Die lokale
+  Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten, ist aber
+  kein Ersatz für den Fingerprint.
+- Die lokale Eingangssperre ist unabhängig von Netz, Render und Cloudflare.
+  Derselbe bestätigte Fingerprint stellt eine getrennte Einmalberechtigung für
+  die Online-Alltagssitzung bereit, damit Schreiben und Sprechen ohne zweiten
+  Fingerprint funktionieren. Ein Ausfall bei deren Aufbau darf die sichtbare
+  Oberfläche nicht wieder sperren.
 - Gespräche, Wetter, Einkaufsliste, persönliche Notizen und reine
-  Text-WhatsApp sind Beispiele für diesen Alltag und keine abschließende Liste.
+  Text-WhatsApp sind danach Beispiele für den Alltag und keine abschließende
+  Liste.
 - Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
   System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
   Health-Connect-Daten sowie Sicherung und Wiederherstellung verlangen danach
-  Pams gesonderten starken Android-Fingerprint ohne Geräte-PIN-Fallback.
+  eine eigene neue starke Android-Fingerprintfreigabe ohne
+  Geräte-PIN-Fallback.
 - Die Fingerprintfreigabe hebt weder medizinische oder rechtliche Grenzen noch
   die sichtbare Empfänger- und Inhaltsbestätigung vor einer Nachricht auf.
 - Eine NFC-Uhr ist nur als künftige Alternative vorgesehen. Sie wird erst nach

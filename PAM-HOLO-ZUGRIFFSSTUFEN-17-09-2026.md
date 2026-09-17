@@ -1,8 +1,8 @@
 # Pam‑Holo · verbindliche Zugriffs- und Fingerprintgrenze
 
-**Stand:** 17.09.2026
-**Entscheidung:** Pamela Christina Nitschke
-**Geltungsbereich:** ausschließlich Pams eigenes persönliches Pam’s Holo
+**Stand:** 17.09.2026  
+**Entscheidung:** Pamela Christina Nitschke  
+**Geltungsbereich:** ausschließlich Pams eigenes persönliches Pam’s Holo  
 **Keine allgemeine Freigabe:** Das offizielle Human Holo bleibt von dieser
 persönlichen Entscheidung unberührt.
 
@@ -15,21 +15,31 @@ begründen weder Mitinhaberschaft noch persönlichen Zugang.
 
 „Hey Pam“ ist ausschließlich der Weckruf: Er kann Pam Holo wecken und das
 Zuhören starten, ist aber weder Passwort noch Entsperrung. Das lokale
-Stimmprofil schützt den Weckruf und die Sprecherzuordnung; es sperrt Pam nicht
-aus ihrer App aus.
+Stimmprofil schützt Weckruf und Sprecherzuordnung; es kann die
+Fingerprint-Eingangssperre niemals ersetzen.
 
-Auf Pams für `pam-sol` registriertem Android-Gerät wird die normale
-App-Oberfläche nach der lokalen Geräteprüfung direkt geöffnet. Dafür werden
-**weder ein Prüfsatz noch ein Fingerprint** verlangt. Auch eine vorübergehend
-nicht erreichbare Online-Sitzung darf die lokale Oberfläche nicht sperren.
-Eine kurzlebige, gerätegebundene Online-Sitzung wird getrennt im Hintergrund
-aufgebaut, sobald der geschützte Serverweg erreichbar ist.
+Bevor irgendein Teil der App-Oberfläche sichtbar wird, müssen zwei lokale
+Bedingungen erfüllt sein:
 
-Ein Fingerprint wird erst verlangt, wenn Pam einen besonders geschützten
-Bereich verwendet. Alltagssitzung und geschützte Sitzung sind technisch
-getrennt. Beim Verlassen der App werden beide wieder verworfen.
+1. Die App-Installation ist mit dem hardwaregeschützten Geräteschlüssel fest an
+   `pam-sol` gebunden.
+2. Android bestätigt frisch eine starke Biometrie. Für diesen App-Eingang ist
+   kein Geräte-PIN-, Muster- oder Passwort-Fallback zugelassen.
 
-## Auf Pams registriertem Gerät offen
+Die Freigabe wird als kurzlebige Einmalberechtigung ausgegeben und vor dem
+Sichtbarmachen der Oberfläche verbraucht. Beim Verlassen der App wird Pam’s
+Holo wieder vollständig verdeckt; beim Zurückkehren ist der Fingerprint erneut
+erforderlich.
+
+Die lokale Fingerprint-Eingangssperre ist unabhängig von Render, Cloudflare und
+einer Online-Sitzung. Ein Netz- oder Serverausfall darf sie weder umgehen noch
+nach erfolgreicher lokaler Freigabe die Oberfläche wieder sperren. Aus
+demselben bestätigten Fingerprint erzeugt Android eine zweite, getrennte
+Einmalberechtigung für die gerätegebundene Online-Alltagssitzung. Sie wird erst
+nach dem lokalen Öffnen im Hintergrund aufgebaut, damit Schreiben und Sprechen
+ohne einen zweiten Fingerprint funktionieren.
+
+## Nach erfolgreichem Fingerprint im Alltag
 
 Zur normalen Alltagsnutzung gehören insbesondere:
 
@@ -47,17 +57,18 @@ Zur normalen Alltagsnutzung gehören insbesondere:
   Holo-Funktionen.
 
 Diese Punkte sind **Beispiele und keine abschließende Liste**. Entscheidend ist
-die Grenze zwischen normaler Alltagsnutzung und den nachfolgend geschützten
-Inhalten oder Systemeinstellungen.
+die Grenze zwischen normaler Alltagsnutzung und den nachfolgend zusätzlich
+geschützten Inhalten oder Systemeinstellungen.
 
 Eine WhatsApp-Nachricht behält ihre vorhandene sichtbare Bestätigung von
 Empfänger und Inhalt. Diese inhaltliche Bestätigung ist kein Fingerprint und
 wird durch die Zugriffsregel weder entfernt noch ersetzt.
 
-## Nur nach Fingerprint
+## Zusätzlich neuer Fingerprint für geschützte Inhalte
 
-Vor dem Öffnen, Übertragen, Auswerten, Speichern oder Verändern der folgenden
-Inhalte ist Pams gesonderte Fingerprintfreigabe erforderlich:
+Nach dem App-Eingang ist vor dem Öffnen, Übertragen, Auswerten, Speichern oder
+Verändern der folgenden Inhalte eine eigene neue Fingerprintfreigabe
+erforderlich:
 
 - Bilder und Fotos,
 - Videos,
@@ -75,15 +86,17 @@ Beispiele für geschäftliche Angelegenheiten sind geschäftliche Nachrichten un
 E-Mails, Verträge, Rechnungen, Angebote, Arbeitsdateien oder Handlungen mit
 geschäftlicher Außenwirkung. Auch diese Beispiele sind nicht abschließend.
 
-Eine reine Text-WhatsApp gehört zur normalen Alltagsnutzung. Sobald ein Bild,
-Video, Dokument oder anderer geschützter Anhang verwendet wird, gilt die
-Fingerprint-Stufe.
+Eine reine Text-WhatsApp gehört nach dem App-Eingang zur normalen
+Alltagsnutzung. Sobald ein Bild, Video, Dokument oder anderer geschützter
+Anhang verwendet wird, gilt die zusätzliche Fingerprint-Stufe. Für den
+Fotoversand lautet die Reihenfolge verbindlich: Foto auswählen, Fingerprint
+bestätigen, ausschließlich über den geschützten Cloudflare-Weg senden.
 
 Ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs kann
-auf Pams registriertem Gerät stattfinden. Ein Medikamentenfoto, der tatsächliche
-Health-Connect-Datenabruf und jede Änderung medizinischer Berechtigungen bleiben
-zusätzlich fingerprintgeschützt. Die Einzelfreigabe für das konkrete
-Medikamentenbild bleibt daneben bestehen.
+nach dem Fingerprint-App-Eingang stattfinden. Ein Medikamentenfoto, der
+tatsächliche Health-Connect-Datenabruf und jede Änderung medizinischer
+Berechtigungen bleiben zusätzlich fingerprintgeschützt. Die Einzelfreigabe für
+das konkrete Medikamentenbild bleibt daneben bestehen.
 
 ## Fortgeltende Sicherheitsgrenzen
 
@@ -92,14 +105,11 @@ Medikamentenbild bleibt daneben bestehen.
   Zugangsvoraussetzung und keine fachliche Freigabe.
 - Sicherheitskritische Außenhandlungen behalten ihre eigenen sichtbaren
   Bestätigungen.
-- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten Gerät
-  direkt. Ein Fingerprint ist keine Identitätsumschaltung und bleibt nur die
-  zusätzliche Freigabe für die ausdrücklich geschützten Bereiche.
-- Android liefert der App keine Fingerabdruckdaten. Für den geschützten Bereich
-  fordert die App starke Android-Biometrie ohne Geräte-PIN-Fallback an.
-- Eine spätere NFC-Uhr darf den persönlichen Faktor nur nach echter
+- Android liefert der App keine Fingerabdruckdaten. App-Eingang und geschützte
+  Bereiche fordern starke Android-Biometrie ohne Geräte-PIN-Fallback an.
+- Eine spätere NFC-Uhr darf einen persönlichen Faktor nur nach echter
   kryptografischer Registrierung, bewusster Bestätigung und bestandenem
-  Endgerätetest ersetzen. Ein einfacher NFC-Tag genügt niemals.
+  Endgerätetest ergänzen. Ein einfacher NFC-Tag genügt niemals.
 - Zu Pams Lebzeiten erhält keine andere Person Zugriff auf Pam’s Holo. Das gilt
   ausdrücklich auch für Steffi.
 
@@ -119,10 +129,10 @@ Freigaben bleiben bis zur dokumentierten anwaltlichen Prüfung geschlossen.
 - Fingerprint- und Geräteschutz: `android-native/SolAccessSecurityPlugin.java`
 - App-Sitzungen: `modules/trusted-app-session.mjs` und
   `www/trusted-app-session.mjs`
-- App-Grenze: `www/app-lock-bootstrap.mjs` – Pams registriertes Gerät öffnet
-  den Alltag lokal; „Hey Pam“ bleibt ausschließlich der Weckruf. Eine
-  vorübergehend nicht erreichbare Online-Sitzung sperrt die App-Oberfläche
-  nicht erneut.
-- automatisierte Nachweise: `tests/pam-holo-access-policy.test.mjs`
+- App-Grenze: `www/app-lock-bootstrap.mjs` – erst registriertes Gerät plus
+  frische starke Android-Biometrie, dann Sichtbarkeit; „Hey Pam“ bleibt
+  ausschließlich der Weckruf.
+- automatisierte Nachweise: `tests/pam-holo-access-policy.test.mjs` und
+  `tests/identity-ui-separation.test.mjs`
 
 © 2026 Pamela Nitschke

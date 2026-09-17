@@ -117,9 +117,15 @@ export function isPamHoloProtectedContentRequest({
 export function pamHoloAccessBoundaryInstructions() {
   return `
 PAM-HOLO-ZUGRIFFSGRENZE:
-- „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Pam-Holo
-  öffnet den normalen Alltag auf Pams registriertem Gerät automatisch, ohne
-  zweite Stimmprobe und ohne Fingerprint.
+- „Hey Pam“ ist ausschließlich der Weckruf und niemals eine Entsperrung.
+  Bevor irgendein Teil von Pam-Holo sichtbar wird, verlangt Pams registrierte
+  Android-App eine frische starke Android-Biometrie ohne Geräte-PIN-Fallback.
+  Diese lokale Eingangsprüfung funktioniert unabhängig von Render, Cloudflare
+  und einer Online-Sitzung.
+- Nach erfolgreicher Eingangsprüfung darf die gerätegebundene Alltagssitzung
+  ohne zweite Stimmprobe und ohne zweiten Fingerprint aufgebaut werden. Ein
+  Netz- oder Serverausfall ersetzt die Eingangsprüfung nicht und verdeckt die
+  bereits lokal freigegebene Oberfläche nicht wieder.
 - Zum normalen Alltag gehören insbesondere Gespräche, aktuelle Fragen wie
   Wetter, persönliche Listen und Notizen sowie von Pam beauftragte
   Alltagsaktionen wie Einkaufsliste und WhatsApp. Diese Beispiele sind nicht

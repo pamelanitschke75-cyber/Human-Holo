@@ -314,20 +314,26 @@ Diese innere Schutzschicht ersetzt **nicht** die vorhandene kryptografische Ger�
 
 ### Identität und Schutz gegen Manipulation
 
-- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten
-  Android-Gerät nach der lokalen Geräteprüfung direkt. „Hey Pam“ bleibt
-  ausschließlich Weckruf und Sprecherzuordnung und ist keine Entsperrung. Die
-  kurzlebige signierte Online-Sitzung wird davon getrennt aufgebaut; ihr
-  vorübergehender Ausfall sperrt die lokale App-Oberfläche nicht. Alltag
-  umfasst insbesondere Gespräch, Wetter, Einkaufsliste, persönliche Notizen
-  und reine Text-WhatsApp; die Beispiele sind nicht abschließend.
+- Pams registrierte App bleibt vollständig verdeckt, bis Android frisch starke
+  Biometrie ohne Geräte-PIN-Fallback bestätigt und die lokale
+  Einmalberechtigung für `unlock_app` verbraucht wurde. Beim Zurückkehren aus
+  dem Hintergrund wird diese Prüfung erneut verlangt. „Hey Pam“ bleibt
+  ausschließlich Weckruf und Sprecherzuordnung und ist niemals Entsperrung.
+- Die lokale Fingerprint-Eingangssperre ist von der kurzlebigen signierten
+  Online-Sitzung getrennt. Der erfolgreiche Fingerprint gibt dafür eine zweite
+  separate Einmalberechtigung aus, sodass Schreiben und Sprechen keinen
+  weiteren Fingerprint benötigen. Ein Netz-, Render- oder Cloudflare-Ausfall
+  darf die Fingerprintprüfung weder umgehen noch die nach erfolgreicher Prüfung
+  sichtbare lokale Oberfläche wieder sperren. Alltag umfasst danach
+  insbesondere Gespräch, Wetter, Einkaufsliste, persönliche Notizen und reine
+  Text-WhatsApp; die Beispiele sind nicht abschließend.
 - Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
   System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
-  Health-Connect-Daten sowie Sicherung und Wiederherstellung benötigen eine
-  getrennte geschützte Sitzung mit starker Android-Biometrie. Für diese Stufe
-  ist kein Geräte-PIN-Fallback zugelassen. Beim Verlassen sperrt die App wieder
-  und verwirft beide Sitzungen. Biometrische Rohdaten und rohe Stimmaufnahmen
-  werden nicht gespeichert.
+  Health-Connect-Daten sowie Sicherung und Wiederherstellung benötigen danach
+  eine eigene neue geschützte Sitzung mit starker Android-Biometrie. Auch für
+  diese Stufe ist kein Geräte-PIN-Fallback zugelassen. Beim Verlassen sperrt die
+  App wieder und verwirft beide Sitzungen. Biometrische Rohdaten und rohe
+  Stimmaufnahmen werden nicht gespeichert.
 - Mehrere auf Samsung hinterlegte Fingerabdrücke erzeugen und wechseln niemals
   eine Holo-Identität. Android meldet Holo nicht, welcher gespeicherte Finger
   die Gerätefreigabe bestanden hat; die Holo-Owner-ID bleibt davon unabhängig

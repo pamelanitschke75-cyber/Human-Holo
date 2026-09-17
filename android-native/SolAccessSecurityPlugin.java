@@ -48,11 +48,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Native, local foundation for Human Holo access security.
  *
  * <p>Critical grants require a fresh Android Keystore challenge from the
- * registered phone plus a fresh Android system authentication. The system
- * prompt accepts Class 3 biometrics or the device screen-lock credential.
- * Android reports "biometric" versus "device credential", but deliberately
- * does not expose a reliable generic distinction between face and fingerprint.
- * This plugin therefore never claims which biometric modality was used.</p>
+ * registered phone plus fresh strong Android biometrics. Device credentials
+ * are accepted only while registering the phone or on the explicit recovery
+ * path, never for app entry or protected actions. Android reports "biometric"
+ * versus "device credential", but deliberately does not expose a reliable
+ * generic distinction between face and fingerprint. This plugin therefore
+ * records only the strong-biometric class.</p>
  *
  * <p>NFC UIDs, NDEF values and ordinary tags are never accepted. The watch and
  * external NFC-key APIs remain fail-closed until a user-selected companion,
@@ -690,19 +691,10 @@ public final class SolAccessSecurityPlugin extends Plugin {
                 );
                 return;
             }
-        } else if (
-            !SolSpeakerIdentityPlugin.consumeOwnerPersonProof(
-                getContext(),
-                ownerId,
-                call.getString("ownerPersonProofId", "")
-            )
-        ) {
-            call.reject(
-                "Pams persönliche Stimmfreigabe fehlt oder ist abgelaufen.",
-                "OWNER_PERSON_PROOF_REQUIRED"
-            );
-            return;
         }
+        // A wake-word or speaker-proof token is deliberately not accepted
+        // here. App entry requires the registered device plus fresh strong
+        // Android biometrics; "Hey Pam" remains wake-only.
         startSystemAuthentication(
             call,
             AuthenticationPurpose.APP_ACCESS,
@@ -1385,8 +1377,9 @@ public final class SolAccessSecurityPlugin extends Plugin {
                 @Override
                 public void onAuthenticationFailed() {
                     // A failed biometric attempt is non-terminal. Android keeps
-                    // the trusted system dialog open and may offer the device
-                    // credential fallback without treating one miss as attack.
+                    // the trusted system dialog open with only the authenticators
+                    // configured for this purpose. App access never enables the
+                    // device-credential fallback.
                 }
             }
         );
@@ -1402,7 +1395,9 @@ public final class SolAccessSecurityPlugin extends Plugin {
             ? "Bitte Android-Geräte-PIN, Muster oder Passwort verwenden"
             : purpose == AuthenticationPurpose.REGISTER_DEVICE
                 ? "Starke Android-Biometrie oder Geräte-PIN verwenden"
-                : "Pams Fingerprint für den geschützten Bereich verwenden";
+                : purpose == AuthenticationPurpose.APP_ACCESS
+                    ? "Pams starker Fingerprint öffnet die App"
+                    : "Pams Fingerprint für den geschützten Bereich verwenden";
         BiometricPrompt.PromptInfo promptInfo =
             new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
@@ -1750,25 +1745,29 @@ public final class SolAccessSecurityPlugin extends Plugin {
         result.put("faceVsFingerprintKnown", false);
         if (
             purpose == AuthenticationPurpose.APP_ACCESS
-                && performFreshDeviceChallenge(ownerId, TRUSTED_SESSION_ACTION)
+                && performFreshDeviceChallenge(
+                    ownerId,
+                    OWNER_EVERYDAY_SESSION_ACTION
+                )
         ) {
-            // App unlock and backend-session binding use separate one-time
-            // capabilities. Consuming one can never replay the other.
-            String trustedSessionGrantId = randomId();
+            // App visibility and the backend everyday session use two
+            // separately consumable capabilities from the same successful
+            // fingerprint. Consuming either can never replay the other.
+            String ownerEverydayGrantId = randomId();
             grants.put(
-                trustedSessionGrantId,
+                ownerEverydayGrantId,
                 new CriticalGrant(
                     ownerId,
-                    TRUSTED_SESSION_ACTION,
+                    OWNER_EVERYDAY_SESSION_ACTION,
                     expiresAt
                 )
             );
             result.put(
-                "trustedSessionAuthorizationId",
-                trustedSessionGrantId
+                "ownerEverydayAuthorizationId",
+                ownerEverydayGrantId
             );
             result.put(
-                "trustedSessionAuthorizationExpiresAtMillis",
+                "ownerEverydayAuthorizationExpiresAtMillis",
                 expiresAt
             );
         }
