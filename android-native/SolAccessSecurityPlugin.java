@@ -1398,13 +1398,24 @@ public final class SolAccessSecurityPlugin extends Plugin {
                 : purpose == AuthenticationPurpose.APP_ACCESS
                     ? "Pams starker Fingerprint öffnet die App"
                     : "Pams Fingerprint für den geschützten Bereich verwenden";
-        BiometricPrompt.PromptInfo promptInfo =
+        BiometricPrompt.PromptInfo.Builder promptBuilder =
             new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
                 .setSubtitle(subtitle)
                 .setAllowedAuthenticators(authenticators)
-                .setConfirmationRequired(true)
-                .build();
+                .setConfirmationRequired(true);
+        // AndroidX requires an explicit negative button whenever device
+        // credentials are not one of the allowed authenticators. App entry
+        // and protected content deliberately use BIOMETRIC_STRONG only, so
+        // omitting this makes PromptInfo.Builder.build() throw before the
+        // system fingerprint window can appear.
+        if (
+            (authenticators & BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                == 0
+        ) {
+            promptBuilder.setNegativeButtonText("Abbrechen");
+        }
+        BiometricPrompt.PromptInfo promptInfo = promptBuilder.build();
         prompt.authenticate(promptInfo);
     }
 
@@ -1600,6 +1611,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
                 )
                 .setAllowedAuthenticators(PROTECTED_AUTHENTICATORS)
                 .setConfirmationRequired(true)
+                .setNegativeButtonText("Abbrechen")
                 .build();
         prompt.authenticate(promptInfo);
     }
