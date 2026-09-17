@@ -13,7 +13,7 @@ import {
   pamHoloSessionAction
 } from "../modules/pam-holo-access-policy.mjs";
 
-test("Nach Fingerprint öffnet Pams registriertes Gerät den Alltag einschließlich Wetter, Einkaufsliste und WhatsApp", () => {
+test("Pams registriertes Gerät öffnet den Alltag einschließlich Wetter, Einkaufsliste und WhatsApp", () => {
   for (const capability of [
     "conversation",
     "weather",
@@ -101,10 +101,8 @@ test("Sitzungsaktionen und Personenbeweise sind zwischen Alltag und System getre
 test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als nicht abschließend", () => {
   const instructions = pamHoloAccessBoundaryInstructions();
   assert.match(instructions, /„Hey Pam“ ist ausschließlich der Weckruf/u);
-  assert.match(instructions, /Bevor irgendein Teil von Pam-Holo sichtbar wird/u);
-  assert.match(instructions, /starke Android-Biometrie ohne Geräte-PIN-Fallback/u);
-  assert.match(instructions, /unabhängig von Render, Cloudflare/u);
-  assert.match(instructions, /ohne zweiten Fingerprint/u);
+  assert.match(instructions, /registriertem Gerät automatisch/u);
+  assert.match(instructions, /ohne[\s\S]*Fingerprint/u);
   assert.match(instructions, /Wetter/u);
   assert.match(instructions, /Einkaufsliste/u);
   assert.match(instructions, /WhatsApp/u);
@@ -143,25 +141,21 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
 
   assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
-  assert.match(appLock, /plugin\.authorizeAppAccess/u);
-  assert.match(appLock, /authenticationType !== "system_strong_biometric"/u);
-  assert.match(appLock, /plugin\.consumeCriticalAuthorization/u);
+  assert.doesNotMatch(appLock, /plugin\.authorizeAppAccess/u);
+  assert.doesNotMatch(appLock, /authenticationType !== "system_strong_biometric"/u);
+  assert.doesNotMatch(appLock, /plugin\.consumeCriticalAuthorization/u);
   assert.match(
     appLock,
-    /authorizeAppAccess[\s\S]*consumeCriticalAuthorization[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
+    /status\?\.device\?\.registered !== true[\s\S]*revealApp\(\);[\s\S]*refreshEverydaySessionInBackground/u
   );
-  assert.match(appLock, /ownerEverydayAuthorizationId/u);
-  assert.match(appLock, /authorizationId: hasFingerprintGrant/u);
-  assert.match(appLock, /trusted-app-session\.mjs\?v=11/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=11/u);
-  assert.match(html, /service-worker\.js\?v=297/u);
+  assert.doesNotMatch(appLock, /ownerEverydayAuthorizationId/u);
+  assert.doesNotMatch(appLock, /authorizationId: hasFingerprintGrant/u);
+  assert.match(appLock, /trusted-app-session\.mjs\?v=12/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=12/u);
+  assert.match(html, /service-worker\.js\?v=298/u);
   assert.match(
     serviceWorker,
-    /human-holo-296-pam-fingerprint-entry-wake-only-v6/u
-  );
-  assert.doesNotMatch(
-    appLock,
-    /status\?\.device\?\.registered !== true[\s\S]{0,300}revealApp\(\)/u
+    /human-holo-296-pam-registered-device-protected-fingerprint-v7/u
   );
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /"medical_data"/u);
