@@ -289,18 +289,22 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
 
 - Zu Pams Lebzeiten darf ausschließlich Pam ihr Holo öffnen. Das gilt auch
   gegenüber Steffi und jeder anderen Person.
-- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten
-  Android-Gerät nach der lokalen Geräteprüfung direkt. Dafür werden weder eine
-  Stimmprobe noch ein Fingerprint verlangt; ein Netz- oder Render-Ausfall darf
-  die lokale Oberfläche nicht sperren.
-- „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Die lokale
-  Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten.
+- Pams registrierte App bleibt vollständig verdeckt, bis Android frisch Pams
+  starke Biometrie ohne Geräte-PIN-Fallback bestätigt hat und die sichere
+  gerätegebundene Alltagssitzung vollständig bereitsteht. Beim Zurückkehren aus
+  dem Hintergrund wird dieser Fingerprint erneut verlangt.
+- „Hey Pam“ ist ausschließlich der Weckruf und niemals Entsperrung. Die lokale
+  Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten, ist aber
+  kein Ersatz für den Fingerprint.
 - Gespräche, Wetter, Einkaufsliste, persönliche Notizen und reine
-  Text-WhatsApp sind Beispiele für diesen Alltag und keine abschließende Liste.
+  Text-WhatsApp funktionieren danach ohne weiteren Fingerprint und sind keine
+  abschließende Liste. Eine sichtbare, aber funktionslose Oberfläche ist kein
+  zulässiger Freigabezustand.
 - Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
   System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
   Health-Connect-Daten sowie Sicherung und Wiederherstellung verlangen danach
-  Pams gesonderten starken Android-Fingerprint ohne Geräte-PIN-Fallback.
+  eine eigene neue starke Android-Fingerprintfreigabe ohne
+  Geräte-PIN-Fallback.
 - Die Fingerprintfreigabe hebt weder medizinische oder rechtliche Grenzen noch
   die sichtbare Empfänger- und Inhaltsbestätigung vor einer Nachricht auf.
 - Eine NFC-Uhr ist nur als künftige Alternative vorgesehen. Sie wird erst nach

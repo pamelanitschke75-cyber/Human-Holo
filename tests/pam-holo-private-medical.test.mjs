@@ -91,10 +91,14 @@ test("Server, App-Sperre und NFC-Uhr bleiben fail-closed", async () => {
   assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
   assert.doesNotMatch(appLock, /verifySample\(/u);
   assert.match(appLock, /„Hey Pam“ ist ausschließlich der Weckruf/u);
-  assert.doesNotMatch(appLock, /authorizeAppAccess/u);
-  assert.doesNotMatch(appLock, /consumeCriticalAuthorization/u);
-  assert.doesNotMatch(appLock, /authenticationType !== "system_strong_biometric"/u);
-  assert.doesNotMatch(appLock, /ownerEverydayAuthorizationId/u);
+  assert.match(appLock, /authorizeAppAccess/u);
+  assert.match(appLock, /consumeCriticalAuthorization/u);
+  assert.match(appLock, /authenticationType !== "system_strong_biometric"/u);
+  assert.match(appLock, /ownerEverydayAuthorizationId/u);
+  assert.match(
+    appLock,
+    /authorizeAppAccess[\s\S]*consumeCriticalAuthorization[\s\S]*await establishEverydaySessionAfterFingerprint[\s\S]*revealApp\(\);/u
+  );
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /ensureProtectedPamHoloAccess/u);
   assert.match(appLock, /Browseransicht bleibt geschlossen/u);
