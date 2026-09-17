@@ -11319,7 +11319,10 @@ async function sendMessage(
 
       if(
         animalHoloResult?.handled &&
-        animalHoloResult?.answer
+        animalHoloResult?.answer &&
+        animalHoloResult
+          ?.silentInConversation !==
+          true
       ){
 
         answer =
@@ -16878,7 +16881,7 @@ if(
 <script src="./sol-holo-ui.js?v=90"></script>
   <script type="module" src="./app-lock-bootstrap.mjs?v=14"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
-<script type="module" src="./human-holo-animal-holos.mjs?v=8"></script>
+<script type="module" src="./human-holo-animal-holos.mjs?v=9"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=6"></script>
 <script type="module" src="./human-holo-chatgpt-memory-bridge.mjs?v=1"></script>
 </body>

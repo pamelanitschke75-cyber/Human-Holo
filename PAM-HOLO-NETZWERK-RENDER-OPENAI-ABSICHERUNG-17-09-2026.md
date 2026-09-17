@@ -47,6 +47,16 @@ OpenAI oder einen anderen externen Anbieter übertragen.
   bereits nach 45 Sekunden fälschlich als Verbindungsabbruch angezeigt. Erst
   nach dem längeren Zeitfenster bleibt der Entwurf mit einer eindeutigen
   Langzeitmeldung erhalten; automatisch erneut gesendet wird weiterhin nichts.
+- Der normale Textchat nutzt GPT-5 mit minimalem Denkaufwand und einem kurzen,
+  klar begrenzten Antwortbudget. Erhält GPT-5 nach 40 Sekunden noch keine
+  Antwort, wechselt ausschließlich dieser laufende Antwortweg ohne erneutes
+  Ausführen einer Nutzerhandlung auf den schnellen OpenAI-Ersatzweg. Dessen
+  Zeitgrenze beträgt 25 Sekunden. Kalender-, Listen- und andere bereits vor der
+  Modellantwort ausgeführte Aktionen werden dabei niemals wiederholt.
+- Automatisch erkannte Tier-Holo-Beobachtungen werden weiterhin sicher lokal
+  und ownergebunden gespeichert. Im Chat bleibt jedoch Holos natürliche Antwort
+  sichtbar; technische Sätze wie „Gespeichert im Tier-Holo …“ ersetzen diese
+  Antwort nicht mehr.
 - Die bestehende Dauergedächtnis-Warteschlange ist eine eng begrenzte Ausnahme:
   Sie arbeitet mit stabiler Ereignis-ID, Revision und exakter Bestätigung und
   ist dadurch wiederholbar, ohne denselben Eintrag doppelt anzulegen. Ein vom

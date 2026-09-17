@@ -225,6 +225,11 @@ async function saveObservation({
   }
 
   const destination = animalHoloDestination(profile);
+  const silentInConversation =
+    source ===
+      "conversation_auto_save" ||
+    source ===
+      "conversation_owner_auto_save";
   const result = addAnimalHoloObservation(
     animalState,
     profile.id,
@@ -264,7 +269,8 @@ async function saveObservation({
       answer,
       localSaved: true,
       synchronized,
-      duplicate: true
+      duplicate: true,
+      silentInConversation
     };
   }
 
@@ -293,7 +299,8 @@ async function saveObservation({
     answer,
     localSaved: true,
     synchronized,
-    duplicate: false
+    duplicate: false,
+    silentInConversation
   };
 }
 
