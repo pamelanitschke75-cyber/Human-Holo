@@ -2517,7 +2517,7 @@ Schreiben bereit.
 <script src="./voice-motion-driver.js?v=1"></script>
 <script src="./original-full-sync.js?v=3"></script>
 <script src="./media-tools.js"></script>
-<script src="./pam-holo-network-resilience.js?v=2"></script>
+<script src="./pam-holo-network-resilience.js?v=3"></script>
 <script>
 
 const BACKEND_URL =
@@ -10641,7 +10641,7 @@ async function sendMessage(
   chatStatus.textContent =
     protectedAccessRequired
       ? "Fingerprint für geschützte Inhalte wird geprüft …"
-      : "Pams gerätegebundene Alltagssitzung wird bestätigt …";
+      : "Pam’s Holo wird sicher verbunden …";
 
 
   let privateSession = null;
@@ -10675,7 +10675,7 @@ async function sendMessage(
     chatStatus.textContent =
       protectedAccessRequired
         ? "Geschützter Inhalt blieb geschlossen · Pams Fingerprint wurde nicht bestätigt."
-        : "Pams persönliche Alltagssitzung wurde nicht bestätigt.";
+        : "Pam’s Holo konnte noch nicht sicher verbunden werden. Bitte erneut versuchen.";
 
 
     return;
@@ -16808,7 +16808,7 @@ if(
 
       navigator.serviceWorker
         .register(
-          "./service-worker.js?v=299",
+          "./service-worker.js?v=300",
           {
             updateViaCache:"none"
           }
@@ -16845,7 +16845,7 @@ if(
 </script>
 
 <script src="./sol-holo-ui.js?v=88"></script>
-  <script type="module" src="./app-lock-bootstrap.mjs?v=13"></script>
+  <script type="module" src="./app-lock-bootstrap.mjs?v=14"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=8"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=6"></script>

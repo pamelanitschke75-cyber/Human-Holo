@@ -24,6 +24,8 @@ function jsonResponse(data, status = 200) {
 }
 
 async function fixture({
+  ownerSignatureFailures = 0,
+  ownerChallengeFailures = 0,
   protectedSignatureFailures = 0,
   deviceBound = true,
   deviceLookupDelayMillis = 0
@@ -33,6 +35,8 @@ async function fixture({
   const challengeAccess = new Map();
   let authorizationCount = 0;
   let challengeCount = 0;
+  let remainingOwnerSignatureFailures = ownerSignatureFailures;
+  let remainingOwnerChallengeFailures = ownerChallengeFailures;
   let remainingProtectedFailures = protectedSignatureFailures;
 
   const plugin = {
@@ -85,6 +89,15 @@ async function fixture({
         issuedAtType: typeof challenge.issuedAtMillis,
         expiresAtType: typeof challenge.expiresAtMillis
       });
+      if (
+        challenge.accessLevel === EVERYDAY_ACCESS &&
+        remainingOwnerSignatureFailures > 0
+      ) {
+        remainingOwnerSignatureFailures -= 1;
+        const error = new Error("Owner-Challenge ungültig");
+        error.code = "TRUSTED_SESSION_CHALLENGE_INVALID";
+        throw error;
+      }
       if (
         challenge.accessLevel === PROTECTED_ACCESS &&
         remainingProtectedFailures > 0
@@ -142,6 +155,17 @@ async function fixture({
       challengeCount += 1;
       const body = JSON.parse(options.body);
       const accessLevel = body.accessLevel;
+      if (
+        accessLevel === EVERYDAY_ACCESS &&
+        remainingOwnerChallengeFailures > 0
+      ) {
+        remainingOwnerChallengeFailures -= 1;
+        events.push({ type: "challenge_unavailable", accessLevel });
+        return jsonResponse({
+          error: "TRUSTED_SESSION_REQUEST_FAILED",
+          message: "Verbindung vorübergehend nicht verfügbar."
+        }, 503);
+      }
       if (!deviceBound) {
         events.push({ type: "challenge_rejected", accessLevel });
         return jsonResponse({
@@ -246,6 +270,63 @@ test("die beim Eingangs-Fingerprint erteilte Alltagserlaubnis wird ohne zweiten 
     ["device", "challenge", "sign", "complete"]
   );
   assert.equal(events[2].authorizationId, "fingerprint-everyday-grant");
+});
+
+test("die Owner-Verbindung erneuert eine verbrauchte Challenge einmal ohne zweiten Fingerprint", async () => {
+  const { client, events } = await fixture({
+    ownerSignatureFailures: 1
+  });
+  const result = await client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false,
+    authorizationId: "fingerprint-everyday-grant",
+    authorizationExpiresAtMillis: Date.now() + 60_000
+  });
+
+  assert.equal(result.trusted, true);
+  assert.deepEqual(
+    events.map(event => event.type),
+    [
+      "device",
+      "challenge",
+      "sign",
+      "device_authorize",
+      "challenge",
+      "sign",
+      "complete"
+    ]
+  );
+  assert.equal(
+    events.some(event => event.type === "fingerprint_authorize"),
+    false
+  );
+});
+
+test("die Owner-Verbindung wiederholt einen vorübergehenden Serverfehler einmal", async () => {
+  const { client, events } = await fixture({
+    ownerChallengeFailures: 1
+  });
+  const result = await client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false,
+    authorizationId: "fingerprint-everyday-grant",
+    authorizationExpiresAtMillis: Date.now() + 60_000
+  });
+
+  assert.equal(result.trusted, true);
+  assert.deepEqual(
+    events.map(event => event.type),
+    [
+      "device",
+      "challenge_unavailable",
+      "device_authorize",
+      "challenge",
+      "sign",
+      "complete"
+    ]
+  );
 });
 
 test("eine einmalige Alltagserlaubnis geht bei einer parallelen Startprüfung nicht verloren", async () => {

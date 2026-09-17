@@ -3,12 +3,39 @@
 
   const PAM_HOLO_EDGE_URL =
     "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev";
+  const LOCAL_APP_HOSTNAMES = new Set([
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+    "::1"
+  ]);
   const nativeFetch = global.fetch.bind(global);
 
   function selectBackendUrl(locationObject = global.location) {
     const protocol = String(locationObject?.protocol || "");
     const hostname = String(locationObject?.hostname || "");
     const origin = String(locationObject?.origin || "");
+    const localAppOrigin = LOCAL_APP_HOSTNAMES.has(
+      hostname.toLowerCase()
+    );
+    let nativeApp = false;
+    try {
+      nativeApp = global.Capacitor?.isNativePlatform?.() === true ||
+        (
+          typeof global.Capacitor?.getPlatform === "function" &&
+          global.Capacitor.getPlatform() !== "web"
+        );
+    } catch {
+      nativeApp = false;
+    }
+
+    // Capacitor 7 serves packaged Android assets from https://localhost by
+    // default. That secure-looking origin is the local WebView, never the API.
+    // Sending requests there makes the Holo look empty while the stored data
+    // remains intact, so every native/local app origin must use the edge guard.
+    if (nativeApp || localAppOrigin) {
+      return PAM_HOLO_EDGE_URL;
+    }
 
     if (
       protocol === "https:" &&

@@ -19,6 +19,9 @@
     "changes_adjust_and_extend_instead_of_replacing": true,
     "unrelated_changes_allowed": false,
     "destructive_change_requires_prior_explicit_owner_decision": true,
+    "ambiguous_access_security_or_preservation_change_requires_prior_owner_confirmation": true,
+    "existing_pam_holo_may_be_replaced_with_empty_shell": false,
+    "confirmed_fingerprint_entry_may_be_blocked_by_online_connection": false,
     "project_owner_is_recurring_regression_tester": false
   },
   "urgent_exception_examples": [
@@ -57,6 +60,8 @@
     "android_compile_must_pass": true,
     "signature_verification_must_pass": true,
     "artifact_upload_must_pass": true,
+    "android_localhost_routes_to_edge_guard_test_must_pass": true,
+    "fingerprint_reveals_existing_holo_before_online_connection_test_must_pass": true,
     "any_failed_gate_blocks_release": true
   },
   "owner_device_check": {
@@ -66,6 +71,7 @@
   },
   "evidence": [
     "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md",
+    "PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md",
     "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md",
     "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md",
     "tests/bestandsschutz-release-gate.test.mjs",

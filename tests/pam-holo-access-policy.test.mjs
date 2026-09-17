@@ -104,8 +104,10 @@ test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als
   assert.match(instructions, /Bevor irgendein Teil[\s\S]*sichtbar wird/u);
   assert.match(instructions, /starke Android-Biometrie/u);
   assert.match(instructions, /ohne Geräte-PIN-Fallback/u);
-  assert.match(instructions, /Alltagssitzung vollständig steht/u);
-  assert.match(instructions, /sichtbare, aber funktionslose Oberfläche/u);
+  assert.match(instructions, /Unmittelbar[\s\S]*Holo-Oberfläche sichtbar/u);
+  assert.match(instructions, /Online-Verbindung[\s\S]*zweite Eingangstür/u);
+  assert.match(instructions, /niemals entfernt, leer ersetzt/u);
+  assert.match(instructions, /Pams konkrete[\s\S]*Bestätigung/u);
   assert.match(instructions, /Wetter/u);
   assert.match(instructions, /Einkaufsliste/u);
   assert.match(instructions, /WhatsApp/u);
@@ -151,15 +153,17 @@ test("Client erzwingt Fingerprint vor Sichtbarkeit und erneut für geschützte D
   assert.match(appLock, /authorizationId: hasFingerprintGrant/u);
   assert.match(
     appLock,
-    /plugin\.authorizeAppAccess[\s\S]*plugin\.consumeCriticalAuthorization[\s\S]*await establishEverydaySessionAfterFingerprint[\s\S]*revealApp\(\);/u
+    /plugin\.authorizeAppAccess[\s\S]*plugin\.consumeCriticalAuthorization[\s\S]*revealApp\(\);[\s\S]*void connectOwnerServicesAfterFingerprint/u
   );
-  assert.match(appLock, /trusted-app-session\.mjs\?v=13/u);
-  assert.match(html, /app-lock-bootstrap\.mjs\?v=13/u);
-  assert.match(html, /service-worker\.js\?v=299/u);
+  assert.match(appLock, /trusted-app-session\.mjs\?v=14/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=14/u);
+  assert.match(html, /pam-holo-network-resilience\.js\?v=3/u);
+  assert.match(html, /service-worker\.js\?v=300/u);
   assert.match(
     serviceWorker,
-    /human-holo-296-pam-fingerprint-entry-session-ready-v8/u
+    /human-holo-297-pam-holo-restored-entry-network-v9/u
   );
+  assert.doesNotMatch(appLock, /Alltagssitzung/u);
   assert.match(appLock, /allowBootstrap: false/u);
   assert.match(appLock, /"medical_data"/u);
   assert.match(appLock, /"backup_and_restore"/u);

@@ -16,6 +16,14 @@ const RETRYABLE_CHALLENGE_ERRORS = new Set([
   "TRUSTED_SESSION_CHALLENGE_INVALID",
   "TRUSTED_SESSION_CHALLENGE_EXPIRED"
 ]);
+const RETRYABLE_OWNER_CONNECTION_ERRORS = new Set([
+  ...RETRYABLE_CHALLENGE_ERRORS,
+  "GRANT_ALREADY_CONSUMED",
+  "GRANT_EXPIRED",
+  "PAM_HOLO_NETWORK_INTERRUPTED",
+  "PAM_HOLO_NETWORK_TIMEOUT",
+  "TRUSTED_SESSION_REQUEST_FAILED"
+]);
 
 const sessions = {
   [ACCESS_LEVEL.OWNER_EVERYDAY]: {
@@ -197,7 +205,7 @@ async function freshAuthorization(
     if (!sessionIsFresh(ACCESS_LEVEL.OWNER_EVERYDAY)) {
       throw new TrustedSessionClientError(
         "OWNER_EVERYDAY_SESSION_REQUIRED",
-        "Vor dem Fingerprint muss Pams gerätegebundene Alltagssitzung bereit sein."
+        "Vor dem zusätzlichen Fingerprint muss Pams sichere App-Verbindung bereit sein."
       );
     }
     grant = await plugin.authorizeCriticalAction({
@@ -259,6 +267,13 @@ function isRetryableChallengeError(error) {
   return Boolean(
     RETRYABLE_CHALLENGE_ERRORS.has(String(error?.code || "")) ||
     Number(error?.status) === 410
+  );
+}
+
+function isRetryableOwnerConnectionError(error) {
+  return Boolean(
+    RETRYABLE_OWNER_CONNECTION_ERRORS.has(String(error?.code || "")) ||
+    Number(error?.status) >= 500
   );
 }
 
@@ -477,14 +492,20 @@ async function establishTrustedAppSession({
       }
 
       if (
-        normalized === ACCESS_LEVEL.PROTECTED &&
         interactive &&
         challengeRetryCount === 0 &&
-        isRetryableChallengeError(error)
+        (
+          normalized === ACCESS_LEVEL.PROTECTED
+            ? isRetryableChallengeError(error)
+            : isRetryableOwnerConnectionError(error)
+        )
       ) {
         challengeRetryCount += 1;
         // The failed attempt and its one-time grant are never reused. Android
         // confirms a new grant first; only then is a new challenge requested.
+        // The owner connection uses the registered device and never opens a
+        // second biometric prompt. Protected content remains a separate fresh
+        // fingerprint operation.
         authorizationId = await freshAuthorization(plugin, {
           accessLevel: normalized
         });
@@ -558,7 +579,7 @@ export async function ensureTrustedAppSession(options = {}) {
     .catch((error) => {
       if (options?.interactive) throw error;
       console.info(
-        "Sichere App-Sitzung noch nicht aktiv:",
+        "Sichere App-Verbindung noch nicht aktiv:",
         error?.code || error?.name || "unbekannt"
       );
       return { trusted: false, error: error?.code || "unavailable" };
