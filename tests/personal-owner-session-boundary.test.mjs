@@ -65,6 +65,7 @@ test("persönliche Chat-, Sprach-, Medien- und Google-Wege verlangen die Owner-S
 test("Pam-App bestätigt die Sitzung vor Text, Sprache und Video", async () => {
   const html = await source("www/index.html");
   const media = await source("www/media-tools.js");
+  const ui = await source("www/sol-holo-ui.js");
 
   const sendStart = html.indexOf("async function sendMessage(");
   const liveStart = html.indexOf("async function startLiveConversation(");
@@ -87,9 +88,9 @@ test("Pam-App bestätigt die Sitzung vor Text, Sprache und Video", async () => {
     /request\.setRequestHeader\(\s*"X-Sol-Holo-Trusted-Session",\s*trustedSessionToken\s*\)/u
   );
   assert.match(media, /Die sichere persönliche Holo-Sitzung fehlt/u);
-  assert.match(html, /auth\/smartthings\/start/u);
+  assert.match(ui, /auth\/smartthings\/start/u);
   assert.match(
-    html,
+    ui,
     /SolHoloTrustedSession\?\.ensure\?\.\([\s\S]*?auth\/smartthings\/start/u
   );
 });
