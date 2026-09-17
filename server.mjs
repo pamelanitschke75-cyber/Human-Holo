@@ -1047,11 +1047,47 @@ const GOOGLE_CLIENT_SECRET =
     ""
   ).trim();
 
+const PAM_HOLO_EDGE_ORIGIN =
+  "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev";
+
+const PAM_HOLO_RENDER_ORIGIN =
+  "https://sol-holo.onrender.com";
+
+function protectedOAuthRedirectUri(
+  configuredValue,
+  callbackPath
+) {
+  const edgeRedirect =
+    `${PAM_HOLO_EDGE_ORIGIN}${callbackPath}`;
+
+  const configured =
+    String(
+      configuredValue ||
+      edgeRedirect
+    ).trim();
+
+  const originGuardRequired =
+    String(
+      process.env.PAM_HOLO_ORIGIN_SECRET_REQUIRED ||
+      ""
+    ).trim() === "true";
+
+  if (
+    originGuardRequired &&
+    configured ===
+      `${PAM_HOLO_RENDER_ORIGIN}${callbackPath}`
+  ) {
+    return edgeRedirect;
+  }
+
+  return configured;
+}
+
 const GOOGLE_REDIRECT_URI =
-  String(
-    process.env.GOOGLE_REDIRECT_URI ||
-    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/google/callback"
-  ).trim();
+  protectedOAuthRedirectUri(
+    process.env.GOOGLE_REDIRECT_URI,
+    "/auth/google/callback"
+  );
 
 const GOOGLE_CALENDAR_ID =
   String(
@@ -1150,10 +1186,10 @@ const SMARTTHINGS_CLIENT_SECRET =
   String(process.env.SMARTTHINGS_CLIENT_SECRET || "").trim();
 
 const SMARTTHINGS_REDIRECT_URI =
-  String(
-    process.env.SMARTTHINGS_REDIRECT_URI ||
-    "https://pam-holo-edge-guard.pamela-nitschke75.workers.dev/auth/smartthings/callback"
-  ).trim();
+  protectedOAuthRedirectUri(
+    process.env.SMARTTHINGS_REDIRECT_URI,
+    "/auth/smartthings/callback"
+  );
 
 const SMARTTHINGS_TOKEN_ENCRYPTION_KEY =
   String(process.env.SMARTTHINGS_TOKEN_ENCRYPTION_KEY || "").trim();
