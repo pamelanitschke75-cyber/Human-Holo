@@ -246,12 +246,10 @@ test("Pam-Holo-Clients und OAuth-Callbacks verwenden ausschließlich den Türste
   const server = await readFile(new URL("server.mjs", root), "utf8");
   assert.match(
     server,
-    /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev\/auth\/google\/callback/u
+    /const PAM_HOLO_EDGE_ORIGIN =[\s\S]*?pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev/u
   );
-  assert.match(
-    server,
-    /pam-holo-edge-guard\.pamela-nitschke75\.workers\.dev\/auth\/smartthings\/callback/u
-  );
+  assert.match(server, /"\/auth\/google\/callback"/u);
+  assert.match(server, /"\/auth\/smartthings\/callback"/u);
   assert.match(server, /function protectedOAuthRedirectUri/u);
   assert.match(server, /PAM_HOLO_ORIGIN_SECRET_REQUIRED/u);
   assert.match(
