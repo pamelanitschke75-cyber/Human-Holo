@@ -1013,7 +1013,7 @@ jobs:
 
       - name: Human Holo Android APK und Play-Bundle bereitstellen
         if: github.event_name != 'workflow_dispatch' || inputs.pam_holo_private_medical_test != true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Human-Holo-Android-${{ steps.signing_mode.outputs.mode }}
           path: |
@@ -1025,7 +1025,7 @@ jobs:
 
       - name: Pams private medizinische Test-APK bereitstellen
         if: github.event_name == 'workflow_dispatch' && inputs.pam_holo_private_medical_test == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Pam-Holo-Private-Medical-Test-${{ steps.signing_mode.outputs.mode }}
           path: |
