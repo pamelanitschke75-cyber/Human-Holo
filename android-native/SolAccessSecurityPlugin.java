@@ -93,9 +93,11 @@ public final class SolAccessSecurityPlugin extends Plugin {
     private static final String PREF_WATCH_COUNTER =
         "registered_watch_last_counter";
 
-    private static final int SYSTEM_AUTHENTICATORS =
+    private static final int ENROLLMENT_AUTHENTICATORS =
         BiometricManager.Authenticators.BIOMETRIC_STRONG
             | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+    private static final int PROTECTED_AUTHENTICATORS =
+        BiometricManager.Authenticators.BIOMETRIC_STRONG;
     private static final int MIN_RELIABLE_AUTH_TYPE_API = 30;
     private static final long FRESH_PROOF_MS = 60_000L;
     private static final long GRANT_TTL_MS = 90_000L;
@@ -112,10 +114,16 @@ public final class SolAccessSecurityPlugin extends Plugin {
         "base64url-no-padding-der";
     private static final String TRUSTED_SESSION_ACTION =
         "bind_trusted_app_session";
+    private static final String OWNER_EVERYDAY_SESSION_ACTION =
+        "bind_owner_everyday_session";
     private static final String TRUSTED_SESSION_PURPOSE =
         "owner_personal_services";
     private static final String TRUSTED_SESSION_PACKAGE =
         "com.solholo.app";
+    private static final String TRUSTED_SESSION_OWNER_PERSON_PROOF =
+        "pam_voice_or_registered_watch_v1";
+    private static final String OWNER_EVERYDAY_PERSON_PROOF =
+        "pam_verified_voice_everyday_v1";
     private static final long TRUSTED_SESSION_MAX_CHALLENGE_MS = 3 * 60_000L;
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -302,6 +310,19 @@ public final class SolAccessSecurityPlugin extends Plugin {
         return ownerId;
     }
 
+    private static boolean isTrustedSessionActionAndProof(
+        String action,
+        String ownerPersonProof
+    ) {
+        return (
+            TRUSTED_SESSION_ACTION.equals(action)
+                && TRUSTED_SESSION_OWNER_PERSON_PROOF.equals(ownerPersonProof)
+        ) || (
+            OWNER_EVERYDAY_SESSION_ACTION.equals(action)
+                && OWNER_EVERYDAY_PERSON_PROOF.equals(ownerPersonProof)
+        );
+    }
+
     @PluginMethod
     public void getStatus(PluginCall call) {
         String ownerId = requiredOwnerId(call);
@@ -391,6 +412,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
         String packageName = call.getString("packageName", "");
         String purpose = call.getString("purpose", "");
         String action = call.getString("action", "");
+        String ownerPersonProof = call.getString("ownerPersonProof", "");
         Long issuedAtMillis = SecurityFactorPolicy.parseEpochMillis(
             call.getData().opt("issuedAtMillis")
         );
@@ -424,7 +446,10 @@ public final class SolAccessSecurityPlugin extends Plugin {
                 || !TRUSTED_SESSION_PACKAGE.equals(packageName)
                 || !getContext().getPackageName().equals(packageName)
                 || !TRUSTED_SESSION_PURPOSE.equals(purpose)
-                || !TRUSTED_SESSION_ACTION.equals(action)
+                || !isTrustedSessionActionAndProof(
+                    action,
+                    ownerPersonProof
+                )
                 || !SecurityFactorPolicy.isTrustedSessionChallengeWindowValid(
                     issuedAtMillis,
                     expiresAtMillis,
@@ -444,7 +469,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
             SecurityFactorPolicy.evaluateGrant(
                 ownerId,
                 grant == null ? null : grant.ownerId,
-                TRUSTED_SESSION_ACTION,
+                action,
                 grant == null ? null : grant.action,
                 now,
                 grant == null ? 0L : grant.expiresAtMillis,
@@ -469,7 +494,8 @@ public final class SolAccessSecurityPlugin extends Plugin {
             nonceBase64Url,
             String.valueOf(issuedAtMillis),
             String.valueOf(expiresAtMillis),
-            TRUSTED_SESSION_PURPOSE
+            TRUSTED_SESSION_PURPOSE,
+            ownerPersonProof
         );
         byte[] canonicalBytes = canonicalPayload.getBytes(StandardCharsets.UTF_8);
         try {
@@ -571,7 +597,6 @@ public final class SolAccessSecurityPlugin extends Plugin {
             );
             return;
         }
-
         startSystemAuthentication(
             call,
             AuthenticationPurpose.CRITICAL_ACTION,
@@ -580,6 +605,73 @@ public final class SolAccessSecurityPlugin extends Plugin {
             requireWatch,
             watchProofId
         );
+    }
+
+    /**
+     * Opens only Pam's ordinary owner session after the already accepted
+     * "Hey Pam" speaker proof. It never opens media, documents, business
+     * matters or system settings and deliberately shows no biometric prompt.
+     */
+    @PluginMethod
+    public void authorizeOwnerEverydayAccess(PluginCall call) {
+        String ownerId = requiredOwnerId(call);
+        if (ownerId == null) return;
+        if (!inspectDeviceState(ownerId).verified()) {
+            call.reject(
+                "Dieses Gerät muss zuerst sicher für Pam registriert werden.",
+                "REGISTERED_DEVICE_REQUIRED"
+            );
+            return;
+        }
+        if (
+            !SolSpeakerIdentityPlugin.consumeOwnerPersonProof(
+                getContext(),
+                ownerId,
+                call.getString("ownerPersonProofId", "")
+            )
+        ) {
+            call.reject(
+                "Der aktuelle, bereits erkannte Hey-Pam-Stimmnachweis fehlt oder ist abgelaufen.",
+                "OWNER_PERSON_PROOF_REQUIRED"
+            );
+            return;
+        }
+        try {
+            if (!performFreshDeviceChallenge(ownerId, OWNER_EVERYDAY_SESSION_ACTION)) {
+                call.reject(
+                    "Der registrierte Geräteschlüssel konnte die Alltagssitzung nicht bestätigen.",
+                    "REGISTERED_DEVICE_PROOF_FAILED"
+                );
+                return;
+            }
+            long expiresAtMillis = System.currentTimeMillis() + GRANT_TTL_MS;
+            String authorizationId = randomId();
+            grants.put(
+                authorizationId,
+                new CriticalGrant(
+                    ownerId,
+                    OWNER_EVERYDAY_SESSION_ACTION,
+                    expiresAtMillis
+                )
+            );
+            JSObject result = new JSObject();
+            result.put("allowed", true);
+            result.put("authorizationId", authorizationId);
+            result.put("ownerId", ownerId);
+            result.put("action", OWNER_EVERYDAY_SESSION_ACTION);
+            result.put("accessLevel", "owner_everyday");
+            result.put("expiresAtMillis", expiresAtMillis);
+            result.put("oneTime", true);
+            result.put("authenticationType", "verified_hey_pam_voice");
+            result.put("biometricPromptUsed", false);
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject(
+                "Die stimmgebundene Alltagssitzung konnte nicht vorbereitet werden.",
+                "OWNER_EVERYDAY_AUTHORIZATION_FAILED",
+                error
+            );
+        }
     }
 
     /**
@@ -598,13 +690,38 @@ public final class SolAccessSecurityPlugin extends Plugin {
             );
             return;
         }
+        boolean useRegisteredWatch = Boolean.TRUE.equals(
+            call.getBoolean("useRegisteredWatch", false)
+        );
+        String watchProofId = call.getString("watchProofId", "");
+        if (useRegisteredWatch) {
+            if (!isWatchConfigured(ownerId)) {
+                call.reject(
+                    "Die kryptografische NFC-Uhr ist noch nicht vollständig eingerichtet und getestet.",
+                    "REGISTERED_WATCH_NOT_CONFIGURED"
+                );
+                return;
+            }
+        } else if (
+            !SolSpeakerIdentityPlugin.consumeOwnerPersonProof(
+                getContext(),
+                ownerId,
+                call.getString("ownerPersonProofId", "")
+            )
+        ) {
+            call.reject(
+                "Pams persönliche Stimmfreigabe fehlt oder ist abgelaufen.",
+                "OWNER_PERSON_PROOF_REQUIRED"
+            );
+            return;
+        }
         startSystemAuthentication(
             call,
             AuthenticationPurpose.APP_ACCESS,
             ownerId,
             "unlock_app",
-            false,
-            ""
+            useRegisteredWatch,
+            watchProofId
         );
     }
 
@@ -960,7 +1077,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
         cleanupExpiredState();
         DeviceState device = inspectDeviceState(ownerId);
         BiometricManager manager = BiometricManager.from(getContext());
-        int combinedStatus = manager.canAuthenticate(SYSTEM_AUTHENTICATORS);
+        int combinedStatus = manager.canAuthenticate(ENROLLMENT_AUTHENTICATORS);
         int biometricStatus = manager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG
         );
@@ -993,7 +1110,8 @@ public final class SolAccessSecurityPlugin extends Plugin {
         systemAuth.put("deviceCredentialStatus", credentialStatus);
         systemAuth.put("deviceCredentialSet", deviceCredentialSet);
         systemAuth.put("allowsBiometricClass", "BIOMETRIC_STRONG_CLASS_3");
-        systemAuth.put("allowsDeviceCredential", true);
+        systemAuth.put("allowsDeviceCredentialForRegistration", true);
+        systemAuth.put("allowsDeviceCredentialForProtectedContent", false);
         systemAuth.put("weakBiometricAccepted", false);
         systemAuth.put("confirmationRequired", true);
         systemAuth.put("reportsBiometricVsCredential", true);
@@ -1061,7 +1179,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
         policy.put("criticalActionMinimumIndependentCategories", 2);
         policy.put(
             "normalCriticalAction",
-            "registered_device + (system_strong_biometric OR device_credential)"
+            "registered_device + system_strong_biometric"
         );
         policy.put(
             "biometricRecovery",
@@ -1089,7 +1207,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
             "criticalActionReady",
             device.verified()
                 && supportsReliableAuthenticationType()
-                && combinedStatus == BiometricManager.BIOMETRIC_SUCCESS
+                && biometricStatus == BiometricManager.BIOMETRIC_SUCCESS
         );
         status.put(
             "recoveryReadyWithoutBiometric",
@@ -1120,7 +1238,9 @@ public final class SolAccessSecurityPlugin extends Plugin {
 
         int authenticators = purpose == AuthenticationPurpose.BIOMETRIC_RECOVERY
             ? BiometricManager.Authenticators.DEVICE_CREDENTIAL
-            : SYSTEM_AUTHENTICATORS;
+            : purpose == AuthenticationPurpose.REGISTER_DEVICE
+                ? ENROLLMENT_AUTHENTICATORS
+                : PROTECTED_AUTHENTICATORS;
         int availability = BiometricManager.from(getContext()).canAuthenticate(
             authenticators
         );
@@ -1292,7 +1412,9 @@ public final class SolAccessSecurityPlugin extends Plugin {
                     : "Kritische Human-Holo-Aktion bestätigen";
         String subtitle = purpose == AuthenticationPurpose.BIOMETRIC_RECOVERY
             ? "Bitte Android-Geräte-PIN, Muster oder Passwort verwenden"
-            : "Starke Android-Biometrie oder Geräte-PIN verwenden";
+            : purpose == AuthenticationPurpose.REGISTER_DEVICE
+                ? "Starke Android-Biometrie oder Geräte-PIN verwenden"
+                : "Pams Fingerprint für den geschützten Bereich verwenden";
         BiometricPrompt.PromptInfo promptInfo =
             new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
@@ -1322,14 +1444,14 @@ public final class SolAccessSecurityPlugin extends Plugin {
         }
 
         int availability = BiometricManager.from(getContext()).canAuthenticate(
-            SYSTEM_AUTHENTICATORS
+            PROTECTED_AUTHENTICATORS
         );
         if (availability != BiometricManager.BIOMETRIC_SUCCESS) {
             systemAuthenticationInProgress.set(false);
             Arrays.fill(canonicalPayload, (byte)0);
             JSObject details = new JSObject();
             details.put("androidBiometricStatus", availability);
-            details.put("requestedAuthenticators", SYSTEM_AUTHENTICATORS);
+            details.put("requestedAuthenticators", PROTECTED_AUTHENTICATORS);
             call.reject(
                 "Die Android-Systemauthentifizierung ist derzeit nicht verfügbar.",
                 "SYSTEM_AUTHENTICATION_UNAVAILABLE",
@@ -1491,9 +1613,9 @@ public final class SolAccessSecurityPlugin extends Plugin {
             new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Einwilligung kryptografisch bestätigen")
                 .setSubtitle(
-                    "Starke Android-Biometrie oder Geräte-PIN verwenden"
+                    "Pams Fingerprint für den geschützten Bereich verwenden"
                 )
-                .setAllowedAuthenticators(SYSTEM_AUTHENTICATORS)
+                .setAllowedAuthenticators(PROTECTED_AUTHENTICATORS)
                 .setConfirmationRequired(true)
                 .build();
         prompt.authenticate(promptInfo);

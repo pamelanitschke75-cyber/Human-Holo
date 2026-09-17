@@ -2535,7 +2535,8 @@ function createFulltimeEventId(){
 
 
 async function ensureFulltimeHistorySession(
-  interactive = false
+  interactive = false,
+  accessLevel = "owner_everyday"
 ){
 
   const ensure =
@@ -2555,7 +2556,8 @@ async function ensureFulltimeHistorySession(
 
   const current =
     await ensure({
-      interactive:false
+      interactive:false,
+      accessLevel
     });
 
   if(
@@ -2567,8 +2569,31 @@ async function ensureFulltimeHistorySession(
   }
 
   return ensure({
-    interactive:true
+    interactive:true,
+    accessLevel
   });
+}
+
+
+function pamHoloRequestNeedsFingerprint({
+  message = "",
+  hasImage = false,
+  hasVideo = false,
+  hasDocument = false,
+  hasFileAttachment = false
+} = {}){
+
+  const businessMatter =
+    /\b(?:geschäftlich(?:e[nsr]?)?|beruflich(?:e[nsr]?)?|firma|firmen|arbeitgeber|arbeitsvertrag|vertrag(?:s|e|en)?|rechnung(?:en)?|angebot(?:e|en)?|kund(?:e|en|in|innen)|steuer(?:n|erklärung)?|buchhaltung|gewerbe|geschäftskonto|business)\b/iu
+      .test(String(message || ""));
+
+  return Boolean(
+    hasImage ||
+    hasVideo ||
+    hasDocument ||
+    hasFileAttachment ||
+    businessMatter
+  );
 }
 
 
@@ -10478,7 +10503,9 @@ async function sendMessage(
 
       trustedSession =
         await ensureTrustedSession({
-          interactive:true
+          interactive:true,
+          accessLevel:
+            "protected_media_documents_settings"
         });
 
     }catch(
@@ -10511,6 +10538,58 @@ async function sendMessage(
 
       return;
     }
+  }
+
+
+  const protectedAccessRequired =
+    pamHoloRequestNeedsFingerprint({
+      message,
+      hasImage:Boolean(imageToSend),
+      hasVideo:videoFramesToSend.length > 0
+    });
+
+
+  chatStatus.textContent =
+    protectedAccessRequired
+      ? "Fingerprint für geschützte Inhalte wird geprüft …"
+      : "Pams stimmgebundene Alltagssitzung wird bestätigt …";
+
+
+  let privateSession = null;
+
+
+  try{
+
+    privateSession =
+      await ensureFulltimeHistorySession(
+        true,
+        protectedAccessRequired
+          ? "protected_media_documents_settings"
+          : "owner_everyday"
+      );
+
+  }catch(
+    error
+  ){
+
+    console.error(
+      "Pam-Holo-Zugriffsstufe:",
+      error?.code || error?.name || "Fehler"
+    );
+  }
+
+
+  if(
+    !privateSession?.trusted
+  ){
+
+    chatStatus.textContent =
+      protectedAccessRequired
+        ? "Geschützter Inhalt blieb geschlossen · Pams Fingerprint wurde nicht bestätigt."
+        : "Pams persönliche Alltagssitzung wurde nicht bestätigt.";
+
+
+    return;
   }
 
 
@@ -10687,6 +10766,10 @@ async function sendMessage(
 
             file:
               videoFileToSend,
+
+            headers:
+              window.SolHoloTrustedSession
+                ?.headers?.() || {},
 
             signal:
               activeVideoUploadController.signal,
@@ -10959,7 +11042,13 @@ async function sendMessage(
       const trustedSession =
         await window.SolHoloTrustedSession
           .ensure({
-            interactive:true
+            interactive:true,
+            accessLevel:
+              pamHoloRequestNeedsFingerprint({
+                message
+              })
+                ? "protected_media_documents_settings"
+                : "owner_everyday"
           });
 
 
@@ -12056,7 +12145,13 @@ async function sendLiveTranscriptToMemory(
         const trustedSession =
           await window.SolHoloTrustedSession
             .ensure({
-              interactive:true
+              interactive:true,
+              accessLevel:
+                pamHoloRequestNeedsFingerprint({
+                  message:cleanTranscript
+                })
+                  ? "protected_media_documents_settings"
+                  : "owner_everyday"
             });
 
 
@@ -12385,6 +12480,83 @@ async function handleRealtimeUserTranscript(
   fulltimeEventId = "",
   sourceModalities = ["voice"]
 ){
+
+  const requestedSourceModalities =
+    Array.isArray(sourceModalities)
+      ? sourceModalities
+      : ["voice"];
+
+
+  const protectedAccessRequired =
+    pamHoloRequestNeedsFingerprint({
+      message:transcript,
+      hasImage:
+        requestedSourceModalities.includes("image") ||
+        requestedSourceModalities.includes("live_image") ||
+        signLanguageSequenceRequest(transcript).requested ||
+        isVoiceCameraDescriptionRequest(transcript),
+      hasVideo:
+        requestedSourceModalities.includes("video")
+    });
+
+
+  if(
+    protectedAccessRequired
+  ){
+
+    let protectedSession = null;
+
+
+    try{
+
+      protectedSession =
+        await ensureFulltimeHistorySession(
+          true,
+          "protected_media_documents_settings"
+        );
+
+    }catch(
+      error
+    ){
+
+      console.error(
+        "Geschützte Realtime-Anfrage:",
+        error?.code || error?.name || "Fehler"
+      );
+    }
+
+
+    if(
+      !protectedSession?.trusted
+    ){
+
+      cancelRealtimeResponse();
+
+
+      const protectedAnswer =
+        "Bilder, Unterlagen und geschäftliche Angelegenheiten bleiben ohne Pams Fingerprint geschlossen.";
+
+
+      addMessage(
+        HOLO_CHAT_SPEAKER,
+        protectedAnswer,
+        "sol-message"
+      );
+
+
+      chatStatus.textContent =
+        "Geschützter Bereich blieb geschlossen.";
+
+
+      speakExecutedRealtimeResult(
+        "[PAM_HOLO_FINGERPRINT_ERFORDERLICH]",
+        protectedAnswer
+      );
+
+
+      return;
+    }
+  }
 
   const screenDescriptionRequested =
     isCurrentHoloScreenDescriptionRequest(
@@ -13857,6 +14029,34 @@ async function startLiveCamera(){
   }
 
 
+  try{
+
+    const protectedSession =
+      await window.SolHoloProtectedAccess
+        ?.ensure?.();
+
+
+    if(!protectedSession?.trusted){
+
+      setLiveStatus(
+        "Für Live-Bilder ist Pams Fingerprint erforderlich."
+      );
+
+
+      return;
+    }
+
+  }catch{
+
+    setLiveStatus(
+      "Live-Bilder blieben geschlossen, weil der Fingerprint nicht bestätigt wurde."
+    );
+
+
+    return;
+  }
+
+
   if(
     !document.body.classList.contains(
       "voice-open"
@@ -14788,7 +14988,13 @@ async function searchRealtimeGmail(
 
   const trustedSession =
     await ensure({
-      interactive:true
+      interactive:true,
+      accessLevel:
+        pamHoloRequestNeedsFingerprint({
+          message:cleanRequest
+        })
+          ? "protected_media_documents_settings"
+          : "owner_everyday"
     });
 
 
@@ -15289,6 +15495,25 @@ async function startLiveConversation(){
   if(
     !connectionIsCurrent()
   ){
+
+    return;
+  }
+
+
+  const privateRealtimeSession =
+    await ensureFulltimeHistorySession(
+      true
+    );
+
+
+  if(
+    !connectionIsCurrent() ||
+    !privateRealtimeSession?.trusted
+  ){
+
+    setLiveStatus(
+      "Pams persönliche App-Sitzung wurde nicht bestätigt."
+    );
 
     return;
   }
@@ -16208,7 +16433,7 @@ if(
 </script>
 
 <script src="./sol-holo-ui.js?v=88"></script>
-<script type="module" src="./app-lock-bootstrap.mjs?v=5"></script>
+  <script type="module" src="./app-lock-bootstrap.mjs?v=7"></script>
 <script type="module" src="./consent-ui-bootstrap.mjs?v=2"></script>
 <script type="module" src="./human-holo-animal-holos.mjs?v=7"></script>
 <script type="module" src="./sol-holo-backup.mjs?v=5"></script>

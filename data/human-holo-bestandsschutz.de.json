@@ -34,6 +34,19 @@
       ]
     }
   ],
+  "scoped_owner_exceptions": [
+    {
+      "id": "pam-holo-private-medical-test-2026-09-17",
+      "owner_id": "pam-sol",
+      "speaker_id": "pam",
+      "scope": "private-owner-test-only",
+      "general_human_holo_medical_release": false,
+      "lawyer_approval_required_for_general_release": true,
+      "trusted_owner_person_proof_required": true,
+      "play_bundle_allowed": false,
+      "documentation": "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md"
+    }
+  ],
   "required_before_release": {
     "diff_against_current_main_reviewed": true,
     "file_deletions_and_removed_logic_reviewed": true,
@@ -54,6 +67,7 @@
   "evidence": [
     "HUMAN-HOLO-STAND-NUR-ERWEITERN-10-09-2026.md",
     "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md",
+    "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md",
     "tests/bestandsschutz-release-gate.test.mjs",
     ".github/workflows/android-build.yml"
   ]

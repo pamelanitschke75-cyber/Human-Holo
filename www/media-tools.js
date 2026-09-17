@@ -295,6 +295,7 @@
     backendUrl,
     durationSeconds,
     file,
+    headers = {},
     onProgress = null,
     onStage = null,
     signal = null
@@ -381,6 +382,18 @@
         "X-Sol-Video-Confirmation",
         "send-once"
       );
+
+      for (const [name, value] of Object.entries(headers || {})) {
+        const headerName = String(name || "").trim();
+        const headerValue = String(value || "").trim();
+        if (
+          headerName &&
+          headerValue &&
+          !/^content-(?:length|type)$/iu.test(headerName)
+        ) {
+          request.setRequestHeader(headerName, headerValue);
+        }
+      }
 
       request.upload.addEventListener(
         "progress",

@@ -6,17 +6,22 @@
 
 ## Aktueller, rechtlich begrenzter Entwicklungs- und Teststand
 
-**Stand:** 16.09.2026<br>
+**Stand:** 17.09.2026<br>
 **Projekt, Idee und Entwicklung:** Pamela Nitschke  
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
 **Freigabe:** Interner Teststand · keine Produktionsfreigabe
 
-## Verbindliche Pause der medizinischen Funktionen
+## Verbindliche Trennung der medizinischen Funktionen
 
-**Die medizinischen Funktionen sind seit dem 15.09.2026 in Human Holo und in
-Pam’s Holo vollständig pausiert und derzeit nicht verfügbar. Sie wurden nicht
-endgültig aufgegeben.**
+**Im allgemeinen beziehungsweise offiziellen Human Holo bleiben sämtliche
+medizinischen Funktionen vollständig pausiert und technisch deaktiviert.**
+Diese Sperre gilt weiterhin bis zur dokumentierten anwaltlichen Prüfung und
+Freigabe. Sie wurde durch die Entscheidung vom 17.09.2026 nicht aufgehoben.
+
+Nur für Pams eigenes, privates und fest ownergebundenes Pam’s Holo ist seit dem
+17.09.2026 ein eng begrenzter persönlicher Medizintest wieder freigegeben. Das
+ist weder eine allgemeine Human-Holo-Freigabe noch eine Produktfreigabe.
 
 Das betrifft insbesondere:
 
@@ -26,9 +31,9 @@ Das betrifft insbesondere:
 - Health Connect, Samsung Health und die Auswertung von Gesundheitsdaten
 - Gesundheitsdaten-Berechtigungen in der Android-App
 
-Eine erneute Aufnahme ist nur nach dokumentierter rechtlicher Prüfung,
-technischer Freigabe und ausdrücklicher Zustimmung von Pamela Christina
-Nitschke möglich.
+Eine Aufnahme dieser Funktionen in das allgemeine Human Holo ist nur nach
+dokumentierter anwaltlicher Prüfung, technischer Freigabe und ausdrücklicher
+Zustimmung von Pamela Christina Nitschke möglich.
 
 ## Was ist Human Holo aktuell?
 
@@ -78,17 +83,89 @@ Nitschke möglich.
 Pam’s Holo bleibt eine getrennte private, ownergebundene Instanz. Persönliche
 Daten, Bilder, Erinnerungen und Einstellungen bleiben erhalten.
 
-Auf ausdrückliche Entscheidung von Pamela Christina Nitschke vom 15.09.2026
-sind die medizinischen Funktionen jedoch **auch in Pam’s Holo vollständig
-pausiert**. Gesundheitskachel, Medikamentenerkennung, Health Connect,
-Gesundheitsdaten-Berechtigungen und medizinische Beratung sind derzeit weder
-in Human Holo noch in Pam’s Holo verfügbar. Die Funktionen dürfen erst nach
-dokumentierter rechtlicher Prüfung, technischer Freigabe und ausdrücklicher
-Zustimmung von Pamela Christina Nitschke wieder aktiviert werden.
+### Praktisches Urteilsvermögen · ausschließlich Pam’s Holo
 
-### Verifizierter äußerer Türsteher
+Am 17.09.2026 hat Pamela Christina Nitschke praktisches Urteilsvermögen für
+ihre private Pam‑Holo‑Instanz freigegeben. Gemeint ist allgemeines praktisches
+Urteilsvermögen: Situationen im Zusammenhang erfassen, Tatsachen und
+Vermutungen trennen, Folgen und Risiken abschätzen, Widersprüche erkennen und
+eine sichere, nachvollziehbare Bewertung ableiten. Wahrheitsgemäße
+Farberkennung, Kennzeichnungen auf Flaschen und Gegenständen, Stopp- und
+Gefahrensignale sowie Kinderschutz bei gefährlichen Gegenständen sind
+verbindliche Mindestbeispiele und ausdrücklich keine abschließende Liste.
 
-Am 16.09.2026 wurde der getrennte Cloudflare-Türsteher für Pam’s Holo praktisch verifiziert. Der direkte Render-Ursprung lehnt normale externe Direktaufrufe ab, während der Weg über `pam-holo-edge-guard` weiterhin funktioniert. Der gemeinsame Ursprungsschlüssel ist ausschließlich als Secret in Cloudflare und Render gespeichert und wird nicht in GitHub veröffentlicht.
+Urteilsvermögen gehört bereits zum Human-Holo-Konzept und wird hier nicht als
+neue Idee hinzugefügt. Für den allgemeinen beziehungsweise offiziellen
+Human-Holo-Teststand ist seine Nutzung jedoch **noch nicht freigegeben**. Sie
+bleibt dort bis zur ausdrücklichen anwaltlichen Freigabe technisch gesperrt.
+
+Nachweis: [Pam‑Holo · praktisches Urteilsvermögen – Freigabe und Grenzen vom
+17.09.2026](./PAM-HOLO-URTEILSVERMOEGEN-17-09-2026.md)
+
+### Privater medizinischer Eigentest · ausschließlich Pam
+
+Pamela Christina Nitschke hat am 17.09.2026 nach der Verstärkung der
+Sicherheitsgrenzen entschieden, folgende medizinische Testmodule nur in ihrem
+eigenen Pam’s Holo wieder aufzunehmen:
+
+- vorsichtige allgemeine Begleitung bei leichten Beschwerden mit festem
+  Notfallrouting, aber ohne Diagnose, persönliche Dosierung oder
+  Therapieentscheidung
+- Ablesen eindeutig bedruckter Medikamentenverpackungen oder Blister erst nach
+  einer sichtbaren Einzelfreigabe; keine Identifizierung loser Tabletten
+- ein ausdrücklich ausgelöster, nur lesender Health-Connect-Abruf ohne
+  automatischen Hintergrundimport
+
+Die Freigabe gilt nur für `ownerId=pam-sol`, `speakerId=pam` und eine aktuelle
+persönlich bestätigte, signierte App-Sitzung. Für das allgemeine Human Holo und
+für jede andere Identität bleibt der medizinische Bereich geschlossen.
+
+Die erkannte Stimme öffnet ein allgemeines medizinisches Gespräch nur innerhalb
+dieses begrenzten privaten Testumfangs. Medikamentenbilder, der tatsächliche
+Abruf von Health-Connect-Daten und medizinische Berechtigungseinstellungen
+verlangen zusätzlich Pams Fingerprint. Diese zweite Stufe erweitert keine der
+medizinischen Freigabegrenzen.
+
+Nachweis: [Pam‑Holo · private medizinische Testfreigabe und Sicherheitsgrenzen
+vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
+
+### Persönlicher Zugang · nur Pam
+
+- Zu Pams Lebzeiten darf ausschließlich Pam ihr Holo öffnen. Das gilt auch
+  gegenüber Steffi und jeder anderen Person.
+- Ein auf dem Telefon gespeicherter Fingerabdruck oder die Geräte-PIN genügt
+  allein nicht, weil Android der App nicht mitteilt, welche hinterlegte Person
+  die Systemfreigabe verwendet hat.
+- Das erfolgreich erkannte lokale „Hey Pam“ öffnet auf Pams registriertem
+  Android-Gerät eine kurzlebige, signierte Alltagssitzung. Dafür werden weder
+  eine zweite Stimmprobe noch ein Fingerprint verlangt.
+- Gespräche, Wetter, Einkaufsliste, persönliche Notizen und reine
+  Text-WhatsApp sind Beispiele für diesen Alltag und keine abschließende Liste.
+- Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
+  System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
+  Health-Connect-Daten sowie Sicherung und Wiederherstellung verlangen danach
+  Pams gesonderten starken Android-Fingerprint ohne Geräte-PIN-Fallback.
+- Die Fingerprintfreigabe hebt weder medizinische oder rechtliche Grenzen noch
+  die sichtbare Empfänger- und Inhaltsbestätigung vor einer Nachricht auf.
+- Eine NFC-Uhr ist nur als künftige Alternative vorgesehen. Sie wird erst nach
+  echter kryptografischer Registrierung, bestätigter Uhr-Interaktion und
+  bestandenem Endgerätetest akzeptiert. Eine NFC-ID, ein NDEF-Wert oder ein
+  einfacher NFC-Tag wird niemals als Identitätsnachweis verwendet.
+
+Nachweis: [Pam-Holo · verbindliche Zugriffs- und Fingerprintgrenze vom
+17.09.2026](./PAM-HOLO-ZUGRIFFSSTUFEN-17-09-2026.md)
+
+### Äußerer Cloudflare-Türsteher · klare Nachweisgrenze
+
+Pamela Christina Nitschke hat den Cloudflare-Schutz persönlich eingerichtet.
+Den Schlüssel hat sie beim Cloudflare-Türsteher selbst eingetragen und
+gespeichert. ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto.
+
+Davon getrennt wurde am 16.09.2026 ausschließlich das von außen sichtbare
+Verhalten der beiden öffentlichen Wege geprüft: Der direkte Render-Ursprung
+lehnte den normalen Direktaufruf ab, während der Weg über
+`pam-holo-edge-guard` funktionierte. Dieser Endpunkttest ist kein
+Sicherheitszertifikat. Der geheime Wert wird niemals in GitHub veröffentlicht.
 
 Nachweis: [Pam-Holo Cloudflare-Türsteher – verifiziert am 16.09.2026](./PAM-HOLO-CLOUDFLARE-TUERSTEHER-VERIFIZIERT-16-09-2026.md)
 

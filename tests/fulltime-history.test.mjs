@@ -91,7 +91,8 @@ test("Text und Sol-Antwort werden Wort für Wort ownergebunden gespeichert", () 
     "const PORT ="
   );
 
-  assert.match(solRoute, /resolveRequestIdentity\(/u);
+  assert.match(solRoute, /requirePrivatePamHoloAccess\(/u);
+  assert.match(solRoute, /const \{ identity, privatePamMedical \}/u);
   assert.match(
     solRoute,
     /saveFulltimeMemory\(\s*"user",\s*userMemoryMessage/u
@@ -113,7 +114,7 @@ test("Sprachtranskripte beider Rollen landen im Vollzeitgedächtnis", () => {
     "LANGZEITGEDÄCHTNIS"
   );
 
-  assert.match(liveRoute, /resolveRequestIdentity\(/u);
+  assert.match(liveRoute, /requireTrustedOwnerIdentity\(/u);
   assert.match(
     liveRoute,
     /saveFulltimeMemory\(\s*role,\s*transcript/u
@@ -151,10 +152,10 @@ test("vollständige Gedächtnissicherung ist ownergebunden, geprüft und nur add
     '"/fulltime/history"'
   );
 
-  assert.match(exportRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(exportRoute, /requireProtectedOwnerIdentity/u);
   assert.match(exportRoute, /ownerMemoryBackups[\s\S]*?\.exportSnapshot/u);
   assert.match(exportRoute, /complete:\s*\n\s*true/u);
-  assert.match(restoreRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(restoreRoute, /requireProtectedOwnerIdentity/u);
   assert.match(restoreRoute, /restoreConfirmation[\s\S]*?true/u);
   assert.match(restoreRoute, /ownerMemoryBackups[\s\S]*?\.restoreChunk/u);
   assert.match(restoreRoute, /additive:\s*\n\s*true/u);
@@ -376,7 +377,7 @@ test("vollständiger privater Erinnerungsimport ist ownergebunden und updatefest
     "Geschützter Abruf für Realtime-Tool-Calls"
   );
 
-  assert.match(importRoute, /requireTrustedOwnerIdentity/u);
+  assert.match(importRoute, /requireProtectedOwnerIdentity/u);
   assert.match(importRoute, /identity\.ownerId !== "pam-sol"/u);
   assert.match(importRoute, /identity\.speakerId !== "pam"/u);
   assert.match(importRoute, /batchConfirmation !== true/u);

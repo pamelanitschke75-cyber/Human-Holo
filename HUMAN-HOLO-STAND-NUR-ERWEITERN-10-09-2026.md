@@ -153,12 +153,18 @@ Für jede Korrektur, Erweiterung und neue APK gilt deshalb verbindlich:
 ### Verbindliches Beispiel: medizinische Funktionen
 
 Die medizinischen Funktionen wurden aufgrund der anwaltlichen beziehungsweise
-rechtlichen Bewertung vom 15.09.2026 aus dem aktiven Testumfang von Human Holo
-und Pam’s Holo genommen und pausiert. Das ist eine objektiv dringend notwendige
-rechtliche Schutzmaßnahme und **keine endgültige Aufgabe oder Löschung der
-historischen Entwicklung**. Der frühere Entwicklungsstand und seine Nachweise
-bleiben versioniert. Eine Reaktivierung ist ausschließlich nach dokumentierter
-rechtlicher Prüfung, technischer Freigabe und ausdrücklicher Zustimmung von
+rechtlichen Bewertung vom 15.09.2026 aus dem aktiven allgemeinen Testumfang
+genommen und zunächst auch in Pam’s Holo pausiert. Das ist eine objektiv
+dringend notwendige rechtliche Schutzmaßnahme und **keine endgültige Aufgabe
+oder Löschung der historischen Entwicklung**. Der frühere Entwicklungsstand
+und seine Nachweise bleiben versioniert.
+
+Am 17.09.2026 hat Pamela Christina Nitschke davon getrennt einen minimalen,
+technisch ownergebundenen medizinischen Eigentest ausschließlich für ihr
+persönliches Pam’s Holo freigegeben. Diese private Ausnahme ist kein Rückfall
+des allgemeinen Human Holo und keine öffentliche Freigabe. Für das allgemeine
+Human Holo ist eine Reaktivierung weiterhin ausschließlich nach dokumentierter
+anwaltlicher Prüfung, technischer Freigabe und ausdrücklicher Zustimmung von
 Pamela Christina Nitschke zulässig.
 
 Diese Sperre ist Bestandteil des Build- und Freigabeprozesses. Eine Änderung

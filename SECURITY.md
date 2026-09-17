@@ -1,8 +1,8 @@
 # SOL HOLO / PAM’S HOLO – SECURITY POLICY
 
-**Version:** 3.1
+**Version:** 3.2
 
-**Stand:** 16.09.2026
+**Stand:** 17.09.2026
 **Projektverantwortung:** Pamela Nitschke  
 **Status:** Sicherheitsrichtlinie für einen persönlichen Entwicklungsprototyp – keine Sicherheitszertifizierung
 
@@ -53,13 +53,17 @@ Die `.gitignore` schließt insbesondere folgende lokale Inhalte aus:
 - Android-Signaturdateien wie `*.jks`, `*.keystore` und `*.p12`
 - den privaten Ordner `.sol-holo-private/`
 
-### Verifizierter Pam-Holo-Ursprungsschutz
+### Pam-Holo-Ursprungsschutz und Nachweisgrenze
 
-Am 16.09.2026 wurde der getrennte Cloudflare-Türsteher für Pam’s Holo praktisch verifiziert. `PAM_HOLO_ORIGIN_SECRET` ist ausschließlich als Secret in Cloudflare und Render gespeichert; der echte Wert wird nicht in GitHub dokumentiert. Render verlangt den Ursprungsschlüssel mit `PAM_HOLO_ORIGIN_SECRET_REQUIRED=true`.
+Pamela Christina Nitschke hat den getrennten Cloudflare-Türsteher persönlich
+eingerichtet. Den Ursprungsschlüssel hat sie beim Cloudflare-Türsteher selbst
+eingetragen und gespeichert. ChatGPT/Codex hat als KI keinen Zugriff auf Pams
+Cloudflare-Konto. Der Schlüsselwert wird niemals in GitHub dokumentiert.
 
 Der direkte Aufruf von `https://sol-holo.onrender.com` wurde nach Aktivierung abgelehnt. Der Aufruf über `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev` funktionierte weiterhin. Damit ist die Umgehung des Cloudflare-Türstehers über einen normalen direkten Render-Aufruf gesperrt.
 
-Dieser Nachweis gilt ausschließlich für Pam’s Holo und ist keine Sicherheitszertifizierung.
+Dieser von außen sichtbare Endpunkttest gilt ausschließlich für Pam’s Holo. Er
+ist keine Sicherheitszertifizierung.
 
 ### OAuth-Schutz
 
@@ -86,15 +90,18 @@ nur bei einem eindeutigen Sendeauftrag, erneut geprüfter lokaler
 Kontaktzuordnung, Standardassistentinnenrolle und einmaliger Android-Freigabe
 ausgeführt; der bisherige sichtbare SMS-Entwurf bleibt als Rückfallweg erhalten.
 
-### Health Connect
+### Health Connect und private Medizin-Testgrenze
 
-Die frühere Health-Connect-Entwicklung war ausschließlich lesend und schloss
-den Datentyp **„Sexuelle Aktivität“** vollständig aus. Seit der verbindlichen
-anwaltlich/rechtlich begründeten Medizinpause vom 15.09.2026 ist Health Connect
-jedoch in Human Holo und Pam’s Holo vollständig deaktiviert: keine
-Manifest-Berechtigung, keine Android-Freigabeanforderung und kein Lesepfad. Der
-historische Entwicklungsnachweis bleibt versioniert, ist aber keine aktive
-Funktion.
+Im normalen Build des allgemeinen Human Holo bleibt Health Connect vollständig
+deaktiviert: keine Manifest-Berechtigung, keine Android-Freigabeanforderung,
+kein natives Health-Plugin und kein Lesepfad.
+
+Nur ein ausdrücklich manuell erzeugter privater Pam-Holo-Testbuild darf die
+lesende Health-Connect-Entwicklung einbinden. Der Datentyp **„Sexuelle
+Aktivität“** bleibt vollständig ausgeschlossen. Pam wählt Berechtigungen selbst
+in Android; es gibt keinen Hintergrundimport. Der private Build erzeugt kein
+Play-Bundle und ist fest an `ownerId=pam-sol`, `speakerId=pam` sowie die
+persönlich bestätigte App-Sitzung gebunden.
 
 ---
 
@@ -113,7 +120,8 @@ Die offene Liste aus Version 2.0 bleibt nachvollziehbar erhalten und wurde am
   Herkunftsfreigaben statt Wildcard-CORS.
 - **Umgesetzt und getestet am 16.09.2026:** systematisches Rate-Limiting gegen
   automatisierten Missbrauch.
-- **Umgesetzt und live verifiziert am 16.09.2026:** direkter Render-Ursprung von Pam’s Holo gesperrt; Zugriff über den getrennten Cloudflare-Türsteher mit serverseitigem Ursprungsschlüssel funktioniert.
+- **Von außen beobachtet am 16.09.2026:** direkter Render-Ursprung von Pam’s
+  Holo abgewiesen; Zugriff über den getrennten Cloudflare-Weg funktionierte.
 - **Weiter im Ausbau:** vollständige Trennung aller künftigen
   Mehrnutzerinstanzen; Pams bestehende Instanz bleibt fest ownergebunden.
 - **Umgesetzt und releasegesperrt am 16.09.2026:** wiederholbare Prüfung auf
@@ -247,19 +255,19 @@ erstellt werden. Dieses Issue darf keine Passwörter, Tokens, persönlichen Date
 
 ## 12. Sicherheitsstatus
 
-| Bereich | Stand 29.08.2026, verbindlich aktualisiert 16.09.2026 |
+| Bereich | Stand 29.08.2026, verbindlich aktualisiert 17.09.2026 |
 |---|---|
 | Geheimnisse über Server-Umgebungsvariablen | 🟩 vorhanden |
 | `.gitignore` für Umgebungs- und Signaturdateien | 🟩 vorhanden |
 | Zeitlich begrenzte OAuth-Statuswerte | 🟩 vorhanden |
 | SmartThings-Tokenverschlüsselung | 🟩 vorhanden |
 | Telefonanruf / direkte SMS | 🟩 Anruf bleibt sichtbar bestätigt; direkte SMS nur bei eindeutigem Auftrag, lokaler Kontaktprüfung, Standardassistentinnenrolle und Android-Freigabe |
-| Health Connect / medizinische Funktionen | ⏸️ seit 15.09.2026 vollständig deaktiviert; historische Entwicklung bleibt nur versioniert |
+| Health Connect / medizinische Funktionen | 🟨 allgemeines Human Holo vollständig deaktiviert; eng begrenzter, manuell gebauter privater Pam-Holo-Test mit persönlicher Sitzungsbindung |
 | Innerer Anwendungswächter | 🟩 im Code und im blockierenden Freigabegate umgesetzt |
 | Android-Klartextverkehr und automatische Cloud-Backups | 🟩 gesperrt; bewusste verschlüsselte Holo-Sicherung bleibt erhalten |
 | Geheimnis- und Laufzeitabhängigkeitsprüfung | 🟩 blockiert die Freigabe bei Befund |
 | CodeQL und Dependabot | 🟩 als fortlaufende GitHub-Prüfungen eingerichtet |
-| Äußerer Cloudflare-Wächter | 🟩 für Pam’s Holo aktiv und live verifiziert; direkter Render-Ursprung gesperrt, Cloudflare-Weg funktioniert |
+| Äußerer Cloudflare-Wächter | 🟨 öffentliches Endpunktverhalten geprüft; Einrichtung und Schlüsselspeicherung durch Pam; ChatGPT/Codex hat als KI keinen Zugriff auf Pams Cloudflare-Konto |
 | Vollständige Backend-Zugriffskontrolle | 🟨 noch nicht abgeschlossen |
 | Verschlüsselung aller gespeicherten OAuth-Tokens | 🟨 noch nicht abgeschlossen |
 | Mehrnutzer- und Clone-Trennung | 🟨 Architekturziel; noch kein freigegebener Mehrnutzerbetrieb |
@@ -306,13 +314,39 @@ Diese innere Schutzschicht ersetzt **nicht** die vorhandene kryptografische Ger�
 
 ### Identität und Schutz gegen Manipulation
 
-- Holo verlangt beim Start starke Android-Biometrie oder Geräte-PIN und sperrt sofort wieder, sobald die App den Vordergrund verlässt. Biometrische Rohdaten bleiben ausschließlich bei Android.
-- Mehrere auf Samsung hinterlegte Fingerabdrücke erzeugen und wechseln niemals eine Holo-Identität. Android meldet Holo nicht, welcher gespeicherte Finger die Gerätefreigabe bestanden hat; die Holo-Owner-ID bleibt davon unabhängig fest `pam-sol`. Die Android-Prüfung autorisiert damit das Gerät, nicht eine namentlich erkennbare Person. Der als **„Schatzi“** gespeicherte Fingerabdruck von Stefanie Renate Hörath bleibt ausschließlich für Pams Handy-Notfallzugang erlaubt und darf Pam’s Holo niemals freigeben. Solange dieser Finger gespeichert ist, genügt Samsung-Biometrie oder Geräte-PIN allein nicht als Holo-Ownernachweis. Vor einer App-Freigabe ist zusätzlich eine getrennte, nur Pam bekannte ownergebundene Holo-PIN beziehungsweise ein gleichwertiger unabhängiger Holo-Faktor technisch umzusetzen und zu testen.
+- Das erfolgreich erkannte lokale „Hey Pam“ öffnet auf dem registrierten
+  Android-Gerät eine kurzlebige, signierte Alltagssitzung. Es wird dafür keine
+  zweite Stimmprobe und kein Fingerprint verlangt. Alltag umfasst insbesondere
+  Gespräch, Wetter, Einkaufsliste, persönliche Notizen und reine
+  Text-WhatsApp; die Beispiele sind nicht abschließend.
+- Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
+  System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
+  Health-Connect-Daten sowie Sicherung und Wiederherstellung benötigen eine
+  getrennte geschützte Sitzung mit starker Android-Biometrie. Für diese Stufe
+  ist kein Geräte-PIN-Fallback zugelassen. Beim Verlassen sperrt die App wieder
+  und verwirft beide Sitzungen. Biometrische Rohdaten und rohe Stimmaufnahmen
+  werden nicht gespeichert.
+- Mehrere auf Samsung hinterlegte Fingerabdrücke erzeugen und wechseln niemals
+  eine Holo-Identität. Android meldet Holo nicht, welcher gespeicherte Finger
+  die Gerätefreigabe bestanden hat; die Holo-Owner-ID bleibt davon unabhängig
+  fest `pam-sol`. Die Android-Prüfung autorisiert damit das Gerät, nicht eine
+  namentlich erkennbare Person. Der als **„Schatzi“** gespeicherte Fingerabdruck
+  von Stefanie Renate Hörath bleibt ausschließlich für Pams
+  Handy-Notfallzugang erlaubt und darf Pam’s Holo niemals allein freigeben.
+  Der davon getrennte aktuelle Personenfaktor ist Pams lokales Stimmprofil.
+- Die NFC-Uhr ist nur als künftige Alternative vorbereitet. Solange ein echter
+  Companion-/HCE-Transport, kryptografische Registrierung, bewusste Bestätigung
+  an der Uhr und ein Endgerätetest fehlen, bleibt der Pfad fail-closed. Rohe
+  NFC-IDs, NDEF-Werte und einfache NFC-Tags werden niemals akzeptiert.
 - „Hey Pam“ bleibt erhalten. Der Weckdienst ist für fremde Apps nicht exportiert, benötigt eine bewusste Aktivierung und im Hintergrund einen sichtbaren, jederzeit abschaltbaren Android-Hinweis.
 - Der Weckruf benötigt sowohl das feste Weckwort als auch Pams lokales 3-von-3-Stimmprofil. Diese Sprecherprüfung ist von der Android-Gerätefreigabe getrennt. Unklare oder fremde Stimmen werden abgelehnt.
 - Die lokale Weckwortprüfung schreibt keine Audiodatei und besitzt keinen Netzwerkpfad zum Hochladen des laufenden Hintergrundtons.
 - Für Pams synthetische OpenAI-Stimme ist zusätzlich eine ausdrücklich gesprochene OpenAI-Einwilligung erforderlich. OpenAI muss eine Consent-ID zurückgeben; ohne diese ID darf keine persönliche Stimme erstellt werden.
-- Unveränderbare Android-`PendingIntent`s, hardwaregeschützte Geräteschlüssel, einmalig verbrauchbare Autorisierungen und signierte Builds verhindern, dass ein bloßer UI- oder Weckworttreffer eine geschützte Aktion ersetzt.
+- Unveränderbare Android-`PendingIntent`s, hardwaregeschützte Geräteschlüssel,
+  einmalig verbrauchbare Autorisierungen und signierte Builds verhindern, dass
+  ein bloßer UI- oder Weckworttreffer eine geschützte Aktion ersetzt. Die
+  Fingerprint-Stufe hebt keine medizinischen, rechtlichen, geschäftlichen oder
+  sonstigen Verbote und keine aktionsbezogenen Bestätigungen auf.
 
 ### Android- und Lieferkettenschutz
 
@@ -332,16 +366,20 @@ Der historische Worker `human-holo-edge-guard` bleibt als falsch bezeichnete Tes
 
 Der korrigierte Pam-Holo-Worker `pam-holo-edge-guard` läuft mit dem Quellstand `cloudflare/pam-holo-edge-guard.mjs`. Der Worker begrenzt Methoden, private Pfade, Anfragegrößen und Browser-Herkünfte, entfernt spoofbare Weiterleitungsheader, verhindert Edge-Caching und setzt den serverseitigen Ursprungsschlüssel für Render.
 
-Am 16.09.2026 wurde der Ursprungsschutz praktisch verifiziert:
+Am 16.09.2026 wurde ausschließlich das von außen sichtbare Endpunktverhalten
+geprüft:
 
 - direkter Aufruf des Render-Ursprungs: blockiert,
 - Zugriff über `pam-holo-edge-guard`: erfolgreich,
-- `PAM_HOLO_ORIGIN_SECRET_REQUIRED=true`: aktiv,
-- gemeinsamer geheimer Wert in Cloudflare und Render: gesetzt, nicht in GitHub dokumentiert.
+- Pamela Christina Nitschke hat Cloudflare persönlich eingerichtet und den
+  geheimen Wert beim Cloudflare-Türsteher selbst eingetragen und gespeichert.
 
 `cloudflare/human-holo-edge-guard.mjs` bleibt bis zum bestätigten getrennten Human-Holo-Server absichtlich fail-closed und leitet niemals auf Pams Render-Ursprung zurück. Bestehende Worker `sol-holo-api` und `dark-wind-6dd8` bleiben unverändert.
 
-Der Cloudflare-Kontozugang bleibt ausschließlich bei Pamela Christina Nitschke. Passwörter, API-Tokens und Ursprungsschlüssel werden nicht in GitHub dokumentiert oder geteilt.
+Der Cloudflare-Kontozugang bleibt ausschließlich bei Pamela Christina
+Nitschke.
+Passwörter, API-Tokens und Ursprungsschlüssel werden nicht in GitHub
+dokumentiert oder geteilt.
 
 ### Ehrlicher Schutzstatus
 

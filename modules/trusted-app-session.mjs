@@ -5,15 +5,35 @@ import {
   randomUUID,
   verify
 } from "node:crypto";
+import {
+  PAM_HOLO_ACCESS_LEVEL,
+  PAM_HOLO_OWNER_PROOF,
+  PAM_HOLO_SESSION_ACTION,
+  normalizePamHoloAccessLevel,
+  pamHoloAccessSatisfies,
+  pamHoloOwnerProof,
+  pamHoloSessionAction
+} from "./pam-holo-access-policy.mjs";
 
 export const TRUSTED_APP_SESSION_HEADER =
   "x-sol-holo-trusted-session";
 
 export const TRUSTED_APP_SESSION_ACTION =
-  "bind_trusted_app_session";
+  PAM_HOLO_SESSION_ACTION[PAM_HOLO_ACCESS_LEVEL.PROTECTED];
+
+export const TRUSTED_APP_EVERYDAY_SESSION_ACTION =
+  PAM_HOLO_SESSION_ACTION[PAM_HOLO_ACCESS_LEVEL.OWNER_EVERYDAY];
 
 export const TRUSTED_APP_SESSION_PURPOSE =
   "owner_personal_services";
+
+export const TRUSTED_APP_OWNER_PERSON_PROOF =
+  PAM_HOLO_OWNER_PROOF[PAM_HOLO_ACCESS_LEVEL.PROTECTED];
+
+export const TRUSTED_APP_EVERYDAY_OWNER_PERSON_PROOF =
+  PAM_HOLO_OWNER_PROOF[PAM_HOLO_ACCESS_LEVEL.OWNER_EVERYDAY];
+
+export { PAM_HOLO_ACCESS_LEVEL as TRUSTED_APP_ACCESS_LEVEL };
 
 const DEFAULT_CHALLENGE_TTL_MS = 2 * 60 * 1000;
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000;
@@ -98,7 +118,8 @@ export function trustedSessionCanonicalPayload({
   nonceBase64Url,
   issuedAtMillis,
   expiresAtMillis,
-  packageName = "com.solholo.app"
+  packageName = "com.solholo.app",
+  ownerPersonProof = TRUSTED_APP_OWNER_PERSON_PROOF
 }) {
   const safeOwnerId = requiredOwnerId(ownerId);
   const safeRegistrationId = requiredRegistrationId(registrationId);
@@ -115,6 +136,12 @@ export function trustedSessionCanonicalPayload({
     "Paketname",
     160
   );
+  if (!Object.values(PAM_HOLO_OWNER_PROOF).includes(ownerPersonProof)) {
+    throw new TrustedAppSessionError(
+      "TRUSTED_SESSION_PERSON_PROOF_INVALID",
+      "Die persönliche Pam-Holo-Freigabe der sicheren Sitzung ist ungültig."
+    );
+  }
   const issuedAt = Number(issuedAtMillis);
   const expiresAt = Number(expiresAtMillis);
   if (
@@ -138,7 +165,8 @@ export function trustedSessionCanonicalPayload({
     safeNonce,
     String(issuedAt),
     String(expiresAt),
-    TRUSTED_APP_SESSION_PURPOSE
+    TRUSTED_APP_SESSION_PURPOSE,
+    ownerPersonProof
   ].join("\n");
 }
 
@@ -332,8 +360,13 @@ export function createTrustedAppSessionManager({
     return result.rows?.[0] || null;
   }
 
-  async function createChallenge({ ownerId, registrationId }) {
+  async function createChallenge({
+    ownerId,
+    registrationId,
+    accessLevel = PAM_HOLO_ACCESS_LEVEL.PROTECTED
+  }) {
     cleanup();
+    const normalizedAccessLevel = normalizePamHoloAccessLevel(accessLevel);
     const device = await loadDevice(ownerId, registrationId);
     if (!device) {
       throw new TrustedAppSessionError(
@@ -352,6 +385,9 @@ export function createTrustedAppSessionManager({
       issuedAtMillis,
       expiresAtMillis,
       consumed: false,
+      accessLevel: normalizedAccessLevel,
+      action: pamHoloSessionAction(normalizedAccessLevel),
+      ownerPersonProof: pamHoloOwnerProof(normalizedAccessLevel),
       publicKeyX509Base64Url: device.public_key_x509_base64url
     };
     challenge.canonicalPayload = trustedSessionCanonicalPayload(challenge);
@@ -369,7 +405,9 @@ export function createTrustedAppSessionManager({
       issuedAtMillis: String(issuedAtMillis),
       expiresAtMillis: String(expiresAtMillis),
       purpose: TRUSTED_APP_SESSION_PURPOSE,
-      action: TRUSTED_APP_SESSION_ACTION
+      action: challenge.action,
+      accessLevel: challenge.accessLevel,
+      ownerPersonProof: challenge.ownerPersonProof
     };
   }
 
@@ -436,6 +474,8 @@ export function createTrustedAppSessionManager({
     sessions.set(tokenHash, {
       ownerId: safeOwnerId,
       registrationId: safeRegistrationId,
+      accessLevel: challenge.accessLevel,
+      ownerPersonProof: challenge.ownerPersonProof,
       issuedAtMillis,
       expiresAtMillis
     });
@@ -452,6 +492,8 @@ export function createTrustedAppSessionManager({
       trusted: true,
       ownerId: safeOwnerId,
       registrationId: safeRegistrationId,
+      accessLevel: challenge.accessLevel,
+      ownerPersonProof: challenge.ownerPersonProof,
       sessionToken,
       issuedAtMillis,
       expiresAtMillis,
@@ -459,7 +501,10 @@ export function createTrustedAppSessionManager({
     };
   }
 
-  function validateRequest(req) {
+  function validateRequest(
+    req,
+    { minimumAccess = PAM_HOLO_ACCESS_LEVEL.OWNER_EVERYDAY } = {}
+  ) {
     cleanup();
     const token = String(
       req?.headers?.[TRUSTED_APP_SESSION_HEADER] || ""
@@ -468,7 +513,11 @@ export function createTrustedAppSessionManager({
       return null;
     }
     const session = sessions.get(sha256Hex(token));
-    if (!session || session.expiresAtMillis <= now()) {
+    if (
+      !session ||
+      session.expiresAtMillis <= now() ||
+      !pamHoloAccessSatisfies(session.accessLevel, minimumAccess)
+    ) {
       return null;
     }
     const claimedOwnerId = normalizedRequestOwner(req);
@@ -478,6 +527,8 @@ export function createTrustedAppSessionManager({
     return {
       ownerId: session.ownerId,
       registrationId: session.registrationId,
+      accessLevel: session.accessLevel,
+      ownerPersonProof: session.ownerPersonProof,
       issuedAtMillis: session.issuedAtMillis,
       expiresAtMillis: session.expiresAtMillis
     };

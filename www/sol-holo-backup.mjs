@@ -134,7 +134,8 @@ async function saveEncryptedFile(fileName, contents) {
 
 async function trustedMemorySession() {
   const trustedSession = await window.SolHoloTrustedSession?.ensure?.({
-    interactive: true
+    interactive: true,
+    accessLevel: "protected_media_documents_settings"
   });
   if (!trustedSession?.trusted) {
     throw new Error("Die sichere App-Sitzung wurde nicht bestätigt.");
@@ -150,7 +151,9 @@ async function fetchCompleteOwnerMemoryBackup(identity) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...window.SolHoloTrustedSession.headers()
+        ...window.SolHoloTrustedSession.headers({
+          minimumAccess: "protected_media_documents_settings"
+        })
       },
       body: JSON.stringify({
         selectedSpeakerId: identity.speakerId,
@@ -250,7 +253,9 @@ async function restoreCompleteOwnerMemory(identity, ownerMemory) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...window.SolHoloTrustedSession.headers()
+            ...window.SolHoloTrustedSession.headers({
+              minimumAccess: "protected_media_documents_settings"
+            })
           },
           body: JSON.stringify({
             metadata,
@@ -624,7 +629,8 @@ async function importConfirmedMemoryBatch() {
   setStatus("Sichere Gerätefreigabe und Erinnerungsimport werden vorbereitet …");
   try {
     const trustedSession = await window.SolHoloTrustedSession?.ensure?.({
-      interactive: true
+      interactive: true,
+      accessLevel: "protected_media_documents_settings"
     });
     if (!trustedSession?.trusted) {
       throw new Error("Die sichere App-Sitzung wurde nicht bestätigt.");
@@ -636,7 +642,9 @@ async function importConfirmedMemoryBatch() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...window.SolHoloTrustedSession.headers()
+          ...window.SolHoloTrustedSession.headers({
+            minimumAccess: "protected_media_documents_settings"
+          })
         },
         body: JSON.stringify({
           memoryExport: state.memoryImport,

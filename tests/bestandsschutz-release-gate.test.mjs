@@ -94,9 +94,21 @@ test("medizinische Pause bleibt rechtliche Ausnahme und keine historische Lösch
   ]);
   assert.match(preservationRule, /medizinischen Funktionen/u);
   assert.match(preservationRule, /anwaltlichen beziehungsweise\s+rechtlichen Bewertung/u);
+  const privatePamException = contract.scoped_owner_exceptions.find(
+    ({ id }) => id === "pam-holo-private-medical-test-2026-09-17"
+  );
+  assert.ok(privatePamException);
+  assert.equal(privatePamException.owner_id, "pam-sol");
+  assert.equal(privatePamException.general_human_holo_medical_release, false);
+  assert.equal(privatePamException.trusted_owner_person_proof_required, true);
+  assert.equal(privatePamException.play_bundle_allowed, false);
   assert.match(
     readme,
-    /medizinischen Funktionen sind[\s\S]*vollständig pausiert[\s\S]*nicht[\s\S]*endgültig aufgegeben/u
+    /allgemeinen beziehungsweise offiziellen Human Holo[\s\S]*vollständig pausiert/u
+  );
+  assert.match(
+    readme,
+    /Nur für Pams eigenes[\s\S]*eng begrenzter persönlicher Medizintest/u
   );
   assert.match(
     readme,

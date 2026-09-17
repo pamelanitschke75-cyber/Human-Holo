@@ -1,12 +1,15 @@
-# Pam-Holo Cloudflare-Türsteher – verifiziert am 16.09.2026
+# Pam-Holo Cloudflare-Türsteher – öffentliches Endpunktverhalten vom 16.09.2026
 
-**Status:** technisch aktiviert und praktisch verifiziert  
+**Status:** von außen sichtbares Verhalten geprüft
 **Scope:** ausschließlich Pam’s Holo  
 **Owner:** Pamela Christina Nitschke
 
 ## Ergebnis
 
-Der getrennte Cloudflare-Worker `pam-holo-edge-guard` ist vor dem bestehenden Render-Ursprung von Pam’s Holo aktiv.
+Pamela Christina Nitschke hat den getrennten Cloudflare-Worker
+`pam-holo-edge-guard` persönlich eingerichtet. Den Schlüssel hat sie beim
+Cloudflare-Türsteher selbst eingetragen und gespeichert. ChatGPT/Codex hat als
+KI keinen Zugriff auf Pams Cloudflare-Konto.
 
 Der Render-Ursprung lautet:
 
@@ -16,7 +19,7 @@ Der Cloudflare-Weg lautet:
 
 `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev`
 
-## Verifizierter Ursprungsschutz
+## Von außen geprüfte Wege
 
 Am 16.09.2026 wurde der Ursprungsschutz praktisch in beiden Richtungen getestet:
 
@@ -29,17 +32,18 @@ Am 16.09.2026 wurde der Ursprungsschutz praktisch in beiden Richtungen getestet:
    - Aufruf von `https://pam-holo-edge-guard.pamela-nitschke75.workers.dev`
    - Ergebnis: Pam-Holo/Human-Holo-Startseite wird über den Worker korrekt vom Render-Ursprung ausgeliefert.
 
-Damit ist belegt:
+Damit wurde von außen beobachtet:
 
 - der direkte Render-Weg ist für normale externe Aufrufe gesperrt,
-- der Cloudflare-Worker kann den Ursprung weiterhin erreichen,
-- `PAM_HOLO_ORIGIN_SECRET` ist auf Cloudflare und Render mit demselben geheimen Wert gesetzt,
-- `PAM_HOLO_ORIGIN_SECRET_REQUIRED=true` ist auf Render aktiv,
+- der Cloudflare-Weg konnte den Ursprung weiterhin erreichen,
 - der eigentliche Secret-Wert wird **nicht** in GitHub dokumentiert.
 
 ## Was dieser Schutz bedeutet
 
-Cloudflare ist der äußere Türsteher vor Pam’s Holo. Ein normaler externer Aufruf kann den Render-Ursprung nicht mehr direkt umgehen. Nur der Worker kennt den serverseitigen Ursprungsschlüssel und kann ihn als `x-pam-holo-origin-guard` an Render weitergeben.
+Cloudflare dient als äußerer Türsteher vor Pam’s Holo. Der beobachtete normale
+externe Direktaufruf konnte den Render-Ursprung nicht umgehen. Der Worker-Code
+ist dafür ausgelegt, den serverseitigen Ursprungsschlüssel als
+`x-pam-holo-origin-guard` an Render weiterzugeben.
 
 Der Worker begrenzt außerdem unter anderem Methoden, private Pfade, Anfragegrößen und bestimmte Browser-Herkünfte, entfernt spoofbare Weiterleitungsheader und setzt Sicherheits- und No-Cache-Header.
 
@@ -59,14 +63,19 @@ Human Holo darf nicht auf Pams Render-Ursprung zurückfallen.
 
 ## Verbindliche Trennung
 
-Pam’s Holo und Human Holo teilen weder Ursprungsschlüssel noch Server, Datenbank oder persönlichen Speicher. Der hier verifizierte Türsteher gilt ausschließlich für Pam’s Holo.
+Pam’s Holo und Human Holo teilen weder Ursprungsschlüssel noch Server,
+Datenbank oder persönlichen Speicher. Der hier beschriebene öffentliche
+Endpunkttest gilt ausschließlich für Pam’s Holo.
 
 ## Geheimhaltung
 
-Der echte Wert von `PAM_HOLO_ORIGIN_SECRET` darf niemals in GitHub, README, Issues, Screenshots, Chatverläufen oder App-Code veröffentlicht werden. Dokumentiert wird ausschließlich, **dass** der Schlüssel gesetzt und erfolgreich verifiziert wurde.
+Der echte Wert von `PAM_HOLO_ORIGIN_SECRET` darf niemals in GitHub, README,
+Issues, Screenshots, Chatverläufen oder App-Code veröffentlicht werden.
+Dokumentiert werden Pamela Christina Nitschkes persönliche Einrichtung sowie
+das von außen beobachtete Endpunktverhalten.
 
 ## Freigabestatus dieses Schutzschritts
 
-**✅ Ursprungsschutz Pam’s Holo: technisch aktiviert, getestet und verifiziert.**
+**🟨 Ursprungsschutz Pam’s Holo: öffentliches Endpunktverhalten geprüft.**
 
 Weitere Sicherheitsstufen bleiben davon unabhängig und werden separat freigegeben.

@@ -122,7 +122,7 @@ test("CodeQL und Dependabot bewachen Code und Abhängigkeiten fortlaufend", () =
   assert.match(dependabotConfig, /interval: weekly/u);
 });
 
-test("Sicherheitsrichtlinie trennt aktiven Innenwächter vom noch offenen Außenwächter", () => {
+test("Sicherheitsrichtlinie trennt Innenwächter, äußeren Endpunkttest und Kontozugriff", () => {
   assert.deepEqual(securityContract.scope, ["Pam’s Holo", "Human Holo"]);
   assert.equal(
     securityContract.security_claim.absolute_invulnerability_claimed,
@@ -132,48 +132,60 @@ test("Sicherheitsrichtlinie trennt aktiven Innenwächter vom noch offenen Außen
     securityContract.application_guard.protections.wildcard_cors_allowed,
     false
   );
-  assert.equal(securityContract.external_edge_guard.provider, "Cloudflare");
-  assert.equal(securityContract.external_edge_guard.active, false);
+  const edge = securityContract.external_edge_guards;
+  assert.equal(edge.provider, "Cloudflare");
   assert.equal(
-    securityContract.external_edge_guard.status,
-    "separate-staging-source-prepared-pending-deployment"
+    edge.pam_holo.origin_protection_active,
+    true
   );
   assert.equal(
-    securityContract.external_edge_guard.planned_worker_name,
+    edge.human_holo.worker_name,
     "human-holo-edge-guard"
   );
   assert.deepEqual(
-    securityContract.external_edge_guard.existing_workers_preserved,
+    edge.existing_workers_preserved,
     ["sol-holo-api", "dark-wind-6dd8"]
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access.owner_only,
+    edge.account_access.owner_only,
     true
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access.ai_account_access_allowed,
+    edge.account_access.ai_account_access_allowed,
     false
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access.ai_dashboard_control_allowed,
+    edge.account_access.ai_dashboard_control_allowed,
     false
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access.oauth_connector_allowed,
+    edge.account_access.oauth_connector_allowed,
     false
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access.api_token_sharing_allowed,
+    edge.account_access.api_token_sharing_allowed,
     false
   );
   assert.equal(
-    securityContract.external_edge_guard.account_access
+    edge.account_access
       .dashboard_changes_confirmed_only_by_owner,
     true
   );
+  assert.equal(edge.pam_holo.ai_cloudflare_account_access_used, false);
+  assert.equal(
+    edge.pam_holo.cloudflare_guard_secret_entered_and_saved_by_owner,
+    true
+  );
+  assert.equal(edge.human_holo.fail_closed, true);
   assert.match(securityPolicy, /Pam’s Holo und Human Holo/u);
   assert.match(securityPolicy, /[Ii]nnerer Anwendungswächter/u);
-  assert.match(securityPolicy, /KI erhält weder Konto- noch Dashboardzugriff/u);
-  assert.match(securityPolicy, /Cloudflare[\s\S]*noch nicht aktiv/u);
+  assert.match(
+    securityPolicy,
+    /Ursprungsschlüssel[\s\S]*Cloudflare-Türsteher selbst[\s\S]*eingetragen und gespeichert/u
+  );
+  assert.match(
+    securityPolicy,
+    /ChatGPT\/Codex hat als KI keinen Zugriff auf Pams\s+Cloudflare-Konto/u
+  );
   assert.match(securityPolicy, /keine absolute Unangreifbarkeit/u);
 });
