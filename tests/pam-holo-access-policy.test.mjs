@@ -120,7 +120,16 @@ test("die dokumentierte Grenze bezeichnet die Alltagsbeispiele ausdrücklich als
 
 test("Client und Server erzwingen Fingerprint für geschützte Daten", async () => {
   const { readFile } = await import("node:fs/promises");
-  const [html, ui, appLock, backup, animals, server, nativeSecurity] =
+  const [
+    html,
+    ui,
+    appLock,
+    backup,
+    animals,
+    server,
+    nativeSecurity,
+    serviceWorker
+  ] =
     await Promise.all([
       readFile(new URL("../www/index.html", import.meta.url), "utf8"),
       readFile(new URL("../www/sol-holo-ui.js", import.meta.url), "utf8"),
@@ -128,7 +137,8 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
       readFile(new URL("../www/sol-holo-backup.mjs", import.meta.url), "utf8"),
       readFile(new URL("../www/human-holo-animal-holos.mjs", import.meta.url), "utf8"),
       readFile(new URL("../server.mjs", import.meta.url), "utf8"),
-      readFile(new URL("../android-native/SolAccessSecurityPlugin.java", import.meta.url), "utf8")
+      readFile(new URL("../android-native/SolAccessSecurityPlugin.java", import.meta.url), "utf8"),
+      readFile(new URL("../www/service-worker.js", import.meta.url), "utf8")
     ]);
 
   assert.doesNotMatch(appLock, /claimVerifiedWakeOwnerProof/u);
@@ -142,6 +152,13 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
   );
   assert.match(appLock, /ownerEverydayAuthorizationId/u);
   assert.match(appLock, /authorizationId: hasFingerprintGrant/u);
+  assert.match(appLock, /trusted-app-session\.mjs\?v=11/u);
+  assert.match(html, /app-lock-bootstrap\.mjs\?v=11/u);
+  assert.match(html, /service-worker\.js\?v=297/u);
+  assert.match(
+    serviceWorker,
+    /human-holo-296-pam-fingerprint-entry-wake-only-v6/u
+  );
   assert.doesNotMatch(
     appLock,
     /status\?\.device\?\.registered !== true[\s\S]{0,300}revealApp\(\)/u

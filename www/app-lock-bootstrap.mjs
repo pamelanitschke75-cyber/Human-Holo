@@ -1,6 +1,6 @@
 import {
   ensureTrustedAppSession
-} from "./trusted-app-session.mjs";
+} from "./trusted-app-session.mjs?v=11";
 
 const APP_OWNER_ID = "pam-sol";
 const OWNER_EVERYDAY_ACCESS = "owner_everyday";

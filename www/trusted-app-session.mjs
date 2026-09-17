@@ -29,6 +29,7 @@ const sessions = {
 };
 let ensurePromise = null;
 let ensurePromiseAccessLevel = "";
+let ensurePromiseAuthorizationId = "";
 let sessionGeneration = 0;
 
 class TrustedSessionClientError extends Error {
@@ -496,6 +497,12 @@ async function establishTrustedAppSession({
 
 export async function ensureTrustedAppSession(options = {}) {
   const accessLevel = normalizedAccessLevel(options?.accessLevel);
+  const suppliedAuthorizationId = String(
+    options?.authorizationId || ""
+  ).trim();
+  const suppliedAuthorizationExpiresAtMillis = Number(
+    options?.authorizationExpiresAtMillis || 0
+  );
   if (sessionIsFresh(accessLevel)) {
     const session = selectedSession(accessLevel);
     return {
@@ -506,9 +513,27 @@ export async function ensureTrustedAppSession(options = {}) {
   }
   if (ensurePromise) {
     const waitingForAccessLevel = ensurePromiseAccessLevel;
+    const waitingForAuthorizationId = ensurePromiseAuthorizationId;
     const existingResult = await ensurePromise;
     if (sessionIsFresh(accessLevel)) {
       return ensureTrustedAppSession({ ...options, interactive: false });
+    }
+    if (
+      suppliedAuthorizationId &&
+      suppliedAuthorizationId !== waitingForAuthorizationId &&
+      suppliedAuthorizationExpiresAtMillis > Date.now()
+    ) {
+      // The app-start history check can already be running when Android
+      // returns the one-time everyday grant from the successful fingerprint.
+      // That earlier check never received this grant, so retry it immediately
+      // instead of dropping the capability and leaving the visible app shell
+      // without chat, voice, memories or services.
+      return ensureTrustedAppSession({
+        ...options,
+        authorizationId: suppliedAuthorizationId,
+        authorizationExpiresAtMillis:
+          suppliedAuthorizationExpiresAtMillis
+      });
     }
     if (
       waitingForAccessLevel === accessLevel &&
@@ -525,6 +550,7 @@ export async function ensureTrustedAppSession(options = {}) {
     });
   }
   ensurePromiseAccessLevel = accessLevel;
+  ensurePromiseAuthorizationId = suppliedAuthorizationId;
   ensurePromise = establishTrustedAppSession({
     ...options,
     accessLevel
@@ -540,6 +566,7 @@ export async function ensureTrustedAppSession(options = {}) {
     .finally(() => {
       ensurePromise = null;
       ensurePromiseAccessLevel = "";
+      ensurePromiseAuthorizationId = "";
     });
   return ensurePromise;
 }
@@ -550,6 +577,7 @@ export function clearTrustedAppSession() {
     session.token = "";
     session.expiresAtMillis = 0;
   }
+  ensurePromiseAuthorizationId = "";
 }
 
 window.SolHoloTrustedSession = Object.freeze({

@@ -1,5 +1,5 @@
 const CACHE_VERSION =
-  "human-holo-296-pam-fingerprint-entry-wake-only-v5";
+  "human-holo-296-pam-fingerprint-entry-wake-only-v6";
 
 const APP_SHELL = Object.freeze([
   "./",
