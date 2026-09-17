@@ -39,12 +39,13 @@ ausdrücklich auch für Steffi. Ein Fingerabdruck oder eine Geräte-PIN darf zwa
 das Telefon im vorgesehenen Notfall entsperren, aber niemals allein Pam’s Holo
 oder eine private medizinische Sitzung öffnen.
 
-Der aktuelle App-Pfad verlangt für die normale private Nutzung Pams lokal
-eingerichtetes Stimmprofil: Das erfolgreich erkannte „Hey Pam“ öffnet auf dem
-für `pam-sol` registrierten Android-Gerät eine kurzlebige, kryptografisch
-signierte Alltagssitzung. Eine zweite Stimmprobe und ein Fingerprint werden für
-ein allgemeines medizinisches Gespräch innerhalb des privaten Testumfangs nicht
-verlangt.
+Der aktuelle App-Pfad öffnet die normale private Nutzung auf dem für `pam-sol`
+registrierten Android-Gerät nach der lokalen Geräteprüfung direkt. „Hey Pam“
+ist ausschließlich der Weckruf und keine Entsperrung. Die kurzlebige,
+kryptografisch signierte Online-Sitzung wird getrennt aufgebaut; ein
+vorübergehender Netz- oder Serverausfall sperrt die lokale App-Oberfläche
+nicht. Ein Fingerprint wird für ein allgemeines medizinisches Gespräch
+innerhalb des privaten Testumfangs nicht verlangt.
 
 Medikamentenbilder, der tatsächliche Abruf von Health-Connect-Daten sowie
 medizinische Berechtigungs- und Systemeinstellungen verlangen zusätzlich Pams

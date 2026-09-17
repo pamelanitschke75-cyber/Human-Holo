@@ -10,7 +10,7 @@ const ACTION = Object.freeze({
   [PROTECTED_ACCESS]: "bind_trusted_app_session"
 });
 const PERSON_PROOF = Object.freeze({
-  [EVERYDAY_ACCESS]: "pam_verified_voice_everyday_v1",
+  [EVERYDAY_ACCESS]: "pam_registered_owner_device_everyday_v1",
   [PROTECTED_ACCESS]: "pam_voice_or_registered_watch_v1"
 });
 
@@ -23,7 +23,10 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-async function fixture({ protectedSignatureFailures = 0 } = {}) {
+async function fixture({
+  protectedSignatureFailures = 0,
+  deviceBound = true
+} = {}) {
   const events = [];
   const requestedUrls = [];
   const challengeAccess = new Map();
@@ -41,11 +44,11 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
         hardwareBacked: true
       };
     },
-    async authorizeOwnerEverydayAccess({ ownerPersonProofId }) {
+    async authorizeOwnerEverydayAccess(request) {
       authorizationCount += 1;
       events.push({
-        type: "voice_authorize",
-        ownerPersonProofId,
+        type: "device_authorize",
+        request,
         number: authorizationCount
       });
       return {
@@ -120,6 +123,10 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
     },
     addEventListener() {},
     dispatchEvent() {},
+    open() {
+      events.push({ type: "owner_proof_window" });
+      return { opener: null };
+    },
     setTimeout
   };
 
@@ -129,6 +136,13 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
       challengeCount += 1;
       const body = JSON.parse(options.body);
       const accessLevel = body.accessLevel;
+      if (!deviceBound) {
+        events.push({ type: "challenge_rejected", accessLevel });
+        return jsonResponse({
+          error: "TRUSTED_SESSION_DEVICE_NOT_BOUND",
+          message: "Gerät ist serverseitig noch nicht gebunden."
+        }, 403);
+      }
       const challengeId =
         `00000000-0000-4000-8000-${String(challengeCount).padStart(12, "0")}`;
       challengeAccess.set(challengeId, accessLevel);
@@ -174,21 +188,20 @@ async function fixture({ protectedSignatureFailures = 0 } = {}) {
 async function openEveryday(client) {
   return client.ensureTrustedAppSession({
     interactive: true,
-    accessLevel: EVERYDAY_ACCESS,
-    ownerPersonProofId: "verified-wake-proof"
+    accessLevel: EVERYDAY_ACCESS
   });
 }
 
-test("Hey-Pam-Nachweis öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fingerprint", async () => {
+test("registriertes Gerät öffnet Alltag ohne Fingerprint; Schutzstufe fragt Fingerprint", async () => {
   const { client, events, requestedUrls } = await fixture();
   const everyday = await openEveryday(client);
 
   assert.equal(everyday.trusted, true);
   assert.deepEqual(
     events.map(event => event.type),
-    ["device", "voice_authorize", "challenge", "sign", "complete"]
+    ["device", "device_authorize", "challenge", "sign", "complete"]
   );
-  assert.equal(events[1].ownerPersonProofId, "verified-wake-proof");
+  assert.deepEqual(events[1].request, { ownerId: OWNER_ID });
   assert.equal(events[3].issuedAtType, "string");
   assert.equal(events[3].expiresAtType, "string");
 
@@ -209,6 +222,26 @@ test("Hey-Pam-Nachweis öffnet Alltag ohne Fingerprint; Schutzstufe fragt Finger
     )
   ));
   assert.ok(requestedUrls.every(url => !url.includes(".onrender.com")));
+});
+
+test("App-Start erzwingt bei fehlender Serverbindung kein Online-Bootstrap", async () => {
+  const { client, events } = await fixture({ deviceBound: false });
+  const result = await client.ensureTrustedAppSession({
+    interactive: true,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false
+  });
+
+  assert.equal(result.trusted, false);
+  assert.equal(result.needsBootstrap, true);
+  assert.deepEqual(
+    events.map(event => event.type),
+    ["device", "device_authorize", "challenge_rejected"]
+  );
+  assert.equal(
+    events.some(event => event.type === "owner_proof_window"),
+    false
+  );
 });
 
 test("verwirft eine ungültige geschützte Challenge und fragt genau einmal neu", async () => {

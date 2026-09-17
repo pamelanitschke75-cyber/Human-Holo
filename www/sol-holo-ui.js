@@ -6775,8 +6775,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           };
         }
 
-        // Das normale Entsperren der App erzeugt diese hardwaregebundene
-        // Sitzung bereits. Hier wird absichtlich kein zweiter Dialog geöffnet.
+        // Der normale Start auf Pams registriertem Gerät bereitet diese
+        // hardwaregebundene Sitzung vor. Hier wird absichtlich kein zweiter
+        // Dialog geöffnet.
         const trustedSession = await ensureTrustedSession({
           interactive: false,
           accessLevel: "owner_everyday"
@@ -6785,7 +6786,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           return {
             success: false,
             answer:
-              "Bitte entsperre Pam’s Holo einmal neu. Danach kann Human Holo " +
+              "Bitte öffne Pam’s Holo einmal neu. Danach kann Human Holo " +
               "den freigegebenen Kontakt ohne einen zweiten Bestätigungsdialog anrufen."
           };
         }

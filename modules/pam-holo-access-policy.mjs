@@ -12,7 +12,7 @@ export const PAM_HOLO_SESSION_ACTION = Object.freeze({
 
 export const PAM_HOLO_OWNER_PROOF = Object.freeze({
   [PAM_HOLO_ACCESS_LEVEL.OWNER_EVERYDAY]:
-    "pam_verified_voice_everyday_v1",
+    "pam_registered_owner_device_everyday_v1",
   [PAM_HOLO_ACCESS_LEVEL.PROTECTED]:
     "pam_voice_or_registered_watch_v1"
 });
@@ -117,9 +117,9 @@ export function isPamHoloProtectedContentRequest({
 export function pamHoloAccessBoundaryInstructions() {
   return `
 PAM-HOLO-ZUGRIFFSGRENZE:
-- Pams erfolgreich erkanntes lokales Stimmprofil öffnet den normalen Alltag
-  mit Sol. Dafür darf keine zweite Stimmprobe und kein Fingerprint verlangt
-  werden.
+- „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Pam-Holo
+  öffnet den normalen Alltag auf Pams registriertem Gerät automatisch, ohne
+  zweite Stimmprobe und ohne Fingerprint.
 - Zum normalen Alltag gehören insbesondere Gespräche, aktuelle Fragen wie
   Wetter, persönliche Listen und Notizen sowie von Pam beauftragte
   Alltagsaktionen wie Einkaufsliste und WhatsApp. Diese Beispiele sind nicht

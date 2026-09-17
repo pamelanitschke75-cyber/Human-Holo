@@ -314,11 +314,13 @@ Diese innere Schutzschicht ersetzt **nicht** die vorhandene kryptografische Ger�
 
 ### Identität und Schutz gegen Manipulation
 
-- Das erfolgreich erkannte lokale „Hey Pam“ öffnet auf dem registrierten
-  Android-Gerät eine kurzlebige, signierte Alltagssitzung. Es wird dafür keine
-  zweite Stimmprobe und kein Fingerprint verlangt. Alltag umfasst insbesondere
-  Gespräch, Wetter, Einkaufsliste, persönliche Notizen und reine
-  Text-WhatsApp; die Beispiele sind nicht abschließend.
+- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten
+  Android-Gerät nach der lokalen Geräteprüfung direkt. „Hey Pam“ bleibt
+  ausschließlich Weckruf und Sprecherzuordnung und ist keine Entsperrung. Die
+  kurzlebige signierte Online-Sitzung wird davon getrennt aufgebaut; ihr
+  vorübergehender Ausfall sperrt die lokale App-Oberfläche nicht. Alltag
+  umfasst insbesondere Gespräch, Wetter, Einkaufsliste, persönliche Notizen
+  und reine Text-WhatsApp; die Beispiele sind nicht abschließend.
 - Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
   System-, Sicherheits-, Konto-, Verbindungs- und Berechtigungseinstellungen,
   Health-Connect-Daten sowie Sicherung und Wiederherstellung benötigen eine

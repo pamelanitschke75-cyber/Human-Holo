@@ -123,7 +123,7 @@ public final class SolAccessSecurityPlugin extends Plugin {
     private static final String TRUSTED_SESSION_OWNER_PERSON_PROOF =
         "pam_voice_or_registered_watch_v1";
     private static final String OWNER_EVERYDAY_PERSON_PROOF =
-        "pam_verified_voice_everyday_v1";
+        "pam_registered_owner_device_everyday_v1";
     private static final long TRUSTED_SESSION_MAX_CHALLENGE_MS = 3 * 60_000L;
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -608,9 +608,10 @@ public final class SolAccessSecurityPlugin extends Plugin {
     }
 
     /**
-     * Opens only Pam's ordinary owner session after the already accepted
-     * "Hey Pam" speaker proof. It never opens media, documents, business
-     * matters or system settings and deliberately shows no biometric prompt.
+     * Opens only Pam's ordinary owner session on her hardware-bound registered
+     * phone. "Hey Pam" remains a wake phrase and is never an unlock secret.
+     * This never opens media, documents, business matters or system settings
+     * and deliberately shows no biometric prompt.
      */
     @PluginMethod
     public void authorizeOwnerEverydayAccess(PluginCall call) {
@@ -620,19 +621,6 @@ public final class SolAccessSecurityPlugin extends Plugin {
             call.reject(
                 "Dieses Gerät muss zuerst sicher für Pam registriert werden.",
                 "REGISTERED_DEVICE_REQUIRED"
-            );
-            return;
-        }
-        if (
-            !SolSpeakerIdentityPlugin.consumeOwnerPersonProof(
-                getContext(),
-                ownerId,
-                call.getString("ownerPersonProofId", "")
-            )
-        ) {
-            call.reject(
-                "Der aktuelle, bereits erkannte Hey-Pam-Stimmnachweis fehlt oder ist abgelaufen.",
-                "OWNER_PERSON_PROOF_REQUIRED"
             );
             return;
         }
@@ -662,12 +650,12 @@ public final class SolAccessSecurityPlugin extends Plugin {
             result.put("accessLevel", "owner_everyday");
             result.put("expiresAtMillis", expiresAtMillis);
             result.put("oneTime", true);
-            result.put("authenticationType", "verified_hey_pam_voice");
+            result.put("authenticationType", "registered_owner_device");
             result.put("biometricPromptUsed", false);
             call.resolve(result);
         } catch (Exception error) {
             call.reject(
-                "Die stimmgebundene Alltagssitzung konnte nicht vorbereitet werden.",
+                "Die gerätegebundene Alltagssitzung konnte nicht vorbereitet werden.",
                 "OWNER_EVERYDAY_AUTHORIZATION_FAILED",
                 error
             );

@@ -1,5 +1,5 @@
 const CACHE_VERSION =
-  "human-holo-296-calendar-click-restored-network-safe-shell-face-privacy-v3";
+  "human-holo-296-pam-registered-device-entry-wake-only-v4";
 
 const APP_SHELL = Object.freeze([
   "./",

@@ -40,8 +40,11 @@ vorbereitet oder weiterhin gesperrt behandelt.
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.
 - **Persönlicher Zugang:** Zu Pams Lebzeiten hat ausschließlich Pam Zugriff,
-  auch nicht Steffi. Erkannte Stimme genügt für den freigegebenen Alltag wie
-  Gespräche, Wetter, Einkaufsliste und einen vorbereiteten WhatsApp-Text.
+  auch nicht Steffi. Auf Pams sicher registriertem Handy öffnet Pam Holo den
+  freigegebenen Alltag direkt und unabhängig vom Aufbau einer Online-Sitzung.
+  „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Gespräche,
+  Wetter, Einkaufsliste und ein vorbereiteter WhatsApp-Text gehören zum
+  freigegebenen Alltag.
   Bilder, Unterlagen, geschäftliche Angelegenheiten sowie System-, Sicherheits-
   und Berechtigungseinstellungen verlangen Pams gesonderten Fingerprint.
 - **Live-Kamera und Gesichter:** Bei Pams ausdrücklich gestarteter
@@ -271,8 +274,9 @@ Die Freigabe gilt nur für `ownerId=pam-sol`, `speakerId=pam` und eine aktuelle
 persönlich bestätigte, signierte App-Sitzung. Für das allgemeine Human Holo und
 für jede andere Identität bleibt der medizinische Bereich geschlossen.
 
-Die erkannte Stimme öffnet ein allgemeines medizinisches Gespräch nur innerhalb
-dieses begrenzten privaten Testumfangs. Medikamentenbilder, der tatsächliche
+Auf Pams registriertem Gerät ist ein allgemeines medizinisches Gespräch nur
+innerhalb dieses begrenzten privaten Testumfangs möglich. Medikamentenbilder,
+der tatsächliche
 Abruf von Health-Connect-Daten und medizinische Berechtigungseinstellungen
 verlangen zusätzlich Pams Fingerprint. Diese zweite Stufe erweitert keine der
 medizinischen Freigabegrenzen.
@@ -284,12 +288,12 @@ vom 17.09.2026](./PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md)
 
 - Zu Pams Lebzeiten darf ausschließlich Pam ihr Holo öffnen. Das gilt auch
   gegenüber Steffi und jeder anderen Person.
-- Ein auf dem Telefon gespeicherter Fingerabdruck oder die Geräte-PIN genügt
-  allein nicht, weil Android der App nicht mitteilt, welche hinterlegte Person
-  die Systemfreigabe verwendet hat.
-- Das erfolgreich erkannte lokale „Hey Pam“ öffnet auf Pams registriertem
-  Android-Gerät eine kurzlebige, signierte Alltagssitzung. Dafür werden weder
-  eine zweite Stimmprobe noch ein Fingerprint verlangt.
+- Pams registrierte App öffnet den normalen Alltag auf ihrem entsperrten
+  Android-Gerät nach der lokalen Geräteprüfung direkt. Dafür werden weder eine
+  Stimmprobe noch ein Fingerprint verlangt; ein Netz- oder Render-Ausfall darf
+  die lokale Oberfläche nicht sperren.
+- „Hey Pam“ ist ausschließlich der Weckruf und keine Entsperrung. Die lokale
+  Sprecherprüfung bleibt für Weckruf und Sprecherzuordnung erhalten.
 - Gespräche, Wetter, Einkaufsliste, persönliche Notizen und reine
   Text-WhatsApp sind Beispiele für diesen Alltag und keine abschließende Liste.
 - Bilder, Videos, Scans, Dateien, Unterlagen, geschäftliche Angelegenheiten,
