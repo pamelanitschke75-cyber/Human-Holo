@@ -37,8 +37,7 @@ export { PAM_HOLO_ACCESS_LEVEL as TRUSTED_APP_ACCESS_LEVEL };
 
 const DEFAULT_CHALLENGE_TTL_MS = 2 * 60 * 1000;
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000;
-const MAX_ACTIVE_CHALLENGES = 500;
-const MAX_ACTIVE_SESSIONS = 1000;
+const CLEANUP_INTERVAL_MS = 60 * 1000;
 const OWNER_ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,63}$/;
 const REGISTRATION_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -182,27 +181,22 @@ export function createTrustedAppSessionManager({
     throw new TypeError("Trusted app sessions require a database.");
   }
 
-  const challenges = new Map();
-  const sessions = new Map();
+  let cleanupAfterMillis = 0;
 
-  function cleanup() {
+  async function cleanup() {
     const current = now();
-    for (const [id, challenge] of challenges) {
-      if (challenge.expiresAtMillis <= current || challenge.consumed) {
-        challenges.delete(id);
-      }
-    }
-    for (const [tokenHash, session] of sessions) {
-      if (session.expiresAtMillis <= current) {
-        sessions.delete(tokenHash);
-      }
-    }
-    while (challenges.size > MAX_ACTIVE_CHALLENGES) {
-      challenges.delete(challenges.keys().next().value);
-    }
-    while (sessions.size > MAX_ACTIVE_SESSIONS) {
-      sessions.delete(sessions.keys().next().value);
-    }
+    if (current < cleanupAfterMillis) return;
+    cleanupAfterMillis = current + CLEANUP_INTERVAL_MS;
+    await database.query(
+      `DELETE FROM sol_trusted_app_challenges
+       WHERE expires_at_millis <= $1`,
+      [current]
+    );
+    await database.query(
+      `DELETE FROM sol_trusted_app_sessions
+       WHERE expires_at_millis <= $1`,
+      [current]
+    );
   }
 
   async function initialize() {
@@ -218,6 +212,44 @@ export function createTrustedAppSessionManager({
         last_verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    await database.query(`
+      CREATE TABLE IF NOT EXISTS sol_trusted_app_challenges (
+        challenge_id TEXT PRIMARY KEY,
+        owner_id TEXT NOT NULL,
+        registration_id TEXT NOT NULL,
+        package_name TEXT NOT NULL,
+        nonce_base64url TEXT NOT NULL,
+        issued_at_millis BIGINT NOT NULL,
+        expires_at_millis BIGINT NOT NULL,
+        access_level TEXT NOT NULL,
+        owner_person_proof TEXT NOT NULL
+      )
+    `);
+
+    await database.query(`
+      CREATE INDEX IF NOT EXISTS sol_trusted_app_challenges_expiry_idx
+      ON sol_trusted_app_challenges (expires_at_millis)
+    `);
+
+    await database.query(`
+      CREATE TABLE IF NOT EXISTS sol_trusted_app_sessions (
+        token_hash TEXT PRIMARY KEY,
+        owner_id TEXT NOT NULL,
+        registration_id TEXT NOT NULL,
+        access_level TEXT NOT NULL,
+        owner_person_proof TEXT NOT NULL,
+        issued_at_millis BIGINT NOT NULL,
+        expires_at_millis BIGINT NOT NULL
+      )
+    `);
+
+    await database.query(`
+      CREATE INDEX IF NOT EXISTS sol_trusted_app_sessions_expiry_idx
+      ON sol_trusted_app_sessions (expires_at_millis)
+    `);
+
+    await cleanup();
   }
 
   function parseDeviceRegistration(value) {
@@ -324,18 +356,17 @@ export function createTrustedAppSessionManager({
         "google_account_match"
       ]
     );
-    // Rebinding replaces the owner device. Any proof created by the previous
-    // installation must stop working immediately, not only after its TTL.
-    for (const [challengeId, challenge] of challenges) {
-      if (challenge.ownerId === device.ownerId) {
-        challenges.delete(challengeId);
-      }
-    }
-    for (const [tokenHash, session] of sessions) {
-      if (session.ownerId === device.ownerId) {
-        sessions.delete(tokenHash);
-      }
-    }
+    // Rebinding replaces the owner device. Every server instance reads these
+    // shared rows, so proofs from the previous installation stop working
+    // immediately even while Render is rolling from one instance to another.
+    await database.query(
+      `DELETE FROM sol_trusted_app_challenges WHERE owner_id = $1`,
+      [device.ownerId]
+    );
+    await database.query(
+      `DELETE FROM sol_trusted_app_sessions WHERE owner_id = $1`,
+      [device.ownerId]
+    );
     return { ...device, registered: true };
   }
 
@@ -365,7 +396,7 @@ export function createTrustedAppSessionManager({
     registrationId,
     accessLevel = PAM_HOLO_ACCESS_LEVEL.PROTECTED
   }) {
-    cleanup();
+    await cleanup();
     const normalizedAccessLevel = normalizePamHoloAccessLevel(accessLevel);
     const device = await loadDevice(ownerId, registrationId);
     if (!device) {
@@ -384,14 +415,39 @@ export function createTrustedAppSessionManager({
       nonceBase64Url: randomBytesValue(32).toString("base64url"),
       issuedAtMillis,
       expiresAtMillis,
-      consumed: false,
       accessLevel: normalizedAccessLevel,
       action: pamHoloSessionAction(normalizedAccessLevel),
       ownerPersonProof: pamHoloOwnerProof(normalizedAccessLevel),
       publicKeyX509Base64Url: device.public_key_x509_base64url
     };
     challenge.canonicalPayload = trustedSessionCanonicalPayload(challenge);
-    challenges.set(challenge.challengeId, challenge);
+    await database.query(
+      `
+        INSERT INTO sol_trusted_app_challenges (
+          challenge_id,
+          owner_id,
+          registration_id,
+          package_name,
+          nonce_base64url,
+          issued_at_millis,
+          expires_at_millis,
+          access_level,
+          owner_person_proof
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `,
+      [
+        challenge.challengeId,
+        challenge.ownerId,
+        challenge.registrationId,
+        challenge.packageName,
+        challenge.nonceBase64Url,
+        challenge.issuedAtMillis,
+        challenge.expiresAtMillis,
+        challenge.accessLevel,
+        challenge.ownerPersonProof
+      ]
+    );
     return {
       ownerId: challenge.ownerId,
       registrationId: challenge.registrationId,
@@ -417,7 +473,7 @@ export function createTrustedAppSessionManager({
     challengeId,
     signatureBase64Url
   }) {
-    cleanup();
+    await cleanup();
     const safeOwnerId = requiredOwnerId(ownerId);
     const safeRegistrationId = requiredRegistrationId(registrationId);
     const safeChallengeId = requiredRegistrationId(challengeId);
@@ -427,11 +483,40 @@ export function createTrustedAppSessionManager({
       "Challenge-Signatur",
       1024
     );
-    const challenge = challenges.get(safeChallengeId);
-    challenges.delete(safeChallengeId);
+    const consumedChallenge = await database.query(
+      `
+        DELETE FROM sol_trusted_app_challenges
+        WHERE challenge_id = $1
+        RETURNING
+          challenge_id,
+          owner_id,
+          registration_id,
+          package_name,
+          nonce_base64url,
+          issued_at_millis,
+          expires_at_millis,
+          access_level,
+          owner_person_proof
+      `,
+      [safeChallengeId]
+    );
+    const row = consumedChallenge.rows?.[0];
+    const challenge = row
+      ? {
+          challengeId: row.challenge_id,
+          ownerId: row.owner_id,
+          registrationId: row.registration_id,
+          packageName: row.package_name,
+          nonceBase64Url: row.nonce_base64url,
+          issuedAtMillis: Number(row.issued_at_millis),
+          expiresAtMillis: Number(row.expires_at_millis),
+          accessLevel: row.access_level,
+          action: pamHoloSessionAction(row.access_level),
+          ownerPersonProof: row.owner_person_proof
+        }
+      : null;
     if (
       !challenge ||
-      challenge.consumed ||
       challenge.expiresAtMillis <= now()
     ) {
       throw new TrustedAppSessionError(
@@ -439,7 +524,6 @@ export function createTrustedAppSessionManager({
         "Die sichere App-Challenge ist unbekannt, abgelaufen oder bereits verwendet."
       );
     }
-    challenge.consumed = true;
     if (
       challenge.ownerId !== safeOwnerId ||
       challenge.registrationId !== safeRegistrationId
@@ -449,8 +533,16 @@ export function createTrustedAppSessionManager({
         "Die sichere App-Challenge gehört zu einer anderen Holo-Instanz oder Installation."
       );
     }
+    const device = await loadDevice(safeOwnerId, safeRegistrationId);
+    if (!device) {
+      throw new TrustedAppSessionError(
+        "TRUSTED_SESSION_DEVICE_NOT_BOUND",
+        "Dieses Gerät ist nicht mehr sicher mit dem Backend verbunden."
+      );
+    }
+    challenge.canonicalPayload = trustedSessionCanonicalPayload(challenge);
     const publicKey = createPublicKey({
-      key: Buffer.from(challenge.publicKeyX509Base64Url, "base64url"),
+      key: Buffer.from(device.public_key_x509_base64url, "base64url"),
       format: "der",
       type: "spki"
     });
@@ -471,14 +563,29 @@ export function createTrustedAppSessionManager({
     const tokenHash = sha256Hex(sessionToken);
     const issuedAtMillis = now();
     const expiresAtMillis = issuedAtMillis + sessionTtlMs;
-    sessions.set(tokenHash, {
-      ownerId: safeOwnerId,
-      registrationId: safeRegistrationId,
-      accessLevel: challenge.accessLevel,
-      ownerPersonProof: challenge.ownerPersonProof,
-      issuedAtMillis,
-      expiresAtMillis
-    });
+    await database.query(
+      `
+        INSERT INTO sol_trusted_app_sessions (
+          token_hash,
+          owner_id,
+          registration_id,
+          access_level,
+          owner_person_proof,
+          issued_at_millis,
+          expires_at_millis
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `,
+      [
+        tokenHash,
+        safeOwnerId,
+        safeRegistrationId,
+        challenge.accessLevel,
+        challenge.ownerPersonProof,
+        issuedAtMillis,
+        expiresAtMillis
+      ]
+    );
     await database.query(
       `
         UPDATE sol_trusted_app_devices
@@ -501,18 +608,47 @@ export function createTrustedAppSessionManager({
     };
   }
 
-  function validateRequest(
+  async function validateRequest(
     req,
     { minimumAccess = PAM_HOLO_ACCESS_LEVEL.OWNER_EVERYDAY } = {}
   ) {
-    cleanup();
+    await cleanup();
     const token = String(
       req?.headers?.[TRUSTED_APP_SESSION_HEADER] || ""
     ).trim();
     if (!token || !BASE64URL_PATTERN.test(token) || token.length > 256) {
       return null;
     }
-    const session = sessions.get(sha256Hex(token));
+    const storedSession = await database.query(
+      `
+        SELECT
+          trusted_session.owner_id,
+          trusted_session.registration_id,
+          trusted_session.access_level,
+          trusted_session.owner_person_proof,
+          trusted_session.issued_at_millis,
+          trusted_session.expires_at_millis
+        FROM sol_trusted_app_sessions AS trusted_session
+        INNER JOIN sol_trusted_app_devices AS device
+          ON device.owner_id = trusted_session.owner_id
+         AND device.registration_id = trusted_session.registration_id
+        WHERE trusted_session.token_hash = $1
+          AND trusted_session.expires_at_millis > $2
+        LIMIT 1
+      `,
+      [sha256Hex(token), now()]
+    );
+    const row = storedSession.rows?.[0];
+    const session = row
+      ? {
+          ownerId: row.owner_id,
+          registrationId: row.registration_id,
+          accessLevel: row.access_level,
+          ownerPersonProof: row.owner_person_proof,
+          issuedAtMillis: Number(row.issued_at_millis),
+          expiresAtMillis: Number(row.expires_at_millis)
+        }
+      : null;
     if (
       !session ||
       session.expiresAtMillis <= now() ||

@@ -2172,7 +2172,7 @@ app.post(
         );
       }
       if (requestedAccessLevel === TRUSTED_APP_ACCESS_LEVEL.PROTECTED) {
-        const ownerEverydaySession = trustedAppSessions.validateRequest(req, {
+        const ownerEverydaySession = await trustedAppSessions.validateRequest(req, {
           minimumAccess: TRUSTED_APP_ACCESS_LEVEL.OWNER_EVERYDAY
         });
         if (
@@ -2237,7 +2237,7 @@ app.get(
   "/auth/google",
   async (req, res) => {
     try {
-      if (!hasProtectedPamHoloGate(req)) {
+      if (!(await hasProtectedPamHoloGate(req))) {
         return res
           .status(503)
           .set({
@@ -2295,7 +2295,7 @@ app.post(
   "/auth/google/start",
   async (req, res) => {
     try {
-      if (!hasProtectedPamHoloGate(req)) {
+      if (!(await hasProtectedPamHoloGate(req))) {
         return res
           .status(503)
           .set({ "Cache-Control": "no-store, max-age=0" })
@@ -2532,7 +2532,7 @@ app.get(
   "/google/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
+      if (!(await hasTrustedGooglePersonalReadGate(req))) {
         return res
           .status(503)
           .set({
@@ -2737,8 +2737,8 @@ async function exchangeSmartThingsToken(parameters) {
   ==========================================================
 */
 
-app.get("/auth/smartthings", (req, res) => {
-  if (!hasProtectedPamHoloGate(req)) {
+app.get("/auth/smartthings", async (req, res) => {
+  if (!(await hasProtectedPamHoloGate(req))) {
     return res
       .status(503)
       .set({
@@ -2846,7 +2846,7 @@ Eine Geräteaktion wird erst nach deiner Bestätigung ausgeführt.</p>
 
 app.get("/smartthings/status", async (req, res) => {
   try {
-    if (!hasTrustedGooglePersonalReadGate(req)) {
+    if (!(await hasTrustedGooglePersonalReadGate(req))) {
       return res
         .status(503)
         .set({
@@ -2921,7 +2921,7 @@ app.get(
   "/calendar/status",
   async (req, res) => {
     try {
-      if (!hasTrustedGooglePersonalReadGate(req)) {
+      if (!(await hasTrustedGooglePersonalReadGate(req))) {
         return res
           .status(503)
           .set({
@@ -3103,24 +3103,24 @@ function googlePersonalErrorStatus(error) {
   return 400;
 }
 
-function hasTrustedGooglePersonalReadGate(req) {
+async function hasTrustedGooglePersonalReadGate(req) {
   return Boolean(
-    trustedAppSessions.validateRequest(req, {
+    await trustedAppSessions.validateRequest(req, {
       minimumAccess: TRUSTED_APP_ACCESS_LEVEL.OWNER_EVERYDAY
     })
   );
 }
 
-function hasProtectedPamHoloGate(req) {
+async function hasProtectedPamHoloGate(req) {
   return Boolean(
-    trustedAppSessions.validateRequest(req, {
+    await trustedAppSessions.validateRequest(req, {
       minimumAccess: TRUSTED_APP_ACCESS_LEVEL.PROTECTED
     })
   );
 }
 
-function requireProtectedTrustedSession(req, res) {
-  const protectedSession = trustedAppSessions.validateRequest(req, {
+async function requireProtectedTrustedSession(req, res) {
+  const protectedSession = await trustedAppSessions.validateRequest(req, {
     minimumAccess: TRUSTED_APP_ACCESS_LEVEL.PROTECTED
   });
   if (protectedSession) return protectedSession;
@@ -3141,12 +3141,12 @@ function requireProtectedTrustedSession(req, res) {
   return null;
 }
 
-function requireTrustedOwnerIdentity(
+async function requireTrustedOwnerIdentity(
   req,
   res
 ) {
   const trustedSession =
-    trustedAppSessions
+    await trustedAppSessions
       .validateRequest(
         req,
         {
@@ -3263,20 +3263,20 @@ function requireTrustedOwnerIdentity(
   return identity;
 }
 
-function requireProtectedOwnerIdentity(req, res) {
-  const identity = requireTrustedOwnerIdentity(req, res);
+async function requireProtectedOwnerIdentity(req, res) {
+  const identity = await requireTrustedOwnerIdentity(req, res);
   if (!identity) return null;
-  const trustedSession = requireProtectedTrustedSession(req, res);
+  const trustedSession = await requireProtectedTrustedSession(req, res);
   if (!trustedSession) return null;
   return Object.freeze({ identity, trustedSession });
 }
 
-function requirePrivatePamHoloAccess(req, res) {
-  const identity = requireTrustedOwnerIdentity(req, res);
+async function requirePrivatePamHoloAccess(req, res) {
+  const identity = await requireTrustedOwnerIdentity(req, res);
   if (!identity) return null;
 
   const trustedSession =
-    trustedAppSessions.validateRequest(req);
+    await trustedAppSessions.validateRequest(req);
   if (
     !isPamHoloPrivateMedicalAuthorized(
       identity,
@@ -3305,10 +3305,10 @@ function requirePrivatePamHoloAccess(req, res) {
   });
 }
 
-function requireProtectedPamHoloAccess(req, res) {
-  const privateAccess = requirePrivatePamHoloAccess(req, res);
+async function requireProtectedPamHoloAccess(req, res) {
+  const privateAccess = await requirePrivatePamHoloAccess(req, res);
   if (!privateAccess) return null;
-  const protectedSession = requireProtectedTrustedSession(req, res);
+  const protectedSession = await requireProtectedTrustedSession(req, res);
   if (!protectedSession) return null;
   return Object.freeze({
     ...privateAccess,
@@ -3321,7 +3321,7 @@ app.post(
   "/animal-holos/profile-photo/save",
   async (req, res) => {
     try {
-      const protectedAccess = requireProtectedOwnerIdentity(req, res);
+      const protectedAccess = await requireProtectedOwnerIdentity(req, res);
       if (!protectedAccess) return;
       const { identity } = protectedAccess;
       const saved = await animalProfilePhotos.save({
@@ -3361,7 +3361,7 @@ app.post(
   "/animal-holos/profile-photo/get",
   async (req, res) => {
     try {
-      const protectedAccess = requireProtectedOwnerIdentity(req, res);
+      const protectedAccess = await requireProtectedOwnerIdentity(req, res);
       if (!protectedAccess) return;
       const { identity } = protectedAccess;
       const photo = await animalProfilePhotos.get({
@@ -3399,7 +3399,7 @@ app.post(
   "/animal-holos/observations",
   async (req, res) => {
     try {
-      const identity = requireTrustedOwnerIdentity(req, res);
+      const identity = await requireTrustedOwnerIdentity(req, res);
       if (!identity) return;
       const result = await db.query(
         `
@@ -3470,7 +3470,7 @@ app.post(
 
 app.post(
   "/personal-clone/calls/status",
-  (req, res) => {
+  async (req, res) => {
     res.set({
       "Cache-Control":
         "no-store, max-age=0",
@@ -3479,7 +3479,7 @@ app.post(
     });
 
     const identity =
-      requireTrustedOwnerIdentity(
+      await requireTrustedOwnerIdentity(
         req,
         res
       );
@@ -3520,7 +3520,7 @@ app.post(
     });
 
     const identity =
-      requireTrustedOwnerIdentity(
+      await requireTrustedOwnerIdentity(
         req,
         res
       );
@@ -3628,7 +3628,7 @@ app.post(
     });
 
     const identity =
-      requireTrustedOwnerIdentity(
+      await requireTrustedOwnerIdentity(
         req,
         res
       );
@@ -3691,8 +3691,8 @@ async function handleGooglePersonalRead(
   // ist ausdrücklich keine Authentifizierung.
   if (
     protectedAccess
-      ? !hasProtectedPamHoloGate(req)
-      : !hasTrustedGooglePersonalReadGate(req)
+      ? !(await hasProtectedPamHoloGate(req))
+      : !(await hasTrustedGooglePersonalReadGate(req))
   ) {
     return res
       .status(protectedAccess ? 401 : 503)
@@ -5982,7 +5982,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        requireTrustedOwnerIdentity(
+        await requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -6013,7 +6013,7 @@ app.post(
 
       if (
         isPamHoloProtectedContentRequest({ message }) &&
-        !requireProtectedTrustedSession(req, res)
+        !(await requireProtectedTrustedSession(req, res))
       ) {
         return;
       }
@@ -6043,7 +6043,7 @@ app.post(
         await handleCalendarWriteRequest(
           message,
           identity,
-          hasTrustedGooglePersonalReadGate(req),
+          await hasTrustedGooglePersonalReadGate(req),
           conversation.conversationId
         );
 
@@ -6099,7 +6099,7 @@ app.post(
   "/gmail/action",
   async (req, res) => {
     try {
-      const identity = requireTrustedOwnerIdentity(req, res);
+      const identity = await requireTrustedOwnerIdentity(req, res);
       if (!identity) {
         return;
       }
@@ -6114,7 +6114,7 @@ app.post(
 
       if (
         isPamHoloProtectedContentRequest({ message }) &&
-        !requireProtectedTrustedSession(req, res)
+        !(await requireProtectedTrustedSession(req, res))
       ) {
         return;
       }
@@ -6132,7 +6132,7 @@ app.post(
       const gmailResult = await handleGmailReadRequest(
         message,
         identity,
-        hasTrustedGooglePersonalReadGate(req),
+        await hasTrustedGooglePersonalReadGate(req),
         true
       );
 
@@ -9347,7 +9347,7 @@ app.post(
   "/memory/backup/export",
   async (req, res) => {
     try {
-      const protectedAccess = requireProtectedOwnerIdentity(req, res);
+      const protectedAccess = await requireProtectedOwnerIdentity(req, res);
 
       if (!protectedAccess) {
         return;
@@ -9428,7 +9428,7 @@ app.post(
   "/memory/backup/restore-chunk",
   async (req, res) => {
     try {
-      const protectedAccess = requireProtectedOwnerIdentity(req, res);
+      const protectedAccess = await requireProtectedOwnerIdentity(req, res);
 
       if (!protectedAccess) {
         return;
@@ -9525,7 +9525,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        requireTrustedOwnerIdentity(
+        await requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -9589,7 +9589,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        requireTrustedOwnerIdentity(
+        await requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -9764,7 +9764,7 @@ app.post(
   "/memory/import-confirmed",
   async (req, res) => {
     try {
-      const protectedAccess = requireProtectedOwnerIdentity(req, res);
+      const protectedAccess = await requireProtectedOwnerIdentity(req, res);
       if (!protectedAccess) {
         return;
       }
@@ -10212,7 +10212,7 @@ app.post(
   async (req, res) => {
     try {
       const identity =
-        requireTrustedOwnerIdentity(
+        await requireTrustedOwnerIdentity(
           req,
           res
         );
@@ -10329,7 +10329,7 @@ app.post(
             liveSourceModalities.includes("sign_language"),
           hasVideo: liveSourceModalities.includes("video")
         }) &&
-        !requireProtectedTrustedSession(req, res)
+        !(await requireProtectedTrustedSession(req, res))
       ) {
         return;
       }
@@ -10556,7 +10556,7 @@ app.post(
         await handleCalendarWriteRequest(
           transcript,
           identity,
-          hasTrustedGooglePersonalReadGate(req),
+          await hasTrustedGooglePersonalReadGate(req),
           conversation.conversationId
         );
 
@@ -10894,7 +10894,7 @@ app.post("/realtime/token", async (req, res) => {
 
   try {
     const privateAccess =
-      requirePrivatePamHoloAccess(
+      await requirePrivatePamHoloAccess(
         req,
         res
       );
@@ -12571,7 +12571,7 @@ app.post(
         "no-cache"
     });
 
-    if (!requireProtectedPamHoloAccess(req, res)) {
+    if (!(await requireProtectedPamHoloAccess(req, res))) {
       return;
     }
 
@@ -12805,7 +12805,7 @@ app.post("/sol", async (req, res) => {
     }
 
     const privateAccess =
-      requirePrivatePamHoloAccess(
+      await requirePrivatePamHoloAccess(
         req,
         res
       );
@@ -12855,7 +12855,7 @@ app.post("/sol", async (req, res) => {
 
     if (
       protectedContentRequested &&
-      !hasProtectedPamHoloGate(req)
+      !(await hasProtectedPamHoloGate(req))
     ) {
       return res
         .status(401)
@@ -13376,7 +13376,7 @@ app.post("/sol", async (req, res) => {
         : await handleGmailReadRequest(
             message,
             identity,
-            hasTrustedGooglePersonalReadGate(req)
+            await hasTrustedGooglePersonalReadGate(req)
           );
 
     if (gmailResult?.handled) {
@@ -13424,7 +13424,7 @@ app.post("/sol", async (req, res) => {
         : await handleCalendarWriteRequest(
             message,
             identity,
-            hasTrustedGooglePersonalReadGate(req),
+            await hasTrustedGooglePersonalReadGate(req),
             conversation.conversationId
           );
 
