@@ -159,6 +159,14 @@ test("Client und Server erzwingen Fingerprint für geschützte Daten", async () 
   assert.match(server, /\/memory\/backup\/export[\s\S]*requireProtectedOwnerIdentity/u);
   assert.match(server, /\/animal-holos\/profile-photo\/save[\s\S]*requireProtectedOwnerIdentity/u);
   assert.match(nativeSecurity, /PROTECTED_AUTHENTICATORS\s*=\s*\n\s*BiometricManager\.Authenticators\.BIOMETRIC_STRONG/u);
+  assert.match(
+    nativeSecurity,
+    /\(authenticators & BiometricManager\.Authenticators\.DEVICE_CREDENTIAL\)[\s\S]*promptBuilder\.setNegativeButtonText\("Abbrechen"\)[\s\S]*promptBuilder\.build\(\)/u
+  );
+  assert.match(
+    nativeSecurity,
+    /setAllowedAuthenticators\(PROTECTED_AUTHENTICATORS\)[\s\S]{0,180}setNegativeButtonText\("Abbrechen"\)[\s\S]{0,80}\.build\(\)/u
+  );
   const appAccessMethod = nativeSecurity.slice(
     nativeSecurity.indexOf("public void authorizeAppAccess"),
     nativeSecurity.indexOf("public void authorizeBiometricRecovery")
