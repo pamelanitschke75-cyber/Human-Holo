@@ -25,7 +25,8 @@ function jsonResponse(data, status = 200) {
 
 async function fixture({
   protectedSignatureFailures = 0,
-  deviceBound = true
+  deviceBound = true,
+  deviceLookupDelayMillis = 0
 } = {}) {
   const events = [];
   const requestedUrls = [];
@@ -37,6 +38,11 @@ async function fixture({
   const plugin = {
     async getTrustedSessionDevice() {
       events.push({ type: "device" });
+      if (deviceLookupDelayMillis > 0) {
+        await new Promise(resolve => {
+          setTimeout(resolve, deviceLookupDelayMillis);
+        });
+      }
       return {
         ownerId: OWNER_ID,
         registrationId: REGISTRATION_ID,
@@ -240,6 +246,40 @@ test("der Fingerprint-Appzugang baut die Alltagssitzung ohne zweiten Prompt auf"
     ["device", "challenge", "sign", "complete"]
   );
   assert.equal(events[2].authorizationId, "fingerprint-everyday-grant");
+});
+
+test("der Fingerprint-Appzugang geht bei einer parallelen Startprüfung nicht verloren", async () => {
+  const { client, events } = await fixture({
+    deviceLookupDelayMillis: 25
+  });
+  const startupCheck = client.ensureTrustedAppSession({
+    interactive: false,
+    accessLevel: EVERYDAY_ACCESS
+  });
+  await Promise.resolve();
+  const fingerprintUnlock = client.ensureTrustedAppSession({
+    interactive: false,
+    accessLevel: EVERYDAY_ACCESS,
+    allowBootstrap: false,
+    authorizationId: "fingerprint-everyday-grant",
+    authorizationExpiresAtMillis: Date.now() + 60_000
+  });
+
+  const [startupResult, fingerprintResult] = await Promise.all([
+    startupCheck,
+    fingerprintUnlock
+  ]);
+
+  assert.equal(startupResult.trusted, false);
+  assert.equal(fingerprintResult.trusted, true);
+  assert.equal(
+    events.filter(event => event.type === "challenge").length,
+    1
+  );
+  assert.equal(
+    events.find(event => event.type === "sign")?.authorizationId,
+    "fingerprint-everyday-grant"
+  );
 });
 
 test("interaktive Sprache oder Schrift wiederholt nach gescheitertem Hintergrundaufbau", async () => {
