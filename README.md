@@ -76,8 +76,11 @@ vorbereitet oder weiterhin gesperrt behandelt.
   festzulegen. Holo reagiert dabei verständnisvoll und zurückhaltend: Eine
   emotionale Mitteilung ist kein Speicherauftrag, und besonders bei Tod oder
   Verlust folgt auf Mitgefühl keine ungefragte Frage nach einer „festen
-  Erinnerung“. Es gibt keinen zweiten Speicher, kein heimliches Weiterdenken
-  und keine eigenmächtige Handlung.
+  Erinnerung“. Spricht Pam ein Gefühl bereits direkt aus, antwortet Holo zuerst
+  in höchstens ein bis zwei kurzen Sätzen und lässt dann Raum: keine
+  routinemäßige Rückfrage, keine Auswahl zwischen Erzählen und Schweigen und
+  keine austauschbare Trauerberatungsformel. Es gibt keinen zweiten Speicher,
+  kein heimliches Weiterdenken und keine eigenmächtige Handlung.
   Vollständiger Beschluss:
   [Mitdenkendes Gedächtnis vom 17.09.2026](./PAM-HOLO-MITDENKENDES-GEDAECHTNIS-17-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur

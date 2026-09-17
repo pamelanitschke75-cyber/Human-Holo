@@ -73,6 +73,14 @@ test("mitdenkendes Gedächtnis ist ausschließlich für Pam’s Holo aktiv", () 
     false
   );
   assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.unsolicitedEmotionalFollowUpQuestions,
+    false
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.counselorChoicePrompts,
+    false
+  );
+  assert.equal(
     PAM_HOLO_THINKING_MEMORY_POLICY.humanHoloRelease,
     "lawyer-approval-required"
   );
@@ -149,6 +157,19 @@ test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie",
   assert.match(instructions, /weniger Worte und mehr Zurückhaltung/u);
   assert.match(instructions, /Musst du nicht hinterlegen/u);
   assert.match(instructions, /akzeptiere das knapp und endgültig/u);
+  assert.match(instructions, /VERBINDLICHE ERSTANTWORT AUF EINE DIREKTE GEFÜHLSMITTEILUNG/u);
+  assert.match(instructions, /höchstens ein bis zwei kurzen natürlichen Sätzen/u);
+  assert.match(instructions, /Stelle in dieser ersten Reaktion keine Rückfrage/u);
+  assert.match(instructions, /keine Auswahl zwischen Weiterreden und Schweigen/u);
+  assert.match(instructions, /Möchtest du mir erzählen/u);
+  assert.match(instructions, /Welcher schöne Moment/u);
+  assert.match(instructions, /soll ich einfach still bei dir bleiben/u);
+  assert.match(instructions, /Ich bin hier bei dir/u);
+  assert.match(instructions, /Das ist völlig verständlich/u);
+  assert.match(instructions, /nicht ungefragt auf einen „schönen Moment“/u);
+  assert.match(instructions, /therapeutischen Ton/u);
+  assert.match(instructions, /selbst entscheiden lassen, ob sie weiterspricht/u);
+  assert.match(instructions, /Selbst- oder Fremdgefährdung/u);
   assert.match(instructions, /nicht automatisch als Erinnerung/u);
   assert.match(instructions, /Vermische niemals Owner/u);
   assert.match(instructions, /Mitdenken erteilt keine Handlungsbefugnis/u);
@@ -168,7 +189,14 @@ test("GitHub-Beschluss hält Verständnis und Zurückhaltung ohne private Fallda
   assert.match(decision, /persönliches digitales Ich[\s\S]*nicht im Ton einer[\s\S]*beliebigen Assistenz/u);
   assert.match(decision, /keine vorgefertigte Beileidsformel/u);
   assert.match(decision, /Musst du nicht hinterlegen/u);
-  assert.doesNotMatch(decision, /Heike|15\.12\.2025/u);
+  assert.match(decision, /## Direkte Gefühlsmitteilung: erst reagieren, dann Raum lassen/u);
+  assert.match(decision, /höchstens ein bis zwei kurzen?, natürlichen Sätzen/u);
+  assert.match(decision, /keine Rückfrage[\s\S]*keine Auswahl zwischen Weiterreden und\s+Schweigen/u);
+  assert.match(decision, /„Ich bin hier bei dir“/u);
+  assert.match(decision, /„Das ist völlig\s+verständlich“/u);
+  assert.match(decision, /„schönen Moment“/u);
+  assert.match(decision, /therapeutische\s+Standardsprache/u);
+  assert.match(decision, /Private Namen, konkrete Todesdaten[\s\S]*nicht als Falldaten/u);
 });
 
 test("Mitdenk-Regel ist in Text und Realtime eingebunden", async () => {
