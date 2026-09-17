@@ -74,6 +74,15 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Bilder, Unterlagen, geschäftliche Angelegenheiten sowie System-, Sicherheits-
   und Berechtigungseinstellungen verlangen eine eigene neue
   Fingerprintfreigabe.
+- **Einkaufsliste und Wichtiges-Design:** Pam und Pam Holo können einen
+  eindeutig bestimmten einzelnen Einkaufsartikel ändern oder löschen. Bei
+  keinem oder mehreren Treffern bleibt die Liste unverändert; andere Notizen
+  bleiben immer erhalten. Pam bedient dafür direkt „Ändern“ und „Löschen“,
+  Pam Holo versteht eindeutige Text-, Sprach- und sichere Gebärdenaufträge.
+  Der Bereich heißt jetzt „Alles Wichtige auf einen Blick“; der leere
+  Kalenderkasten verwendet das Holo-Glass-Design. Vollständige Entscheidung:
+  [Einkaufslistenkorrektur und Kalender-Holo-Glass vom
+  17.09.2026](./PAM-HOLO-EINKAUFSLISTE-KORREKTUR-UND-KALENDER-HOLO-GLASS-17-09-2026.md)
 - **Live-Kamera und Gesichter:** Bei Pams ausdrücklich gestarteter
   Rück- beziehungsweise Umgebungskamera werden erkannte Gesichter lokal auf
   ihrem Gerät verpixelt, bevor ein Einzelbild übertragen wird. Es findet keine

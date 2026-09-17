@@ -2229,6 +2229,10 @@ body{
 
 .shoppingItems li{
   position:relative;
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  min-width:0;
   padding-left:18px;
   overflow-wrap:anywhere;
 }
@@ -2240,11 +2244,60 @@ body{
   content:"✓";
 }
 
+.shoppingItemText{
+  flex:1 1 auto;
+  min-width:0;
+  padding-top:4px;
+}
+
+.shoppingItemActions{
+  display:flex;
+  flex:0 0 auto;
+  gap:5px;
+}
+
+.shoppingItemActions button{
+  min-height:28px;
+  padding:0 7px;
+  border:1px solid rgba(139,222,255,.32);
+  border-radius:9px;
+  color:#d7f5ff;
+  background:linear-gradient(135deg,rgba(113,70,226,.34),rgba(25,139,198,.3));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+  font:inherit;
+  font-size:8px;
+}
+
+.shoppingItemActions button[data-shopping-action="delete"]{
+  border-color:rgba(255,140,176,.34);
+  color:#ffd7e3;
+  background:linear-gradient(135deg,rgba(141,55,129,.32),rgba(75,38,100,.34));
+}
+
 .importantInlineEmpty{
   min-height:104px;
   border:1px dashed color-mix(in srgb,var(--important-accent) 30%,transparent);
   border-radius:15px;
   background:rgba(4,9,26,.34);
+}
+
+#calendarEmpty{
+  border:1px solid rgba(148,220,255,.5);
+  background:
+    linear-gradient(145deg,rgba(151,81,244,.22),rgba(37,166,225,.16)),
+    rgba(21,28,83,.2);
+  box-shadow:
+    0 0 22px rgba(79,197,255,.18),
+    0 0 32px rgba(143,74,244,.16),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -18px 34px rgba(18,32,99,.12);
+  -webkit-backdrop-filter:blur(18px) saturate(145%);
+  backdrop-filter:blur(18px) saturate(145%);
+}
+
+#calendarEmpty>span{
+  color:#d7f8ff;
+  filter:drop-shadow(0 0 9px rgba(83,210,255,.58));
 }
 
 @media (max-width:420px){
