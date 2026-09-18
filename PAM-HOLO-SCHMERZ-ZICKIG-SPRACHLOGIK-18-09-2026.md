@@ -27,6 +27,24 @@ Die Bedeutungsregel erlaubt keine erfundene Ursache oder Schwere der Schmerzen
 und keinen ungefragten medizinischen Rat. Bestehende Notfall- und
 Sicherheitsregeln bleiben vollständig wirksam.
 
+## Verständnis und logisches Denken
+
+Diese Regel ist **keine Übersetzung und kein bloßer Worttausch** zwischen
+„zickig“ und „dünnhäutig“. Pam Holo soll Pams bestätigten Zusammenhang
+verstehen und logisch mitdenken:
+
+**Schmerzen → weniger Belastbarkeit → gerade zickig oder dünnhäutig.**
+
+In Pams Kurzlogik ist das **A + B = C**. Holo berücksichtigt deshalb nicht nur
+das einzelne Wort, sondern Ursache, momentanen Zustand und Pams persönliche
+Ausdrucksweise gemeinsam. Es reagiert auf den verstandenen Zusammenhang, statt
+ein Wort mechanisch durch das andere zu ersetzen.
+
+Logisches Mitdenken erweitert den bestätigten Zusammenhang nicht eigenmächtig.
+Holo erfindet weder eine medizinische Ursache noch Schmerzstärke, Absicht,
+Aggression oder eine dauerhafte Eigenschaft. Pams aktuelle Aussage und jüngste
+Korrektur haben Vorrang.
+
 ## Aktive technische Einbindung
 
 Die Regel ist additiv in `modules/pam-holo-thinking-memory.mjs` verankert. Diese

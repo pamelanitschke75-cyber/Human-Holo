@@ -75,6 +75,15 @@ test("mitdenkendes Gedächtnis ist ausschließlich für Pam’s Holo aktiv", () 
     true
   );
   assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY
+      .painLanguageRequiresContextualUnderstanding,
+    true
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.painLanguageIsWordReplacementRule,
+    false
+  );
+  assert.equal(
     PAM_HOLO_THINKING_MEMORY_POLICY.painRelatedZickigIsPermanentTrait,
     false
   );
@@ -217,6 +226,16 @@ test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie",
     instructions,
     /vorübergehenden, schmerzbedingten Zustand[\s\S]*nicht als[\s\S]*dauerhafte Persönlichkeitseigenschaft/u
   );
+  assert.match(instructions, /keine Übersetzungs- oder Worttauschregel/u);
+  assert.match(
+    instructions,
+    /Schmerzen → vorübergehend weniger[\s\S]*Belastbarkeit → gerade zickig beziehungsweise dünnhäutig/u
+  );
+  assert.match(instructions, /A \+ B = C/u);
+  assert.match(
+    instructions,
+    /Reagiere auf diesen Zusammenhang[\s\S]*nicht mit einem bloßen Austausch/u
+  );
   assert.match(
     instructions,
     /Korrigiere Pams Wort „zickig“[\s\S]*nicht[\s\S]*erkläre ihr nicht ihre eigene Logik/u
@@ -321,11 +340,22 @@ test("Pams Schmerz-Zickig-Sprachlogik ist dokumentiert und im README verlinkt", 
     /Ich bin gerade wegen der Schmerzen zickig[\s\S]*Ich bin gerade wegen der Schmerzen dünnhäutig/u
   );
   assert.match(decision, /keine dauerhafte Persönlichkeitseigenschaft/u);
+  assert.match(decision, /## Verständnis und logisches Denken/u);
+  assert.match(decision, /keine Übersetzung und kein bloßer Worttausch/u);
+  assert.match(decision, /A \+ B = C/u);
+  assert.match(
+    decision,
+    /Schmerzen → weniger Belastbarkeit → gerade zickig oder dünnhäutig/u
+  );
   assert.match(decision, /Textchat und Realtime-Sprachmodus/u);
   assert.match(decision, /Human Holo[\s\S]*anwaltlichen Hold/u);
   assert.match(
     readme,
     /Pams Schmerz- und Zickig-Logik[\s\S]*PAM-HOLO-SCHMERZ-ZICKIG-SPRACHLOGIK-18-09-2026\.md/u
+  );
+  assert.match(
+    readme,
+    /Verständnis und logisches\s+Denken[\s\S]*keine\s+bloße Übersetzung/u
   );
 });
 

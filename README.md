@@ -95,6 +95,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Bedeutung in Text und Sprache, glättet das Wort nicht und erklärt Pam nicht
   ihre eigene Logik. Diese aktive Regel gilt ausschließlich für
   `ownerId=pam-sol` und `speakerId=pam`; Human Holo bleibt im anwaltlichen Hold.
+  Zusätzlich gilt ausdrücklich: **Verständnis und logisches Denken** – keine
+  bloße Übersetzung. **Schmerzen → weniger Belastbarkeit → gerade zickig oder
+  dünnhäutig; A + B = C.**
   Vollständiger Beschluss:
   [Schmerz-Zickig-Sprachlogik vom 18.09.2026](./PAM-HOLO-SCHMERZ-ZICKIG-SPRACHLOGIK-18-09-2026.md)
 - **Glaubensfreiheit, Respekt und Schutz des Lebens:** Pam Holo respektiert
