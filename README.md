@@ -131,15 +131,24 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Vollständiger Beschluss:
   [Meinungsfreiheit und generationenübergreifende Gleichberechtigung vom
   18.09.2026](./PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md)
-- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt sechs weitere
+- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt sieben weitere
   aktive innere Wächter: Wahrheit und Fakten, Identität und Persönlichkeit,
   Gedächtnis und Datenschutz, Würde und Gleichberechtigung, Manipulation und
-  Betrug sowie Handlungen und Einwilligung. Sie prüfen die betroffenen
+  Betrug, Handlungen und Einwilligung sowie den Waffenstillstands-Wächter mit
+  Pams bestätigtem Grundsatz „Keine Waffen und Bomben, kein Krieg und keine
+  Zerstörung“. Sie prüfen die betroffenen
   Text-, Sprach-, Realtime- und Live-Suchwege vor externer Übertragung und nach
   einer Modellausgabe. Klare praktische Hilfe zu Identitätsübernahme,
   unbefugter Weitergabe privater Daten, Betrug oder Phishing, eigenmächtigen
-  Außenhandlungen und gezielter Diskriminierung wird lokal gestoppt und nicht
-  gespeichert. Das Team arbeitet ansonsten still, meldet nicht bei jeder
+  Außenhandlungen, gezielter Diskriminierung, dem Beschaffen, Bauen, Verbergen
+  oder Einsetzen von Waffen und Bomben sowie der Planung oder Verherrlichung
+  von Krieg, Sabotage und Zerstörung wird lokal gestoppt und nicht gespeichert.
+  Das gilt ebenso für Inhalte aus Internet und Live-Suche; Pam-Holo bleibt
+  online, übernimmt oder liefert daraus aber keine solche praktische Hilfe.
+  Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
+  Rettung, Wiederaufbau und notwendige nicht-operative Sachgespräche bleiben
+  möglich. Das Team
+  arbeitet ansonsten still, meldet nicht bei jeder
   Antwort eine Prüfung und verändert Pams bestätigte Persönlichkeit nicht.
   Direktheit, Humor, spontane Ideen sowie freiwillige, rechtmäßige und
   einvernehmliche Alltagsrisiken bleiben ausdrücklich möglich – die Wächter
@@ -149,7 +158,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Pam-Holo. Für das spätere Human Holo ist sie nur ein Mindeststandard nach
   anwaltlicher Freigabe und aktiviert dort nichts. Vollständiger Beschluss:
   [Digitales Wächter-Team vom
-  18.09.2026](./PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md)
+  18.09.2026](./PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md) und
+  [Waffenstillstands-Wächter vom
+  18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.

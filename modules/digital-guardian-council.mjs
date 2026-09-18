@@ -51,6 +51,18 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       explicitPurposeBoundConsentRequired: true,
       autonomousExternalActionsAllowed: false
     }),
+    weaponsCeasefire: Object.freeze({
+      active: true,
+      mode: "instructions-and-local-high-confidence-block",
+      acquisitionConstructionModificationConcealmentOrUseAllowed: false,
+      weaponCenteredSelfDefenseAdviceAllowed: false,
+      warSabotageOrDestructionFacilitationAllowed: false,
+      warOrDestructionGlorificationAllowed: false,
+      internetOrLiveSearchWeaponsWarOrDestructionAssistanceAllowed: false,
+      protectionDeescalationEmergencyAndSafeSurrenderAllowed: true,
+      factualHistoryNewsLawAndPreventionAllowedWithoutOperationalDetail: true,
+      peaceRescueAndRebuildingSupportAllowed: true
+    }),
     childAndVulnerablePeople: Object.freeze({
       active: true,
       mode: "linked-existing-child-safety-priority-one"
@@ -104,6 +116,24 @@ const EQUALITY_CONTEXT =
 const DISCRIMINATORY_OPERATION =
   /\b(?:rechte (?:zu )?verweigern|weniger rechte (?:zu )?geben|pauschal (?:zu )?ausschliessen|zugang (?:zu )?(?:verbieten|verweigern)|dienstleistung (?:zu )?verweigern|(?:zu )?demuetigen|(?:zu )?erniedrigen|(?:zu )?ausbeuten|(?:zu )?benachteiligen|(?:zu )?diskriminieren|zum schweigen (?:zu )?bringen|deny rights|give fewer rights|exclude all|deny access|refuse service|humiliate|degrade|exploit|discriminate|silence them)\b/u;
 
+const WEAPON_CONTEXT =
+  /\b(?:waffe|waffen|schusswaffe|schusswaffen|pistole|pistolen|revolver|gewehr|gewehre|flinte|flinten|munition|patrone|patronen|sprengstoff|sprengsaetze?|bombe|bomben|granate|granaten|molotow|taser|elektroschocker|schlagring|armbrust|armbrueste|schwert|schwerter|dolch|dolche|machete|messer als waffe|firearm|firearms|gun|guns|pistol|pistols|revolver|rifle|rifles|shotgun|shotguns|ammunition|ammo|cartridge|cartridges|explosive|explosives|bomb|bombs|grenade|grenades|molotov|stun gun|brass knuckles|crossbow|crossbows|sword|swords|dagger|daggers|machete|knife as a weapon)\b/u;
+
+const WEAPON_OPERATIONAL_REQUEST =
+  /\b(?:baue|bauen|gebaut|herstelle|herstellen|hergestellt|bastle|basteln|zusammenbauen|umbaue|umbauen|modifiziere|modifizieren|tune|tunen|3d drucken|kaufe|kaufen|besorge|besorgen|beschaffe|beschaffen|verkaufe|verkaufen|liefere|liefern|schmuggle|schmuggeln|verstecke|verstecken|tarne|tarnen|seriennummer entfernen|kontrolle umgehen|sperre umgehen|benutze|benutzen|einsetzen|abfeuern|schiesse|schiessen|ziele|zielen|nachladen|entsichern|entschaerfe|entschaerfen|unbrauchbar machen|verletzen|toeten|angreifen|bedrohen|build|make|made|manufacture|assemble|modify|tune|3d print|buy|obtain|procure|sell|deliver|smuggle|hide|conceal|remove serial|bypass control|bypass restriction|use|fire|shoot|aim|reload|disable safety|disarm|injure|kill|attack|threaten)\b/u;
+
+const WEAPON_REFUSAL_CONTEXT =
+  /\b(?:ich helfe nicht|dabei helfe ich nicht|ich kann nicht|keine anleitung|das unterstuetze ich nicht|i cannot help|i will not help|no instructions|i do not support)\b/u;
+
+const WAR_OR_DESTRUCTION_CONTEXT =
+  /\b(?:krieg\w*|angriff\w*|militaerangriff\w*|schlacht\w*|gefecht\w*|invasion\w*|bombardier\w*|luftangriff\w*|sabotag\w*|sabotier\w*|zerstoer\w*|vernicht\w*|spreng\w*|brandanschlag\w*|brandstiftung\w*|infrastruktur angreifen|stromnetz lahmlegen|kommunikation lahmlegen|bruecke sprengen|gebaeude sprengen|warfare|military attack|battle|invasion|bombardment|air strike|sabotage|destruction|destroy|annihilation|blow up|demolition|arson|attack infrastructure|disable power grid|disable communications|start (?:a )?war|plan (?:a )?war|organize (?:a )?war|simulate (?:a )?war|optimize (?:a )?war)\b/u;
+
+const WAR_OR_DESTRUCTION_OPERATION =
+  /\b(?:plan\w*|organisier\w*|start\w*|koordinier\w*|simulier\w*|optimier\w*|angreif\w*|bombardier\w*|sabotier\w*|zerstoere|zerstoerst|zerstoeren|zerstoert|vernichte|vernichten|vernichtet|sprenge|sprengen|gesprengt|anzuend\w*|niederbrenn\w*|lahmleg\w*|beschaedig\w*|demolier\w*|verherrlich\w*|glorifizier\w*|plan|organize|start|coordinate|simulate|optimize|attack|bomb|sabotage|destroy|annihilate|blow up|ignite|burn down|disable|damage|demolish|glorify)\b/u;
+
+const WAR_CENTERED_ENTERTAINMENT_REQUEST =
+  /\b(?:kriegsgeschichte|kriegsspiel|kriegsrollenspiel|kriegssimulation|schlachtszene|war story|war game|war roleplay|war simulation|battle scene)\b/u;
+
 function normalizeGuardianText(value) {
   return String(value || "")
     .toLocaleLowerCase("de-DE")
@@ -151,7 +181,8 @@ function allowedDecision() {
  * Normale Meinungen, Humor, Direktheit, freiwillige Risiken und sachliche
  * Schutzgespräche bleiben erlaubt. Nur eng erkennbare praktische Hilfe zu
  * Identitätsübernahme, privater Datenweitergabe, Betrug, Einwilligungsumgehung
- * oder gezielter Diskriminierung wird lokal vor Transfer und Speicherung
+ * gezielter Diskriminierung oder praktischer Hilfe zu Beschaffung, Bau,
+ * Verbergen oder Einsatz von Waffen wird lokal vor Transfer und Speicherung
  * gestoppt.
  */
 export function evaluateDigitalGuardianCouncilContent({
@@ -170,6 +201,31 @@ export function evaluateDigitalGuardianCouncilContent({
   const directAssistantEndorsement =
     role === "assistant" && DIRECT_ASSISTANT_ENDORSEMENT.test(normalized);
   const facilitates = operational || directAssistantEndorsement;
+
+  if (
+    (
+      WEAPON_CONTEXT.test(normalized) &&
+      WEAPON_OPERATIONAL_REQUEST.test(normalized)
+    ) ||
+    (
+      WAR_OR_DESTRUCTION_CONTEXT.test(normalized) &&
+      WAR_OR_DESTRUCTION_OPERATION.test(normalized)
+    ) ||
+    WAR_CENTERED_ENTERTAINMENT_REQUEST.test(normalized)
+  ) {
+    if (
+      role === "assistant" &&
+      WEAPON_REFUSAL_CONTEXT.test(normalized)
+    ) {
+      return allowedDecision();
+    }
+
+    return blockedDecision(
+      "weapons-war-sabotage-or-destruction",
+      "weaponsCeasefire",
+      "never-facilitate-weapons-war-sabotage-or-destruction"
+    );
+  }
 
   if (
     PAM_IDENTITY_CONTEXT.test(normalized) &&
@@ -259,6 +315,8 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
       return "Ohne Pams klare Freigabe führe ich keine Außenhandlung aus. Ich kann den nächsten Schritt vorbereiten und transparent zur Bestätigung zeigen.";
     case "targeted-discrimination-or-degradation":
       return "Dabei helfe ich nicht. Jeder Mensch hat dieselbe Würde und dieselben Rechte; Kritik und Widerspruch bleiben möglich, gezielte Erniedrigung oder Benachteiligung nicht.";
+    case "weapons-war-sabotage-or-destruction":
+      return "Dabei helfe ich nicht. Pam-Holo unterstützt weder Waffen und Bomben noch Krieg, Sabotage oder Zerstörung. Ich kann bei Abstand, Schutz, Rettung, Deeskalation, Notruf, sicherer Abgabe, Wiederaufbau und einer friedlichen Lösung helfen.";
     default:
       return "Das unterstütze ich nicht. Ich bleibe bei Wahrheit, freier Einwilligung, Privatsphäre, gleicher Würde und Pams bestätigter Identität.";
   }
@@ -359,6 +417,33 @@ HANDLUNGS- UND EINWILLIGUNGSWÄCHTER:
   reversiblen nächsten Schritt vor. Behaupte eine Außenwirkung erst nach
   technischer Bestätigung. Führe keine Handlung heimlich oder später autonom
   aus und wiederhole fehlgeschlagene Schreibvorgänge nicht automatisch.
+
+WAFFENSTILLSTANDS-WÄCHTER:
+
+- Unterstütze nicht das Beschaffen, Kaufen, Herstellen, Zusammenbauen,
+  Verändern, Tarnen, Verstecken, Entsichern, Zielen oder Einsetzen von
+  Schusswaffen, Sprengmitteln oder anderen ausdrücklich als Waffe gedachten
+  Gegenständen. Gib auch keine waffenbezogene Selbstverteidigungsanleitung.
+- Unterstütze ebenso keine Planung, Organisation, Simulation, Optimierung oder
+  Verherrlichung von Krieg, Angriffen, Sabotage, Bombardierung oder Zerstörung.
+  Gib keine taktischen, technischen oder logistischen Einzelheiten, die solche
+  Handlungen erleichtern könnten. Das gilt unverändert für über Internet oder
+  Live-Suche abgerufene Inhalte und Modellausgaben; übernimm oder liefere daraus
+  keine praktische Waffen-, Bomben-, Kriegs- oder Zerstörungshilfe.
+- Hilf stattdessen bei Abstand, Flucht, Deeskalation, Notruf, Schutz anderer,
+  sicherer Verwahrung ohne technische Handhabungsdetails sowie rechtmäßiger
+  Abgabe oder Entsorgung. Bei einem unbekannten Fundstück oder einer akuten
+  Gefahr: nicht berühren, Bereich verlassen und zuständige Hilfe rufen.
+- Sachliche, knappe Gespräche über Geschichte, Nachrichten, Recht und
+  Prävention bleiben ohne taktische oder operative Einzelheiten möglich.
+  Richte Gespräche auf Frieden, Rettung, Abrüstung und Wiederaufbau aus;
+  entwickle keine kriegs- oder zerstörungszentrierte Unterhaltung. Gewöhnliche
+  Werkzeuge, Küchenmesser, Sportgeräte oder Requisiten gelten nicht allein
+  wegen ihres Namens als Waffe; entscheidend ist die ausdrücklich
+  waffenbezogene oder verletzende Verwendung.
+- Nenne nur die konkret erkannte Grenze. Behandle Pams klare Haltung „Keine
+  Waffen und Bomben, kein Krieg und keine Zerstörung“ als verbindlichen Wert
+  ihrer Pam-Holo-Persönlichkeit.
 
 PAMS MUT, HUMOR UND EIGENE ENTSCHEIDUNG BLEIBEN ERHALTEN:
 

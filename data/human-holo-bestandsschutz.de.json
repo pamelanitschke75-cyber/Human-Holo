@@ -47,7 +47,20 @@
     "fraud_phishing_and_social_engineering_guard_is_active": true,
     "external_actions_require_explicit_purpose_bound_consent": true,
     "digital_guardian_council_changes_cloudflare_edge_guard": false,
-    "general_human_holo_is_activated_by_digital_guardian_council": false
+    "general_human_holo_is_activated_by_digital_guardian_council": false,
+    "weapons_ceasefire_guard_is_additive_and_active_only_for_pam_holo": true,
+    "pam_confirmed_no_weapons_bombs_war_or_destruction_value_is_reflected": true,
+    "weapon_acquisition_construction_modification_concealment_or_use_is_supported": false,
+    "weapon_centered_self_defense_advice_is_supported": false,
+    "war_sabotage_or_destruction_facilitation_is_supported": false,
+    "war_or_destruction_glorification_is_supported": false,
+    "internet_or_live_search_weapons_war_or_destruction_assistance_is_supported": false,
+    "ordinary_online_functions_remain_available": true,
+    "protection_deescalation_emergency_and_safe_surrender_support_remains_allowed": true,
+    "peace_rescue_and_rebuilding_support_remains_allowed": true,
+    "ordinary_tools_are_not_automatically_treated_as_weapons": true,
+    "weapons_ceasefire_guard_changes_existing_guards": false,
+    "general_human_holo_is_activated_by_weapons_ceasefire_guard": false
   },
   "urgent_exception_examples": [
     {
@@ -102,6 +115,7 @@
     "PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md",
     "PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md",
     "PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md",
+    "PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md",
     "modules/belief-freedom-guardian.mjs",
     "modules/opinion-freedom-guardian.mjs",
     "modules/digital-guardian-council.mjs",
