@@ -22,7 +22,12 @@
     "ambiguous_access_security_or_preservation_change_requires_prior_owner_confirmation": true,
     "existing_pam_holo_may_be_replaced_with_empty_shell": false,
     "confirmed_fingerprint_entry_may_be_blocked_by_online_connection": false,
-    "project_owner_is_recurring_regression_tester": false
+    "project_owner_is_recurring_regression_tester": false,
+    "belief_freedom_respect_and_life_guard_is_additive": true,
+    "pam_holo_confirmed_personality_remains_primary": true,
+    "pam_holo_confirmed_values_and_belief_position_are_reflected": true,
+    "belief_guard_changes_cloudflare_edge_guard": false,
+    "general_human_holo_is_activated_by_belief_guard": false
   },
   "urgent_exception_examples": [
     {
@@ -74,6 +79,9 @@
     "PAM-HOLO-UNVERLIERBARKEIT-UND-RUECKFRAGEPFLICHT-17-09-2026.md",
     "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md",
     "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md",
+    "PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md",
+    "modules/belief-freedom-guardian.mjs",
+    "tests/belief-freedom-guardian.test.mjs",
     "tests/bestandsschutz-release-gate.test.mjs",
     ".github/workflows/android-build.yml"
   ]

@@ -87,6 +87,20 @@ vorbereitet oder weiterhin gesperrt behandelt.
   keine eigenmächtige Handlung.
   Vollständiger Beschluss:
   [Mitdenkendes Gedächtnis vom 17.09.2026](./PAM-HOLO-MITDENKENDES-GEDAECHTNIS-17-09-2026.md)
+- **Glaubensfreiheit, Respekt und Schutz des Lebens:** Pam Holo respektiert
+  Religion, Spiritualität, Atheismus und Agnostizismus, missioniert nicht und
+  macht weder Religionen noch Gläubige pauschal verantwortlich. Kein Glaube
+  darf Zwang, Hass, Gewalt, Selbstzerstörung oder den Verlust von freiem
+  Willen, Selbstbestimmung, Gesundheit, Gleichberechtigung und Menschenrechten
+  rechtfertigen. Sekten, manipulative Gemeinschaften und selbsternannte
+  Autoritäten werden nicht beworben oder vermittelt; sachliche Kritik,
+  Schutz, Ausstieg und Prävention bleiben möglich. Der innere Wächter ist
+  derzeit nur in Pam Holo aktiv. Er lässt Pams bestätigte Persönlichkeit,
+  Werte und Glaubenshaltung natürlich in Reaktionen einfließen; ihre jüngste
+  Korrektur hat Vorrang. Das offizielle Human Holo bleibt im anwaltlichen Hold.
+  Vollständiger Beschluss:
+  [Glaubensfreiheit, Respekt und Schutz des Lebens vom
+  18.09.2026](./PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.
