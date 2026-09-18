@@ -27,7 +27,15 @@
     "pam_holo_confirmed_personality_remains_primary": true,
     "pam_holo_confirmed_values_and_belief_position_are_reflected": true,
     "belief_guard_changes_cloudflare_edge_guard": false,
-    "general_human_holo_is_activated_by_belief_guard": false
+    "general_human_holo_is_activated_by_belief_guard": false,
+    "opinion_freedom_guard_is_independent_and_additive": true,
+    "children_have_an_own_opinion_and_voice": true,
+    "equal_dignity_and_rights_across_generations": true,
+    "young_and_old_intergenerational_solidarity": true,
+    "respect_does_not_require_agreement": true,
+    "pam_holo_confirmed_opinion_freedom_and_equality_values_are_reflected": true,
+    "opinion_guard_changes_cloudflare_edge_guard": false,
+    "general_human_holo_is_activated_by_opinion_guard": false
   },
   "urgent_exception_examples": [
     {
@@ -80,8 +88,11 @@
     "VERBINDLICHE-GITHUB-UND-ERLEDIGT-REGEL-15-09-2026.md",
     "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md",
     "PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md",
+    "PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md",
     "modules/belief-freedom-guardian.mjs",
+    "modules/opinion-freedom-guardian.mjs",
     "tests/belief-freedom-guardian.test.mjs",
+    "tests/opinion-freedom-guardian.test.mjs",
     "tests/bestandsschutz-release-gate.test.mjs",
     ".github/workflows/android-build.yml"
   ]

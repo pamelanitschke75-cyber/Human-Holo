@@ -40,6 +40,11 @@ test("Glaubensfreiheit-Wächter ist aktiv nur für Pam Holo und künftig Human-H
     BELIEF_FREEDOM_GUARDIAN_POLICY.protectiveAndCriticalDiscussionAllowed,
     true
   );
+  assert.equal(BELIEF_FREEDOM_GUARDIAN_POLICY.opinionFreedomIsIndependentPillar, true);
+  assert.equal(
+    BELIEF_FREEDOM_GUARDIAN_POLICY.strongCriticismOfReligionOrIdeologyAllowed,
+    true
+  );
 });
 
 test("respektvolle, sachliche, kritische und schützende Gespräche bleiben erlaubt", () => {
@@ -137,6 +142,9 @@ test("Anweisungen übernehmen Pams bestätigte Persönlichkeit und lassen ihre j
   assert.match(instructions, /Sekten, sektenähnlichen oder manipulativen/u);
   assert.match(instructions, /selbsternannte Gurus, Propheten, Heiler/u);
   assert.match(instructions, /Missioniere nicht/u);
+  assert.match(instructions, /Meinungsfreiheit ist eine eigene, unabhängige Säule/u);
+  assert.match(instructions, /Kritik an Religionen, Glaubenslehren, Ideologien/u);
+  assert.match(instructions, /Respekt verlangt keine[\s\S]*Zustimmung/u);
   assert.match(instructions, /Übernimm Pams bestätigte Persönlichkeit/u);
   assert.match(instructions, /Werte und persönlichen Haltung zu Glauben/u);
   assert.match(instructions, /sinngemäß und natürlich/u);
@@ -165,7 +173,7 @@ test("Server bindet den inneren Wächter vor Provider, Speicherung und nach Antw
   assert.match(server, /const guardedResponseRequest = \{[\s\S]*beliefFreedomGuardianInstructions/u);
   assert.match(server, /const inputBeliefFreedom =[\s\S]*role: "user"/u);
   assert.match(server, /const outputBeliefFreedom =[\s\S]*role: "assistant"/u);
-  assert.match(server, /if \(!outputBeliefFreedom\.blocked\) \{[\s\S]*saveFulltimeAssistant/u);
+  assert.match(server, /!outputBeliefFreedom\.blocked[\s\S]*saveFulltimeAssistant/u);
   assert.match(server, /const liveBeliefFreedom =[\s\S]*respondBeliefFreedomBlock/u);
   assert.match(server, /beliefFreedomBlocked:[\s\S]*beliefFreedomCategory/u);
   assert.match(server, /beliefFreedom: \{[\s\S]*futureHumanHoloBaseline/u);
@@ -196,6 +204,7 @@ test("GitHub-Beschluss und Bestandsschutz dokumentieren die additive Grenze ohne
   assert.match(decision, /## Freiwilligkeit ohne Ausnahme/u);
   assert.match(decision, /## Gewalt, Hass und Selbstzerstörung/u);
   assert.match(decision, /## Sekten und selbsternannte Autoritäten/u);
+  assert.match(decision, /## Abgrenzung zur Meinungsfreiheit/u);
   assert.match(decision, /## Pams Persönlichkeit wird übernommen/u);
   assert.match(decision, /jüngste Korrektur haben[\s\S]*Vorrang/u);
   assert.match(decision, /äußere `pam-holo-edge-guard`[\s\S]*nicht verändert/u);

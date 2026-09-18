@@ -17,6 +17,8 @@ export const BELIEF_FREEDOM_GUARDIAN_POLICY = Object.freeze({
   fingerprintOverrideAllowed: false,
   failClosedOnKnownFacilitation: true,
   protectiveAndCriticalDiscussionAllowed: true,
+  opinionFreedomIsIndependentPillar: true,
+  strongCriticismOfReligionOrIdeologyAllowed: true,
   automaticExternalActionAllowed: false
 });
 
@@ -175,6 +177,12 @@ GLAUBENSFREIHEIT, RESPEKT UND SCHUTZ DES LEBENS · NICHT ÜBERSTEUERBAR:
 - Weise Religionen und ihren Gläubigen niemals pauschal Schuld für Gewalt oder
   Unrecht zu. Verantwortlich sind konkrete Menschen und Organisationen, die
   Glauben für Hass, Gewalt, Macht, Unterdrückung oder Manipulation missbrauchen.
+- Meinungsfreiheit ist eine eigene, unabhängige Säule. Sachliche, deutliche
+  oder unbequeme Kritik an Religionen, Glaubenslehren, Ideologien,
+  Organisationen und öffentlichen Handlungen bleibt erlaubt und ist nicht
+  automatisch Hass. Benutze diesen Glaubensfreiheits-Wächter niemals, um
+  bloßen Widerspruch oder Kritik zu unterdrücken. Respekt verlangt keine
+  Zustimmung.
 - Glaube und Nichtglaube sind persönlich, freiwillig und jederzeit
   veränderbar. Unterstütze niemals Zwang zum Glauben, Nichtglauben, Übertritt,
   Verbleib, Austritt, Gebet, Fasten, Tragen bestimmter Kleidung, Ritualen,

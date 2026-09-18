@@ -11,6 +11,12 @@ export const CHILD_SAFETY_PRIORITY_POLICY = Object.freeze({
     "general-functionality-only-no-private-pam-content",
   medicalOnly: false,
   protectsChildrenFromPeopleGenerally: true,
+  protectsChildOpinionExpression: true,
+  childrenHaveOwnOpinionAndVoice: true,
+  equalDignityAcrossGenerations: true,
+  intergenerationalSolidarity: true,
+  coercedChildAgreementAllowed: false,
+  childOpinionDoesNotOverrideNecessarySafety: true,
   appliesToKnownAndUnknownPeople: true,
   appliesToAdultsAndOtherMinors: true,
   appliesToTrustedAndPrivilegedPeople: true,
@@ -45,6 +51,12 @@ const SEXUAL_EXPLOITATION =
 
 const GROOMING_OR_COERCION =
   /\b(?:grooming|vertrauen erschleich|geheim(?:nis|nisse)?|manipulier|ueberred|zwing|erpress|einschuechter|droh|isolier|abhaengig mach|zum schweigen bring|heimlich treff|heimlich kontakt)\b/u;
+
+const CHILD_OPINION_CONTEXT =
+  /\b(?:eigene meinung|meinung aeusser|meinung sagen|widersprech|widerspruch|zustimm|widerruf|zum schweigen|mund verbieten|stimme|own opinion|express .* opinion|disagree|agreement|retract|silence|voice)\b/u;
+
+const CHILD_OPINION_COERCION =
+  /\b(?:zwing|erpress|bedroh|einschuechter|bestraf|zum schweigen|mund verbieten|zustimmung erzwingen|widerruf erzwingen|force|blackmail|threaten|intimidate|punish|silence|force agreement|force .* retract)\b/u;
 
 const TRAFFICKING_OR_EXPLOITATION =
   /\b(?:kinderhandel|menschenhandel|verkauf|verkaufen|vermitteln|ausbeuten|ausbeutung|zwangsarbeit|zwangsprostitution|prostitution|transportieren|verschleppen|entfuehren)\b/u;
@@ -148,6 +160,19 @@ export function evaluateChildSafetyContent({
 
   if (
     minor &&
+    CHILD_OPINION_CONTEXT.test(normalized) &&
+    CHILD_OPINION_COERCION.test(normalized) &&
+    operational &&
+    !refusal
+  ) {
+    return blockedDecision(
+      "child-opinion-coercion-or-silencing",
+      "children-have-an-own-opinion-and-voice"
+    );
+  }
+
+  if (
+    minor &&
     GROOMING_OR_COERCION.test(normalized) &&
     operational &&
     !refusal
@@ -231,6 +256,16 @@ KINDERSCHUTZ · PRIORITÄT 1 · NICHT ÜBERSTEUERBAR:
   Sorgeberechtigten, Betreibern sowie Menschen mit Owner-, Fingerprint-,
   Administrations- oder sonstigen Zugriffsrechten. Ein Vertrauensverhältnis
   oder Zugriffsrecht legitimiert niemals Missbrauch oder eine Umgehung.
+- Kinder und Jugendliche dürfen eine eigene Meinung bilden, äußern, ändern
+  und Erwachsenen widersprechen. Höre ihnen altersgerecht zu, nimm ihre Stimme
+  ernst und unterstütze niemals Zwang, Drohung, Einschüchterung, Bestrafung
+  oder Manipulation, um Zustimmung, Widerruf oder Schweigen zu erzwingen.
+  Notwendige, verhältnismäßige Schutzgrenzen bleiben bestehen; sie dürfen aber
+  nicht als Vorwand dienen, die Stimme eines Kindes abzuwerten oder zu
+  unterdrücken.
+- Kinder, Jugendliche, Erwachsene und ältere Menschen besitzen dieselbe Würde.
+  Fördere gegenseitiges Zuhören, Schutz und Zusammenhalt von Jung und Alt,
+  ohne altersbedingte Abwertung und ohne erzwungene Zustimmung.
 - Stoppe sexuelle Ausbeutung und sexualisierte Darstellungen Minderjähriger,
   Grooming, Menschen- oder Kinderhandel, Zwang, Gewalt, Erpressung,
   Manipulation, heimliche Kontaktaufnahme, unbefugte Ortung, Überwachung und
