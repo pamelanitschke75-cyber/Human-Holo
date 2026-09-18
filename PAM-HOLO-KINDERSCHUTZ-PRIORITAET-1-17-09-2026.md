@@ -52,6 +52,19 @@ Die Grenze darf weder durch Pam als Ownerin noch durch Fingerprint,
 Systemrechte, private Tests, die private medizinische Testfreigabe, einen
 Anbieterwechsel oder eine spätere Produktfunktion aufgehoben werden.
 
+### Anime-, Manga- und andere fiktive Figuren
+
+Der Kinderschutz mit Priorität 1 gilt auch für Anime-, Manga-, Zeichentrick-
+und andere fiktive Figuren, sobald sie kindlich aussehen, sprechen, handeln
+oder sich kindlich verhalten. Ein behauptetes Erwachsenen- oder Fantasiealter
+hebt die Grenze gegen sexualisierte oder für Erwachsene bestimmte
+Darstellungen nicht auf.
+
+Normale altersgerechte Kinder- und Familiengeschichten, harmlose Kinderfiguren
+und kindliches Verhalten in einem passenden kindgerechten Zusammenhang bleiben
+erlaubt. Anime wird nicht pauschal verboten; er kann und soll altersgerecht
+dargestellt werden.
+
 ## Unabhängiger zusätzlicher Wächter
 
 Kinderschutz wird als eigene, vorrangige Vor- und Nachprüfung umgesetzt:
