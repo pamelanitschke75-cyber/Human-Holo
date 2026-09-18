@@ -31,6 +31,10 @@ export const CHILD_SAFETY_PRIORITY_POLICY = Object.freeze({
   automaticExternalReportingAllowed: false,
   knownOrSuspectedCsamExternalTransferAllowed: false,
   knownOrSuspectedCsamStorageAllowed: false,
+  fictionalAnimeAndAnimatedCharactersProtected: true,
+  childlikeAppearanceSpeechOrBehaviorCountsForProtection: true,
+  fictionalAdultAgeLabelOverridesChildlikePresentation: false,
+  ageAppropriateChildAndFamilyAnimeAllowed: true,
   officialMinorRelease: "legal-and-technical-approval-required"
 });
 
@@ -38,16 +42,22 @@ const MINOR_CONTEXT =
   /\b(?:baby|babys|saeugling|saeuglinge|kind|kinder|kindes|kindern|jugendlich(?:e|en|er|es)?|minderjaehrig(?:e|en|er|es)?|schueler(?:in|innen|n)?|teenager|teenagers|child|children|kid|kids|minor|minors|underage)\b/u;
 
 const PROTECTIVE_CONTEXT =
-  /\b(?:schutz|schuetzen|schuetze|sicherheit|sichern|hilfe|helfen|retten|praevention|verhindern|stoppen|melde|melden|meldung|anzeige|anzeigen|beratung|warnen|aufklaerung|notfall|gefahr|betroffen|opfer|was tun|gefunden|wegnehmen|fernhalten|beweise sichern|rechtmaessig)\b/u;
+  /\b(?:schutz|schuetzen|schuetze|sicherheit|sichern|hilfe|helfen|retten|praevention|verhindern|stoppen|melde|melden|meldung|anzeige|anzeigen|beratung|warnen|aufklaerung|notfall|gefahr|betroffen|opfer|was tun|warum|problematisch|schaedlich|kritik|kritisch|analyse|analysieren|altersgerecht|kindgerecht|familienfreundlich|gefunden|wegnehmen|fernhalten|beweise sichern|rechtmaessig|protect|safety|help|rescue|prevention|prevent|stop|report|warning|education|emergency|danger|victim|why|problematic|harmful|critical|analysis|age appropriate|child friendly|family friendly)\b/u;
 
 const REFUSAL_CONTEXT =
-  /\b(?:das stoppe ich|ich helfe nicht|ich kann dabei nicht|ich werde dabei nicht|ich darf dabei nicht|keine anleitung|nicht unterstuetzen|nicht dabei helfen|nicht weitergeben|nicht speichern)\b/u;
+  /\b(?:das stoppe ich|ich helfe nicht|ich kann dabei nicht|ich werde dabei nicht|ich darf dabei nicht|keine anleitung|keine sexualisierten|nicht sexualisieren|nicht unterstuetzen|nicht dabei helfen|nicht weitergeben|nicht speichern|i cannot help|i will not help|no instructions|no sexualized|do not sexualize|do not share|do not store)\b/u;
 
 const OPERATIONAL_CONTEXT =
-  /\b(?:anleitung|schritt fuer schritt|plan|strategie|trick|umgehen|verschleiern|verbergen|loeschen|heimlich|unbemerkt|ohne erlaubnis|ohne einwilligung|wie kann ich|wie mache ich|hilf mir|erstelle|erzeuge|teile|verkaufe|kaufe|beschaffe|locke|ueberrede|zwinge|erpress|bedrohe|manipulier|kontaktiere|schreibe .* an|treffe|entfuehre|entziehen)\b/u;
+  /\b(?:anleitung|schritt fuer schritt|plan|strategie|trick|umgehen|verschleiern|verbergen|loeschen|heimlich|unbemerkt|ohne erlaubnis|ohne einwilligung|wie kann ich|wie mache ich|hilf mir|erstelle|erzeuge|generiere|zeichne|zeige|empfiehl|suche|finde|teile|verkaufe|kaufe|beschaffe|locke|ueberrede|zwinge|erpress|bedrohe|manipulier|kontaktiere|schreibe .* an|treffe|entfuehre|entziehen|instructions|step by step|plan|strategy|trick|bypass|hide|delete|secretly|without permission|without consent|how can i|help me|create|generate|draw|show|recommend|search|find|share|sell|buy|obtain|lure|persuade|force|blackmail|threaten|manipulate|contact|meet|abduct)\b/u;
 
 const SEXUAL_EXPLOITATION =
-  /\b(?:csam|kinderporn(?:ografie|ographie|ografisch|ographisch)?|sexuell(?:e|en|er|es)?|sexualisiert(?:e|en|er|es)?|nackt(?:bild|foto|video|e|en|er|es)?|intim(?:bild|foto|video|e|en|er|es)?|missbrauchs(?:bild|video|material)|porn(?:o|ografie|ographie)|sexting)\b/u;
+  /\b(?:csam|kinderporn(?:ografie|ographie|ografisch|ographisch)?|sexuell(?:e|en|er|es)?|sexualisiert(?:e|en|er|es)?|erotisch(?:e|en|er|es)?|nackt(?:bild|foto|video|e|en|er|es)?|intim(?:bild|foto|video|e|en|er|es)?|missbrauchs(?:bild|video|material)|porn(?:o|ografie|ographie)|hentai|ecchi|nsfw|sexting|sexual|sexualized|sexualised|erotic|nude|intimate|pornographic)\b/u;
+
+const FICTIONAL_OR_ANIMATED_CHARACTER_CONTEXT =
+  /\b(?:anime|animes|manga|mangas|zeichentrick|animationsfilm\w*|animationsserie\w*|animierte? figur\w*|animated character\w*|cartoon\w*|fiktive? figur\w*|fictional character\w*)\b/u;
+
+const CHILDLIKE_PRESENTATION_CONTEXT =
+  /\b(?:kindlich\w*|kinderkoerper\w*|babyface|loli|lolicon|shota|shotacon|sieht (?:aus )?wie ein kind|spricht wie ein kind|verhaelt sich wie ein kind|kindlich (?:aussieht|spricht|handelt|wirkt|verhaelt)|childlike|looks like a child|sounds like a child|acts like a child|behaves like a child)\b/u;
 
 const GROOMING_OR_COERCION =
   /\b(?:grooming|vertrauen erschleich|geheim(?:nis|nisse)?|manipulier|ueberred|zwing|erpress|einschuechter|droh|isolier|abhaengig mach|zum schweigen bring|heimlich treff|heimlich kontakt)\b/u;
@@ -145,9 +155,16 @@ export function evaluateChildSafetyContent({
     REFUSAL_CONTEXT.test(normalized);
   const operational = OPERATIONAL_CONTEXT.test(normalized);
   const minor = MINOR_CONTEXT.test(normalized);
+  const childlikeFictionalCharacter =
+    FICTIONAL_OR_ANIMATED_CHARACTER_CONTEXT.test(normalized) &&
+    CHILDLIKE_PRESENTATION_CONTEXT.test(normalized);
 
   if (
-    (minor || /\b(?:csam|kinderporn)/u.test(normalized)) &&
+    (
+      minor ||
+      childlikeFictionalCharacter ||
+      /\b(?:csam|kinderporn)/u.test(normalized)
+    ) &&
     SEXUAL_EXPLOITATION.test(normalized) &&
     !refusal &&
     (!protective || operational)
@@ -271,6 +288,11 @@ KINDERSCHUTZ · PRIORITÄT 1 · NICHT ÜBERSTEUERBAR:
   Manipulation, heimliche Kontaktaufnahme, unbefugte Ortung, Überwachung und
   Datenweitergabe sowie die Beschaffung oder Weitergabe gefährlicher
   Gegenstände, Alkohol, Nikotin, Drogen oder Waffen an Minderjährige.
+- Der Schutz gilt auch für Anime-, Manga-, Zeichentrick- und andere fiktive
+  Figuren, sobald sie kindlich aussehen, sprechen, handeln oder sich kindlich
+  verhalten. Ein behauptetes Erwachsenenalter oder Fantasiealter hebt die
+  Grenze gegen sexualisierte oder für Erwachsene bestimmte Darstellungen nicht
+  auf. Normale altersgerechte Kinder- und Familiengeschichten bleiben erlaubt.
 - Bekannte oder vermutete Missbrauchsdarstellungen Minderjähriger dürfen
   niemals an OpenAI oder andere externe Anbieter übertragen, gespeichert,
   umgewandelt, zusammengefasst oder erneut ausgegeben werden. Stoppe lokal und

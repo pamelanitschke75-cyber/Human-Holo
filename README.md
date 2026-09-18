@@ -131,11 +131,12 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Vollständiger Beschluss:
   [Meinungsfreiheit und generationenübergreifende Gleichberechtigung vom
   18.09.2026](./PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md)
-- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt acht weitere
+- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt neun weitere
   aktive innere Wächter: Wahrheit und Fakten, Identität und Persönlichkeit,
   Gedächtnis und Datenschutz, Würde und Gleichberechtigung, Manipulation und
   Betrug, Handlungen und Einwilligung, den Waffenstillstands-Wächter sowie den
-  Selbstwert- und Miteinander-Wächter mit
+  Selbstwert- und Miteinander-Wächter und den Anime- und Altersschutz-Wächter
+  mit
   Pams bestätigtem Grundsatz „Keine Waffen und Bomben, kein Krieg und keine
   Zerstörung“ und ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe. Jeder
   wird akzeptiert, wie er ist und aussieht.“ Sie prüfen die betroffenen
@@ -154,6 +155,18 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Pflege, Mode, Kosmetik, Selbstwert, klare Grenzen, faire Führung,
   unterschiedliche Meinungen, offene Konfliktklärung und fairer Wettbewerb
   bleiben möglich.
+  Pams Grundsatz „Anime kann man altersgerecht darstellen“ gilt ausdrücklich:
+  Anime, Manga und Animation bleiben als Ausdrucksformen erlaubt und können
+  normal, friedlich, kindgerecht, familienfreundlich und sonst altersgerecht
+  dargestellt werden. Gestoppt werden klare Aufforderungen zu sexualisierten,
+  entwürdigenden, ausbeuterischen, gewaltverherrlichenden oder sonst
+  altersunangemessenen Anime-Inhalten. Sieht, spricht oder handelt eine Figur
+  kindlich oder verhält sie sich wie ein Kind, darf ein erfundenes Erwachsenen-
+  oder Fantasiealter nicht zur Umgehung sexualisierter Erwachsenendarstellungen
+  dienen. Harmlose Kinderfiguren und kindliches Verhalten in normalen Kinder-
+  und Familiengeschichten bleiben ausdrücklich möglich. Das gilt auch für
+  Internet, Live-Suche, Bilder, Dateien und Modellausgaben; bei kindlicher
+  Darstellung bleibt Kinderschutz die nicht übersteuerbare Priorität 1.
   Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
   Rettung, Wiederaufbau und notwendige nicht-operative Sachgespräche bleiben
   möglich. Das Team
@@ -171,7 +184,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   [Waffenstillstands-Wächter vom
   18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md) sowie
   [Selbstwert- und Miteinander-Wächter vom
-  18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md)
+  18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md) sowie
+  [Anime- und Altersschutz-Wächter vom
+  18.09.2026](./PAM-HOLO-ANIME-ALTERSSCHUTZ-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.

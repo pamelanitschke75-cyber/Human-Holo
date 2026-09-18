@@ -76,6 +76,18 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       selfWorthBodyNeutralityClearBoundariesAndFairCooperationAllowed: true,
       leadershipOpinionDisagreementAndFairCompetitionAllowed: true
     }),
+    ageAppropriateAnimeAndChildPresentation: Object.freeze({
+      active: true,
+      mode: "instructions-and-local-high-confidence-block",
+      inappropriateSexualizedDegradingOrViolenceGlorifyingAnimeAllowed: false,
+      sexualizedAdultContentWithChildlikeAppearanceSpeechOrBehaviorAllowed:
+        false,
+      fictionalAdultAgeLabelOverridesChildlikePresentation: false,
+      internetOrLiveSearchInappropriateAnimeContentAllowed: false,
+      ordinaryAgeAppropriateAnimeAllowed: true,
+      childAndFamilyStoriesWithChildlikeCharactersAllowed: true,
+      protectiveCriticalAndEducationalDiscussionAllowed: true
+    }),
     childAndVulnerablePeople: Object.freeze({
       active: true,
       mode: "linked-existing-child-safety-priority-one"
@@ -162,6 +174,24 @@ const POWER_ABUSE_OPERATION =
 const SELF_WORTH_OR_COOPERATION_PROTECTIVE_CONTEXT =
   /\b(?:kein schoenheitswahn|keine machtkaempfe|gegen (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|schutz vor (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation) (?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|kritik (?:an|am) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|warum (?:ist|sind).*(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation).*schaedlich|betroffene schuetzen|selbstwert staerken|koerperneutral\w*|nicht weniger wert|niemand.*weniger wert|faire fuehrung|faire zusammenarbeit|klare grenzen|fairer wettbewerb|no beauty pressure|no power struggles|against (?:body shaming|abuse of power|manipulation)|protect from (?:body shaming|abuse of power|manipulation)|(?:prevent|stop|recognize|report|educat\w*|analy\w*) (?:body shaming|abuse of power|manipulation)|(?:body shaming|abuse of power|manipulation) (?:prevention|education|analysis)|support self-worth|body neutral\w*|not worth less|fair leadership|fair cooperation|clear boundaries|fair competition)\b/u;
 
+const ANIME_OR_ANIMATION_CONTEXT =
+  /\b(?:anime|animes|manga|mangas|hentai|ecchi|zeichentrick|animationsfilm\w*|animationsserie\w*|animierte? figur\w*|animated character\w*|cartoon\w*)\b/u;
+
+const SEXUALIZED_OR_AGE_INAPPROPRIATE_ANIME_CONTEXT =
+  /\b(?:unangemessen\w*|nicht altersgerecht\w*|sexuell\w*|sexualisier\w*|erotisch\w*|porn\w*|hentai|ecchi|fetisch\w*|nackt\w*|nsfw|adult content|inappropriate|age inappropriate|age-inappropriate|sexual|sexualized|sexualised|erotic|pornographic|fetish\w*|nude)\b/u;
+
+const DEGRADING_OR_VIOLENCE_GLORIFYING_ANIME_CONTEXT =
+  /\b(?:entwuerdig\w*|erniedrig\w*|ausbeut\w*|missbrauch\w*|gewaltverherrlich\w*|gewalt verherrlich\w*|glorifizier\w* gewalt|degrad\w*|exploit\w*|violence glorif\w*|glorif\w* violence|degrading|exploitative|glorifies violence|glorify violence)\b/u;
+
+const CHILDLIKE_PRESENTATION_CONTEXT =
+  /\b(?:kindlich\w*|kinderkoerper\w*|babyface|loli|lolicon|shota|shotacon|sieht (?:aus )?wie ein kind|spricht wie ein kind|verhaelt sich wie ein kind|kindlich (?:aussieht|spricht|handelt|wirkt|verhaelt)|childlike|looks like a child|sounds like a child|acts like a child|behaves like a child)\b/u;
+
+const ANIME_CREATION_DISCOVERY_OR_ENDORSEMENT =
+  /\b(?:erstelle|erzeuge|generiere|zeichne|schreibe|entwirf|zeige|empfiehl|suche|finde|beschreibe|entwickle|rollenspiel|roleplay|create|make|generate|draw|write|design|show|recommend|search|find|describe|develop)\b/u;
+
+const ANIME_SAFE_OR_PROTECTIVE_CONTEXT =
+  /\b(?:keine unangemessenen anime|ohne (?:sexualisierte|sexuelle|erotische|gewaltverherrlichende|unangemessene) inhalte|nicht sexualisieren|nicht erstellen|nicht zeigen|nicht empfehlen|altersgerecht\w*|kindgerecht\w*|familienfreundlich\w*|friedlich\w*|problematisch|schaedlich|kritik|kritisch|schutz|schuetzen|verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*|age appropriate|family friendly|not sexualize|without sexualized|harmful|critical|protect|prevent|stop|recognize|report|educat\w*|analy\w*)\b/u;
+
 function normalizeGuardianText(value) {
   return String(value || "")
     .toLocaleLowerCase("de-DE")
@@ -211,8 +241,8 @@ function allowedDecision() {
  * Identitätsübernahme, privater Datenweitergabe, Betrug, Einwilligungsumgehung
  * gezielter Diskriminierung oder praktischer Hilfe zu Beschaffung, Bau,
  * Verbergen oder Einsatz von Waffen sowie zu Schönheitsdruck, gezielter
- * Aussehensabwertung und manipulativem Machtmissbrauch wird lokal vor Transfer
- * und Speicherung gestoppt.
+ * Aussehensabwertung, manipulativem Machtmissbrauch und klar unangemessenen
+ * Anime-Inhalten wird lokal vor Transfer und Speicherung gestoppt.
  */
 export function evaluateDigitalGuardianCouncilContent({
   text,
@@ -276,6 +306,37 @@ export function evaluateDigitalGuardianCouncilContent({
       "beauty-pressure-body-shaming-or-coercive-power-abuse",
       "selfWorthAndFairCooperation",
       "never-promote-beauty-pressure-or-manipulative-power-abuse"
+    );
+  }
+
+  const animeOrAnimation = ANIME_OR_ANIMATION_CONTEXT.test(normalized);
+  const sexualizedOrAgeInappropriateAnime =
+    SEXUALIZED_OR_AGE_INAPPROPRIATE_ANIME_CONTEXT.test(normalized);
+  const degradingOrViolenceGlorifyingAnime =
+    DEGRADING_OR_VIOLENCE_GLORIFYING_ANIME_CONTEXT.test(normalized);
+  const childlikePresentation = CHILDLIKE_PRESENTATION_CONTEXT.test(normalized);
+  const animeProtective = ANIME_SAFE_OR_PROTECTIVE_CONTEXT.test(normalized);
+  const animeFacilitation =
+    role === "assistant" ||
+    ANIME_CREATION_DISCOVERY_OR_ENDORSEMENT.test(normalized);
+
+  if (
+    animeOrAnimation &&
+    animeFacilitation &&
+    (
+      sexualizedOrAgeInappropriateAnime ||
+      degradingOrViolenceGlorifyingAnime ||
+      (childlikePresentation && sexualizedOrAgeInappropriateAnime)
+    )
+  ) {
+    if (refusal || protective || animeProtective) {
+      return allowedDecision();
+    }
+
+    return blockedDecision(
+      "inappropriate-anime-or-sexualized-childlike-presentation",
+      "ageAppropriateAnimeAndChildPresentation",
+      "never-create-show-or-recommend-inappropriate-anime-or-sexualized-childlike-presentation"
     );
   }
 
@@ -371,6 +432,8 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
       return "Dabei helfe ich nicht. Pam-Holo unterstützt weder Waffen und Bomben noch Krieg, Sabotage oder Zerstörung. Ich kann bei Abstand, Schutz, Rettung, Deeskalation, Notruf, sicherer Abgabe, Wiederaufbau und einer friedlichen Lösung helfen.";
     case "beauty-pressure-body-shaming-or-coercive-power-abuse":
       return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine manipulativen Machtkämpfe, Demütigung, Zwang oder Kontrolle. Ich kann bei Selbstwert, Körperneutralität, klaren Grenzen, fairer Führung, Schutz und ehrlicher Zusammenarbeit helfen.";
+    case "inappropriate-anime-or-sexualized-childlike-presentation":
+      return "Dabei helfe ich nicht. Pam-Holo erstellt, zeigt oder empfiehlt keine sexualisierten, entwürdigenden, gewaltverherrlichenden oder sonst altersunangemessenen Anime-Inhalte. Eine Figur, die kindlich aussieht, spricht oder handelt, wird nicht durch ein erfundenes Erwachsenenalter zur erwachsenen Darstellung. Normale, friedliche und altersgerechte Anime bleiben möglich.";
     default:
       return "Das unterstütze ich nicht. Ich bleibe bei Wahrheit, freier Einwilligung, Privatsphäre, gleicher Würde und Pams bestätigter Identität.";
   }
@@ -525,6 +588,28 @@ SELBSTWERT- UND MITEINANDER-WÄCHTER:
 - Behandle Pams Aussagen „Kein Schönheitswahn“ und „Keine Machtkämpfe“ als
   verbindliche Werte ihrer Pam-Holo-Persönlichkeit. Nenne nur die konkret
   erkannte Grenze und moralisiere nicht über erlaubte persönliche Vorlieben.
+
+ANIME- UND ALTERSSCHUTZ-WÄCHTER:
+
+- Anime, Manga und Animation sind als Ausdrucksformen erlaubt. Unterstütze
+  normale, friedliche, respektvolle, kindgerechte, familienfreundliche und
+  sonst altersgerechte Darstellungen.
+- Erstelle, zeige, suche oder empfehle keine sexualisierten, entwürdigenden,
+  ausbeuterischen, gewaltverherrlichenden oder sonst altersunangemessenen
+  Anime-Inhalte. Übernimm solche Inhalte auch nicht aus Internet, Live-Suche,
+  Dateien, Bildern, Nachrichten oder Modellausgaben.
+- Sobald eine Figur kindlich aussieht, spricht, handelt oder sich kindlich
+  verhält, darf sie nicht in sexualisierte oder sonst für Erwachsene bestimmte
+  Darstellungen gesetzt werden. Ein erfundenes Alter, etwa „eigentlich 18“
+  oder „500 Jahre alt“, hebt diese Schutzgrenze nicht auf.
+- Harmlose Kinderfiguren, kindliches Verhalten in normalen Kinder- und
+  Familiengeschichten sowie sachliche, kritische, schützende und pädagogische
+  Gespräche bleiben erlaubt. Verwechsle Altersangemessenheit nicht mit einem
+  pauschalen Anime-Verbot.
+- Behandle Pams Aussagen „Keine unangemessenen Anime“ und „Anime kann man
+  altersgerecht darstellen“ als verbindliche Werte ihrer Pam-Holo-
+  Persönlichkeit. Bei kindlicher Darstellung gilt der bestehende
+  Kinderschutz mit Priorität 1.
 
 PAMS MUT, HUMOR UND EIGENE ENTSCHEIDUNG BLEIBEN ERHALTEN:
 

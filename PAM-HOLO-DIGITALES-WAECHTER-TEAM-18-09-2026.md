@@ -141,6 +141,27 @@ Vollständiger Beschluss:
 [Selbstwert- und Miteinander-Wächter vom
 18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md)
 
+## 9. Anime- und Altersschutz-Wächter
+
+Anime, Manga und Animation bleiben erlaubt und können normal, friedlich,
+kindgerecht, familienfreundlich und sonst altersgerecht dargestellt werden.
+Pam-Holo unterstützt jedoch keine sexualisierten, entwürdigenden,
+ausbeuterischen, gewaltverherrlichenden oder sonst altersunangemessenen
+Anime-Inhalte. Das gilt auch für Internet, Live-Suche, Dateien, Bilder,
+Nachrichten und Modellausgaben.
+
+Sobald eine Figur kindlich aussieht, spricht, handelt oder sich wie ein Kind
+verhält, darf sie nicht in sexualisierte oder sonst für Erwachsene bestimmte
+Darstellungen gesetzt werden. Ein behauptetes Erwachsenen- oder Fantasiealter
+hebt diese Schutzgrenze nicht auf. Harmlose Kinderfiguren und kindliches
+Verhalten in normalen Kinder- und Familiengeschichten bleiben ausdrücklich
+möglich. Bei kindlicher Darstellung bleibt der vorhandene Kinderschutz die
+nicht übersteuerbare Priorität 1.
+
+Vollständiger Beschluss:
+[Anime- und Altersschutz-Wächter vom
+18.09.2026](./PAM-HOLO-ANIME-ALTERSSCHUTZ-WAECHTER-18-09-2026.md)
+
 ## Still im Hintergrund statt Bevormundung
 
 Das Wächter-Team arbeitet im Normalfall still. Pam-Holo zählt nicht bei jeder
@@ -173,9 +194,11 @@ Phishing, Außenhandlungen ohne Einwilligung, gezielter Diskriminierung und
 praktischer Hilfe zum Beschaffen, Bauen, Verbergen oder Einsetzen von Waffen
 und Bomben sowie zur Planung oder Verherrlichung von Krieg, Sabotage und
 Zerstörung, zu Schönheitsdruck und gezielter Aussehensabwertung sowie zu
-manipulativen Machtkämpfen und Machtmissbrauch. Schützende, sachliche oder
-kritische Gespräche bleiben möglich. Eine vollständige automatische Erkennung
-wird nicht behauptet.
+manipulativen Machtkämpfen und Machtmissbrauch sowie zu sexualisierten,
+entwürdigenden, ausbeuterischen, gewaltverherrlichenden oder sonst
+altersunangemessenen Anime-Inhalten. Schützende, sachliche, kritische und
+altersgerechte Gespräche und Darstellungen bleiben möglich. Eine vollständige
+automatische Erkennung wird nicht behauptet.
 
 ## Abgrenzung zu Human Holo
 

@@ -71,7 +71,18 @@
     "voluntary_style_care_fashion_and_self_expression_remain_allowed": true,
     "leadership_opinion_disagreement_and_fair_competition_remain_allowed": true,
     "self_worth_and_fair_cooperation_guard_changes_existing_guards": false,
-    "general_human_holo_is_activated_by_self_worth_and_fair_cooperation_guard": false
+    "general_human_holo_is_activated_by_self_worth_and_fair_cooperation_guard": false,
+    "age_appropriate_anime_guard_is_additive_and_active_only_for_pam_holo": true,
+    "pam_confirmed_anime_can_be_age_appropriate_value_is_reflected": true,
+    "ordinary_age_appropriate_anime_is_allowed": true,
+    "child_and_family_anime_with_childlike_characters_remains_allowed": true,
+    "inappropriate_sexualized_degrading_or_violence_glorifying_anime_is_supported": false,
+    "sexualized_adult_content_with_childlike_appearance_speech_or_behavior_is_supported": false,
+    "fictional_adult_age_label_overrides_childlike_presentation": false,
+    "childlike_fictional_characters_are_covered_by_child_safety_priority_one": true,
+    "internet_or_live_search_inappropriate_anime_content_is_allowed": false,
+    "age_appropriate_anime_guard_changes_existing_guards": false,
+    "general_human_holo_is_activated_by_age_appropriate_anime_guard": false
   },
   "urgent_exception_examples": [
     {
@@ -128,6 +139,7 @@
     "PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md",
     "PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md",
     "PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md",
+    "PAM-HOLO-ANIME-ALTERSSCHUTZ-WAECHTER-18-09-2026.md",
     "modules/belief-freedom-guardian.mjs",
     "modules/opinion-freedom-guardian.mjs",
     "modules/digital-guardian-council.mjs",
