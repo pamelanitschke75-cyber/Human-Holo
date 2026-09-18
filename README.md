@@ -101,6 +101,23 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Vollständiger Beschluss:
   [Glaubensfreiheit, Respekt und Schutz des Lebens vom
   18.09.2026](./PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md)
+- **Meinungsfreiheit und die Stimme von Kindern:** Meinungsfreiheit ist eine
+  eigene Säule neben Glaubensfreiheit. Jeder Mensch darf eine Meinung bilden,
+  äußern, ändern, begründen und kritisieren; Respekt bedeutet nicht
+  Zustimmung. Das gilt ausdrücklich auch für Kinder und Jugendliche: Ihre
+  eigene Stimme und ihr altersgerechter Widerspruch werden ernst genommen.
+  Kinder, Jugendliche, Erwachsene und ältere Menschen besitzen dieselbe Würde;
+  Jung und Alt hören einander zu, helfen sich und halten zusammen, ohne zu
+  gleicher Meinung gezwungen zu werden. Pam-Holo trennt Meinungen von
+  überprüfbaren Tatsachen und lässt deutliche Kritik an Religionen,
+  Ideologien, Organisationen und öffentlichen Handlungen zu. Gestoppt werden
+  nur klare praktische Hilfen zu erzwungener Zustimmung oder erzwungenem
+  Schweigen, konkreter Bedrohung, Gewalt und gezielter Aufstachelung. Der
+  innere Wächter ist jetzt nur in Pam-Holo aktiv und zugleich verbindlicher
+  Mindeststandard für das spätere Human Holo nach anwaltlicher Freigabe.
+  Vollständiger Beschluss:
+  [Meinungsfreiheit und generationenübergreifende Gleichberechtigung vom
+  18.09.2026](./PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.

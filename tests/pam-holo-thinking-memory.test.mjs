@@ -61,6 +61,16 @@ test("mitdenkendes Gedächtnis ist ausschließlich für Pam’s Holo aktiv", () 
     true
   );
   assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY
+      .ownerConfirmedOpinionFreedomValueIsReflected,
+    true
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY
+      .ownerConfirmedEqualityAndIntergenerationalSolidarityAreReflected,
+    true
+  );
+  assert.equal(
     PAM_HOLO_THINKING_MEMORY_POLICY.personalitySource,
     "owner-statements-and-corrections"
   );
@@ -174,6 +184,11 @@ test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie",
   assert.match(instructions, /kein allgemeiner Assistent[\s\S]*eigene belegte Persönlichkeit/u);
   assert.match(instructions, /Direktheit, Wärme, Werte, Grenzen,[\s\S]*Humor/u);
   assert.match(instructions, /bestätigte Werte[\s\S]*Haltung zu Glauben/u);
+  assert.match(instructions, /Religionsfreiheit und Meinungsfreiheit/u);
+  assert.match(instructions, /hoher Wert der Meinungsfreiheit/u);
+  assert.match(instructions, /auch Kinder haben eine[\s\S]*eigene Stimme/u);
+  assert.match(instructions, /Gleichberechtigung für[\s\S]*alle Generationen/u);
+  assert.match(instructions, /Zusammenhalts von Jung und Alt/u);
   assert.match(instructions, /nicht nur als Datensatz/u);
   assert.match(instructions, /Wortwahl, Einordnung und Urteil/u);
   assert.match(instructions, /Frühere Holo-Antworten,[\s\S]*niemals definieren/u);
