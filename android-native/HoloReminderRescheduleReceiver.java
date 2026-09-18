@@ -4,14 +4,25 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.core.content.pm.PackageInfoCompat;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HoloReminderRescheduleReceiver extends BroadcastReceiver {
+    static long currentVersion(Context context) throws Exception {
+        return PackageInfoCompat.getLongVersionCode(
+            context.getPackageManager().getPackageInfo(
+                context.getPackageName(),
+                0
+            )
+        );
+    }
+
     static void rescheduleAndDeliver(Context context) throws Exception {
         JSONArray reminders = HoloReminderStore.list(context);
         long now = System.currentTimeMillis();
-        int currentVersion = BuildConfig.VERSION_CODE;
+        long currentVersion = currentVersion(context);
         for (int index = 0; index < reminders.length(); index += 1) {
             JSONObject reminder = reminders.optJSONObject(index);
             if (reminder == null) continue;
@@ -19,7 +30,7 @@ public class HoloReminderRescheduleReceiver extends BroadcastReceiver {
             String triggerType = reminder.optString("triggerType");
             if (
                 "app_update".equals(triggerType) &&
-                reminder.optInt("createdVersion", currentVersion) < currentVersion
+                reminder.optLong("createdVersion", currentVersion) < currentVersion
             ) {
                 if (HoloReminderNotifications.show(context, reminder)) {
                     HoloReminderStore.remove(context, id);

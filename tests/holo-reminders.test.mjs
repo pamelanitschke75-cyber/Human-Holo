@@ -216,7 +216,9 @@ test("Android speichert Erinnerungen verschlüsselt, ownergebunden und updatefes
   assert.match(notifications, /VISIBILITY_PRIVATE/u);
   assert.match(notifications, /CATEGORY_REMINDER/u);
   assert.match(notifications, /areNotificationsEnabled/u);
-  assert.match(reschedule, /BuildConfig\.VERSION_CODE/u);
+  assert.match(reschedule, /PackageInfoCompat\.getLongVersionCode/u);
+  assert.doesNotMatch(plugin, /BuildConfig\.VERSION_CODE/u);
+  assert.doesNotMatch(reschedule, /BuildConfig\.VERSION_CODE/u);
   assert.match(reschedule, /HoloReminderScheduler\.schedule/u);
   assert.match(reschedule, /Intent\.ACTION_BOOT_COMPLETED/u);
   assert.match(reschedule, /Intent\.ACTION_MY_PACKAGE_REPLACED/u);

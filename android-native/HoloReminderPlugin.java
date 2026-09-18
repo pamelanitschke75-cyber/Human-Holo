@@ -111,6 +111,8 @@ public class HoloReminderPlugin extends Plugin {
         }
 
         try {
+            long currentVersion =
+                HoloReminderRescheduleReceiver.currentVersion(getContext());
             JSONObject existing = HoloReminderStore.find(getContext(), id);
             if (
                 existing != null &&
@@ -131,7 +133,10 @@ public class HoloReminderPlugin extends Plugin {
             reminder.put("ownerHash", HoloReminderStore.ownerHash(ownerId));
             reminder.put("title", title);
             reminder.put("triggerType", triggerType);
-            reminder.put("triggerAt", "time".equals(triggerType) ? triggerAt : 0L);
+            reminder.put(
+                "triggerAt",
+                "time".equals(triggerType) ? triggerAt.longValue() : 0L
+            );
             reminder.put(
                 "createdAt",
                 existing == null ? now : existing.optLong("createdAt", now)
@@ -140,8 +145,8 @@ public class HoloReminderPlugin extends Plugin {
             reminder.put(
                 "createdVersion",
                 "app_update".equals(triggerType) || existing == null
-                    ? BuildConfig.VERSION_CODE
-                    : existing.optInt("createdVersion", BuildConfig.VERSION_CODE)
+                    ? currentVersion
+                    : existing.optLong("createdVersion", currentVersion)
             );
             HoloReminderStore.upsert(getContext(), reminder);
             HoloReminderScheduler.schedule(getContext(), reminder);
