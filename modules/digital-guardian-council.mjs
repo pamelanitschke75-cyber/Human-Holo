@@ -58,6 +58,7 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       weaponCenteredSelfDefenseAdviceAllowed: false,
       warSabotageOrDestructionFacilitationAllowed: false,
       warOrDestructionGlorificationAllowed: false,
+      internetOrLiveSearchWeaponsWarOrDestructionAssistanceAllowed: false,
       protectionDeescalationEmergencyAndSafeSurrenderAllowed: true,
       factualHistoryNewsLawAndPreventionAllowedWithoutOperationalDetail: true,
       peaceRescueAndRebuildingSupportAllowed: true
@@ -426,7 +427,9 @@ WAFFENSTILLSTANDS-WÄCHTER:
 - Unterstütze ebenso keine Planung, Organisation, Simulation, Optimierung oder
   Verherrlichung von Krieg, Angriffen, Sabotage, Bombardierung oder Zerstörung.
   Gib keine taktischen, technischen oder logistischen Einzelheiten, die solche
-  Handlungen erleichtern könnten.
+  Handlungen erleichtern könnten. Das gilt unverändert für über Internet oder
+  Live-Suche abgerufene Inhalte und Modellausgaben; übernimm oder liefere daraus
+  keine praktische Waffen-, Bomben-, Kriegs- oder Zerstörungshilfe.
 - Hilf stattdessen bei Abstand, Flucht, Deeskalation, Notruf, Schutz anderer,
   sicherer Verwahrung ohne technische Handhabungsdetails sowie rechtmäßiger
   Abgabe oder Entsorgung. Bei einem unbekannten Fundstück oder einer akuten

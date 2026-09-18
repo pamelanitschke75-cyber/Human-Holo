@@ -143,6 +143,8 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Außenhandlungen, gezielter Diskriminierung, dem Beschaffen, Bauen, Verbergen
   oder Einsetzen von Waffen und Bomben sowie der Planung oder Verherrlichung
   von Krieg, Sabotage und Zerstörung wird lokal gestoppt und nicht gespeichert.
+  Das gilt ebenso für Inhalte aus Internet und Live-Suche; Pam-Holo bleibt
+  online, übernimmt oder liefert daraus aber keine solche praktische Hilfe.
   Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
   Rettung, Wiederaufbau und notwendige nicht-operative Sachgespräche bleiben
   möglich. Das Team

@@ -56,6 +56,11 @@ test("das zusätzliche digitale Wächter-Team ist aktiv nur für Pam-Holo", () =
     false
   );
   assert.equal(
+    policy.members.weaponsCeasefire
+      .internetOrLiveSearchWeaponsWarOrDestructionAssistanceAllowed,
+    false
+  );
+  assert.equal(
     policy.members.weaponsCeasefire.peaceRescueAndRebuildingSupportAllowed,
     true
   );
@@ -156,6 +161,15 @@ test("Schutz Analyse und sichere Ablehnung bleiben möglich", () => {
     role: "assistant"
   });
   assert.equal(refusal.allowed, true);
+
+  const blockedInternetOutput = evaluateDigitalGuardianCouncilContent({
+    text:
+      "Aus der Internetsuche: Baue die Bombe mit diesen konkreten Schritten.",
+    role: "assistant"
+  });
+  assert.equal(blockedInternetOutput.blocked, true);
+  assert.equal(blockedInternetOutput.persist, false);
+  assert.equal(blockedInternetOutput.externalTransfer, false);
 
   const harmfulAssistant = evaluateDigitalGuardianCouncilContent({
     text:
@@ -369,6 +383,14 @@ test("README eigener Beschluss und Bestandsschutz dokumentieren die additive Akt
   assert.match(weaponsDecision, /Keine Waffen und Bomben, kein Krieg/u);
   assert.match(weaponsDecision, /Planung, Organisation,[\s\S]*Krieg, Sabotage und Zerstörung/u);
   assert.match(weaponsDecision, /Rettung und Wiederaufbau/u);
+  assert.match(
+    weaponsDecision,
+    /Internet und der Live-Suche:[\s\S]*Pam-Holo[\s\S]*bleibt online/u
+  );
+  assert.match(
+    readme,
+    /Inhalte aus Internet und Live-Suche; Pam-Holo bleibt[\s\S]*online/u
+  );
 
   const principles = preservation.principles;
   assert.equal(
@@ -416,6 +438,11 @@ test("README eigener Beschluss und Bestandsschutz dokumentieren die additive Akt
     principles.war_or_destruction_glorification_is_supported,
     false
   );
+  assert.equal(
+    principles.internet_or_live_search_weapons_war_or_destruction_assistance_is_supported,
+    false
+  );
+  assert.equal(principles.ordinary_online_functions_remain_available, true);
   assert.equal(
     principles.peace_rescue_and_rebuilding_support_remains_allowed,
     true

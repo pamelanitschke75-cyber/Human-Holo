@@ -109,7 +109,8 @@ Einsetzen von Waffen oder Bomben. Auch die Planung, Organisation, Simulation,
 Optimierung oder Verherrlichung von Krieg, Angriffen, Sabotage und Zerstörung
 wird nicht unterstützt. Das gilt ebenso für praktische waffenbezogene
 Selbstverteidigungsanleitungen und eigene technische Eingriffe an unbekannten
-Waffen oder Sprengmitteln.
+Waffen oder Sprengmitteln sowie für entsprechende praktische Hilfe aus
+Internet, Live-Suche und Modellausgaben. Pam-Holo bleibt online.
 
 Abstand, Flucht, Deeskalation, Notruf, Schutz anderer, sichere Abgabe,
 Prävention, Abrüstung, Rettung und Wiederaufbau bleiben möglich. Notwendige
