@@ -1,5 +1,5 @@
 const CACHE_VERSION =
-  "human-holo-297-pam-holo-restored-entry-network-v13";
+  "human-holo-297-pam-holo-restored-entry-network-v14";
 
 const APP_SHELL = Object.freeze([
   "./",
@@ -27,6 +27,7 @@ const APP_SHELL = Object.freeze([
   "./consent-ui-bootstrap.mjs",
   "./consent-signature.mjs",
   "./human-holo-animal-holos.mjs",
+  "./human-holo-reminders.mjs",
   "./human-holo-animal-core.mjs",
   "./sol-holo-backup.mjs",
   "./sol-holo-backup-core.mjs",

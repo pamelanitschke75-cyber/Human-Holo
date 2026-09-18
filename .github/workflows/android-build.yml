@@ -62,6 +62,7 @@ on:
       - "www/sol-holo-backup-core.mjs"
       - "www/human-holo-animal-core.mjs"
       - "www/human-holo-animal-holos.mjs"
+      - "www/human-holo-reminders.mjs"
       - "www/assets/**"
       - "www/human-holo-chatgpt-memory-bridge.mjs"
       - "www/human-holo-durable-memory.mjs"
@@ -381,6 +382,33 @@ jobs:
           ! grep -q 'android.permission.health.READ_' android/app/src/main/AndroidManifest.xml
           test ! -e android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
           test ! -e android/app/src/main/java/com/solholo/app/HealthPrivacyActivity.java
+
+      - name: Ownergebundene Holo-Erinnerungen prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          app_activity="android/app/src/main/java/com/solholo/app/MainActivity.java"
+          reminder_plugin="android/app/src/main/java/com/solholo/app/HoloReminderPlugin.java"
+          reminder_store="android/app/src/main/java/com/solholo/app/HoloReminderStore.java"
+          reminder_receiver="android/app/src/main/java/com/solholo/app/HoloReminderReceiver.java"
+          reminder_reschedule="android/app/src/main/java/com/solholo/app/HoloReminderRescheduleReceiver.java"
+          reminder_ui="android/app/src/main/assets/public/human-holo-reminders.mjs"
+          test -s "$reminder_plugin"
+          test -s "$reminder_store"
+          test -s "$reminder_receiver"
+          test -s "$reminder_reschedule"
+          test -s "$reminder_ui"
+          grep -q 'registerPlugin(HoloReminderPlugin.class)' "$app_activity"
+          grep -q 'android.permission.POST_NOTIFICATIONS' "$app_manifest"
+          grep -q 'android.permission.RECEIVE_BOOT_COMPLETED' "$app_manifest"
+          grep -q 'android:name=".HoloReminderReceiver"' "$app_manifest"
+          grep -q 'android:name=".HoloReminderRescheduleReceiver"' "$app_manifest"
+          grep -q 'android.intent.action.MY_PACKAGE_REPLACED' "$app_manifest"
+          grep -q 'AES/GCM/NoPadding' "$reminder_store"
+          grep -q 'ownerHash' "$reminder_plugin"
+          grep -q 'VISIBILITY_PRIVATE' \
+            android/app/src/main/java/com/solholo/app/HoloReminderNotifications.java
+          ! grep -q 'SCHEDULE_EXACT_ALARM' "$app_manifest"
 
       - name: Bestätigte Kontakt- und ADAC-Anrufe prüfen
         run: |

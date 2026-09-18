@@ -2300,6 +2300,118 @@ body{
   filter:drop-shadow(0 0 9px rgba(83,210,255,.58));
 }
 
+.holoReminderPanel{
+  overflow:hidden;
+  border:1px solid rgba(139,222,255,.38);
+  border-radius:17px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 18% 0,rgba(255,255,255,.12),transparent 32%),
+    linear-gradient(145deg,rgba(106,76,221,.3),rgba(24,93,164,.25));
+  box-shadow:
+    0 0 18px rgba(82,205,255,.16),
+    0 0 25px rgba(143,75,255,.15),
+    inset 0 1px 0 rgba(255,255,255,.16);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  backdrop-filter:blur(16px) saturate(140%);
+}
+
+.holoReminderPanel>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:46px;
+  padding:0 14px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:800;
+  list-style:none;
+}
+
+.holoReminderPanel>summary::-webkit-details-marker{
+  display:none;
+}
+
+.holoReminderCount{
+  display:grid;
+  place-items:center;
+  min-width:28px;
+  min-height:28px;
+  padding:0 7px;
+  border:1px solid rgba(191,224,255,.45);
+  border-radius:999px;
+  color:#bff6ff;
+  background:rgba(24,44,124,.4);
+}
+
+.holoReminderPanelBody{
+  display:grid;
+  gap:10px;
+  padding:0 12px 12px;
+}
+
+.holoReminderStatus,
+.holoReminderEmpty{
+  margin:0;
+  color:rgba(225,237,255,.72);
+  font-size:10px;
+  line-height:1.45;
+}
+
+.holoReminderList{
+  display:grid;
+  gap:8px;
+}
+
+.holoReminderRow{
+  display:grid;
+  gap:9px;
+  padding:11px;
+  border:1px solid rgba(183,211,255,.3);
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(80,90,193,.34),rgba(23,30,100,.4));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+.holoReminderCopy{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+
+.holoReminderCopy strong{
+  overflow-wrap:anywhere;
+  font-size:12px;
+}
+
+.holoReminderCopy span{
+  color:#bdeeff;
+  font-size:9px;
+}
+
+.holoReminderActions{
+  display:flex;
+  gap:7px;
+}
+
+.holoReminderActions button{
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid rgba(165,220,255,.4);
+  border-radius:10px;
+  color:#fff;
+  background:linear-gradient(135deg,rgba(123,74,226,.5),rgba(33,132,198,.44));
+  font:inherit;
+  font-size:9px;
+}
+
+.holoReminderActions button:last-child{
+  border-color:rgba(255,151,185,.38);
+  color:#ffe0e9;
+  background:linear-gradient(135deg,rgba(145,56,132,.4),rgba(74,39,105,.44));
+}
+
 @media (max-width:420px){
   .importantComposerFooter{
     align-items:stretch;

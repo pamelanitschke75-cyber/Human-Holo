@@ -725,6 +725,24 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
           <strong>Heute steht nichts im Kalender.</strong>
           <p>Wähle oben einen anderen Tag, ohne Holo zu verlassen.</p>
         </div>
+        <details id="holoReminderPanel" class="holoReminderPanel">
+          <summary>
+            <span><span aria-hidden="true">🔔</span> Holo-Erinnerungen</span>
+            <span id="holoReminderCount" class="holoReminderCount">0</span>
+          </summary>
+          <div class="holoReminderPanelBody">
+            <p id="holoReminderStatus" class="holoReminderStatus">
+              Sag zum Beispiel: „Erinnere mich morgen um 9 Uhr daran …“
+            </p>
+            <div id="holoReminderList" class="holoReminderList"
+              aria-live="polite"></div>
+            <p id="holoReminderEmpty" class="holoReminderEmpty">
+              Noch keine Holo-Erinnerung eingestellt.
+            </p>
+            <button id="holoReminderRefreshButton"
+              class="calendarRefreshButton" type="button">Aktualisieren</button>
+          </div>
+        </details>
       </section>
 
       <section id="shoppingImportantSection"
@@ -5351,6 +5369,7 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     if (viewName === "notes") {
       renderPersonalNotes();
       void loadDeviceCalendarStatus();
+      void window.HumanHoloReminders?.refresh?.();
     }
 
     if (viewName === "memorial") {
@@ -8209,6 +8228,12 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
 
+    const reminderAction =
+      await window.HumanHoloReminders?.handle?.(noteMessage);
+    if (reminderAction?.handled) {
+      return reminderAction;
+    }
+
     // Schrift und transkribierte Sprache laufen beide über diese Funktion.
     // Fragen nach der Liste lesen ausschließlich den aktuellen lokalen Stand.
     if (isShoppingListReadRequest(noteMessage)) {
@@ -8613,6 +8638,9 @@ const uiMarkup = "\n<section id=\"onboardingScreen\" aria-labelledby=\"welcomeTi
   window.handleSolHoloRealtimeNoteTranscript = async (message) => {
     const cleanMessage = String(message || "").trim();
     const noteMessage = stripHoloInvocation(cleanMessage);
+    if (window.HumanHoloReminders?.matches?.(noteMessage)) {
+      return window.handleSolHoloLocalAction(cleanMessage);
+    }
     if (alarmClockRequestFromMessage(noteMessage)) {
       return window.handleSolHoloLocalAction(cleanMessage);
     }

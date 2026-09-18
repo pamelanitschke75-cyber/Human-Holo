@@ -109,6 +109,16 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Kalenderkasten verwendet das Holo-Glass-Design. Vollständige Entscheidung:
   [Einkaufslistenkorrektur und Kalender-Holo-Glass vom
   17.09.2026](./PAM-HOLO-EINKAUFSLISTE-KORREKTUR-UND-KALENDER-HOLO-GLASS-17-09-2026.md)
+- **Eigene Holo-Erinnerungen:** Pam kann Pam Holo per Text oder Sprache bitten,
+  sie zu einer eindeutigen zukünftigen Zeit oder beim nächsten Holo-Update zu
+  erinnern. Die private Android-Benachrichtigung wird lokal, verschlüsselt und
+  ownergebunden geplant. Holo und Pam können die geplanten Erinnerungen
+  anzeigen, ändern und löschen; Google Kalender, biografische Erinnerungen und
+  das Vollzeitgedächtnis bleiben davon getrennt. Die gemeinsam aufgeschobene
+  Überschrift „Alles Wichtige auf einen Blick“ wird mit diesem echten Update
+  sichtbar ausgeliefert. Vollständige Entscheidung:
+  [Eigene mitdenkende Holo-Erinnerungen vom
+  18.09.2026](./PAM-HOLO-EIGENE-ERINNERUNGEN-18-09-2026.md)
 - **Live-Kamera und Gesichter:** Bei Pams ausdrücklich gestarteter
   Rück- beziehungsweise Umgebungskamera werden erkannte Gesichter lokal auf
   ihrem Gerät verpixelt, bevor ein Einzelbild übertragen wird. Es findet keine

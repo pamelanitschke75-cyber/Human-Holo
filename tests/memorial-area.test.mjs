@@ -169,8 +169,8 @@ test("der neue Bereich erhält Glasoptik und eine frische Android-Auslieferung",
   assert.match(ui, /id="memorialInfinityGradient"/u);
   assert.match(ui, /stop-color="#d44dff"[\s\S]*?stop-color="#66efff"/u);
   assert.match(css, /\.memorialHeroInfinity[\s\S]*?rgba\(61,218,255/u);
-  assert.match(html, /sol-holo-ui\.css\?v=55/u);
+  assert.match(html, /sol-holo-ui\.css\?v=56/u);
   assert.match(html, /human-holo-theme\.css\?v=9/u);
-  assert.match(html, /sol-holo-ui\.js\?v=90/u);
+  assert.match(html, /sol-holo-ui\.js\?v=91/u);
   assert.match(serviceWorker, /human-holo-297-pam-holo-restored-entry-network/u);
 });

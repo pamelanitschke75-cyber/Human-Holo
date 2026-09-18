@@ -158,10 +158,10 @@ test("Client erzwingt Fingerprint vor Sichtbarkeit und erneut für geschützte D
   assert.match(appLock, /trusted-app-session\.mjs\?v=14/u);
   assert.match(html, /app-lock-bootstrap\.mjs\?v=14/u);
   assert.match(html, /pam-holo-network-resilience\.js\?v=3/u);
-  assert.match(html, /service-worker\.js\?v=301/u);
+  assert.match(html, /service-worker\.js\?v=302/u);
   assert.match(
     serviceWorker,
-    /human-holo-297-pam-holo-restored-entry-network-v13/u
+    /human-holo-297-pam-holo-restored-entry-network-v14/u
   );
   assert.doesNotMatch(appLock, /Alltagssitzung/u);
   assert.match(appLock, /allowBootstrap: false/u);

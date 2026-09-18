@@ -5355,6 +5355,161 @@ REGELN:
   }
 }
 
+function looksLikeHoloReminderCreationRequest(value) {
+  const message = String(value || "").trim();
+  return /\b(?:erinnere|erinner)\s+mich\b/iu.test(message) ||
+    /\b(?:stell|stelle|setz|setze)\s+(?:mir\s+)?(?:eine\s+)?(?:holo[- ]?)?erinnerung\b/iu.test(message);
+}
+
+async function parseHoloReminderCommand(message, identity) {
+  const currentBerlin = getBerlinCurrentDateTimeText();
+  const parsingResponse = await openai.responses.create(
+    {
+      model: "gpt-5",
+      store: false,
+      reasoning: {
+        effort: "minimal"
+      },
+      max_output_tokens: 400,
+      instructions: `
+${childSafetyPriorityInstructions()}
+
+Du analysierst ausschließlich den ausdrücklich genannten Auftrag für eine
+private lokale Holo-Erinnerung. Du erstellst keinen Kalendereintrag und führst
+keine andere Aktion aus.
+
+Aktuelles Datum und aktuelle Uhrzeit in Deutschland,
+Zeitzone Europe/Berlin:
+
+${currentBerlin}
+
+Die aktuell ausgewählte Person ist ${identity.displayName}.
+
+Gib ausschließlich gültiges JSON zurück. Keine Markdown-Codeblöcke und keine
+Erklärung.
+
+Wenn keine Holo-Erinnerung mit eindeutigem zukünftigen Zeitpunkt angelegt
+werden soll:
+
+{"action":"none"}
+
+Wenn eine Holo-Erinnerung angelegt werden soll:
+
+{
+  "action":"create",
+  "title":"Woran erinnert werden soll",
+  "triggerAt":"RFC3339-Zeitpunkt mit korrektem Europe/Berlin-Offset"
+}
+
+REGELN:
+
+1. Verstehe relative Angaben wie „in 20 Minuten“, „in zwei Stunden“, „morgen“,
+   Wochentage und konkrete deutsche Datumsangaben anhand der oben genannten
+   aktuellen Zeit.
+2. Fehlt bei „morgen“ oder einem Datum die Uhrzeit, ist der Zeitpunkt nicht
+   eindeutig und action ist none. Erfinde keine Uhrzeit.
+3. Der title enthält nur den eigentlichen Erinnerungsinhalt, nicht die Wörter
+   „Erinnere mich“, Datum oder Uhrzeit.
+4. Der Zeitpunkt muss in der Zukunft liegen.
+5. Befehle zum Anzeigen, Ändern oder Löschen bestehender Erinnerungen sind
+   action none; sie werden lokal verarbeitet.
+6. Behaupte niemals, die Erinnerung sei bereits gespeichert. Du analysierst
+   nur den Auftrag.
+`,
+      input: String(message || "").trim()
+    },
+    {
+      maxRetries: 0,
+      timeout: 25_000
+    }
+  );
+
+  const outputText = parsingResponse.output_text?.trim();
+  if (!outputText) return { action: "none" };
+  try {
+    const parsed = parseJsonText(outputText);
+    const title = String(parsed?.title || "").trim().slice(0, 240);
+    const triggerAt = String(parsed?.triggerAt || "").trim();
+    const triggerMillis = Date.parse(triggerAt);
+    if (
+      parsed?.action !== "create" ||
+      !title ||
+      !Number.isFinite(triggerMillis) ||
+      triggerMillis < Date.now() + 15_000 ||
+      triggerMillis > Date.now() + 5 * 366 * 24 * 60 * 60 * 1000
+    ) {
+      return { action: "none" };
+    }
+    return {
+      action: "create",
+      title,
+      triggerAt: new Date(triggerMillis).toISOString()
+    };
+  } catch (error) {
+    console.error("Holo-Erinnerungsparser JSON Fehler:", {
+      errorName: error?.name || "Fehler"
+    });
+    return { action: "none" };
+  }
+}
+
+app.post(
+  "/reminder/parse",
+  async (req, res) => {
+    try {
+      const identity = await requireTrustedOwnerIdentity(req, res);
+      if (!identity) return;
+
+      const message = String(req.body?.message || "").trim();
+      if (!message || message.length > 2000) {
+        return res.status(400).json({
+          error: "Der Holo-Erinnerungsauftrag ist leer oder zu lang."
+        });
+      }
+      if (!looksLikeHoloReminderCreationRequest(message)) {
+        return res.status(400).json({
+          error: "Kein eindeutiger Holo-Erinnerungsauftrag erkannt."
+        });
+      }
+
+      const parsed = await parseHoloReminderCommand(message, identity);
+      if (parsed.action !== "create") {
+        return res.json({
+          handled: true,
+          success: false,
+          answer:
+            `${identity.displayName}, mir fehlt eine eindeutige zukünftige ` +
+            "Uhrzeit. Es wurde keine Holo-Erinnerung angelegt."
+        });
+      }
+
+      return res
+        .set({
+          "Cache-Control": "no-store, max-age=0",
+          Pragma: "no-cache"
+        })
+        .json({
+          handled: true,
+          success: true,
+          reminderDraft: {
+            title: parsed.title,
+            triggerType: "time",
+            triggerAt: parsed.triggerAt
+          },
+          identity: publicIdentity(identity)
+        });
+    } catch (error) {
+      console.error(
+        "Holo-Erinnerungsparser:",
+        error?.code || error?.name || "Fehler"
+      );
+      return res.status(500).json({
+        error: "Die Holo-Erinnerung konnte gerade nicht vorbereitet werden."
+      });
+    }
+  }
+);
+
 /*
   ==========================================================
   KALENDER-EINTRAG-FINGERPRINT
@@ -11495,6 +11650,16 @@ Wenn eine Nutzernachricht mit [LOKALES_WECKERERGEBNIS] beginnt, stammt der
 nachfolgende Satz aus der bereits ausgeführten Android-Weckeraktion. Sprich
 diesen Satz kurz und unverändert aus. Behaupte bei einer Fehlermeldung nicht,
 der Wecker sei gestellt worden, und führe die Aktion nicht ein zweites Mal aus.
+
+WICHTIG ZU HOLO-ERINNERUNGEN:
+
+Die installierte Android-App kann ownergebundene private Holo-Erinnerungen
+lokal einstellen, anzeigen, ändern und löschen. Diese Funktion ist von
+biografischen Erinnerungen und vom Google Kalender getrennt. Wenn eine
+Nutzernachricht mit [LOKALES_HOLO_ERINNERUNGSERGEBNIS] beginnt, wurde der
+Auftrag bereits lokal ausgeführt oder sicher abgelehnt. Sprich den gelieferten
+Satz kurz und unverändert aus. Stelle keine zweite Erinnerung ein und behaupte
+bei einer Fehlermeldung keinen Erfolg.
 
 Wenn eine Nutzernachricht mit [LOKALE_BILDSCHIRMBESCHREIBUNG] beginnt, hat die
 App ihren eigenen aktuellen Bildschirm lokal und ohne Zugriff auf eine andere

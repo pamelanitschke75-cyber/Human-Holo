@@ -409,7 +409,7 @@ test("Sprachaufträge verwenden denselben lokalen Speicherweg", () => {
   );
   assert.match(html, /LOKALES_NOTIZERGEBNIS/u);
   assert.match(html, /LOKALES_NAVIGATIONSERGEBNIS/u);
-  assert.match(html, /sol-holo-ui\.js\?v=90/u);
+  assert.match(html, /sol-holo-ui\.js\?v=91/u);
 });
 
 test("ohne echten Artikel speichern Text Sprache und Gebärde kein Befehlswort", () => {

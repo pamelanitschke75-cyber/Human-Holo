@@ -53,6 +53,12 @@ mkdirSync(resXmlTarget, { recursive: true });
 
 for (const fileName of [
   "GalaxyWatchBridgePlugin.java",
+  "HoloReminderNotifications.java",
+  "HoloReminderPlugin.java",
+  "HoloReminderReceiver.java",
+  "HoloReminderRescheduleReceiver.java",
+  "HoloReminderScheduler.java",
+  "HoloReminderStore.java",
   "HeyHoSolPlugin.java",
   "HeyHoSolService.java",
   "WakeCaptureEndpointer.java",
@@ -221,6 +227,19 @@ if (!mainActivity.includes("registerPlugin(GalaxyWatchBridgePlugin.class)")) {
   );
 }
 
+if (!mainActivity.includes("registerPlugin(HoloReminderPlugin.class)")) {
+  const registrationMarker =
+    "        registerPlugin(GalaxyWatchBridgePlugin.class);";
+  if (!mainActivity.includes(registrationMarker)) {
+    throw new Error("Galaxy-Watch-Plugin-Registrierung nicht gefunden.");
+  }
+
+  mainActivity = mainActivity.replace(
+    registrationMarker,
+    registrationMarker + "\n        registerPlugin(HoloReminderPlugin.class);"
+  );
+}
+
 if (!mainActivity.includes("handleSharedNoteIntent(this, getIntent())")) {
   const createMarker = "        super.onCreate(savedInstanceState);\n    }";
   if (!mainActivity.includes(createMarker)) {
@@ -286,6 +305,7 @@ for (const permission of [
   '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
   '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
   '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+  '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />',
   '<uses-permission android:name="com.android.alarm.permission.SET_ALARM" />',
   '<uses-permission android:name="android.permission.READ_CONTACTS" />',
   '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
@@ -306,6 +326,33 @@ for (const permission of [
       manifestMarker + "\n    " + permission
     );
   }
+}
+
+if (!manifest.includes('android:name=".HoloReminderReceiver"')) {
+  const applicationEnd = "    </application>";
+  if (!manifest.includes(applicationEnd)) {
+    throw new Error("Application-Ende für Holo-Erinnerungen nicht gefunden.");
+  }
+  const reminderReceivers = [
+    "        <receiver",
+    '            android:name=".HoloReminderReceiver"',
+    '            android:enabled="true"',
+    '            android:exported="false" />',
+    "        <receiver",
+    '            android:name=".HoloReminderRescheduleReceiver"',
+    '            android:enabled="true"',
+    '            android:exported="true">',
+    "            <intent-filter>",
+    '                <action android:name="android.intent.action.BOOT_COMPLETED" />',
+    '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />',
+    "            </intent-filter>",
+    "        </receiver>",
+    ""
+  ].join("\n");
+  manifest = manifest.replace(
+    applicationEnd,
+    reminderReceivers + "\n" + applicationEnd
+  );
 }
 
 if (!manifest.includes('android:name="android.hardware.camera.any"')) {
@@ -558,5 +605,5 @@ if (!manifest.includes(".HeyHoSolService")) {
 
 writeFileSync(manifestPath, manifest, "utf8");
 console.log(
-  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, direkte SMS nach einmaliger Assistentinnenfreigabe, Wecker, Kalender, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe und Lautsprecherroute wurden in Android eingebunden."
+  "WhatsApp-Fahrmodus und Auto-Senden, Sol-Weckruf, Telefon, Kontakte, direkte SMS nach einmaliger Assistentinnenfreigabe, Wecker, Kalender, ownergebundene Holo-Erinnerungen, Galaxy Watch, Live-Kamera, Vorlesen, direkte Samsung-Notes-Übergabe und Lautsprecherroute wurden in Android eingebunden."
 );
