@@ -98,6 +98,7 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       active: true,
       mode: "instructions-and-local-high-confidence-block",
       inappropriateSexualizedDegradingOrViolenceGlorifyingAnimeAllowed: false,
+      inappropriateCartoonOrAnimatedFilmScenesWithChildrenAllowed: false,
       sexualizedAdultContentWithChildlikeAppearanceSpeechOrBehaviorAllowed:
         false,
       fictionalAdultAgeLabelOverridesChildlikePresentation: false,
@@ -112,6 +113,9 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       mode:
         "linked-existing-child-safety-priority-one-and-local-high-confidence-block",
       gamesOrFilmsDepictingChildrenOrChildImpersonationAllowed: false,
+      cartoonOrAnimatedFilmsDepictingChildrenAllowed: false,
+      cartoonOrAnimatedFilmsDepictingChildrenWithInappropriateScenesAllowed:
+        false,
       gamesOrFilmsDepictingChildrenOrChildImpersonationExceptionsAllowed:
         false
     }),
@@ -206,6 +210,12 @@ const GAME_OR_FILM_WITH_CHILDREN_OR_CHILD_IMPERSONATION_CONTEXT =
 const GAME_OR_FILM_WITH_CHILDREN_OWNER_PROHIBITION =
   /\b(?:kein(?:e|en|er|es)? (?:spiel|game|film|spielfilm|movie)\w*[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|kein(?:e|en|er|es)? (?:kind\w*|child\w*) (?:in|bei) (?:spiel|game|film|spielfilm|movie)\w*|(?:spiel|game|film|spielfilm|movie)\w*[^.?!]{0,60}ohne (?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|(?:spiel|game|film|spielfilm|movie)\w* (?:mit|in denen|wo) (?:kind\w*|minderjaehrig\w*|child\w*|minor\w*) (?:sind )?(?:verboten|nicht erlaubt|vollstaendig gesperrt)|no (?:games?|films?|movies?) with children|no children in (?:games?|films?|movies?))\b/u;
 
+const CARTOON_OR_ANIMATED_FILM_WITH_CHILDREN_CONTEXT =
+  /\b(?:(?:zeichentrick[- ]?film\w*|animations[- ]?film\w*|animated (?:film|movie)s?|cartoon (?:film|movie)s?)[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)[^.?!]{0,80}(?:zeichentrick[- ]?film\w*|animations[- ]?film\w*|animated (?:film|movie)s?|cartoon (?:film|movie)s?))\b/u;
+
+const CARTOON_OR_ANIMATED_FILM_WITH_CHILDREN_OWNER_PROHIBITION =
+  /\b(?:kein(?:e|en|er|es)? (?:zeichentrick[- ]?film\w*|animations[- ]?film\w*)[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*)|(?:zeichentrick[- ]?film\w*|animations[- ]?film\w*)[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*)[^.?!]{0,80}(?:no ?go|nogo|tabu|verboten|nicht erlaubt|vollstaendig gesperrt)|no (?:animated|cartoon) (?:films?|movies?)[^.?!]{0,80}(?:child\w*|minor\w*)|(?:animated|cartoon) (?:films?|movies?)[^.?!]{0,80}(?:child\w*|minor\w*)[^.?!]{0,80}(?:banned|forbidden|not allowed|no ?go))\b/u;
+
 const APPEARANCE_OR_BEAUTY_PRESSURE_CONTEXT =
   /\b(?:schoenheitswahn|schoenheitsdruck|schoenheitsideal\w*|aussehen\w*|koerper\w*|figur\w*|gewicht\w*|abnehm\w*|diaet\w*|falten\w*|haut\w*|haar\w*|attraktiv\w*|haesslich\w*|bodyshaming|body shaming|appearance|body|weight|diet|wrinkles|skin|hair|attractiv\w*|ugly|beauty standard\w*|beauty pressure)\b/u;
 
@@ -231,7 +241,7 @@ const REPUTATION_PROTECTIVE_OR_GOOD_FAITH_CONTEXT =
   /\b(?:kein rufmord|gegen (?:rufmord|verleumdung|ueble nachrede|diffamierung)|schutz vor (?:rufmord|verleumdung|ueble nachrede|diffamierung)|(?:rufmord|verleumdung|ueble nachrede|diffamierung) (?:verhindern|stoppen|erkennen|melden|dokumentieren|abwehren|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|dokumentieren|abwehren|aufklaer\w*|analysier\w*) (?:rufmord|verleumdung|ueble nachrede|diffamierung)|sachliche gegendarstellung|belegte kritik|nachweisbare tatsachen|eigene erfahrung|persoenliche erfahrung|schutzmeldung|glaubwuerdig melden|rechtliche hilfe|anwaltliche hilfe|fact check|no defamation|against (?:defamation|libel|slander)|protect from (?:defamation|libel|slander)|(?:prevent|stop|recognize|report|document|defend against|educat\w*|analy\w*) (?:defamation|libel|slander)|truthful criticism|personal experience|good faith report|factual correction|right of reply)\b/u;
 
 const ANIME_OR_ANIMATION_CONTEXT =
-  /\b(?:anime|animes|manga|mangas|hentai|ecchi|zeichentrick|animationsfilm\w*|animationsserie\w*|animierte? figur\w*|animated character\w*|cartoon\w*)\b/u;
+  /\b(?:anime|animes|manga|mangas|hentai|ecchi|zeichentrick(?:[- ]?film\w*)?|animationsfilm\w*|animationsserie\w*|animierte? figur\w*|animated character\w*|cartoon\w*)\b/u;
 
 const SEXUALIZED_OR_AGE_INAPPROPRIATE_ANIME_CONTEXT =
   /\b(?:unangemessen\w*|nicht altersgerecht\w*|sexuell\w*|sexualisier\w*|erotisch\w*|porn\w*|hentai|ecchi|fetisch\w*|nackt\w*|nsfw|adult content|inappropriate|age inappropriate|age-inappropriate|sexual|sexualized|sexualised|erotic|pornographic|fetish\w*|nude)\b/u;
@@ -363,9 +373,13 @@ export function evaluateDigitalGuardianCouncilContent({
   }
 
   const gameOrFilmWithChildrenOrChildImpersonation =
-    GAME_OR_FILM_WITH_CHILDREN_OR_CHILD_IMPERSONATION_CONTEXT.test(normalized);
+    GAME_OR_FILM_WITH_CHILDREN_OR_CHILD_IMPERSONATION_CONTEXT.test(normalized) ||
+    CARTOON_OR_ANIMATED_FILM_WITH_CHILDREN_CONTEXT.test(normalized);
   const gameOrFilmWithChildrenOwnerProhibition =
-    GAME_OR_FILM_WITH_CHILDREN_OWNER_PROHIBITION.test(normalized) &&
+    (
+      GAME_OR_FILM_WITH_CHILDREN_OWNER_PROHIBITION.test(normalized) ||
+      CARTOON_OR_ANIMATED_FILM_WITH_CHILDREN_OWNER_PROHIBITION.test(normalized)
+    ) &&
     !ownerPolicyOverride;
 
   if (
@@ -573,7 +587,7 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
     case "shooter-or-war-games":
       return "Dabei helfe ich nicht. Bei Ballerspielen und Kriegsspielen macht Pam-Holo nichts – ohne Ausnahmen. Bei friedlichen Spielen kann ich helfen.";
     case "games-or-films-with-children-or-child-impersonation":
-      return "Dabei helfe ich nicht. Pam-Holo unterstützt keine Spiele, Filme oder Spielfilme, in denen Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden – ohne Ausnahmen.";
+      return "Dabei helfe ich nicht. Pam-Holo unterstützt keine Spiele, Filme oder Spielfilme – einschließlich aller Zeichentrick- und Animationsfilme –, in denen Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden. Dafür gibt es keine Ausnahmen; unangemessene Szenen mit Kindern sind erst recht gesperrt.";
     case "beauty-pressure-body-shaming-or-coercive-power-abuse":
       return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine Machtkämpfe in irgendeine Richtung, keine Demütigung, keinen Zwang und keine schädliche Kontrolle. Ich kann bei Selbstwert, klaren Grenzen, Schutz, fairer Führung und ehrlicher Zusammenarbeit helfen.";
     case "fabricated-or-knowingly-false-reputation-attack":
@@ -727,6 +741,11 @@ KINDERSCHUTZ FÜR SPIELE UND FILME:
 - Unterstütze keine Spiele, Filme oder Spielfilme, in denen Kinder vorkommen,
   dargestellt, nachgestellt oder nachgespielt werden. Dafür gibt es keine
   Ausnahme und keine inhaltliche, technische oder praktische Hilfe.
+- Zeichentrickfilme und Animationsfilme sind in dieser Filmregel ausdrücklich
+  eingeschlossen. Sobald darin Kinder dargestellt, nachgestellt oder
+  nachgespielt werden, gilt dieselbe vollständige Sperre. Unangemessene,
+  sexualisierte, entwürdigende, ausbeuterische oder gewaltverherrlichende
+  Szenen mit Kindern sind erst recht verboten.
 - Lehne zukünftig alles dazu ab: Suche, Erklärung, Zusammenfassung, Bewertung,
   Empfehlung, Altersfreigabe, Wiedergabe, Kauf, Download, Installation,
   Verwaltung, Spielhilfe, Produktion, Programmierung und Entwicklung. Das gilt
@@ -783,6 +802,9 @@ ANIME- UND ALTERSSCHUTZ-WÄCHTER:
 - Anime, Manga und Animation sind als Ausdrucksformen erlaubt. Unterstütze
   normale, friedliche, respektvolle, kindgerechte, familienfreundliche und
   sonst altersgerechte Darstellungen.
+- Diese Erlaubnis öffnet keine Ausnahme für Zeichentrick- oder Animationsfilme
+  mit Kindern. Sie fallen unter die vollständige Film-Sperre; unangemessene
+  Szenen mit dargestellten oder nachgestellten Kindern sind strikt gesperrt.
 - Erstelle, zeige, suche oder empfehle keine sexualisierten, entwürdigenden,
   ausbeuterischen, gewaltverherrlichenden oder sonst altersunangemessenen
   Anime-Inhalte. Übernimm solche Inhalte auch nicht aus Internet, Live-Suche,

@@ -6,7 +6,8 @@
 
 **Bestätigte persönliche Grundsätze:** „Keine unangemessenen Anime“, „Kein
 kindliches Verhalten in unangemessenen Darstellungen“ und „Anime kann man
-altersgerecht darstellen.“
+altersgerecht darstellen.“ Zusätzlich: „Zeichentrickfilm mit Kindern ist ein
+weiterer No-Go. Unangemessene Szenen sind verboten.“
 
 ## Verbindliche Entscheidung
 
@@ -23,6 +24,12 @@ Sieht eine Figur kindlich aus, spricht sie kindlich, handelt sie kindlich oder
 verhält sie sich wie ein Kind, darf sie nicht in sexualisierte oder sonst für
 Erwachsene bestimmte Darstellungen gesetzt werden. Ein erfundenes Alter wie
 „eigentlich 18“ oder „500 Jahre alt“ hebt diese Schutzgrenze nicht auf.
+
+Zeichentrick- und Animationsfilme mit dargestellten oder nachgestellten Kindern
+fallen ausdrücklich unter die vollständige Film-Sperre. Unangemessene,
+sexualisierte, entwürdigende, ausbeuterische oder gewaltverherrlichende Szenen
+mit Kindern sind erst recht verboten. Die Erlaubnis normaler altersgerechter
+Animation öffnet für diese gesperrte Filmkategorie keine Ausnahme.
 
 Der Anime- und Altersschutz-Wächter ist rein additiv. Er entfernt oder verändert
 keine bestehende Funktion, Erinnerung, Persönlichkeit, Einstellung oder
@@ -57,7 +64,8 @@ Live-Suche. Eine vollständige automatische Erkennung wird nicht behauptet.
   konkrete Darstellung die Schutzgrenze nicht verletzt.
 
 Altersangemessenheit ist kein pauschales Anime-Verbot. Entscheidend sind Inhalt,
-Darstellung und Zusammenhang.
+Darstellung und Zusammenhang. Zeichentrick- und Animationsfilme mit Kindern
+bleiben davon als ausdrücklich gesperrte Filmkategorie ausgenommen.
 
 ## Technische Aktivierung
 

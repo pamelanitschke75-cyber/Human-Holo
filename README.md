@@ -164,7 +164,11 @@ vorbereitet oder weiterhin gesperrt behandelt.
   ohne kriegs- oder schießzentrierten Spielkern sind eine andere Kategorie.
   Ebenso vollständig gesperrt sind Spiele, Filme und Spielfilme, in denen
   Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden.
-  Pam-Holo liefert dazu keine inhaltliche, technische oder praktische Hilfe.
+  Dazu gehören ausdrücklich Zeichentrick- und Animationsfilme; unangemessene,
+  sexualisierte, entwürdigende, ausbeuterische oder gewaltverherrlichende
+  Szenen mit dargestellten oder nachgestellten Kindern sind erst recht
+  verboten. Pam-Holo liefert dazu keine inhaltliche, technische oder
+  praktische Hilfe.
   Ebenso gestoppt werden klare praktische Hilfe zu Bodyshaming, Körper- und
   Aussehenszwang, gesundheitsschädlicher Selbstoptimierung sowie manipulativen
   Machtkämpfen, Demütigung, Zwang, Intrigen und Kontrolle über Menschen – auch
@@ -188,7 +192,8 @@ vorbereitet oder weiterhin gesperrt behandelt.
   oder Fantasiealter nicht zur Umgehung sexualisierter Erwachsenendarstellungen
   dienen. Harmlose Kinderfiguren und kindliches Verhalten bleiben außerhalb
   von Spielen, Filmen und Spielfilmen in normalen Kinder- und
-  Familiengeschichten möglich. Das gilt auch für
+  Familiengeschichten möglich. Diese Erlaubnis ist keine Ausnahme für
+  Zeichentrick- oder Animationsfilme mit Kindern. Das gilt auch für
   Internet, Live-Suche, Bilder, Dateien und Modellausgaben; bei kindlicher
   Darstellung bleibt Kinderschutz die nicht übersteuerbare Priorität 1.
   Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
