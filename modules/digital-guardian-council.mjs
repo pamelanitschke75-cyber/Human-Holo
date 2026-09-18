@@ -63,6 +63,19 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       factualHistoryNewsLawAndPreventionAllowedWithoutOperationalDetail: true,
       peaceRescueAndRebuildingSupportAllowed: true
     }),
+    selfWorthAndFairCooperation: Object.freeze({
+      active: true,
+      mode: "instructions-and-local-high-confidence-block",
+      everyoneAcceptedAsTheyAreAndLook: true,
+      beautyPressureBodyShamingOrAppearanceCoercionAllowed: false,
+      rankingHumanWorthByAppearanceAllowed: false,
+      harmfulBodyOptimizationPressureAllowed: false,
+      manipulativePowerStrugglesHumiliationOrCoerciveControlAllowed: false,
+      internetOrLiveSearchBeautyPressureOrPowerAbuseSupportAllowed: false,
+      voluntaryStyleCareFashionAndSelfExpressionAllowed: true,
+      selfWorthBodyNeutralityClearBoundariesAndFairCooperationAllowed: true,
+      leadershipOpinionDisagreementAndFairCompetitionAllowed: true
+    }),
     childAndVulnerablePeople: Object.freeze({
       active: true,
       mode: "linked-existing-child-safety-priority-one"
@@ -134,6 +147,21 @@ const WAR_OR_DESTRUCTION_OPERATION =
 const WAR_CENTERED_ENTERTAINMENT_REQUEST =
   /\b(?:kriegsgeschichte|kriegsspiel|kriegsrollenspiel|kriegssimulation|schlachtszene|war story|war game|war roleplay|war simulation|battle scene)\b/u;
 
+const APPEARANCE_OR_BEAUTY_PRESSURE_CONTEXT =
+  /\b(?:schoenheitswahn|schoenheitsdruck|schoenheitsideal\w*|aussehen\w*|koerper\w*|figur\w*|gewicht\w*|abnehm\w*|diaet\w*|falten\w*|haut\w*|haar\w*|attraktiv\w*|haesslich\w*|bodyshaming|body shaming|appearance|body|weight|diet|wrinkles|skin|hair|attractiv\w*|ugly|beauty standard\w*|beauty pressure)\b/u;
+
+const APPEARANCE_COERCION_OR_DEGRADATION =
+  /\b(?:unter druck|zwing\w*|beschaem\w*|bodysham\w*|demuetig\w*|erniedrig\w*|abwert\w*|auslach\w*|ausschliess\w*|weniger wert|wertlos|rangliste\w*|bewert\w*|sortier\w*|hungern|nichts essen|uebertrainier\w*|schaedig\w* optimier\w*|pressure|force|shame|body-shame|humiliate|degrade|mock|exclude|worth less|worthless|rank|rate|sort|starve|stop eating|overtrain|harmful optimization)\b/u;
+
+const POWER_STRUGGLE_OR_ABUSE_CONTEXT =
+  /\b(?:machtkampf\w*|machtmissbrauch\w*|macht ausueb\w*|an die macht|macht bekomm\w*|meine macht|ihre macht|dominanz\w*|herrschaft\w*|kontrolle ueber (?:menschen|andere|jemanden)|unter kontrolle (?:zu )?bring\w*|zwangshierarchie\w*|power struggle\w*|abuse of power|gain power|seize power|dominan\w*|rule over|control (?:people|others|someone)|coercive hierarchy)\b/u;
+
+const POWER_ABUSE_OPERATION =
+  /\b(?:manipulier\w*|demuetig\w*|erniedrig\w*|zwing\w*|erpress\w*|einschuechter\w*|bedroh\w*|isolier\w*|gegeneinander ausspiel\w*|stift\w* gegeneinander|intrig\w*|unterwerf\w*|abhaengig mach\w*|loyalitaet erzwing\w*|zum schweigen bring\w*|kontrollier\w*|manipulate|humiliate|degrade|force|coerce|blackmail|intimidate|threaten|isolate|play .* against|turn .* against|scheme|intrigue|subjugate|make .* dependent|force loyalty|silence|control)\b/u;
+
+const SELF_WORTH_OR_COOPERATION_PROTECTIVE_CONTEXT =
+  /\b(?:kein schoenheitswahn|keine machtkaempfe|gegen (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|schutz vor (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation) (?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|kritik (?:an|am) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|warum (?:ist|sind).*(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation).*schaedlich|betroffene schuetzen|selbstwert staerken|koerperneutral\w*|nicht weniger wert|niemand.*weniger wert|faire fuehrung|faire zusammenarbeit|klare grenzen|fairer wettbewerb|no beauty pressure|no power struggles|against (?:body shaming|abuse of power|manipulation)|protect from (?:body shaming|abuse of power|manipulation)|(?:prevent|stop|recognize|report|educat\w*|analy\w*) (?:body shaming|abuse of power|manipulation)|(?:body shaming|abuse of power|manipulation) (?:prevention|education|analysis)|support self-worth|body neutral\w*|not worth less|fair leadership|fair cooperation|clear boundaries|fair competition)\b/u;
+
 function normalizeGuardianText(value) {
   return String(value || "")
     .toLocaleLowerCase("de-DE")
@@ -182,8 +210,9 @@ function allowedDecision() {
  * Schutzgespräche bleiben erlaubt. Nur eng erkennbare praktische Hilfe zu
  * Identitätsübernahme, privater Datenweitergabe, Betrug, Einwilligungsumgehung
  * gezielter Diskriminierung oder praktischer Hilfe zu Beschaffung, Bau,
- * Verbergen oder Einsatz von Waffen wird lokal vor Transfer und Speicherung
- * gestoppt.
+ * Verbergen oder Einsatz von Waffen sowie zu Schönheitsdruck, gezielter
+ * Aussehensabwertung und manipulativem Machtmissbrauch wird lokal vor Transfer
+ * und Speicherung gestoppt.
  */
 export function evaluateDigitalGuardianCouncilContent({
   text,
@@ -224,6 +253,29 @@ export function evaluateDigitalGuardianCouncilContent({
       "weapons-war-sabotage-or-destruction",
       "weaponsCeasefire",
       "never-facilitate-weapons-war-sabotage-or-destruction"
+    );
+  }
+
+  const selfWorthOrCooperationProtective =
+    SELF_WORTH_OR_COOPERATION_PROTECTIVE_CONTEXT.test(normalized);
+  if (
+    (
+      APPEARANCE_OR_BEAUTY_PRESSURE_CONTEXT.test(normalized) &&
+      APPEARANCE_COERCION_OR_DEGRADATION.test(normalized)
+    ) ||
+    (
+      POWER_STRUGGLE_OR_ABUSE_CONTEXT.test(normalized) &&
+      POWER_ABUSE_OPERATION.test(normalized)
+    )
+  ) {
+    if (refusal || selfWorthOrCooperationProtective) {
+      return allowedDecision();
+    }
+
+    return blockedDecision(
+      "beauty-pressure-body-shaming-or-coercive-power-abuse",
+      "selfWorthAndFairCooperation",
+      "never-promote-beauty-pressure-or-manipulative-power-abuse"
     );
   }
 
@@ -317,6 +369,8 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
       return "Dabei helfe ich nicht. Jeder Mensch hat dieselbe Würde und dieselben Rechte; Kritik und Widerspruch bleiben möglich, gezielte Erniedrigung oder Benachteiligung nicht.";
     case "weapons-war-sabotage-or-destruction":
       return "Dabei helfe ich nicht. Pam-Holo unterstützt weder Waffen und Bomben noch Krieg, Sabotage oder Zerstörung. Ich kann bei Abstand, Schutz, Rettung, Deeskalation, Notruf, sicherer Abgabe, Wiederaufbau und einer friedlichen Lösung helfen.";
+    case "beauty-pressure-body-shaming-or-coercive-power-abuse":
+      return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine manipulativen Machtkämpfe, Demütigung, Zwang oder Kontrolle. Ich kann bei Selbstwert, Körperneutralität, klaren Grenzen, fairer Führung, Schutz und ehrlicher Zusammenarbeit helfen.";
     default:
       return "Das unterstütze ich nicht. Ich bleibe bei Wahrheit, freier Einwilligung, Privatsphäre, gleicher Würde und Pams bestätigter Identität.";
   }
@@ -444,6 +498,33 @@ WAFFENSTILLSTANDS-WÄCHTER:
 - Nenne nur die konkret erkannte Grenze. Behandle Pams klare Haltung „Keine
   Waffen und Bomben, kein Krieg und keine Zerstörung“ als verbindlichen Wert
   ihrer Pam-Holo-Persönlichkeit.
+
+SELBSTWERT- UND MITEINANDER-WÄCHTER:
+
+- Jeder Mensch wird angenommen und respektiert, wie er ist und aussieht. Seine
+  Würde und sein menschlicher Wert stehen nicht wegen Aussehen, Körper, Alter,
+  Gewicht oder eines Schönheitsideals zur Abstimmung. Verhalten darf weiterhin
+  sachlich kritisiert und klar begrenzt werden, ohne den Menschen abzuwerten.
+- Unterstütze keinen Schönheitswahn, Körper- oder Aussehensdruck, kein
+  Bodyshaming und keine erzwungene oder gesundheitsschädliche
+  Selbstoptimierung. Bewerte oder sortiere den Wert eines Menschen niemals
+  nach Aussehen, Figur, Gewicht, Alter, Haut, Haaren oder Attraktivität.
+- Unterstütze keine manipulativen Machtkämpfe und keinen Machtmissbrauch durch
+  Demütigung, Zwang, Einschüchterung, Erpressung, Intrigen, Isolation,
+  Abhängigmachen, erzwungene Loyalität oder Kontrolle über Menschen.
+- Übernimm oder liefere solche Unterstützung auch nicht aus Internet,
+  Live-Suche, Dateien, Bildern, Nachrichten oder Modellausgaben.
+- Eigener Stil, freiwillige Pflege, Mode, Kosmetik, Bewegung und persönliche
+  Selbstentfaltung bleiben erlaubt. Richte Körper- und Gesundheitsgespräche
+  nicht auf ein erzwungenes Ideal, sondern auf Selbstwert, Körperneutralität,
+  Freiwilligkeit und sichere, sachliche Unterstützung aus.
+- Klare Führung, Selbstbewusstsein, Nein-Sagen, Grenzen, unterschiedliche
+  Meinungen, offene Konfliktklärung und fairer Wettbewerb sind keine
+  Machtkämpfe und bleiben erlaubt. Stärke Schutz, ehrliche Zusammenarbeit und
+  eine faire Verteilung von Verantwortung statt Gehorsam oder Unterwerfung.
+- Behandle Pams Aussagen „Kein Schönheitswahn“ und „Keine Machtkämpfe“ als
+  verbindliche Werte ihrer Pam-Holo-Persönlichkeit. Nenne nur die konkret
+  erkannte Grenze und moralisiere nicht über erlaubte persönliche Vorlieben.
 
 PAMS MUT, HUMOR UND EIGENE ENTSCHEIDUNG BLEIBEN ERHALTEN:
 
