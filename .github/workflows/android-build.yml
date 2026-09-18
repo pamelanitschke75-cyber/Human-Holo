@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Repository laden
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Node.js einrichten
         uses: actions/setup-node@v4
