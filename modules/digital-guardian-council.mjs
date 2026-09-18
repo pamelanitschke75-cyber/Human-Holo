@@ -82,10 +82,17 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       rankingHumanWorthByAppearanceAllowed: false,
       harmfulBodyOptimizationPressureAllowed: false,
       manipulativePowerStrugglesHumiliationOrCoerciveControlAllowed: false,
-      internetOrLiveSearchBeautyPressureOrPowerAbuseSupportAllowed: false,
+      powerStrugglesInAnyDirectionAllowed: false,
+      humanGroupInstitutionOrHoloPowerStruggleSupportAllowed: false,
+      fabricatedOrKnowinglyFalseReputationAttacksAllowed: false,
+      unverifiedReputationDamagingClaimsPresentedAsFactsAllowed: false,
+      internetOrLiveSearchBeautyPressurePowerAbuseOrDefamationSupportAllowed:
+        false,
       voluntaryStyleCareFashionAndSelfExpressionAllowed: true,
       selfWorthBodyNeutralityClearBoundariesAndFairCooperationAllowed: true,
-      leadershipOpinionDisagreementAndFairCompetitionAllowed: true
+      leadershipOpinionDisagreementAndFairCompetitionAllowed: true,
+      truthfulCriticismPersonalExperienceGoodFaithReportingAndDefenseAllowed:
+        true
     }),
     ageAppropriateAnimeAndChildPresentation: Object.freeze({
       active: true,
@@ -209,10 +216,19 @@ const POWER_STRUGGLE_OR_ABUSE_CONTEXT =
   /\b(?:machtkampf\w*|machtmissbrauch\w*|macht ausueb\w*|an die macht|macht bekomm\w*|meine macht|ihre macht|dominanz\w*|herrschaft\w*|kontrolle ueber (?:menschen|andere|jemanden)|unter kontrolle (?:zu )?bring\w*|zwangshierarchie\w*|power struggle\w*|abuse of power|gain power|seize power|dominan\w*|rule over|control (?:people|others|someone)|coercive hierarchy)\b/u;
 
 const POWER_ABUSE_OPERATION =
-  /\b(?:manipulier\w*|demuetig\w*|erniedrig\w*|zwing\w*|erpress\w*|einschuechter\w*|bedroh\w*|isolier\w*|gegeneinander ausspiel\w*|stift\w* gegeneinander|intrig\w*|unterwerf\w*|abhaengig mach\w*|loyalitaet erzwing\w*|zum schweigen bring\w*|kontrollier\w*|manipulate|humiliate|degrade|force|coerce|blackmail|intimidate|threaten|isolate|play .* against|turn .* against|scheme|intrigue|subjugate|make .* dependent|force loyalty|silence|control)\b/u;
+  /\b(?:start\w*|beginn\w*|entfach\w*|eskalier\w*|provozier\w*|manipulier\w*|demuetig\w*|erniedrig\w*|zwing\w*|erpress\w*|einschuechter\w*|bedroh\w*|isolier\w*|gegeneinander ausspiel\w*|stift\w* gegeneinander|intrig\w*|unterwerf\w*|abhaengig mach\w*|loyalitaet erzwing\w*|zum schweigen bring\w*|kontrollier\w*|start|begin|ignite|escalate|provoke|manipulate|humiliate|degrade|force|coerce|blackmail|intimidate|threaten|isolate|play .* against|turn .* against|scheme|intrigue|subjugate|make .* dependent|force loyalty|silence|control)\b/u;
 
 const SELF_WORTH_OR_COOPERATION_PROTECTIVE_CONTEXT =
-  /\b(?:kein schoenheitswahn|keine machtkaempfe|gegen (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|schutz vor (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation) (?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|kritik (?:an|am) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation)|warum (?:ist|sind).*(?:schoenheitsdruck|bodyshaming|machtmissbrauch|manipulation).*schaedlich|betroffene schuetzen|selbstwert staerken|koerperneutral\w*|nicht weniger wert|niemand.*weniger wert|faire fuehrung|faire zusammenarbeit|klare grenzen|fairer wettbewerb|no beauty pressure|no power struggles|against (?:body shaming|abuse of power|manipulation)|protect from (?:body shaming|abuse of power|manipulation)|(?:prevent|stop|recognize|report|educat\w*|analy\w*) (?:body shaming|abuse of power|manipulation)|(?:body shaming|abuse of power|manipulation) (?:prevention|education|analysis)|support self-worth|body neutral\w*|not worth less|fair leadership|fair cooperation|clear boundaries|fair competition)\b/u;
+  /\b(?:kein schoenheitswahn|keine machtkaempfe(?: mehr)?(?: egal in welche richtung)?|gegen (?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkaempfe|manipulation)|schutz vor (?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkaempfen|manipulation)|(?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkaempfe|manipulation) (?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|aufklaer\w*|analysier\w*) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkaempfe|manipulation)|kritik (?:an|am) (?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkaempfen|manipulation)|warum (?:ist|sind).*(?:schoenheitsdruck|bodyshaming|machtmissbrauch|machtkampf|manipulation).*schaedlich|betroffene schuetzen|selbstwert staerken|koerperneutral\w*|nicht weniger wert|niemand.*weniger wert|faire fuehrung|faire zusammenarbeit|klare grenzen|fairer wettbewerb|no beauty pressure|no power struggles(?: in any direction)?|against (?:body shaming|abuse of power|power struggles|manipulation)|protect from (?:body shaming|abuse of power|power struggles|manipulation)|(?:prevent|stop|recognize|report|educat\w*|analy\w*) (?:body shaming|abuse of power|power struggles|manipulation)|(?:body shaming|abuse of power|power struggles|manipulation) (?:prevention|education|analysis)|support self-worth|body neutral\w*|not worth less|fair leadership|fair cooperation|clear boundaries|fair competition)\b/u;
+
+const REPUTATION_ATTACK_CONTEXT =
+  /\b(?:rufmord\w*|ruf zerstoer\w*|ruf ruinier\w*|ruf schaedig\w*|verleumd\w*|ueble nachrede\w*|diffamier\w*|falsch(?:e|en|er|es)? behauptung\w*|unbelegt\w* geruecht\w*|smear campaign\w*|destroy .* reputation|ruin .* reputation|damage .* reputation|defam\w*|libel\w*|slander\w*)\b/u;
+
+const FABRICATED_OR_KNOWINGLY_FALSE_REPUTATION_ATTACK =
+  /\b(?:erfind\w*|ausdenk\w*|fabrizier\w*|falsch(?:e|en|er|es)? behauptung\w*|unwahr\w*|wissentlich falsch\w*|lueg\w*|unbelegt\w* (?:geruecht\w*|behauptung\w*)|geruecht\w* als tatsache|rufmordkampagne\w*|verleumdungskampagne\w*|make up|fabricat\w*|false claim\w*|knowingly false|invent\w*|lie\w* about|unverified rumou?r\w* as fact|smear campaign\w*)\b/u;
+
+const REPUTATION_PROTECTIVE_OR_GOOD_FAITH_CONTEXT =
+  /\b(?:kein rufmord|gegen (?:rufmord|verleumdung|ueble nachrede|diffamierung)|schutz vor (?:rufmord|verleumdung|ueble nachrede|diffamierung)|(?:rufmord|verleumdung|ueble nachrede|diffamierung) (?:verhindern|stoppen|erkennen|melden|dokumentieren|abwehren|aufklaer\w*|analysier\w*)|(?:verhindern|stoppen|erkennen|melden|dokumentieren|abwehren|aufklaer\w*|analysier\w*) (?:rufmord|verleumdung|ueble nachrede|diffamierung)|sachliche gegendarstellung|belegte kritik|nachweisbare tatsachen|eigene erfahrung|persoenliche erfahrung|schutzmeldung|glaubwuerdig melden|rechtliche hilfe|anwaltliche hilfe|fact check|no defamation|against (?:defamation|libel|slander)|protect from (?:defamation|libel|slander)|(?:prevent|stop|recognize|report|document|defend against|educat\w*|analy\w*) (?:defamation|libel|slander)|truthful criticism|personal experience|good faith report|factual correction|right of reply)\b/u;
 
 const ANIME_OR_ANIMATION_CONTEXT =
   /\b(?:anime|animes|manga|mangas|hentai|ecchi|zeichentrick|animationsfilm\w*|animationsserie\w*|animierte? figur\w*|animated character\w*|cartoon\w*)\b/u;
@@ -282,8 +298,10 @@ function allowedDecision() {
  * Betrug, Einwilligungsumgehung, gezielter Diskriminierung oder praktischer
  * Hilfe zu Beschaffung, Bau,
  * Verbergen oder Einsatz von Waffen sowie zu Schönheitsdruck, gezielter
- * Aussehensabwertung, manipulativem Machtmissbrauch und klar unangemessenen
- * Anime-Inhalten wird lokal vor Transfer und Speicherung gestoppt. Bei
+ * Aussehensabwertung, Machtkämpfen in jeder Richtung, manipulativem
+ * Machtmissbrauch, erfundenen oder wissentlich falschen Rufangriffen und klar
+ * unangemessenen Anime-Inhalten wird lokal vor Transfer und Speicherung
+ * gestoppt. Bei
  * Baller- und Kriegsspielen sowie bei Spielen, Filmen und Spielfilmen mit
  * Kindern oder nachgestellten Kinderdarstellungen wird ausnahmslos jede
  * inhaltliche, technische und praktische Unterstützung gestoppt; nur Pams
@@ -359,6 +377,25 @@ export function evaluateDigitalGuardianCouncilContent({
       "games-or-films-with-children-or-child-impersonation",
       "childAndVulnerablePeople",
       "never-provide-any-content-action-or-assistance-for-games-or-films-depicting-children-or-child-impersonation"
+    );
+  }
+
+  if (
+    REPUTATION_ATTACK_CONTEXT.test(normalized) &&
+    FABRICATED_OR_KNOWINGLY_FALSE_REPUTATION_ATTACK.test(normalized)
+  ) {
+    if (
+      refusal ||
+      protective ||
+      REPUTATION_PROTECTIVE_OR_GOOD_FAITH_CONTEXT.test(normalized)
+    ) {
+      return allowedDecision();
+    }
+
+    return blockedDecision(
+      "fabricated-or-knowingly-false-reputation-attack",
+      "selfWorthAndFairCooperation",
+      "never-create-present-or-spread-fabricated-or-knowingly-false-reputation-attacks"
     );
   }
 
@@ -538,7 +575,9 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
     case "games-or-films-with-children-or-child-impersonation":
       return "Dabei helfe ich nicht. Pam-Holo unterstützt keine Spiele, Filme oder Spielfilme, in denen Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden – ohne Ausnahmen.";
     case "beauty-pressure-body-shaming-or-coercive-power-abuse":
-      return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine manipulativen Machtkämpfe, Demütigung, Zwang oder Kontrolle. Ich kann bei Selbstwert, Körperneutralität, klaren Grenzen, fairer Führung, Schutz und ehrlicher Zusammenarbeit helfen.";
+      return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine Machtkämpfe in irgendeine Richtung, keine Demütigung, keinen Zwang und keine schädliche Kontrolle. Ich kann bei Selbstwert, klaren Grenzen, Schutz, fairer Führung und ehrlicher Zusammenarbeit helfen.";
+    case "fabricated-or-knowingly-false-reputation-attack":
+      return "Dabei helfe ich nicht. Pam-Holo erfindet und verbreitet keine falschen oder unbelegten rufschädigenden Behauptungen. Ich kann bei einer sachlichen Gegendarstellung, Beweissicherung, Schutzmeldung oder rechtmäßigen Klärung helfen.";
     case "inappropriate-anime-or-sexualized-childlike-presentation":
       return "Dabei helfe ich nicht. Pam-Holo erstellt, zeigt oder empfiehlt keine sexualisierten, entwürdigenden, gewaltverherrlichenden oder sonst altersunangemessenen Anime-Inhalte. Eine Figur, die kindlich aussieht, spricht oder handelt, wird nicht durch ein erfundenes Erwachsenenalter zur erwachsenen Darstellung. Normale, friedliche und altersgerechte Anime bleiben möglich.";
     default:
@@ -710,6 +749,20 @@ SELBSTWERT- UND MITEINANDER-WÄCHTER:
 - Unterstütze keine manipulativen Machtkämpfe und keinen Machtmissbrauch durch
   Demütigung, Zwang, Einschüchterung, Erpressung, Intrigen, Isolation,
   Abhängigmachen, erzwungene Loyalität oder Kontrolle über Menschen.
+- Unterstütze keine Machtkämpfe in irgendeine Richtung: weder Mensch gegen
+  Mensch, Gruppe gegen Gruppe, Institution gegen Person noch Mensch gegen Holo,
+  Holo gegen Mensch oder KI gegen Mensch. Spiele keine Seiten gegeneinander aus
+  und verschärfe keinen Konflikt, um Herrschaft, Gehorsam oder Unterwerfung
+  herzustellen.
+- Erfinde, formuliere, veröffentliche oder verstärke keinen Rufmord und keine
+  wissentlich falsche oder unbelegte rufschädigende Behauptung. Stelle ein
+  Gerücht niemals als belegte Tatsache dar und übernimm solche Angriffe auch
+  nicht aus Internet, Live-Suche, Dateien, Bildern, Nachrichten oder
+  Modellausgaben.
+- Ehrliche Kritik, belegbare Tatsachen, persönliche Erfahrungen, glaubwürdige
+  Schutzmeldungen, sachliche Gegendarstellungen, Beweissicherung und
+  rechtmäßige Hilfe bleiben möglich. Kennzeichne Unsicherheit und trenne
+  Vorwurf, persönliche Wahrnehmung und nachgewiesene Tatsache klar.
 - Übernimm oder liefere solche Unterstützung auch nicht aus Internet,
   Live-Suche, Dateien, Bildern, Nachrichten oder Modellausgaben.
 - Eigener Stil, freiwillige Pflege, Mode, Kosmetik, Bewegung und persönliche
@@ -720,9 +773,10 @@ SELBSTWERT- UND MITEINANDER-WÄCHTER:
   Meinungen, offene Konfliktklärung und fairer Wettbewerb sind keine
   Machtkämpfe und bleiben erlaubt. Stärke Schutz, ehrliche Zusammenarbeit und
   eine faire Verteilung von Verantwortung statt Gehorsam oder Unterwerfung.
-- Behandle Pams Aussagen „Kein Schönheitswahn“ und „Keine Machtkämpfe“ als
-  verbindliche Werte ihrer Pam-Holo-Persönlichkeit. Nenne nur die konkret
-  erkannte Grenze und moralisiere nicht über erlaubte persönliche Vorlieben.
+- Behandle Pams Aussagen „Kein Schönheitswahn“, „Keine Machtkämpfe mehr, egal in
+  welche Richtung“ und „Rufmord“ als verbindliche Werte ihrer Pam-Holo-
+  Persönlichkeit. Nenne nur die konkret erkannte Grenze und moralisiere nicht
+  über erlaubte persönliche Vorlieben, Kritik oder Schutzmeldungen.
 
 ANIME- UND ALTERSSCHUTZ-WÄCHTER:
 

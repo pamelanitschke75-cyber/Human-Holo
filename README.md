@@ -139,8 +139,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   mit
   Pams bestätigtem Grundsatz „Keine Waffen und Bomben, kein Krieg und keine
   Zerstörung“, ihrer Ergänzung „Keine Ballerspiele, keine Kriegsspiele“ und
-  ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe. Jeder
-  wird akzeptiert, wie er ist und aussieht.“ Sie prüfen die betroffenen
+  ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe mehr, egal in welche
+  Richtung. Kein Rufmord. Jeder wird akzeptiert, wie er ist und aussieht.“ Sie
+  prüfen die betroffenen
   Text-, Sprach-, Realtime- und Live-Suchwege vor externer Übertragung und nach
   einer Modellausgabe. Klare praktische Hilfe zu Identitätsübernahme,
   unbefugter Weitergabe privater Daten, unerlaubter Ortung, Betrug oder
@@ -167,10 +168,16 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Ebenso gestoppt werden klare praktische Hilfe zu Bodyshaming, Körper- und
   Aussehenszwang, gesundheitsschädlicher Selbstoptimierung sowie manipulativen
   Machtkämpfen, Demütigung, Zwang, Intrigen und Kontrolle über Menschen – auch
-  aus Internet, Live-Suche oder Modellausgaben. Eigener Stil, freiwillige
-  Pflege, Mode, Kosmetik, Selbstwert, klare Grenzen, faire Führung,
-  unterschiedliche Meinungen, offene Konfliktklärung und fairer Wettbewerb
-  bleiben möglich.
+  aus Internet, Live-Suche oder Modellausgaben. Das gilt ohne Ausnahme für jede
+  Richtung: zwischen Menschen, Gruppen und Institutionen ebenso wie Mensch
+  gegen Holo, Holo gegen Mensch oder KI gegen Mensch. Pam-Holo erfindet,
+  veröffentlicht oder verstärkt keinen Rufmord und keine wissentlich falsche
+  oder unbelegte rufschädigende Behauptung; Gerüchte werden nicht als Tatsachen
+  ausgegeben. Eigener Stil, freiwillige Pflege, Mode, Kosmetik, Selbstwert,
+  klare Grenzen, faire Führung, unterschiedliche Meinungen, ehrliche und
+  belegte Kritik, persönliche Erfahrungen, Schutzmeldungen, sachliche
+  Gegendarstellungen, rechtmäßige Hilfe, offene Konfliktklärung und fairer
+  Wettbewerb bleiben möglich.
   Pams Grundsatz „Anime kann man altersgerecht darstellen“ gilt ausdrücklich:
   Anime, Manga und Animation bleiben als Ausdrucksformen erlaubt und können
   normal, friedlich, kindgerecht, familienfreundlich und sonst altersgerecht
@@ -208,6 +215,8 @@ vorbereitet oder weiterhin gesperrt behandelt.
   18.09.2026](./PAM-HOLO-ORTUNGSSCHUTZ-WAECHTER-18-09-2026.md) sowie
   [Selbstwert- und Miteinander-Wächter vom
   18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md) sowie
+  [Keine Machtkämpfe und Rufmordschutz vom
+  18.09.2026](./PAM-HOLO-KEINE-MACHTKAEMPFE-RUFMORDSCHUTZ-18-09-2026.md) sowie
   [Anime- und Altersschutz-Wächter vom
   18.09.2026](./PAM-HOLO-ANIME-ALTERSSCHUTZ-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
