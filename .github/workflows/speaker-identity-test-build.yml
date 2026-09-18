@@ -115,7 +115,7 @@ jobs:
           rm -f "$key" "$aligned"
 
       - name: APK bereitstellen
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Pams-Holo-Hey-Pam-Stimmentest-${{ steps.signing.outputs.mode }}
           path: android/app/build/outputs/apk/release/Pams-Holo-Hey-Pam-Stimmentest-*.apk
