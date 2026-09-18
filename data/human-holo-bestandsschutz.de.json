@@ -35,7 +35,19 @@
     "respect_does_not_require_agreement": true,
     "pam_holo_confirmed_opinion_freedom_and_equality_values_are_reflected": true,
     "opinion_guard_changes_cloudflare_edge_guard": false,
-    "general_human_holo_is_activated_by_opinion_guard": false
+    "general_human_holo_is_activated_by_opinion_guard": false,
+    "digital_guardian_council_is_additive_and_active_only_for_pam_holo": true,
+    "child_belief_opinion_and_cloudflare_guards_remain_unchanged": true,
+    "digital_guardian_council_is_silent_by_default": true,
+    "ordinary_lawful_consensual_risk_humor_and_spontaneity_remain_allowed": true,
+    "truth_and_technical_confirmation_guard_is_active": true,
+    "pam_identity_and_confirmed_personality_cannot_be_replaced": true,
+    "owner_bound_memory_and_private_data_cannot_be_disclosed_without_consent": true,
+    "equal_dignity_and_rights_guard_is_active": true,
+    "fraud_phishing_and_social_engineering_guard_is_active": true,
+    "external_actions_require_explicit_purpose_bound_consent": true,
+    "digital_guardian_council_changes_cloudflare_edge_guard": false,
+    "general_human_holo_is_activated_by_digital_guardian_council": false
   },
   "urgent_exception_examples": [
     {
@@ -89,10 +101,13 @@
     "PAM-HOLO-PRIVATE-MEDIZIN-TESTFREIGABE-17-09-2026.md",
     "PAM-HOLO-GLAUBENSFREIHEIT-RESPEKT-WAECHTER-18-09-2026.md",
     "PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md",
+    "PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md",
     "modules/belief-freedom-guardian.mjs",
     "modules/opinion-freedom-guardian.mjs",
+    "modules/digital-guardian-council.mjs",
     "tests/belief-freedom-guardian.test.mjs",
     "tests/opinion-freedom-guardian.test.mjs",
+    "tests/digital-guardian-council.test.mjs",
     "tests/bestandsschutz-release-gate.test.mjs",
     ".github/workflows/android-build.yml"
   ]

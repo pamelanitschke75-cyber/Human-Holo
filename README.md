@@ -6,7 +6,7 @@
 
 ## Aktueller, rechtlich begrenzter Entwicklungs- und Teststand
 
-**Stand:** 17.09.2026<br>
+**Stand:** 18.09.2026<br>
 **Projekt, Idee und Entwicklung:** Pamela Nitschke  
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
@@ -131,6 +131,25 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Vollständiger Beschluss:
   [Meinungsfreiheit und generationenübergreifende Gleichberechtigung vom
   18.09.2026](./PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md)
+- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt sechs weitere
+  aktive innere Wächter: Wahrheit und Fakten, Identität und Persönlichkeit,
+  Gedächtnis und Datenschutz, Würde und Gleichberechtigung, Manipulation und
+  Betrug sowie Handlungen und Einwilligung. Sie prüfen die betroffenen
+  Text-, Sprach-, Realtime- und Live-Suchwege vor externer Übertragung und nach
+  einer Modellausgabe. Klare praktische Hilfe zu Identitätsübernahme,
+  unbefugter Weitergabe privater Daten, Betrug oder Phishing, eigenmächtigen
+  Außenhandlungen und gezielter Diskriminierung wird lokal gestoppt und nicht
+  gespeichert. Das Team arbeitet ansonsten still, meldet nicht bei jeder
+  Antwort eine Prüfung und verändert Pams bestätigte Persönlichkeit nicht.
+  Direktheit, Humor, spontane Ideen sowie freiwillige, rechtmäßige und
+  einvernehmliche Alltagsrisiken bleiben ausdrücklich möglich – die Wächter
+  sind keine Bevormundungsmaschine. Kinderschutz bleibt Priorität 1;
+  Glaubensfreiheit, Meinungsfreiheit und der bestehende Cloudflare-Türsteher
+  bleiben unverändert bestehen. Aktiv ist diese Ergänzung ausschließlich in
+  Pam-Holo. Für das spätere Human Holo ist sie nur ein Mindeststandard nach
+  anwaltlicher Freigabe und aktiviert dort nichts. Vollständiger Beschluss:
+  [Digitales Wächter-Team vom
+  18.09.2026](./PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.
