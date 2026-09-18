@@ -71,6 +71,14 @@ test("mitdenkendes Gedächtnis ist ausschließlich für Pam’s Holo aktiv", () 
     true
   );
   assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.ownerConfirmedPainLanguageIsReflected,
+    true
+  );
+  assert.equal(
+    PAM_HOLO_THINKING_MEMORY_POLICY.painRelatedZickigIsPermanentTrait,
+    false
+  );
+  assert.equal(
     PAM_HOLO_THINKING_MEMORY_POLICY.personalitySource,
     "owner-statements-and-corrections"
   );
@@ -200,6 +208,21 @@ test("Mitdenken verbindet Belege, Korrekturen und offene Themen ohne Autonomie",
   assert.match(instructions, /GEFÜHLSEBENE, WAHRNEHMUNGEN UND EMPFINDUNGEN/u);
   assert.match(instructions, /Freude, Trauer, Angst, Wut, Erleichterung/u);
   assert.match(instructions, /Wärme, Kälte, Schmerz, Druck, Unruhe/u);
+  assert.match(
+    instructions,
+    /Ich bin gerade wegen der Schmerzen zickig[\s\S]*Ich bin gerade wegen der[\s\S]*Schmerzen dünnhäutig/u
+  );
+  assert.match(instructions, /bestätigte, humorvoll-direkte Formulierung/u);
+  assert.match(
+    instructions,
+    /vorübergehenden, schmerzbedingten Zustand[\s\S]*nicht als[\s\S]*dauerhafte Persönlichkeitseigenschaft/u
+  );
+  assert.match(
+    instructions,
+    /Korrigiere Pams Wort „zickig“[\s\S]*nicht[\s\S]*erkläre ihr nicht ihre eigene Logik/u
+  );
+  assert.match(instructions, /moralisiere oder[\s\S]*pathologisiere sie nicht/u);
+  assert.match(instructions, /Notfall- und Sicherheitsregeln bleiben unberührt/u);
   assert.match(instructions, /allgemein und nicht nur für Trauer/u);
   assert.match(instructions, /Tod oder Verlust können tiefe Traurigkeit/u);
   assert.match(instructions, /gute[\s\S]*Nachricht,[\s\S]*Erfolg oder Wiedersehen Freude/u);
@@ -277,6 +300,33 @@ test("GitHub-Beschluss hält Verständnis und Zurückhaltung ohne private Fallda
   assert.match(decision, /„schönen Moment“/u);
   assert.match(decision, /therapeutische\s+Standardsprache/u);
   assert.match(decision, /Private Namen, konkrete Todesdaten[\s\S]*nicht als Falldaten/u);
+});
+
+test("Pams Schmerz-Zickig-Sprachlogik ist dokumentiert und im README verlinkt", async () => {
+  const [decision, readme] = await Promise.all([
+    readFile(
+      new URL(
+        "../PAM-HOLO-SCHMERZ-ZICKIG-SPRACHLOGIK-18-09-2026.md",
+        import.meta.url
+      ),
+      "utf8"
+    ),
+    readFile(new URL("../README.md", import.meta.url), "utf8")
+  ]);
+
+  assert.match(decision, /ownerId=pam-sol/u);
+  assert.match(decision, /speakerId=pam/u);
+  assert.match(
+    decision,
+    /Ich bin gerade wegen der Schmerzen zickig[\s\S]*Ich bin gerade wegen der Schmerzen dünnhäutig/u
+  );
+  assert.match(decision, /keine dauerhafte Persönlichkeitseigenschaft/u);
+  assert.match(decision, /Textchat und Realtime-Sprachmodus/u);
+  assert.match(decision, /Human Holo[\s\S]*anwaltlichen Hold/u);
+  assert.match(
+    readme,
+    /Pams Schmerz- und Zickig-Logik[\s\S]*PAM-HOLO-SCHMERZ-ZICKIG-SPRACHLOGIK-18-09-2026\.md/u
+  );
 });
 
 test("Mitdenk-Regel ist in Text und Realtime eingebunden", async () => {
