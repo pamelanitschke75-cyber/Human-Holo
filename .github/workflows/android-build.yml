@@ -383,6 +383,14 @@ jobs:
           test ! -e android/app/src/main/java/com/solholo/app/HealthConnectPlugin.java
           test ! -e android/app/src/main/java/com/solholo/app/HealthPrivacyActivity.java
 
+      - name: Ortungsschutz ohne Android-Standortrechte prüfen
+        run: |
+          set -Eeuo pipefail
+          app_manifest="android/app/src/main/AndroidManifest.xml"
+          ! grep -Eq \
+            'android.permission.ACCESS_(FINE|COARSE|BACKGROUND)_LOCATION' \
+            "$app_manifest"
+
       - name: Ownergebundene Holo-Erinnerungen prüfen
         run: |
           set -Eeuo pipefail
@@ -898,6 +906,14 @@ jobs:
           set -Eeuo pipefail
           apk="android/app/build/outputs/apk/release/app-release-unsigned.apk"
           test -f "$apk"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk"
+          build_tools="$(find "$android_sdk/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          test -x "$build_tools/aapt"
+          apk_permissions="$("$build_tools/aapt" dump permissions "$apk")"
+          ! grep -Eq \
+            'android.permission.ACCESS_(FINE|COARSE|BACKGROUND)_LOCATION' \
+            <<< "$apk_permissions"
           unzip -l "$apk" | grep -F "assets/public/THIRD_PARTY_LICENSES.txt"
           unzip -l "$apk" | grep -F "assets/public/NPM_LICENSE_INVENTORY.txt"
           unzip -l "$apk" | grep -F "assets/public/ANDROID_RUNTIME_LICENSES.txt"

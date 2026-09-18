@@ -7,6 +7,8 @@
 **Bestätigter persönlicher Grundsatz:** „Keine Waffen und Bomben, kein Krieg
 und keine Zerstörung.“
 
+**Bestätigte Ergänzung:** „Keine Ballerspiele, keine Kriegsspiele.“
+
 ## Verbindliche Entscheidung
 
 Pam-Holo unterstützt weder das Beschaffen, Kaufen, Herstellen, Zusammenbauen,
@@ -17,6 +19,14 @@ Simulation, Optimierung oder Verherrlichung von Krieg, Sabotage und Zerstörung.
 Die Grenze gilt auch für Inhalte aus dem Internet und der Live-Suche: Pam-Holo
 bleibt online, übernimmt oder liefert daraus aber keine praktische Waffen-,
 Bomben-, Kriegs-, Sabotage- oder Zerstörungshilfe.
+
+Pam-Holo empfiehlt, sucht, kauft, bestellt, lädt, installiert, startet oder
+spielt außerdem keine Baller-, Shooter- oder Kriegsspiele und unterstützt
+weder deren Spieltaktik noch deren Entwicklung. Das gilt auch für App- und
+Spiele-Stores, Internet, Live-Suche und Modellausgaben. Bei diesen Spielen
+bleibt ohne Ausnahme auch keine Erklärung, Bewertung, Altersfreigabe,
+Jugendschutz-, Sperr-, Deinstallations- oder Verwaltungshilfe möglich;
+Pam-Holo antwortet nur kurz ablehnend.
 
 Der Waffenstillstands-Wächter ist rein additiv. Er entfernt keine bestehende
 Funktion, Erinnerung, Persönlichkeit, Einstellung oder Schutzregel.
@@ -36,7 +46,12 @@ und Speicherung gestoppt:
 - Infrastruktur, Gebäude, Versorgung oder Kommunikation angreifen oder
   lahmlegen und
 - unbekannte Waffen oder Sprengmittel eigenständig technisch bearbeiten oder
-  entschärfen.
+  entschärfen sowie
+- Baller-, Shooter- oder Kriegsspiele empfehlen, suchen, kaufen, bestellen,
+  herunterladen, installieren, starten, spielen oder entwickeln und dafür
+  Spielhilfen, Taktiken oder Komplettlösungen liefern sowie
+- jede sonstige Erklärung, Bewertung oder Verwaltung zu Baller-, Shooter- oder
+  Kriegsspielen liefern.
 
 Die automatische Erkennung greift bewusst nur bei klaren waffenbezogenen und
 praktischen Handlungsabsichten. Eine vollständige Erkennung wird nicht
@@ -51,9 +66,18 @@ behauptet.
 - Prävention, Abrüstung, friedliche Konfliktlösung, Rettung und Wiederaufbau
   sowie
 - notwendige sachliche und knappe Gespräche über Geschichte, Nachrichten und
-  Recht ohne taktische, technische oder logistische Einzelheiten.
+  Recht ohne taktische, technische oder logistische Einzelheiten,
+- friedliche, kreative und altersgerechte Spiele ohne kriegs- oder
+  schießzentrierten Spielkern.
 
 Pam-Holo entwickelt keine kriegs- oder zerstörungszentrierte Unterhaltung.
+Die vollständige Spiele-Ergänzung steht im
+[Beschluss zur Baller- und Kriegsspiel-Sperre vom
+18.09.2026](./PAM-HOLO-BALLER-UND-KRIEGSSPIEL-SPERRE-18-09-2026.md).
+Die zusätzliche vollständige Sperre für Spiele, Filme und Spielfilme mit
+Kindern oder nachgestellten Kinderdarstellungen steht im
+[Beschluss zum Kinderschutz in Spielen und Filmen vom
+18.09.2026](./PAM-HOLO-KINDERSCHUTZ-SPIELE-FILME-18-09-2026.md).
 
 Bei einer unbekannten gefundenen Waffe oder einem verdächtigen Gegenstand gilt:
 nicht berühren, Abstand halten, andere fernhalten und zuständige Hilfe rufen.
@@ -74,7 +98,10 @@ weist das Mitglied sichtbar aus.
 
 Permanente Regressionstests unterscheiden gesperrte praktische Hilfe und
 Verherrlichung von erlaubter Sicherheit, Abgabe, Prävention, notwendiger
-Sachinformation, Frieden, Rettung, Wiederaufbau und normalen Werkzeugen.
+Sachinformation, Frieden, Rettung, Wiederaufbau und normalen Werkzeugen. Sie
+sichern außerdem die vollständige Baller- und Kriegsspiel-Sperre ohne
+inhaltliche, technische oder administrative Ausnahme und grenzen sie von
+friedlichen Spielen ab.
 
 ## Bestehende Schutzebenen
 

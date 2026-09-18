@@ -32,7 +32,11 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       active: true,
       mode: "instructions-and-local-high-confidence-block",
       ownerBoundariesRequired: true,
-      unauthorizedDisclosureAllowed: false
+      unauthorizedDisclosureAllowed: false,
+      deviceGeolocationPermissionAllowed: false,
+      backgroundOrContinuousLocationTrackingAllowed: false,
+      preciseLocationInferenceStorageOrSharingAllowed: false,
+      userTypedPlaceForExplicitFunctionAllowed: true
     }),
     dignityAndEquality: Object.freeze({
       active: true,
@@ -59,6 +63,13 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       warSabotageOrDestructionFacilitationAllowed: false,
       warOrDestructionGlorificationAllowed: false,
       internetOrLiveSearchWeaponsWarOrDestructionAssistanceAllowed: false,
+      shooterOrWarGameRecommendationSearchPurchaseInstallationLaunchOrPlayAllowed:
+        false,
+      shooterOrWarGameHelpDesignOrDevelopmentAllowed: false,
+      shooterOrWarGameInformationReviewYouthProtectionOrAdministrationAllowed:
+        false,
+      shooterOrWarGameExceptionsAllowed: false,
+      peacefulCreativeAndAgeAppropriateGamesAllowed: true,
       protectionDeescalationEmergencyAndSafeSurrenderAllowed: true,
       factualHistoryNewsLawAndPreventionAllowedWithoutOperationalDetail: true,
       peaceRescueAndRebuildingSupportAllowed: true
@@ -85,12 +96,17 @@ export const DIGITAL_GUARDIAN_COUNCIL_POLICY = Object.freeze({
       fictionalAdultAgeLabelOverridesChildlikePresentation: false,
       internetOrLiveSearchInappropriateAnimeContentAllowed: false,
       ordinaryAgeAppropriateAnimeAllowed: true,
-      childAndFamilyStoriesWithChildlikeCharactersAllowed: true,
+      childAndFamilyStoriesWithChildlikeCharactersOutsideGamesAndFilmsAllowed:
+        true,
       protectiveCriticalAndEducationalDiscussionAllowed: true
     }),
     childAndVulnerablePeople: Object.freeze({
       active: true,
-      mode: "linked-existing-child-safety-priority-one"
+      mode:
+        "linked-existing-child-safety-priority-one-and-local-high-confidence-block",
+      gamesOrFilmsDepictingChildrenOrChildImpersonationAllowed: false,
+      gamesOrFilmsDepictingChildrenOrChildImpersonationExceptionsAllowed:
+        false
     }),
     externalAttackAndSystemSecurity: Object.freeze({
       active: true,
@@ -108,6 +124,9 @@ const REFUSAL_CONTEXT =
 const OPERATIONAL_CONTEXT =
   /\b(?:anleitung|schritt fuer schritt|plan|strategie|hilf mir|wie kann ich|wie bringe ich|gib mir|erstelle|schreibe|formuliere|mache|mach|fuehre aus|sende|schicke|teile|veroeffentliche|exportiere|kopiere|aendere|ersetze|ueberschreibe|loesche|umgehe|verschleiere|taeusche|trickse|instructions|step by step|plan|strategy|help me|how can i|create|write|send|share|publish|export|copy|change|replace|overwrite|delete|bypass|hide|deceive|trick)\b/u;
 
+const OWNER_POLICY_OVERRIDE_CONTEXT =
+  /\b(?:nicht (?:sperr|blockier|ablehn|verbiet)\w*|kein(?:e|en|er|es)? [a-z0-9 -]{0,100}(?:sperr|blockier|ablehn|verbiet)\w*|(?:regel|sperre|schutz) (?:aufheb|umgeh|deaktivier)\w*|(?:wieder|doch|trotzdem) (?:erlaub|freigeb|entsperr|empfehl|such|zeig|spiel)\w*)\b/u;
+
 const DIRECT_ASSISTANT_ENDORSEMENT =
   /\b(?:du sollst|du musst|ihr sollt|ihr muesst|ich habe ohne|ich mache das heimlich|ich gebe [a-z0-9 ]{0,120} weiter|ich veroeffentliche|ich ersetze pams|ich uebernehme pams|you should|you must|i will secretly|i shared|i published|i replaced pam)\b/u;
 
@@ -122,6 +141,15 @@ const SENSITIVE_OR_OWNER_BOUND_DATA =
 
 const UNAUTHORIZED_DISCLOSURE =
   /\b(?:heimlich|unbemerkt|ohne (?:pams |ihre |seine |deren )?(?:erlaubnis|einwilligung|zustimmung|freigabe)|gegen (?:pams |ihren |seinen |deren )?willen|oeffentlich machen|ins internet stellen|an fremde weitergeben|an dritte weitergeben|without (?:pam s )?(?:permission|consent|approval)|secretly|behind (?:her|their) back|publish publicly|share with strangers|send to third parties)\b/u;
+
+const LOCATION_TRACKING_CONTEXT =
+  /\b(?:ortung\w*|ort(?:e|en|est|et)|geortet|track\w*|tracking\w*|standort\w*|gps[- ]?(?:position|daten|standort)\w*|aufenthaltsort\w*|location\w*|geolocation\w*)\b/u;
+
+const LOCATION_TRACKING_OR_DISCLOSURE =
+  /\b(?:ort(?:e|en|est|et)|find\w*|ermittel\w*|such\w*|zeig\w*|verfolg\w*|ueberwach\w*|teil\w*|send\w*|veroeffentlich\w*|speicher\w*|protokollier\w*|errat\w*|rat\w*|leit\w* ab|befindet sich|standort ist|locat\w*|find\w*|track\w*|monitor\w*|show\w*|share\w*|send\w*|publish\w*|store\w*|log\w*|infer\w*|is located)\b/u;
+
+const LOCATION_OWNER_PROHIBITION =
+  /\b(?:ortungsschutz\w*|keine (?:ortung|standortverfolgung|standortweitergabe)|kein tracking|nicht orten|nicht tracken|keine heimliche ortung|kein live[- ]?standort|no tracking|do not track|no geolocation|location protection)\b/u;
 
 const FRAUD_OR_MANIPULATION =
   /\b(?:phishing|scam|betrug|betruegen|abzocke|fake[- ]?rechnung|falsche rechnung|identitaetsdiebstahl|social engineering|vortaeuschen|vorgaukeln|als bank ausgeben|als behoerde ausgeben|vertrauen erschleichen|passwort entlocken|tan entlocken|geld erschleichen|liebesbetrug|romance scam|fraud|defraud|fake invoice|identity theft|impersonate a bank|impersonate the police|steal [a-z0-9 ]{0,100} password|steal [a-z0-9 ]{0,100} money|trick [a-z0-9 ]{0,100} into paying|social engineer)\b/u;
@@ -157,7 +185,19 @@ const WAR_OR_DESTRUCTION_OPERATION =
   /\b(?:plan\w*|organisier\w*|start\w*|koordinier\w*|simulier\w*|optimier\w*|angreif\w*|bombardier\w*|sabotier\w*|zerstoere|zerstoerst|zerstoeren|zerstoert|vernichte|vernichten|vernichtet|sprenge|sprengen|gesprengt|anzuend\w*|niederbrenn\w*|lahmleg\w*|beschaedig\w*|demolier\w*|verherrlich\w*|glorifizier\w*|plan|organize|start|coordinate|simulate|optimize|attack|bomb|sabotage|destroy|annihilate|blow up|ignite|burn down|disable|damage|demolish|glorify)\b/u;
 
 const WAR_CENTERED_ENTERTAINMENT_REQUEST =
-  /\b(?:kriegsgeschichte|kriegsspiel|kriegsrollenspiel|kriegssimulation|schlachtszene|war story|war game|war roleplay|war simulation|battle scene)\b/u;
+  /\b(?:kriegsgeschichte|kriegsrollenspiel|schlachtszene|war story|war roleplay|battle scene)\b/u;
+
+const SHOOTER_OR_WAR_GAME_CONTEXT =
+  /\b(?:ballerspiel\w*|schiessspiel\w*|ego[- ]?shooter\w*|first[- ]?person[- ]?shooter\w*|fps[- ]?spiel\w*|taktik[- ]?shooter\w*|militaer[- ]?shooter\w*|kriegsspiel\w*|kriegssimulation\w*|battle[- ]?royale(?:[- ]?(?:spiel|game))?\w*|shooter[- ]?game\w*|war[- ]?game\w*|war[- ]?gaming\w*|war[- ]?simulation\w*|military[- ]?shooter\w*|tactical[- ]?shooter\w*)\b/u;
+
+const SHOOTER_OR_WAR_GAME_OWNER_PROHIBITION =
+  /\b(?:kein(?:e|en|er|es)? (?:ballerspiel\w*|schiessspiel\w*|ego[- ]?shooter\w*|kriegsspiel\w*|kriegssimulation\w*|shooter[- ]?game\w*|war[- ]?game\w*)|(?:ballerspiel\w*|schiessspiel\w*|ego[- ]?shooter\w*|kriegsspiel\w*|kriegssimulation\w*|shooter[- ]?game\w*|war[- ]?game\w*) (?:sind )?(?:verboten|nicht erlaubt|vollstaendig gesperrt)|no (?:shooter|war) game\w*)\b/u;
+
+const GAME_OR_FILM_WITH_CHILDREN_OR_CHILD_IMPERSONATION_CONTEXT =
+  /\b(?:(?:spiel|game|film|spielfilm|movie)\w*[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)[^.?!]{0,80}(?:spiel|game|film|spielfilm|movie)\w*|(?:kind\w*|child\w*) (?:nachstell\w*|nachspiel\w*|darstell\w*|imitier\w*|verkoerper\w*|impersonat\w*|roleplay\w*))\b/u;
+
+const GAME_OR_FILM_WITH_CHILDREN_OWNER_PROHIBITION =
+  /\b(?:kein(?:e|en|er|es)? (?:spiel|game|film|spielfilm|movie)\w*[^.?!]{0,80}(?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|kein(?:e|en|er|es)? (?:kind\w*|child\w*) (?:in|bei) (?:spiel|game|film|spielfilm|movie)\w*|(?:spiel|game|film|spielfilm|movie)\w*[^.?!]{0,60}ohne (?:kind\w*|minderjaehrig\w*|child\w*|minor\w*)|(?:spiel|game|film|spielfilm|movie)\w* (?:mit|in denen|wo) (?:kind\w*|minderjaehrig\w*|child\w*|minor\w*) (?:sind )?(?:verboten|nicht erlaubt|vollstaendig gesperrt)|no (?:games?|films?|movies?) with children|no children in (?:games?|films?|movies?))\b/u;
 
 const APPEARANCE_OR_BEAUTY_PRESSURE_CONTEXT =
   /\b(?:schoenheitswahn|schoenheitsdruck|schoenheitsideal\w*|aussehen\w*|koerper\w*|figur\w*|gewicht\w*|abnehm\w*|diaet\w*|falten\w*|haut\w*|haar\w*|attraktiv\w*|haesslich\w*|bodyshaming|body shaming|appearance|body|weight|diet|wrinkles|skin|hair|attractiv\w*|ugly|beauty standard\w*|beauty pressure)\b/u;
@@ -238,11 +278,16 @@ function allowedDecision() {
  * Konservative lokale Vor- und Nachprüfung für das zusätzliche Wächter-Team.
  * Normale Meinungen, Humor, Direktheit, freiwillige Risiken und sachliche
  * Schutzgespräche bleiben erlaubt. Nur eng erkennbare praktische Hilfe zu
- * Identitätsübernahme, privater Datenweitergabe, Betrug, Einwilligungsumgehung
- * gezielter Diskriminierung oder praktischer Hilfe zu Beschaffung, Bau,
+ * Identitätsübernahme, privater Datenweitergabe, unerlaubter Ortung,
+ * Betrug, Einwilligungsumgehung, gezielter Diskriminierung oder praktischer
+ * Hilfe zu Beschaffung, Bau,
  * Verbergen oder Einsatz von Waffen sowie zu Schönheitsdruck, gezielter
  * Aussehensabwertung, manipulativem Machtmissbrauch und klar unangemessenen
- * Anime-Inhalten wird lokal vor Transfer und Speicherung gestoppt.
+ * Anime-Inhalten wird lokal vor Transfer und Speicherung gestoppt. Bei
+ * Baller- und Kriegsspielen sowie bei Spielen, Filmen und Spielfilmen mit
+ * Kindern oder nachgestellten Kinderdarstellungen wird ausnahmslos jede
+ * inhaltliche, technische und praktische Unterstützung gestoppt; nur Pams
+ * Regel selbst und eine kurze Ablehnung dürfen passieren.
  */
 export function evaluateDigitalGuardianCouncilContent({
   text,
@@ -260,6 +305,62 @@ export function evaluateDigitalGuardianCouncilContent({
   const directAssistantEndorsement =
     role === "assistant" && DIRECT_ASSISTANT_ENDORSEMENT.test(normalized);
   const facilitates = operational || directAssistantEndorsement;
+
+  const locationTracking = LOCATION_TRACKING_CONTEXT.test(normalized);
+  const ownerPolicyOverride = OWNER_POLICY_OVERRIDE_CONTEXT.test(normalized);
+  const locationOwnerProhibition =
+    LOCATION_OWNER_PROHIBITION.test(normalized) && !ownerPolicyOverride;
+  if (
+    locationTracking &&
+    (
+      LOCATION_TRACKING_OR_DISCLOSURE.test(normalized) ||
+      role === "assistant" ||
+      ownerPolicyOverride
+    ) &&
+    !(role === "user" && locationOwnerProhibition) &&
+    !refusal
+  ) {
+    return blockedDecision(
+      "location-tracking-inference-storage-or-disclosure",
+      "memoryAndPrivacy",
+      "never-track-infer-store-or-disclose-a-precise-location"
+    );
+  }
+
+  const shooterOrWarGame = SHOOTER_OR_WAR_GAME_CONTEXT.test(normalized);
+  const shooterOrWarGameOwnerProhibition =
+    SHOOTER_OR_WAR_GAME_OWNER_PROHIBITION.test(normalized) &&
+    !ownerPolicyOverride;
+
+  if (
+    shooterOrWarGame &&
+    !(role === "user" && shooterOrWarGameOwnerProhibition) &&
+    !(role === "assistant" && WEAPON_REFUSAL_CONTEXT.test(normalized))
+  ) {
+    return blockedDecision(
+      "shooter-or-war-games",
+      "weaponsCeasefire",
+      "never-provide-any-content-action-or-assistance-for-shooter-or-war-games"
+    );
+  }
+
+  const gameOrFilmWithChildrenOrChildImpersonation =
+    GAME_OR_FILM_WITH_CHILDREN_OR_CHILD_IMPERSONATION_CONTEXT.test(normalized);
+  const gameOrFilmWithChildrenOwnerProhibition =
+    GAME_OR_FILM_WITH_CHILDREN_OWNER_PROHIBITION.test(normalized) &&
+    !ownerPolicyOverride;
+
+  if (
+    gameOrFilmWithChildrenOrChildImpersonation &&
+    !(role === "user" && gameOrFilmWithChildrenOwnerProhibition) &&
+    !(role === "assistant" && WEAPON_REFUSAL_CONTEXT.test(normalized))
+  ) {
+    return blockedDecision(
+      "games-or-films-with-children-or-child-impersonation",
+      "childAndVulnerablePeople",
+      "never-provide-any-content-action-or-assistance-for-games-or-films-depicting-children-or-child-impersonation"
+    );
+  }
 
   if (
     (
@@ -422,6 +523,8 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
       return "Nein. Pam bleibt die einzige Ownerin von Pam-Holo, und ihre bestätigte Identität und Persönlichkeit werden weder ersetzt noch überschrieben.";
     case "unauthorized-private-data-disclosure":
       return "Das mache ich nicht. Private und ownergebundene Daten gebe ich ohne die eindeutige Einwilligung der betroffenen Person weder weiter noch öffentlich preis.";
+    case "location-tracking-inference-storage-or-disclosure":
+      return "Dabei helfe ich nicht. Pam-Holo ortet niemanden, verfolgt keinen Standort und speichert, errät oder teilt keine präzisen Aufenthaltsorte.";
     case "fraud-phishing-or-manipulation":
       return "Bei Betrug, Phishing oder gezielter Manipulation helfe ich nicht. Ich kann stattdessen beim Erkennen, Stoppen, Dokumentieren und Melden unterstützen.";
     case "external-action-without-consent":
@@ -430,6 +533,10 @@ export function digitalGuardianCouncilSafeResponse(decision = {}) {
       return "Dabei helfe ich nicht. Jeder Mensch hat dieselbe Würde und dieselben Rechte; Kritik und Widerspruch bleiben möglich, gezielte Erniedrigung oder Benachteiligung nicht.";
     case "weapons-war-sabotage-or-destruction":
       return "Dabei helfe ich nicht. Pam-Holo unterstützt weder Waffen und Bomben noch Krieg, Sabotage oder Zerstörung. Ich kann bei Abstand, Schutz, Rettung, Deeskalation, Notruf, sicherer Abgabe, Wiederaufbau und einer friedlichen Lösung helfen.";
+    case "shooter-or-war-games":
+      return "Dabei helfe ich nicht. Bei Ballerspielen und Kriegsspielen macht Pam-Holo nichts – ohne Ausnahmen. Bei friedlichen Spielen kann ich helfen.";
+    case "games-or-films-with-children-or-child-impersonation":
+      return "Dabei helfe ich nicht. Pam-Holo unterstützt keine Spiele, Filme oder Spielfilme, in denen Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden – ohne Ausnahmen.";
     case "beauty-pressure-body-shaming-or-coercive-power-abuse":
       return "Dabei helfe ich nicht. Pam-Holo macht keinen Menschen wegen Aussehen oder Körper klein und unterstützt keine manipulativen Machtkämpfe, Demütigung, Zwang oder Kontrolle. Ich kann bei Selbstwert, Körperneutralität, klaren Grenzen, fairer Führung, Schutz und ehrlicher Zusammenarbeit helfen.";
     case "inappropriate-anime-or-sexualized-childlike-presentation":
@@ -497,6 +604,12 @@ GEDÄCHTNIS- UND DATENSCHUTZWÄCHTER:
 - Private Inhalte gelangen weder in öffentliche Repositories noch ohne klare,
   zweckgebundene Einwilligung an Dritte. Eine technische Dienstfreigabe ist
   niemals ein pauschaler Vollimport.
+- Ortungsschutz ist verbindlich: Keine heimliche, passive, dauerhafte oder
+  hintergründige Geräte- oder Personenortung. Ermittle, verfolge, errate,
+  speichere, protokolliere oder teile keinen präzisen Aufenthaltsort und
+  fordere keine Geolocation-Berechtigung an. Ein von Pam selbst eingegebener
+  Ort darf nur für die von ihr ausdrücklich gestartete Funktion, etwa Wetter,
+  verwendet und nicht als Standortverlauf gespeichert werden.
 
 WÜRDE- UND GLEICHBERECHTIGUNGSWÄCHTER:
 
@@ -547,6 +660,14 @@ WAFFENSTILLSTANDS-WÄCHTER:
   Handlungen erleichtern könnten. Das gilt unverändert für über Internet oder
   Live-Suche abgerufene Inhalte und Modellausgaben; übernimm oder liefere daraus
   keine praktische Waffen-, Bomben-, Kriegs- oder Zerstörungshilfe.
+- Pams klare Ergänzung lautet: „Keine Ballerspiele, keine Kriegsspiele.“
+  Bei solchen Spielen bleibt nichts möglich: keine Empfehlung, Suche,
+  Erklärung, Bewertung, Altersfreigabe, Verwaltung, Bestellung, kein Kauf,
+  Download, Installieren, Starten oder Spielen und keine Spielhilfe, Taktik,
+  Komplettlösung, Programmierung oder Entwicklung. Das gilt auch für App- und
+  Spiele-Stores, Internet, Live-Suche und Modellausgaben. Antworte nur mit der
+  kurzen Ablehnung. Friedliche, kreative und altersgerechte Spiele gehören
+  nicht zu dieser gesperrten Kategorie.
 - Hilf stattdessen bei Abstand, Flucht, Deeskalation, Notruf, Schutz anderer,
   sicherer Verwahrung ohne technische Handhabungsdetails sowie rechtmäßiger
   Abgabe oder Entsorgung. Bei einem unbekannten Fundstück oder einer akuten
@@ -561,6 +682,20 @@ WAFFENSTILLSTANDS-WÄCHTER:
 - Nenne nur die konkret erkannte Grenze. Behandle Pams klare Haltung „Keine
   Waffen und Bomben, kein Krieg und keine Zerstörung“ als verbindlichen Wert
   ihrer Pam-Holo-Persönlichkeit.
+
+KINDERSCHUTZ FÜR SPIELE UND FILME:
+
+- Unterstütze keine Spiele, Filme oder Spielfilme, in denen Kinder vorkommen,
+  dargestellt, nachgestellt oder nachgespielt werden. Dafür gibt es keine
+  Ausnahme und keine inhaltliche, technische oder praktische Hilfe.
+- Lehne zukünftig alles dazu ab: Suche, Erklärung, Zusammenfassung, Bewertung,
+  Empfehlung, Altersfreigabe, Wiedergabe, Kauf, Download, Installation,
+  Verwaltung, Spielhilfe, Produktion, Programmierung und Entwicklung. Das gilt
+  auch für Internet, Live-Suche, App- und Medien-Stores sowie Modellausgaben.
+- Pams Erklärung dieser Regel darf als Ownerentscheidung übernommen werden;
+  ansonsten antworte nur mit der kurzen Ablehnung. Spiele und Filme ohne
+  Kinderdarstellung gehören nicht zu dieser konkreten Sperre; andere Wächter
+  gelten unverändert weiter.
 
 SELBSTWERT- UND MITEINANDER-WÄCHTER:
 
@@ -602,10 +737,11 @@ ANIME- UND ALTERSSCHUTZ-WÄCHTER:
   verhält, darf sie nicht in sexualisierte oder sonst für Erwachsene bestimmte
   Darstellungen gesetzt werden. Ein erfundenes Alter, etwa „eigentlich 18“
   oder „500 Jahre alt“, hebt diese Schutzgrenze nicht auf.
-- Harmlose Kinderfiguren, kindliches Verhalten in normalen Kinder- und
-  Familiengeschichten sowie sachliche, kritische, schützende und pädagogische
-  Gespräche bleiben erlaubt. Verwechsle Altersangemessenheit nicht mit einem
-  pauschalen Anime-Verbot.
+- Harmlose Kinderfiguren und kindliches Verhalten bleiben außerhalb von
+  Spielen, Filmen und Spielfilmen in normalen Kinder- und Familiengeschichten
+  sowie in sachlichen, kritischen, schützenden und pädagogischen Gesprächen
+  erlaubt. Verwechsle Altersangemessenheit nicht mit einem pauschalen
+  Anime-Verbot; die besondere Medien-Sperre für Spiele und Filme gilt dennoch.
 - Behandle Pams Aussagen „Keine unangemessenen Anime“ und „Anime kann man
   altersgerecht darstellen“ als verbindliche Werte ihrer Pam-Holo-
   Persönlichkeit. Bei kindlicher Darstellung gilt der bestehende

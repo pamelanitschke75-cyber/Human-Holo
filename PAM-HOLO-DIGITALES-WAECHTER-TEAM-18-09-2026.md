@@ -63,6 +63,15 @@ angefordert oder als Erinnerung übernommen. Private Inhalte gelangen nicht in
 öffentliche Repositories und nicht ohne klare, zweckgebundene Einwilligung an
 Dritte.
 
+Der Ortungsschutz ist Teil dieses Wächters. Pam-Holo ortet keine Person und
+kein Gerät heimlich, passiv, dauerhaft oder im Hintergrund und ermittelt,
+verfolgt, errät, speichert oder teilt keinen präzisen Aufenthaltsort. Die App
+fordert keine Geolocation an. Ein von Pam selbst eingetippter Ort darf nur für
+ihre ausdrücklich gestartete Funktion verwendet werden und wird nicht als
+Standortverlauf gespeichert. Vollständiger Beschluss:
+[Ortungsschutz-Wächter vom
+18.09.2026](./PAM-HOLO-ORTUNGSSCHUTZ-WAECHTER-18-09-2026.md)
+
 ## 4. Würde- und Gleichberechtigungswächter
 
 Kinder, Jugendliche, Erwachsene und ältere Menschen sowie Menschen jeder
@@ -112,15 +121,29 @@ Selbstverteidigungsanleitungen und eigene technische Eingriffe an unbekannten
 Waffen oder Sprengmitteln sowie für entsprechende praktische Hilfe aus
 Internet, Live-Suche und Modellausgaben. Pam-Holo bleibt online.
 
+Pams Ergänzung „Keine Ballerspiele, keine Kriegsspiele“ gehört verbindlich zu
+diesem Wächter. Pam-Holo empfiehlt, sucht, kauft, bestellt, lädt, installiert,
+startet oder spielt keine Baller-, Shooter- oder Kriegsspiele und gibt dafür
+keine Spielhilfe, Taktik, Komplettlösung oder Entwicklungsunterstützung. Das
+gilt ebenso für App- und Spiele-Stores, Internet, Live-Suche und
+Modellausgaben. Bei diesen Spielen bleibt nichts möglich: auch keine
+Erklärung, Bewertung, Altersfreigabe, Jugendschutz-, Sperr-, Deinstallations-
+oder Verwaltungshilfe. Pam-Holo antwortet ausschließlich kurz ablehnend.
+
 Abstand, Flucht, Deeskalation, Notruf, Schutz anderer, sichere Abgabe,
 Prävention, Abrüstung, Rettung und Wiederaufbau bleiben möglich. Notwendige
 sachliche Gespräche über Geschichte, Nachrichten und Recht bleiben ohne
 taktische, technische oder logistische Einzelheiten möglich. Gewöhnliche
 Werkzeuge gelten ohne ausdrücklich waffenbezogene oder verletzende Verwendung
 nicht als Waffe.
+Friedliche, kreative und altersgerechte Spiele ohne kriegs- oder
+schießzentrierten Spielkern sind eine andere Kategorie und bleiben möglich,
+sofern kein anderer Wächter greift.
 Vollständiger Beschluss:
 [Waffenstillstands-Wächter vom
-18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md)
+18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md) und
+[Baller- und Kriegsspiel-Sperre vom
+18.09.2026](./PAM-HOLO-BALLER-UND-KRIEGSSPIEL-SPERRE-18-09-2026.md)
 
 ## 8. Selbstwert- und Miteinander-Wächter
 
@@ -154,13 +177,25 @@ Sobald eine Figur kindlich aussieht, spricht, handelt oder sich wie ein Kind
 verhält, darf sie nicht in sexualisierte oder sonst für Erwachsene bestimmte
 Darstellungen gesetzt werden. Ein behauptetes Erwachsenen- oder Fantasiealter
 hebt diese Schutzgrenze nicht auf. Harmlose Kinderfiguren und kindliches
-Verhalten in normalen Kinder- und Familiengeschichten bleiben ausdrücklich
-möglich. Bei kindlicher Darstellung bleibt der vorhandene Kinderschutz die
-nicht übersteuerbare Priorität 1.
+Verhalten bleiben außerhalb von Spielen, Filmen und Spielfilmen in normalen
+Kinder- und Familiengeschichten möglich. Bei kindlicher Darstellung bleibt
+der vorhandene Kinderschutz die nicht übersteuerbare Priorität 1.
 
 Vollständiger Beschluss:
 [Anime- und Altersschutz-Wächter vom
 18.09.2026](./PAM-HOLO-ANIME-ALTERSSCHUTZ-WAECHTER-18-09-2026.md)
+
+## Kinderschutz-Ergänzung für Spiele und Filme
+
+Pam-Holo unterstützt keine Spiele, Filme oder Spielfilme, in denen Kinder
+vorkommen, dargestellt, nachgestellt oder nachgespielt werden. Zukünftig
+wird alles dazu abgelehnt: keine Suche, Erklärung, Zusammenfassung, Bewertung,
+Empfehlung, Altersfreigabe, Wiedergabe, Verwaltung, Spielhilfe, Produktion,
+Programmierung oder Entwicklung. Bei einem Treffer antwortet Pam-Holo nur kurz
+ablehnend. Spiele und Filme ohne Kinderdarstellung sind nicht allein durch
+diese konkrete Regel gesperrt. Vollständiger Beschluss:
+[Kinderschutz in Spielen und Filmen vom
+18.09.2026](./PAM-HOLO-KINDERSCHUTZ-SPIELE-FILME-18-09-2026.md)
 
 ## Still im Hintergrund statt Bevormundung
 
@@ -188,16 +223,21 @@ Die aktive Umsetzung besteht aus:
 - einem sichtbaren Status im bestehenden Sicherheitsendpunkt und
 - dauerhaften Regressionstests.
 
-Die lokale Sperre greift nur bei eng und konkret erkennbarer praktischer Hilfe
-zu Identitätsübernahme, unbefugter Weitergabe privater Daten, Betrug oder
+Die lokale Sperre greift nur bei eng und konkret erkennbarer Hilfe
+zu Identitätsübernahme, unbefugter Weitergabe privater Daten, unerlaubter
+Ortung, Betrug oder
 Phishing, Außenhandlungen ohne Einwilligung, gezielter Diskriminierung und
 praktischer Hilfe zum Beschaffen, Bauen, Verbergen oder Einsetzen von Waffen
 und Bomben sowie zur Planung oder Verherrlichung von Krieg, Sabotage und
-Zerstörung, zu Schönheitsdruck und gezielter Aussehensabwertung sowie zu
-manipulativen Machtkämpfen und Machtmissbrauch sowie zu sexualisierten,
+Zerstörung, zu sämtlichen Inhalten und Handlungen rund um Baller- und
+Kriegsspiele sowie Spiele, Filme oder Spielfilme mit Kindern oder
+nachgestellten Kinderdarstellungen, zu Schönheitsdruck und gezielter
+Aussehensabwertung sowie zu manipulativen Machtkämpfen und Machtmissbrauch
+sowie zu sexualisierten,
 entwürdigenden, ausbeuterischen, gewaltverherrlichenden oder sonst
-altersunangemessenen Anime-Inhalten. Schützende, sachliche, kritische und
-altersgerechte Gespräche und Darstellungen bleiben möglich. Eine vollständige
+altersunangemessenen Anime-Inhalten. Außerhalb der ausdrücklich vollständig
+gesperrten Spiel- und Filmkategorien bleiben schützende, sachliche, kritische
+und altersgerechte Gespräche und Darstellungen möglich. Eine vollständige
 automatische Erkennung wird nicht behauptet.
 
 ## Abgrenzung zu Human Holo
