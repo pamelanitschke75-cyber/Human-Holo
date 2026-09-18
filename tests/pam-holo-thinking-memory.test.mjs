@@ -355,7 +355,7 @@ test("Pams Schmerz-Zickig-Sprachlogik ist dokumentiert und im README verlinkt", 
   );
   assert.match(
     readme,
-    /Verständnis und logisches\s+Denken[\s\S]*keine bloße Übersetzung/u
+    /Verständnis und logisches\s+Denken[\s\S]*keine\s+bloße Übersetzung/u
   );
 });
 
