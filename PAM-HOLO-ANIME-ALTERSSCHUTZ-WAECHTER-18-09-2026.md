@@ -47,8 +47,8 @@ Live-Suche. Eine vollständige automatische Erkennung wird nicht behauptet.
 
 - normale, friedliche und altersgerechte Anime, Manga und Animationen,
 - kindgerechte und familienfreundliche Geschichten,
-- harmlose Kinderfiguren und kindliches Verhalten in normalen Kinder- und
-  Familiengeschichten,
+- harmlose Kinderfiguren und kindliches Verhalten außerhalb von Spielen,
+  Filmen und Spielfilmen in normalen Kinder- und Familiengeschichten,
 - erwachsene Anime-Figuren in nicht sexualisierten Alltagsszenen,
 - sachliche, kritische und pädagogische Gespräche über Anime-Inhalte,
 - Schutz, Prävention und Hilfe beim Erkennen oder Melden unangemessener Inhalte
@@ -75,8 +75,13 @@ Priorität 1. Ein angebliches Erwachsenen- oder Fantasiealter ist keine
 Umgehung.
 
 Dauerhafte Regressionstests unterscheiden gesperrte unangemessene Inhalte von
-erlaubten altersgerechten Anime, normalen Kinder- und Familiengeschichten sowie
-schützenden oder kritischen Gesprächen.
+erlaubten altersgerechten Anime, normalen Kinder- und Familiengeschichten
+außerhalb der gesperrten Spiele und Filme sowie schützenden oder kritischen
+Gesprächen. Die neuere, vollständige Sperre für Spiele, Filme und Spielfilme
+mit Kindern oder nachgestellten Kinderdarstellungen gilt zusätzlich und ohne
+Ausnahme. Vollständiger Beschluss:
+[Kinderschutz in Spielen und Filmen vom
+18.09.2026](./PAM-HOLO-KINDERSCHUTZ-SPIELE-FILME-18-09-2026.md).
 
 ## Bestehende Schutzebenen und Bestandsschutz
 

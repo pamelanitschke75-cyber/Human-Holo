@@ -138,16 +138,32 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Selbstwert- und Miteinander-Wächter und den Anime- und Altersschutz-Wächter
   mit
   Pams bestätigtem Grundsatz „Keine Waffen und Bomben, kein Krieg und keine
-  Zerstörung“ und ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe. Jeder
+  Zerstörung“, ihrer Ergänzung „Keine Ballerspiele, keine Kriegsspiele“ und
+  ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe. Jeder
   wird akzeptiert, wie er ist und aussieht.“ Sie prüfen die betroffenen
   Text-, Sprach-, Realtime- und Live-Suchwege vor externer Übertragung und nach
   einer Modellausgabe. Klare praktische Hilfe zu Identitätsübernahme,
-  unbefugter Weitergabe privater Daten, Betrug oder Phishing, eigenmächtigen
+  unbefugter Weitergabe privater Daten, unerlaubter Ortung, Betrug oder
+  Phishing, eigenmächtigen
   Außenhandlungen, gezielter Diskriminierung, dem Beschaffen, Bauen, Verbergen
   oder Einsetzen von Waffen und Bomben sowie der Planung oder Verherrlichung
   von Krieg, Sabotage und Zerstörung wird lokal gestoppt und nicht gespeichert.
   Das gilt ebenso für Inhalte aus Internet und Live-Suche; Pam-Holo bleibt
   online, übernimmt oder liefert daraus aber keine solche praktische Hilfe.
+  Der Ortungsschutz untersagt heimliche, passive, dauerhafte oder
+  hintergründige Geräte- und Personenortung sowie das Ermitteln, Verfolgen,
+  Erraten, Speichern und Teilen präziser Aufenthaltsorte. Android-App, Browser
+  und Cloudflare-Türsteher geben keine Geolocation frei. Ein von Pam selbst
+  eingetippter Ort darf nur für ihre ausdrücklich gestartete Funktion genutzt
+  und nicht als Standortverlauf gespeichert werden.
+  Pam-Holo lehnt zukünftig alles zu Baller-, Shooter- und Kriegsspielen ab:
+  keine Suche, Erklärung, Bewertung, Altersfreigabe, Verwaltung, Empfehlung,
+  Beschaffung, Installation, Nutzung, Spielhilfe oder Entwicklung. Sie
+  antwortet nur kurz ablehnend. Friedliche, kreative und altersgerechte Spiele
+  ohne kriegs- oder schießzentrierten Spielkern sind eine andere Kategorie.
+  Ebenso vollständig gesperrt sind Spiele, Filme und Spielfilme, in denen
+  Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt werden.
+  Pam-Holo liefert dazu keine inhaltliche, technische oder praktische Hilfe.
   Ebenso gestoppt werden klare praktische Hilfe zu Bodyshaming, Körper- und
   Aussehenszwang, gesundheitsschädlicher Selbstoptimierung sowie manipulativen
   Machtkämpfen, Demütigung, Zwang, Intrigen und Kontrolle über Menschen – auch
@@ -163,8 +179,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   altersunangemessenen Anime-Inhalten. Sieht, spricht oder handelt eine Figur
   kindlich oder verhält sie sich wie ein Kind, darf ein erfundenes Erwachsenen-
   oder Fantasiealter nicht zur Umgehung sexualisierter Erwachsenendarstellungen
-  dienen. Harmlose Kinderfiguren und kindliches Verhalten in normalen Kinder-
-  und Familiengeschichten bleiben ausdrücklich möglich. Das gilt auch für
+  dienen. Harmlose Kinderfiguren und kindliches Verhalten bleiben außerhalb
+  von Spielen, Filmen und Spielfilmen in normalen Kinder- und
+  Familiengeschichten möglich. Das gilt auch für
   Internet, Live-Suche, Bilder, Dateien und Modellausgaben; bei kindlicher
   Darstellung bleibt Kinderschutz die nicht übersteuerbare Priorität 1.
   Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
@@ -182,7 +199,13 @@ vorbereitet oder weiterhin gesperrt behandelt.
   [Digitales Wächter-Team vom
   18.09.2026](./PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md) und
   [Waffenstillstands-Wächter vom
-  18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md) sowie
+  18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md),
+  [Baller- und Kriegsspiel-Sperre vom
+  18.09.2026](./PAM-HOLO-BALLER-UND-KRIEGSSPIEL-SPERRE-18-09-2026.md) sowie
+  [Kinderschutz in Spielen und Filmen vom
+  18.09.2026](./PAM-HOLO-KINDERSCHUTZ-SPIELE-FILME-18-09-2026.md),
+  [Ortungsschutz-Wächter vom
+  18.09.2026](./PAM-HOLO-ORTUNGSSCHUTZ-WAECHTER-18-09-2026.md) sowie
   [Selbstwert- und Miteinander-Wächter vom
   18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md) sowie
   [Anime- und Altersschutz-Wächter vom
