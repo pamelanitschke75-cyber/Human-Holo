@@ -131,12 +131,14 @@ vorbereitet oder weiterhin gesperrt behandelt.
   Vollständiger Beschluss:
   [Meinungsfreiheit und generationenübergreifende Gleichberechtigung vom
   18.09.2026](./PAM-HOLO-MEINUNGSFREIHEIT-WAECHTER-18-09-2026.md)
-- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt sieben weitere
+- **Zusätzliches digitales Wächter-Team:** Pam-Holo besitzt jetzt acht weitere
   aktive innere Wächter: Wahrheit und Fakten, Identität und Persönlichkeit,
   Gedächtnis und Datenschutz, Würde und Gleichberechtigung, Manipulation und
-  Betrug, Handlungen und Einwilligung sowie den Waffenstillstands-Wächter mit
+  Betrug, Handlungen und Einwilligung, den Waffenstillstands-Wächter sowie den
+  Selbstwert- und Miteinander-Wächter mit
   Pams bestätigtem Grundsatz „Keine Waffen und Bomben, kein Krieg und keine
-  Zerstörung“. Sie prüfen die betroffenen
+  Zerstörung“ und ihrer Haltung „Kein Schönheitswahn. Keine Machtkämpfe. Jeder
+  wird akzeptiert, wie er ist und aussieht.“ Sie prüfen die betroffenen
   Text-, Sprach-, Realtime- und Live-Suchwege vor externer Übertragung und nach
   einer Modellausgabe. Klare praktische Hilfe zu Identitätsübernahme,
   unbefugter Weitergabe privater Daten, Betrug oder Phishing, eigenmächtigen
@@ -145,6 +147,13 @@ vorbereitet oder weiterhin gesperrt behandelt.
   von Krieg, Sabotage und Zerstörung wird lokal gestoppt und nicht gespeichert.
   Das gilt ebenso für Inhalte aus Internet und Live-Suche; Pam-Holo bleibt
   online, übernimmt oder liefert daraus aber keine solche praktische Hilfe.
+  Ebenso gestoppt werden klare praktische Hilfe zu Bodyshaming, Körper- und
+  Aussehenszwang, gesundheitsschädlicher Selbstoptimierung sowie manipulativen
+  Machtkämpfen, Demütigung, Zwang, Intrigen und Kontrolle über Menschen – auch
+  aus Internet, Live-Suche oder Modellausgaben. Eigener Stil, freiwillige
+  Pflege, Mode, Kosmetik, Selbstwert, klare Grenzen, faire Führung,
+  unterschiedliche Meinungen, offene Konfliktklärung und fairer Wettbewerb
+  bleiben möglich.
   Sicherheit, Abstand, Deeskalation, Notruf, rechtmäßige Abgabe, Abrüstung,
   Rettung, Wiederaufbau und notwendige nicht-operative Sachgespräche bleiben
   möglich. Das Team
@@ -160,7 +169,9 @@ vorbereitet oder weiterhin gesperrt behandelt.
   [Digitales Wächter-Team vom
   18.09.2026](./PAM-HOLO-DIGITALES-WAECHTER-TEAM-18-09-2026.md) und
   [Waffenstillstands-Wächter vom
-  18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md)
+  18.09.2026](./PAM-HOLO-WAFFENSTILLSTANDS-WAECHTER-18-09-2026.md) sowie
+  [Selbstwert- und Miteinander-Wächter vom
+  18.09.2026](./PAM-HOLO-SELBSTWERT-MITEINANDER-WAECHTER-18-09-2026.md)
 - **Privater medizinischer Eigentest:** Der begrenzte medizinische Test ist nur
   für Pams eigenes Holo freigegeben. Er ist keine medizinische oder sonstige
   Freigabe des offiziellen Human Holo.
