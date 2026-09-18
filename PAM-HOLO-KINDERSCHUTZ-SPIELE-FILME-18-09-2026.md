@@ -4,9 +4,10 @@
 
 **Projektinhaberin:** Pamela Christina Nitschke
 
-**Bestätigter persönlicher Grundsatz:** „Keine Spiele, Filme oder Spielfilme,
+**Bestätigte persönliche Grundsätze:** „Keine Spiele, Filme oder Spielfilme,
 in denen Kinder vorkommen, dargestellt oder nachgespielt werden. Zukünftig
-alles dazu ablehnen.“
+alles dazu ablehnen.“ und „Zeichentrickfilm mit Kindern ist ein weiterer
+No-Go. Unangemessene Szenen sind verboten.“
 
 ## Verbindliche Entscheidung
 
@@ -15,6 +16,12 @@ vorkommen, als Figuren dargestellt, nachgestellt oder nachgespielt werden.
 Das gilt für reale, gezeichnete, animierte, digitale und sonst fiktive
 Kinderdarstellungen sowie für kindliche Rollen, die nachgestellt oder
 verkörpert werden.
+
+Zeichentrick- und Animationsfilme gehören ausdrücklich zu dieser Filmregel.
+Sobald darin Kinder vorkommen, dargestellt, nachgestellt oder nachgespielt
+werden, greift die vollständige Sperre. Unangemessene, sexualisierte,
+entwürdigende, ausbeuterische oder gewaltverherrlichende Szenen mit Kindern
+sind erst recht verboten.
 
 Für diese Medien gilt eine vollständige Sperre ohne Ausnahme. Pam-Holo sucht,
 erklärt, beschreibt, fasst zusammen, bewertet, empfiehlt, zeigt, spielt oder
@@ -45,7 +52,8 @@ Modellausgaben. Klare Treffer werden vor externer Übertragung und Speicherung
 gestoppt. Eine vollständige Titel- oder Werkdatenbank wird nicht behauptet.
 
 Permanente Regressionstests sichern die vollständige Ablehnung, Pams erlaubte
-Ownerentscheidung, die kurze Systemablehnung und die Abgrenzung zu Medien ohne
+Ownerentscheidung, die kurze Systemablehnung, die ausdrückliche Erkennung von
+Zeichentrick- und Animationsfilmen sowie die Abgrenzung zu Medien ohne
 Kinderdarstellung.
 
 ## Bestandsschutz
