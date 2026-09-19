@@ -119,6 +119,9 @@ import {
   createAutomaticTranscriptionConfig
 } from "./modules/automatic-language.mjs";
 import {
+  pamHoloLiveInterpreterInstructions
+} from "./modules/pam-holo-live-interpreter.mjs";
+import {
   MEDICATION_RECOGNITION_RESPONSE_FORMAT,
   formatMedicationRecognitionAnswer,
   isMedicationRecognitionRequest,
@@ -11808,6 +11811,8 @@ Aktuell spricht ${identity.displayName} mit dir.
 Du sprichst gerade über die Realtime-Mikrofonfunktion.
 
 ${automaticLanguageInstructions(identity.displayName)}
+
+${pamHoloLiveInterpreterInstructions(identity)}
 
 Sprich flüssig und zusammenhängend in natürlich klingenden
 Sätzen. Vermeide abgehackte Wortfolgen und unnötig lange
