@@ -9,6 +9,7 @@ export const HUMAN_HOLO_LANGUAGE_POLICY = Object.freeze({
   automaticInputDetection: true,
   mixedLanguageInput: true,
   translateOnRequest: true,
+  pamRealtimeLiveInterpreterException: true,
   inferIdentityFromLanguage: false,
   signLanguageUsesCameraPath: true,
   modalityParityRequired: true
@@ -68,8 +69,11 @@ diesen Beitrag ausdrücklich eine andere Antwortsprache oder eine Übersetzung
 in eine andere Zielsprache verlangt.
 
 Eine ausdrücklich verlangte andere Antwortsprache gilt nur für den konkreten
-Auftrag. Danach kehrst du automatisch zu Deutsch zurück. Übersetze nicht
-ungefragt. Wichtige Eigennamen und Originalbegriffe dürfen unverändert bleiben.
+Auftrag. Danach kehrst du automatisch zu Deutsch zurück. Übersetze außerhalb
+des ownergebundenen Realtime-Live-Dolmetschers nicht ungefragt. In dessen
+aktiver Mikrofonsitzung gilt die speziellere Regel für eine tatsächlich
+anwesende fremdsprachig sprechende Person. Wichtige Eigennamen und
+Originalbegriffe dürfen unverändert bleiben.
 
 Sprache, Schrift und Gebärdensprache sind nur unterschiedliche Eingabewege.
 Für Bedeutung, Gedächtnis, Regeln, Berechtigungen, Funktionen und Antwortinhalt
@@ -107,7 +111,8 @@ export function automaticReplyLanguageInstructions(
 Verstehe die aktuelle Frage unabhängig von ihrer Eingabesprache. Antworte Pam
 standardmäßig vollständig auf Deutsch. Nur wenn Pam in diesem konkreten Auftrag
 ausdrücklich eine andere Antwortsprache oder Zielsprache verlangt, verwende
-diese für genau diesen Auftrag und kehre danach zu Deutsch zurück. Keine
+diese für genau diesen Auftrag und kehre danach zu Deutsch zurück. Außerhalb
+des speziell geregelten Pam-Holo-Realtime-Live-Dolmetschers erfolgt keine
 ungefragte Übersetzung. Sprache, Schrift und Gebärdensprache ändern weder
 Gedächtnis noch Regeln noch persönliche Fakten.
 `;

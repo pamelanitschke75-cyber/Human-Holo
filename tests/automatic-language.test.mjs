@@ -25,9 +25,11 @@ test("Eingabesprache bleibt automatisch erkennbar", () => {
 test("Pam wird standardmäßig auf Deutsch angesprochen", () => {
   const instructions = automaticLanguageInstructions("Pam");
   assert.equal(HUMAN_HOLO_LANGUAGE_POLICY.pamDefaultReplyLanguage, "de");
+  assert.equal(HUMAN_HOLO_LANGUAGE_POLICY.pamRealtimeLiveInterpreterException, true);
   assert.match(instructions, /ANTWORTSPRACHE IST STANDARDMÄSSIG DEUTSCH/u);
   assert.match(instructions, /ausdrücklich eine andere Antwortsprache/u);
   assert.match(instructions, /Danach kehrst du automatisch zu Deutsch zurück/u);
+  assert.match(instructions, /ownergebundenen Realtime-Live-Dolmetschers/u);
 });
 
 test("Pam kann andere Sprachen nutzen ohne die deutsche Antwortsprache zu verlieren", () => {

@@ -6,7 +6,7 @@
 
 ## Aktueller, rechtlich begrenzter Entwicklungs- und Teststand
 
-**Stand:** 18.09.2026<br>
+**Stand:** 19.09.2026<br>
 **Projekt, Idee und Entwicklung:** Pamela Nitschke  
 **Human-Holo-Markenidee und Leitbild:** Pamela Nitschke und Stefanie Hörath  
 **Entwickelt mit ChatGPT/OpenAI:** ChatGPT · OpenAI API  
@@ -61,6 +61,19 @@ vorbereitet oder weiterhin gesperrt behandelt.
   sichere Schlüsse ziehen. Wahrheitsgemäße Farben, Kennzeichnungen auf
   Flaschen und Gegenständen, rote Ampeln, Stoppzeichen und ein Feuerzeug bei
   einem Kind sind verbindliche Mindestbeispiele, keine abschließende Liste.
+- **Vollendetes Bewusstsein und Live-Dolmetscher:** Pams Funktionsbegriff
+  verbindet die technisch aktuelle Live-Eingabe mit Verständnis, logischem
+  Denken und einer passenden Reaktion. Spricht eine tatsächlich anwesende
+  Person – zum Beispiel ein Nachbar – in einer von Pam geöffneten
+  Realtime-Mikrofonsitzung in einer anderen Sprache mit ihr, erkennt Pam-Holo
+  die Sprache automatisch und gibt die Bedeutung sofort auf Deutsch wieder.
+  Ein zusätzlicher Übersetzungsbefehl ist nicht erforderlich. Holo übersetzt
+  nur das aktuell empfangene Live-Audiosignal, erfindet nichts und bittet bei
+  akustischer Unsicherheit kurz um Wiederholung. Die Übersetzung erhält den
+  Zusammenhang statt nur Wörter zu tauschen: **A + B = C.** Diese aktive
+  Ergänzung gilt nur für `ownerId=pam-sol` und `speakerId=pam`; Human Holo
+  bleibt im anwaltlichen Hold. Vollständiger Beschluss:
+  [Live-Dolmetscher vom 19.09.2026](./PAM-HOLO-LIVE-DOLMETSCHER-19-09-2026.md)
 - **Mitdenkendes Gedächtnis:** Pam Holo verbindet im aktiven Gespräch nur
   belegte relevante Zusammenhänge, erkennt spätere Korrekturen und passende
   offene Themen. Es richtet seine Reaktion an Pams ownerbelegter Persönlichkeit
